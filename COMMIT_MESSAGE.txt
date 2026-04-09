@@ -1,0 +1,4 @@
+chore: bootstrap SalonApp platform foundation
+
+Adds Next.js 14 (TS strict + Tailwind), multi-tenant middleware, Supabase schema migration (RLS), core types/schemas, and initial icon assets.
+
