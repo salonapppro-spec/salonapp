@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
-
 import type { SalonData } from "@/types/database";
 import {
   activeSpecialists,

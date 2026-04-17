@@ -1,8 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import Link from "next/link";
-
 import type { SalonData } from "@/types/database";
 import type { Service } from "@/types/database";
 import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
