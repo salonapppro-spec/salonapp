@@ -87,7 +87,7 @@ const faqs = [
 export default function Home() {
   return (
     <div
-      className={`${playfair.variable} ${inter.variable} min-h-screen bg-[#F5F5F0] text-[#1A1A1A]`}
+      className={`${playfair.variable} ${inter.variable} min-h-screen bg-[#EAD5C4] text-[#1A1A1A]`}
       style={{ fontFamily: "var(--font-inter), system-ui, sans-serif" }}
     >
       <style>{`
@@ -100,7 +100,7 @@ export default function Home() {
       `}</style>
 
       {/* ── HEADER ── */}
-      <header className="fixed top-0 left-0 right-0 z-40 border-b border-[#1A1A1A]/8 bg-[#F5F5F0]/90 backdrop-blur-md">
+      <header className="fixed top-0 left-0 right-0 z-40 border-b border-[#1A1A1A]/8 bg-[#EAD5C4]/90 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3 sm:px-6">
           <Link
             href="/get-started"
@@ -121,7 +121,7 @@ export default function Home() {
       <main className="pt-[57px]">
 
         {/* ── HERO ── */}
-        <section className="relative overflow-hidden bg-[#F5F5F0] px-4 pb-20 pt-2 sm:px-6 md:pb-28 md:pt-6">
+        <section className="relative overflow-hidden bg-[#EAD5C4] px-4 pb-20 pt-2 sm:px-6 md:pb-28 md:pt-6">
           {/* Giant decorative text behind */}
           <span
             className="pointer-events-none absolute -right-8 top-8 select-none text-[18vw] font-black leading-none text-[#1A1A1A]/[0.025] md:text-[14vw]"
@@ -247,7 +247,7 @@ export default function Home() {
         </section>
 
         {/* ── PLANS ── */}
-        <section className="bg-[#F5F5F0] px-4 py-16 sm:px-6 md:py-24">
+        <section className="bg-[#EAD5C4] px-4 py-16 sm:px-6 md:py-24">
           <div className="mx-auto max-w-6xl">
             <div className="border-b border-[#1A1A1A]/10 pb-8">
               <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C9A84C]">
@@ -321,7 +321,7 @@ export default function Home() {
       </main>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-[#1A1A1A]/10 bg-[#F5F5F0]">
+      <footer className="border-t border-[#1A1A1A]/10 bg-[#EAD5C4]">
         <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
           <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
             <div>
