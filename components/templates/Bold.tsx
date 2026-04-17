@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import type { SalonData } from "@/types/database";
@@ -16,21 +16,6 @@ const BGN_RATE = 1.956;
 
 function eurToBgn(eur: number): string {
   return (eur * BGN_RATE).toFixed(2);
-}
-
-function useFadeUp() {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { el.classList.add("vis"); obs.unobserve(el); } },
-      { threshold: 0.08 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return ref;
 }
 
 export function Bold({ data }: { data: SalonData }) {

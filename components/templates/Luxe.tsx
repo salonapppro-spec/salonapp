@@ -859,7 +859,7 @@ export function Luxe({ data }: { data: SalonData }) {
               </h2>
             </div>
             <div className="gallery-grid">
-              {gallery.map((g, i) => (
+              {gallery.map((g) => (
                 <div className="g-item" key={g.id}>
                   <div className="g-item-inner">
                     {/* eslint-disable-next-line @next/next/no-img-element */}

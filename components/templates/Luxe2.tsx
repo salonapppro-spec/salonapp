@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 
 import type { SalonData, Service } from "@/types/database";
@@ -25,21 +25,6 @@ function fmtDuration(min: number): string {
   return m ? `${h} ч ${m} мин` : `${h} ч`;
 }
 
-function useFadeUp() {
-  const ref = useRef<HTMLDivElement>(null);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(
-      ([e]) => { if (e.isIntersecting) { el.classList.add("vis"); obs.unobserve(el); } },
-      { threshold: 0.08 }
-    );
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return ref;
-}
-
 function ServiceRow({ service, index }: { service: Service; index: number }) {
   const icon = SERVICE_ICONS[index % SERVICE_ICONS.length];
   return (
@@ -56,7 +41,7 @@ function ServiceRow({ service, index }: { service: Service; index: number }) {
 }
 
 export function Luxe2({ data }: { data: SalonData }) {
-  const { tenant, services, gallery, workingHours, specialists } = data;
+  const { tenant, gallery, workingHours } = data;
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 

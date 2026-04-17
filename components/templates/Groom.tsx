@@ -62,7 +62,7 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
 }
 
 export function Groom({ data }: { data: SalonData }) {
-  const { tenant, services, gallery, workingHours, specialists } = data;
+  const { tenant, gallery, workingHours } = data;
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [pawsVisible, setPawsVisible] = useState(false);
