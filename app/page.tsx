@@ -5,6 +5,7 @@ import { Playfair_Display, Inter } from "next/font/google";
 import FaqAccordion from "@/components/FaqAccordion";
 import ProblemsSection from "@/components/landing/ProblemsSection";
 import PlansSection from "@/components/landing/PlansSection";
+import TemplatesSection from "@/components/landing/TemplatesSection";
 
 const playfair = Playfair_Display({
   subsets: ["latin", "cyrillic"],
@@ -230,6 +231,9 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* ── TEMPLATES — "Избери своя стил" ── */}
+        <TemplatesSection />
 
         {/* ── PROBLEMS — alternating image/text ── */}
         <section>
