@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
 
 import type { SalonData } from "@/types/database";
 import {
@@ -884,21 +885,26 @@ export function Luxe({ data }: { data: SalonData }) {
         </section>
       )}
 
-      {/* BOOKING CTA */}
+      {/* BOOKING */}
       <div className="booking-cta" id="booking">
         <div className="container">
-          <p className="section-tag" style={{ display: "block", textAlign: "center" }}>Запишете час</p>
+          <p className="section-tag" style={{ display: "block", textAlign: "center" }}>Онлайн записване</p>
           <div className="divider divider-center" />
           <h2 className="booking-cta-title">
             Готова ли сте за<br />
             <em>трансформацията</em>?
           </h2>
           <p className="booking-cta-sub">
-            Изберете услуга, дата и час — онлайн, бързо и лесно.
+            Попълнете формата и ще получите потвърждение скоро.
           </p>
-          <Link className="btn btn-solid" href={`/${tenant.salon_slug}/booking`}>
-            Резервирай онлайн
-          </Link>
+          <InlineBookingForm
+            salonSlug={tenant.salon_slug}
+            services={services}
+            primaryColor="var(--gold)"
+            textColor="#f5f0e8"
+            bgColor="rgba(255,255,255,0.05)"
+            isDemo={tenant.salon_slug.startsWith("demo/")}
+          />
         </div>
       </div>
 

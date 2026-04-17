@@ -10,6 +10,7 @@ import {
   servicesForSpecialist,
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
+import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
 
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
@@ -219,7 +220,7 @@ export function Luxe2({ data }: { data: SalonData }) {
               {hasGallery && <a href="#gallery">Галерия</a>}
               <a href="#contact">Контакти</a>
             </nav>
-            <Link href={`/${tenant.salon_slug}/booking`} className="btn-g hcta">Запишете час</Link>
+            <a href="#booking" className="btn-g hcta">Запишете час</a>
             <button className="burger" onClick={() => setMobileOpen(!mobileOpen)}>
               <span /><span /><span />
             </button>
@@ -230,7 +231,7 @@ export function Luxe2({ data }: { data: SalonData }) {
               <a href="#services" onClick={() => setMobileOpen(false)}>Услуги</a>
               {hasGallery && <a href="#gallery" onClick={() => setMobileOpen(false)}>Галерия</a>}
               <a href="#contact" onClick={() => setMobileOpen(false)}>Контакти</a>
-              <Link href={`/${tenant.salon_slug}/booking`} className="btn-g">Запишете час ✦</Link>
+              <a href="#booking" className="btn-g">Запишете час ✦</a>
             </nav>
           )}
         </header>
@@ -246,7 +247,7 @@ export function Luxe2({ data }: { data: SalonData }) {
             </h1>
             <p>{tenant.description}</p>
             <div className="hero-ctas">
-              <Link href={`/${tenant.salon_slug}/booking`} className="btn-g">Запишете час</Link>
+              <a href="#booking" className="btn-g">Запишете час</a>
               <a href="#services" className="btn-o">Разгледайте услугите</a>
             </div>
           </div>
@@ -364,12 +365,22 @@ export function Luxe2({ data }: { data: SalonData }) {
           </section>
         )}
 
-        {/* BOOKING BANNER */}
-        <section className="bkb">
+        {/* BOOKING */}
+        <section id="booking" className="bkb">
           <div className="cnt">
-            <h2>Готови ли сте за <em>трансформацията</em>?</h2>
-            <p>Запазете час онлайн — бързо и лесно.</p>
-            <Link href={`/${tenant.salon_slug}/booking`} className="btn-g">Запишете час онлайн</Link>
+            <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+              <span className="eyebrow">Онлайн записване</span>
+              <h2 className="stitle">Запазете своя <em>час</em></h2>
+              <p className="ssub" style={{ margin: "0 auto" }}>Попълнете формата и ще получите потвърждение скоро.</p>
+            </div>
+            <InlineBookingForm
+              salonSlug={tenant.salon_slug}
+              services={flatServices}
+              primaryColor={gold}
+              textColor="var(--dark)"
+              bgColor="rgba(255,255,255,0.8)"
+              isDemo={tenant.salon_slug.startsWith("demo/")}
+            />
           </div>
         </section>
 

@@ -10,6 +10,7 @@ import {
   servicesForSpecialist,
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
+import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
 
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
@@ -399,9 +400,9 @@ export function Bold({ data }: { data: SalonData }) {
         <a onClick={() => goTo("pricing")}>Цени</a>
         {gallery.length > 0 && <a onClick={() => goTo("gallery")}>Работа</a>}
         <a onClick={() => goTo("contact")}>Контакти</a>
-        <Link className="btn-red" href={`/${tenant.salon_slug}/booking`} onClick={() => setMobileOpen(false)}>
+        <a className="btn-red" href="#booking" onClick={() => setMobileOpen(false)}>
           Запиши се
-        </Link>
+        </a>
       </div>
 
       {/* NAV */}
@@ -415,7 +416,7 @@ export function Bold({ data }: { data: SalonData }) {
           {gallery.length > 0 && <li><a onClick={() => goTo("gallery")}>Работа</a></li>}
           <li><a onClick={() => goTo("contact")}>Контакти</a></li>
         </ul>
-        <Link className="nav-btn" href={`/${tenant.salon_slug}/booking`}>Запиши се</Link>
+        <a className="nav-btn" href="#booking">Запиши се</a>
         <button className="hamburger" onClick={() => setMobileOpen(true)}>
           <span /><span /><span />
         </button>
@@ -433,7 +434,7 @@ export function Bold({ data }: { data: SalonData }) {
             <p className="hero-desc">{tenant.description}</p>
           )}
           <div className="hero-actions">
-            <Link className="btn-red" href={`/${tenant.salon_slug}/booking`}>Запиши час</Link>
+            <a className="btn-red" href="#booking">Запиши час</a>
             <button className="btn-outline-white" onClick={() => goTo("pricing")}>Вижте цените</button>
           </div>
         </div>
@@ -530,7 +531,7 @@ export function Bold({ data }: { data: SalonData }) {
             </div>
           )}
           <div style={{ textAlign: "center", marginTop: "3rem" }}>
-            <Link className="btn-red" href={`/${tenant.salon_slug}/booking`}>Запиши час</Link>
+            <a className="btn-red" href="#booking">Запиши час</a>
           </div>
         </div>
       </section>
@@ -564,12 +565,21 @@ export function Bold({ data }: { data: SalonData }) {
         </section>
       )}
 
-      {/* BOOKING CTA */}
+      {/* BOOKING */}
       <div className="booking-cta" id="booking">
-        <div className="container">
-          <h2 className="cta-title">ГОТОВ ЛИ СИ?</h2>
-          <p className="cta-sub">Запиши час онлайн — бързо и лесно.</p>
-          <Link className="btn-black" href={`/${tenant.salon_slug}/booking`}>ЗАПИШИ ЧАС СЕГА</Link>
+        <div className="container" style={{ position: "relative" }}>
+          <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+            <h2 className="cta-title">ЗАПАЗИ <span>ЧАС</span></h2>
+            <p className="cta-sub">Попълнете формата и ще получите потвърждение скоро.</p>
+          </div>
+          <InlineBookingForm
+            salonSlug={tenant.salon_slug}
+            services={services}
+            primaryColor={primary}
+            textColor="#F0F0F0"
+            bgColor="rgba(255,255,255,0.05)"
+            isDemo={tenant.salon_slug.startsWith("demo/")}
+          />
         </div>
       </div>
 

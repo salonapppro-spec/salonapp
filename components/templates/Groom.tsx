@@ -10,6 +10,7 @@ import {
   servicesForSpecialist,
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
+import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
 
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
@@ -279,9 +280,9 @@ export function Groom({ data }: { data: SalonData }) {
         <a href="#services" onClick={() => setMobileOpen(false)}>Услуги</a>
         {hasGallery && <a href="#gallery" onClick={() => setMobileOpen(false)}>Галерия</a>}
         <a href="#contact" onClick={() => setMobileOpen(false)}>Контакти</a>
-        <Link href={`/${tenant.salon_slug}/booking`} className="btn-capu" onClick={() => setMobileOpen(false)}>
+        <a href="#booking" className="btn-capu" onClick={() => setMobileOpen(false)}>
           🐾 Запиши час
-        </Link>
+        </a>
       </div>
 
       {/* NAV */}
@@ -295,7 +296,7 @@ export function Groom({ data }: { data: SalonData }) {
           {hasGallery && <li><a href="#gallery">Галерия</a></li>}
           <li><a href="#contact">Контакти</a></li>
         </ul>
-        <Link href={`/${tenant.salon_slug}/booking`} className="nav-btn">🐾 Запиши час</Link>
+        <a href="#booking" className="nav-btn">🐾 Запиши час</a>
         <button className="hamburger" onClick={() => setMobileOpen(true)}>
           <span /><span /><span />
         </button>
@@ -320,7 +321,7 @@ export function Groom({ data }: { data: SalonData }) {
             </h1>
             <p className="hero-desc">{tenant.description}</p>
             <div className="hero-actions">
-              <Link href={`/${tenant.salon_slug}/booking`} className="btn-capu">🐾 Запиши час</Link>
+              <a href="#booking" className="btn-capu">🐾 Запиши час</a>
               <a href="#services" className="btn-outline-cream">Вижте услугите</a>
             </div>
           </div>
@@ -394,7 +395,7 @@ export function Groom({ data }: { data: SalonData }) {
             )}
           </div>
           <div style={{ textAlign: "center", marginTop: "3rem" }}>
-            <Link href={`/${tenant.salon_slug}/booking`} className="btn-capu">🐾 Запишете час</Link>
+            <a href="#booking" className="btn-capu">🐾 Запишете час</a>
           </div>
         </div>
       </section>
@@ -426,15 +427,22 @@ export function Groom({ data }: { data: SalonData }) {
         </section>
       )}
 
-      {/* BOOKING CTA */}
-      <div className="booking-cta">
+      {/* BOOKING */}
+      <div className="booking-cta" id="booking">
         <div className="cta-paws">🐾</div>
-        <div className="container">
-          <h2 className="cta-title">
-            Вашият любимец чака<br /><em>своя ред!</em>
-          </h2>
-          <p className="cta-sub">Запишете час онлайн — бързо и лесно.</p>
-          <Link href={`/${tenant.salon_slug}/booking`} className="btn-capu">🐾 Запиши час сега</Link>
+        <div className="container" style={{ position: "relative" }}>
+          <div style={{ textAlign: "center", marginBottom: "2.5rem" }}>
+            <h2 className="cta-title">Запишете <em>час</em></h2>
+            <p className="cta-sub">Попълнете формата и ще получите потвърждение скоро.</p>
+          </div>
+          <InlineBookingForm
+            salonSlug={tenant.salon_slug}
+            services={flatServices}
+            primaryColor={capu}
+            textColor="#FDF5ED"
+            bgColor="rgba(255,255,255,0.08)"
+            isDemo={tenant.salon_slug.startsWith("demo/")}
+          />
         </div>
       </div>
 

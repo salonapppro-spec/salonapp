@@ -7,6 +7,7 @@ import {
   servicesForSpecialist,
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
+import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
 
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
@@ -194,34 +195,28 @@ export function Bloom({ data }: { data: SalonData }) {
         </div>
       </section>
 
-      {/* ── BOOKING CTA ── */}
+      {/* ── BOOKING ── */}
       <section id="booking" style={{ backgroundColor: "#fff", padding: "64px 24px" }}>
-        <div style={{ maxWidth: "560px", margin: "0 auto", textAlign: "center" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "8px" }}>
-            Запази час
-          </h2>
-          <p style={{ color: textLight, marginBottom: "40px" }}>
-            Изберете услуга, дата и час — потвърждение на имейл.
-          </p>
-          <Link
-            href={`/${tenant.salon_slug}/booking`}
-            style={{
-              display: "inline-block",
-              backgroundColor: primary,
-              color: "#fff",
-              padding: "18px 48px",
-              borderRadius: "12px",
-              textDecoration: "none",
-              fontSize: "17px",
-              fontWeight: 700,
-              boxShadow: `0 4px 24px ${primary}55`,
-            }}
-          >
-            Запази час онлайн →
-          </Link>
-          <p style={{ marginTop: "16px", fontSize: "13px", color: textLight }}>
-            Онлайн резервации 24/7 · потвърждение на имейл · напомняне преди часа
-          </p>
+        <div style={{ maxWidth: "560px", margin: "0 auto" }}>
+          <div style={{ textAlign: "center", marginBottom: "36px" }}>
+            <p style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: primary, marginBottom: "8px" }}>
+              Онлайн записване
+            </p>
+            <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "8px" }}>
+              Запазете своя час
+            </h2>
+            <p style={{ color: textLight, fontSize: "15px" }}>
+              Попълнете формата и ще получите имейл потвърждение в рамките на минути.
+            </p>
+          </div>
+          <InlineBookingForm
+            salonSlug={tenant.salon_slug}
+            services={services}
+            primaryColor={primary}
+            textColor={text}
+            bgColor="#fafafa"
+            isDemo={tenant.salon_slug.startsWith("demo/")}
+          />
         </div>
       </section>
 

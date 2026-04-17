@@ -5,6 +5,7 @@ import Link from "next/link";
 
 import type { SalonData } from "@/types/database";
 import type { Service } from "@/types/database";
+import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
 import {
   activeSpecialists,
   servicesFlatForPublic,
@@ -349,9 +350,9 @@ export function Zen({ data }: { data: SalonData }) {
         <a onClick={() => goTo("services")}>Услуги</a>
         {gallery.length > 0 && <a onClick={() => goTo("gallery")}>Галерия</a>}
         <a onClick={() => goTo("contact")}>Контакти</a>
-        <Link className="btn-green" href={`/${tenant.salon_slug}/booking`} onClick={() => setMobileOpen(false)}>
+        <a className="btn-green" href="#booking" onClick={() => setMobileOpen(false)}>
           Резервирай
-        </Link>
+        </a>
       </div>
 
       {/* NAV */}
@@ -365,7 +366,7 @@ export function Zen({ data }: { data: SalonData }) {
           {gallery.length > 0 && <li><a onClick={() => goTo("gallery")}>Галерия</a></li>}
           <li><a onClick={() => goTo("contact")}>Контакти</a></li>
         </ul>
-        <Link className="nav-btn" href={`/${tenant.salon_slug}/booking`}>Резервирай</Link>
+        <a className="nav-btn" href="#booking">Резервирай</a>
         <button className="hamburger" onClick={() => setMobileOpen(true)}>
           <span /><span /><span />
         </button>
@@ -390,7 +391,7 @@ export function Zen({ data }: { data: SalonData }) {
           <p className="hero-sub">{tenant.description}</p>
         )}
         <div className="hero-btns">
-          <Link className="btn-green" href={`/${tenant.salon_slug}/booking`}>Запазете час</Link>
+          <a className="btn-green" href="#booking">Запазете час</a>
           <button className="btn-outline" onClick={() => goTo("services")}>Нашите ритуали</button>
         </div>
       </section>
@@ -454,9 +455,7 @@ export function Zen({ data }: { data: SalonData }) {
           )}
 
           <div style={{ textAlign: "center", marginTop: "3rem" }}>
-            <Link className="btn-green" href={`/${tenant.salon_slug}/booking`}>
-              Запишете час онлайн
-            </Link>
+            <a className="btn-green" href="#booking">Запишете час онлайн</a>
           </div>
         </div>
       </section>
@@ -492,16 +491,23 @@ export function Zen({ data }: { data: SalonData }) {
         </section>
       )}
 
-      {/* BOOKING CTA */}
+      {/* BOOKING */}
       <div className="booking-cta" id="booking">
         <div className="container">
-          <p className="tag" style={{ color: "rgba(245,240,232,.4)", display: "block", textAlign: "center" }}>Онлайн записване</p>
-          <div className="leaf-div leaf-center"><span style={{ color: "rgba(245,240,232,.2)" }}>🌿</span></div>
-          <h2 className="cta-title">
-            Подарете си момент<br />на <em>истинска почивка</em>
-          </h2>
-          <p className="cta-sub">Изберете терапия и запазете своя час онлайн.</p>
-          <Link className="btn-beige" href={`/${tenant.salon_slug}/booking`}>Резервирайте сега</Link>
+          <div style={{ textAlign: "center", marginBottom: "2.5rem", position: "relative" }}>
+            <p className="tag" style={{ color: "rgba(245,240,232,.5)", display: "block", textAlign: "center" }}>Онлайн записване</p>
+            <div className="leaf-div leaf-center"><span style={{ color: "rgba(245,240,232,.25)" }}>🌿</span></div>
+            <h2 className="cta-title">Запазете своя <em>час</em></h2>
+            <p className="cta-sub">Попълнете формата и ще получите потвърждение скоро.</p>
+          </div>
+          <InlineBookingForm
+            salonSlug={tenant.salon_slug}
+            services={services}
+            primaryColor={primary}
+            textColor="#F5F0E8"
+            bgColor="rgba(255,255,255,0.08)"
+            isDemo={tenant.salon_slug.startsWith("demo/")}
+          />
         </div>
       </div>
 
