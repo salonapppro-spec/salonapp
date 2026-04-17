@@ -8,7 +8,9 @@ import { loadPublicSalonData } from "@/lib/data";
 import { Bloom } from "@/components/templates/Bloom";
 import { Bold } from "@/components/templates/Bold";
 import { Clean } from "@/components/templates/Clean";
+import { Groom } from "@/components/templates/Groom";
 import { Luxe } from "@/components/templates/Luxe";
+import { Luxe2 } from "@/components/templates/Luxe2";
 import { Zen } from "@/components/templates/Zen";
 
 function resolveSlug(paramSlug: string): string {
@@ -28,6 +30,10 @@ function renderTemplate(template: Template, data: SalonData) {
       return <Zen data={data} />;
     case "bold":
       return <Bold data={data} />;
+    case "luxe2":
+      return <Luxe2 data={data} />;
+    case "groom":
+      return <Groom data={data} />;
     default:
       return <Bloom data={data} />;
   }
