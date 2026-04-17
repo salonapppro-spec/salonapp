@@ -1,18 +1,23 @@
 import { z } from "zod";
 
 const Base = z.object({
-  salon_slug: z.string().min(1),
+  /** Optional in admin POST; server overwrites from session. */
+  salon_slug: z.string().min(1, "Липсва салон").optional(),
   specialist_id: z.string().min(1).optional(),
-  name: z.string().min(1),
-  price_eur: z.number().nonnegative(),
+  name: z.string().min(1, "Въведете име на услугата"),
+  price_eur: z.number({ error: () => ({ message: "Невалидна цена" }) }).nonnegative("Цената не може да е отрицателна"),
   is_complex: z.boolean().default(false),
-  duration_minutes: z.number().int().positive().optional(),
-  active_start_min: z.number().int().nonnegative().optional(),
-  active_start_max: z.number().int().nonnegative().optional(),
-  waiting_min: z.number().int().nonnegative().optional(),
-  waiting_max: z.number().int().nonnegative().optional(),
-  active_finish_min: z.number().int().nonnegative().optional(),
-  active_finish_max: z.number().int().nonnegative().optional(),
+  duration_minutes: z
+    .number({ error: () => ({ message: "Невалидна продължителност" }) })
+    .int("Минутите са цяло число")
+    .positive("Продължителността трябва да е положителна")
+    .optional(),
+  active_start_min: z.number({ error: () => ({ message: "Невалидна стойност" }) }).int().nonnegative().optional(),
+  active_start_max: z.number({ error: () => ({ message: "Невалидна стойност" }) }).int().nonnegative().optional(),
+  waiting_min: z.number({ error: () => ({ message: "Невалидна стойност" }) }).int().nonnegative().optional(),
+  waiting_max: z.number({ error: () => ({ message: "Невалидна стойност" }) }).int().nonnegative().optional(),
+  active_finish_min: z.number({ error: () => ({ message: "Невалидна стойност" }) }).int().nonnegative().optional(),
+  active_finish_max: z.number({ error: () => ({ message: "Невалидна стойност" }) }).int().nonnegative().optional(),
 });
 
 export const CreateServiceSchema = Base.superRefine((val, ctx) => {
@@ -30,18 +35,15 @@ export const CreateServiceSchema = Base.superRefine((val, ctx) => {
         ctx.addIssue({
           code: z.ZodIssueCode.custom,
           path: [f],
-          message: "Required for complex services",
+          message: "Задължително за сложна услуга",
         });
       }
     }
-  } else {
-    if (val.duration_minutes === undefined) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["duration_minutes"],
-        message: "Required for simple services",
-      });
-    }
+  } else if (val.duration_minutes === undefined) {
+    ctx.addIssue({
+      code: z.ZodIssueCode.custom,
+      path: ["duration_minutes"],
+      message: "Задължително за проста услуга",
+    });
   }
 });
-

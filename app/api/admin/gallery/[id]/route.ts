@@ -1,0 +1,44 @@
+import { NextResponse } from "next/server";
+import { z } from "zod";
+
+import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+
+const PatchSchema = z.object({
+  order_index: z.number().int().nonnegative().optional(),
+  is_visible: z.boolean().optional(),
+  url: z.string().url().optional(),
+});
+
+export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const a = await requireAdminTenantSlugForApi();
+  if (!a.ok) return a.response;
+  const salonSlug = a.slug;
+  const { id } = await ctx.params;
+  const body = (await req.json().catch(() => null)) as unknown;
+  const parsed = PatchSchema.safeParse(body);
+  if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase
+    .from("gallery")
+    .update(parsed.data)
+    .eq("id", id)
+    .eq("salon_slug", salonSlug)
+    .select("*")
+    .maybeSingle();
+  if (error) return NextResponse.json({ error: "DB update failed" }, { status: 500 });
+  if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
+  return NextResponse.json({ item: data });
+}
+
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const a = await requireAdminTenantSlugForApi();
+  if (!a.ok) return a.response;
+  const salonSlug = a.slug;
+  const { id } = await ctx.params;
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase.from("gallery").delete().eq("id", id).eq("salon_slug", salonSlug);
+  if (error) return NextResponse.json({ error: "DB delete failed" }, { status: 500 });
+  return NextResponse.json({ ok: true });
+}

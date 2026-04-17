@@ -1,26 +1,9 @@
-import { unstable_cache } from "next/cache";
 import { headers } from "next/headers";
 
+import { getTenant } from "@/lib/get-tenant";
 import type { Tenant } from "@/types";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-server";
 
-export const getTenant = unstable_cache(
-  async (salonSlug: string): Promise<Tenant> => {
-    const supabase = createSupabaseServiceRoleClient();
-    const { data, error } = await supabase
-      .from("tenants")
-      .select("*")
-      .eq("salon_slug", salonSlug)
-      .limit(1)
-      .maybeSingle();
-
-    if (error) throw error;
-    if (!data) throw new Error(`Tenant not found for salon_slug='${salonSlug}'`);
-    return data as Tenant;
-  },
-  ["tenant-by-salon-slug"],
-  { revalidate: 60 }
-);
+export { getTenant } from "@/lib/get-tenant";
 
 export function getSalonSlugFromHeaders(): string | null {
   const h = headers();
@@ -32,6 +15,5 @@ export function getSalonSlugFromHeaders(): string | null {
 export async function getTenantFromRequest(): Promise<Tenant | null> {
   const slug = getSalonSlugFromHeaders();
   if (!slug) return null;
-  return await getTenant(slug);
+  return getTenant(slug);
 }
-

@@ -1,28 +1,38 @@
 import { z } from "zod";
 
-const HairLengthSchema = z.enum(["къса", "средна", "дълга"]);
-const HairDensitySchema = z.enum(["рядка", "средна", "гъста"]);
+const HairLengthSchema = z.enum(["short", "medium", "long"], {
+  error: () => ({ message: "Изберете дължина на косата" }),
+});
+const HairDensitySchema = z.enum(["thin", "medium", "thick"], {
+  error: () => ({ message: "Изберете гъстота на косата" }),
+});
 
 export const CreateBookingSchema = z.object({
-  salon_slug: z.string().min(1),
-  specialist_id: z.string().min(1).optional(),
-  service_id: z.string().uuid().optional(),
-  service_name: z.string().min(1),
-  service_price_eur: z.number().nonnegative(),
-  service_duration: z.number().int().positive(),
-  booking_date: z.string().min(1), // ISO date, validated at runtime in route
-  booking_time: z.string().min(1), // HH:mm
-  client_name: z.string().min(1),
-  client_phone: z.string().min(3).optional(),
-  client_email: z.string().email().optional(),
+  salon_slug: z.string().min(1, "Липсва салон"),
+  specialist_id: z.string().uuid().optional(),
+  service_id: z.string().uuid("Невалидна услуга").optional(),
+  service_name: z.string().min(1, "Въведете име на услуга"),
+  service_price_eur: z.number({ error: () => ({ message: "Невалидна цена" }) }).nonnegative("Цената не може да е отрицателна"),
+  service_duration: z
+    .number({ error: () => ({ message: "Невалидна продължителност" }) })
+    .int("Продължителността е цяло число минути")
+    .positive("Продължителността трябва да е положителна"),
+  booking_date: z.string().min(1, "Изберете дата"),
+  booking_time: z.string().min(1, "Изберете час"),
+  client_name: z.string().min(1, "Въведете име"),
+  client_phone: z.string().min(5, "Въведете телефон"),
+  client_email: z.string().email("Невалиден имейл").optional(),
   notes: z.string().optional(),
   hair_length: HairLengthSchema.optional(),
   hair_density: HairDensitySchema.optional(),
 });
 
-export const UpdateBookingStatusSchema = z.object({
-  salon_slug: z.string().min(1),
-  booking_id: z.string().uuid(),
-  status: z.enum(["pending", "confirmed", "completed", "cancelled", "no_show"]),
-});
+export type CreateBookingInput = z.infer<typeof CreateBookingSchema>;
 
+export const UpdateBookingStatusSchema = z.object({
+  salon_slug: z.string().min(1, "Липсва салон"),
+  booking_id: z.string().uuid("Невалидна резервация"),
+  status: z.enum(["pending", "confirmed", "completed", "cancelled", "no_show"], {
+    error: () => ({ message: "Невалиден статус" }),
+  }),
+});

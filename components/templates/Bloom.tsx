@@ -1,0 +1,338 @@
+import Link from "next/link";
+
+import type { SalonData } from "@/types/database";
+import {
+  activeSpecialists,
+  servicesFlatForPublic,
+  servicesForSpecialist,
+  useSpecialistSectionsOnPublicSite,
+} from "@/components/templates/salon-shared";
+
+const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
+const BGN_RATE = 1.956;
+function eurToBgn(eur: number): string {
+  return (eur * BGN_RATE).toFixed(2);
+}
+
+export function Bloom({ data }: { data: SalonData }) {
+  const { tenant, gallery } = data;
+
+  const primary = tenant.primary_color ?? "#C8826A";
+  const bg = "#FFF8F5";
+  const text = "#3D2B1F";
+  const textLight = "#7A5C4F";
+  const border = "#E8D5CC";
+
+  const heroTitle = tenant.hero_title ?? tenant.salon_name;
+  const heroSubtitle = tenant.hero_subtitle ?? "";
+  const multi = useSpecialistSectionsOnPublicSite(data);
+  const specs = activeSpecialists(data);
+  const services = servicesFlatForPublic(data);
+
+  return (
+    <div style={{ backgroundColor: bg, color: text, fontFamily: "Inter, sans-serif", minHeight: "100vh" }}>
+
+      {/* ── NAV ── */}
+      <nav style={{
+        backgroundColor: bg,
+        borderBottom: `1px solid ${border}`,
+        padding: "0 24px",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        height: "64px",
+        position: "sticky",
+        top: 0,
+        zIndex: 100,
+      }}>
+        <div>
+          {tenant.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={tenant.logo_url} alt={tenant.salon_name} style={{ height: "40px" }} />
+          ) : (
+            <span style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: primary, fontWeight: 600 }}>
+              {tenant.salon_name}
+            </span>
+          )}
+        </div>
+        <div style={{ display: "flex", gap: "24px", alignItems: "center" }}>
+          {[
+            { label: "За нас", href: "#about" },
+            { label: "Услуги", href: "#services" },
+            { label: "Галерия", href: "#gallery" },
+            { label: "Контакти", href: "#contacts" },
+          ].map((link) => (
+            <a key={link.href} href={link.href} style={{ color: textLight, textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>
+              {link.label}
+            </a>
+          ))}
+          <Link
+            href={`/${tenant.salon_slug}/booking`}
+            style={{ backgroundColor: primary, color: "#fff", padding: "10px 20px", borderRadius: "8px", textDecoration: "none", fontSize: "14px", fontWeight: 600 }}
+          >
+            Запази час
+          </Link>
+        </div>
+      </nav>
+
+      {/* ── HERO ── */}
+      <section style={{ padding: "80px 24px", textAlign: "center", maxWidth: "720px", margin: "0 auto" }}>
+        <h1 style={{ fontSize: "clamp(36px, 6vw, 64px)", fontWeight: 700, lineHeight: 1.15, color: text, marginBottom: "8px" }}>
+          {heroTitle}
+        </h1>
+        {heroSubtitle && (
+          <h2 style={{ fontSize: "clamp(28px, 5vw, 52px)", fontWeight: 700, lineHeight: 1.15, color: primary, marginBottom: "24px" }}>
+            {heroSubtitle}
+          </h2>
+        )}
+        {tenant.description && (
+          <p style={{ fontSize: "18px", color: textLight, marginBottom: "40px", lineHeight: 1.7 }}>
+            {tenant.description}
+          </p>
+        )}
+        <Link
+          href={`/${tenant.salon_slug}/booking`}
+          style={{
+            display: "inline-block",
+            backgroundColor: primary,
+            color: "#fff",
+            padding: "16px 40px",
+            borderRadius: "12px",
+            textDecoration: "none",
+            fontSize: "16px",
+            fontWeight: 600,
+            boxShadow: `0 4px 24px ${primary}55`,
+          }}
+        >
+          Запази час онлайн
+        </Link>
+      </section>
+
+      {/* ── ABOUT ── */}
+      {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && (
+        <section id="about" style={{ backgroundColor: "#fff", padding: "64px 24px" }}>
+          <div style={{ maxWidth: "800px", margin: "0 auto" }}>
+            <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "24px", textAlign: "center" }}>
+              За нас
+            </h2>
+            {tenant.about_image_url && (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                src={tenant.about_image_url}
+                alt="За нас"
+                style={{ width: "100%", maxHeight: "360px", objectFit: "cover", borderRadius: "16px", marginBottom: "24px" }}
+              />
+            )}
+            {tenant.about_text1 && (
+              <p style={{ fontSize: "16px", lineHeight: 1.8, color: textLight, marginBottom: "16px" }}>
+                {tenant.about_text1}
+              </p>
+            )}
+            {tenant.about_text2 && (
+              <p style={{ fontSize: "16px", lineHeight: 1.8, color: textLight }}>
+                {tenant.about_text2}
+              </p>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* ── SERVICES ── */}
+      <section id="services" style={{ padding: "64px 24px" }}>
+        <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "8px", textAlign: "center" }}>
+            Услуги и цени
+          </h2>
+          <p style={{ textAlign: "center", color: textLight, marginBottom: "40px" }}>
+            Всички цени са в EUR. BGN еквивалент при плащане в брой.
+          </p>
+
+          {multi ? (
+            specs.map((sp) => {
+              const list = servicesForSpecialist(data, sp.id);
+              if (list.length === 0) return null;
+              return (
+                <div key={sp.id} style={{ marginBottom: "40px" }}>
+                  <h3 style={{ fontSize: "22px", fontWeight: 700, color: text, marginBottom: "16px" }}>
+                    {sp.name}
+                  </h3>
+                  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
+                    {list.map((s) => (
+                      <div key={s.id} style={{ backgroundColor: "#fff", border: `1px solid ${border}`, borderRadius: "12px", padding: "24px" }}>
+                        <h3 style={{ fontSize: "17px", fontWeight: 600, color: text, marginBottom: "8px" }}>{s.name}</h3>
+                        <p style={{ fontSize: "13px", color: textLight, marginBottom: "16px" }}>
+                          {s.is_complex ? "Времето се уточнява" : `⏱ ${s.duration_minutes ?? 0} мин`}
+                        </p>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                          <span style={{ fontSize: "22px", fontWeight: 700, color: primary }}>{Number(s.price_eur).toFixed(0)} €</span>
+                          <span style={{ fontSize: "13px", color: textLight }}>≈ {eurToBgn(Number(s.price_eur))} лв</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              );
+            })
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
+              {services.length === 0 ? (
+                <p style={{ color: textLight, fontSize: "14px" }}>Няма активни услуги.</p>
+              ) : services.map((s) => (
+                <div key={s.id} style={{ backgroundColor: "#fff", border: `1px solid ${border}`, borderRadius: "12px", padding: "24px" }}>
+                  <h3 style={{ fontSize: "17px", fontWeight: 600, color: text, marginBottom: "8px" }}>{s.name}</h3>
+                  <p style={{ fontSize: "13px", color: textLight, marginBottom: "16px" }}>
+                    {s.is_complex ? "Времето се уточнява" : `⏱ ${s.duration_minutes ?? 0} мин`}
+                  </p>
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+                    <span style={{ fontSize: "22px", fontWeight: 700, color: primary }}>{Number(s.price_eur).toFixed(0)} €</span>
+                    <span style={{ fontSize: "13px", color: textLight }}>≈ {eurToBgn(Number(s.price_eur))} лв</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* ── BOOKING CTA ── */}
+      <section id="booking" style={{ backgroundColor: "#fff", padding: "64px 24px" }}>
+        <div style={{ maxWidth: "560px", margin: "0 auto", textAlign: "center" }}>
+          <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "8px" }}>
+            Запази час
+          </h2>
+          <p style={{ color: textLight, marginBottom: "40px" }}>
+            Изберете услуга, дата и час — потвърждение на имейл.
+          </p>
+          <Link
+            href={`/${tenant.salon_slug}/booking`}
+            style={{
+              display: "inline-block",
+              backgroundColor: primary,
+              color: "#fff",
+              padding: "18px 48px",
+              borderRadius: "12px",
+              textDecoration: "none",
+              fontSize: "17px",
+              fontWeight: 700,
+              boxShadow: `0 4px 24px ${primary}55`,
+            }}
+          >
+            Запази час онлайн →
+          </Link>
+          <p style={{ marginTop: "16px", fontSize: "13px", color: textLight }}>
+            Онлайн резервации 24/7 · потвърждение на имейл · напомняне преди часа
+          </p>
+        </div>
+      </section>
+
+      {/* ── WORKING HOURS + CONTACTS ── */}
+      <section id="contacts" style={{ padding: "64px 24px" }}>
+        <div style={{
+          maxWidth: "900px",
+          margin: "0 auto",
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          gap: "40px",
+        }}>
+          {/* Working hours */}
+          <div>
+            <h3 style={{ fontSize: "22px", fontWeight: 700, color: text, marginBottom: "20px" }}>Работно време</h3>
+            {data.workingHours.map((wh) => (
+              <div key={wh.id} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: `1px solid ${border}`, fontSize: "15px" }}>
+                <span style={{ color: text }}>{DAY_LABELS[wh.day_of_week]}</span>
+                <span style={{ color: primary, fontWeight: 600 }}>
+                  {wh.is_day_off ? "Почивен ден" : `${wh.start_time.slice(0, 5)} – ${wh.end_time.slice(0, 5)}`}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Contact info */}
+          <div>
+            <h3 style={{ fontSize: "22px", fontWeight: 700, color: text, marginBottom: "20px" }}>Контакти</h3>
+            <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
+              {tenant.address && (
+                <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", fontSize: "15px", color: textLight }}>
+                  <span>📍</span><span>{tenant.address}</span>
+                </div>
+              )}
+              {tenant.phone && (
+                <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", fontSize: "15px", color: textLight }}>
+                  <span>📞</span>
+                  <a href={`tel:${tenant.phone}`} style={{ color: primary, textDecoration: "none" }}>{tenant.phone}</a>
+                </div>
+              )}
+              {tenant.email && (
+                <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", fontSize: "15px", color: textLight }}>
+                  <span>✉️</span>
+                  <a href={`mailto:${tenant.email}`} style={{ color: primary, textDecoration: "none" }}>{tenant.email}</a>
+                </div>
+              )}
+              <div style={{ display: "flex", gap: "12px", marginTop: "8px", flexWrap: "wrap" }}>
+                {tenant.instagram_url && (
+                  <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer"
+                    style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${border}`, backgroundColor: "#fff", color: text, textDecoration: "none", fontSize: "13px", fontWeight: 500 }}>
+                    Instagram
+                  </a>
+                )}
+                {tenant.facebook_url && (
+                  <a href={tenant.facebook_url} target="_blank" rel="noopener noreferrer"
+                    style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${border}`, backgroundColor: "#fff", color: text, textDecoration: "none", fontSize: "13px", fontWeight: 500 }}>
+                    Facebook
+                  </a>
+                )}
+                {tenant.tiktok_url && (
+                  <a href={tenant.tiktok_url} target="_blank" rel="noopener noreferrer"
+                    style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${border}`, backgroundColor: "#fff", color: text, textDecoration: "none", fontSize: "13px", fontWeight: 500 }}>
+                    TikTok
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Google Maps */}
+        {tenant.google_maps_embed && (
+          <div style={{ maxWidth: "900px", margin: "40px auto 0", borderRadius: "16px", overflow: "hidden", border: `1px solid ${border}` }}>
+            {/* eslint-disable-next-line react/no-danger */}
+            <div dangerouslySetInnerHTML={{ __html: tenant.google_maps_embed }} />
+          </div>
+        )}
+      </section>
+
+      {/* ── GALLERY ── */}
+      {gallery.length > 0 && (
+        <section id="gallery" style={{ backgroundColor: "#fff", padding: "64px 24px" }}>
+          <div style={{ maxWidth: "900px", margin: "0 auto" }}>
+            <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "32px", textAlign: "center" }}>
+              Галерия
+            </h2>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "16px" }}>
+              {gallery.map((g) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={g.id}
+                  src={g.url}
+                  alt=""
+                  loading="lazy"
+                  style={{ width: "100%", height: "220px", objectFit: "cover", borderRadius: "12px", border: `1px solid ${border}` }}
+                />
+              ))}
+            </div>
+          </div>
+        </section>
+      )}
+
+      {/* ── FOOTER ── */}
+      <footer style={{ backgroundColor: text, color: "#fff", padding: "32px 24px", textAlign: "center" }}>
+        <p style={{ fontFamily: "Georgia, serif", fontSize: "20px", marginBottom: "8px" }}>{tenant.salon_name}</p>
+        <p style={{ fontSize: "13px", opacity: 0.6 }}>© {new Date().getFullYear()} {tenant.salon_name}. Всички права запазени.</p>
+        <p style={{ fontSize: "12px", opacity: 0.4, marginTop: "8px" }}>
+          Powered by{" "}
+          <a href="https://salonapp.pro" style={{ color: "#fff", textDecoration: "underline" }}>SalonApp.pro</a>
+        </p>
+      </footer>
+    </div>
+  );
+}

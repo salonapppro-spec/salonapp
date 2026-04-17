@@ -9,14 +9,22 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@react-email/components": "^1.0.12",
+    "@react-email/render": "^2.0.6",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.103.0",
+    "frame": "^1.0.0-alpha.2",
+    "framer-motion": "^12.38.0",
+    "luxon": "^3.7.2",
+    "motion": "^12.38.0",
     "next": "14.2.35",
     "react": "^18",
     "react-dom": "^18",
+    "twilio": "^5.13.1",
     "zod": "^4.3.6"
   },
   "devDependencies": {
+    "@types/luxon": "^3.7.1",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
