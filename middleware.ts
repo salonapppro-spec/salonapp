@@ -186,7 +186,8 @@ export async function middleware(request: NextRequest) {
   }
 
   if (isRootDomain(hostname) || isVercelDeploymentHost(hostname)) {
-    return response;
+    // Don't pass modified request headers — keeps static pages as static (no lambda required)
+    return NextResponse.next();
   }
 
   if (!supabaseUrl || !supabaseAnonKey) {
@@ -227,6 +228,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next|favicon.ico|robots.txt|sitemap.xml|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|css|js|map)$).*)",
+    "/((?!_next|favicon.ico|robots.txt|sitemap.xml|demo|get-started|unsubscribe|temporarily-unavailable|.*\\.(?:png|jpg|jpeg|gif|webp|svg|ico|css|js|map)$).*)",
   ],
 };

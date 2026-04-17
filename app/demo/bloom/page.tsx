@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import type { SalonData } from "@/types/database";
 import { Bloom } from "@/components/templates/Bloom";
 

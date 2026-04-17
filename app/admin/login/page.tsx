@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 
+export const dynamic = "force-dynamic";
+
 import { AdminLoginForm } from "./login-form";
 
 export default function AdminLoginPage() {

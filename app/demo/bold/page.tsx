@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import type { SalonData } from "@/types/database";
 import { Bold } from "@/components/templates/Bold";
 
