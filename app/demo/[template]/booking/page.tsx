@@ -1,0 +1,195 @@
+export const dynamic = "force-dynamic";
+import { notFound } from "next/navigation";
+import type { SalonData } from "@/types/database";
+import { BookingFlow } from "@/components/booking/BookingFlow";
+
+const DEMO_DATA: Record<string, SalonData> = {
+  bloom: {
+    tenant: {
+      id: "demo-bloom", salon_slug: "demo-bloom", salon_name: "Студио Шаблон", plan: "pro",
+      status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
+      stripe_subscription_id: null, domain: null, template: "bloom", primary_color: "#C8826A",
+      font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
+      phone: "+359 888 000 000", address: "ул. Примерна 1, гр. София",
+      description: "Демо салон", instagram_url: null, facebook_url: null, created_at: null,
+      hero_title: "Твоята красота,", hero_subtitle: "наша грижа", logo_url: null,
+      hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
+      email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
+      owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+    },
+    services: [
+      { id: "1", salon_slug: "demo-bloom", specialist_id: null, name: "Маникюр", price_eur: 18, duration_minutes: 60, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "2", salon_slug: "demo-bloom", specialist_id: null, name: "Педикюр", price_eur: 23, duration_minutes: 75, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "3", salon_slug: "demo-bloom", specialist_id: null, name: "Гел лак", price_eur: 28, duration_minutes: 90, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "4", salon_slug: "demo-bloom", specialist_id: null, name: "Nail Art", price_eur: 36, duration_minutes: 120, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+    ],
+    gallery: [],
+    workingHours: [
+      { id: "1", salon_slug: "demo-bloom", specialist_id: null, day_of_week: 1, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "2", salon_slug: "demo-bloom", specialist_id: null, day_of_week: 2, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "3", salon_slug: "demo-bloom", specialist_id: null, day_of_week: 3, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "4", salon_slug: "demo-bloom", specialist_id: null, day_of_week: 4, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "5", salon_slug: "demo-bloom", specialist_id: null, day_of_week: 5, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "6", salon_slug: "demo-bloom", specialist_id: null, day_of_week: 6, start_time: "10:00", end_time: "16:00", is_day_off: false },
+      { id: "7", salon_slug: "demo-bloom", specialist_id: null, day_of_week: 0, start_time: "00:00", end_time: "00:00", is_day_off: true },
+    ],
+    specialists: [],
+  },
+  luxe: {
+    tenant: {
+      id: "demo-luxe", salon_slug: "demo-luxe", salon_name: "Студио Елегант", plan: "pro",
+      status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
+      stripe_subscription_id: null, domain: null, template: "luxe", primary_color: "#C9A84C",
+      font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
+      phone: "+359 888 000 000", address: "ул. Примерна 1, гр. София",
+      description: "Демо луксозен салон", instagram_url: null, facebook_url: null, created_at: null,
+      hero_title: "Луксозна красота,", hero_subtitle: "твоят стил", logo_url: null,
+      hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
+      email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
+      owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+    },
+    services: [
+      { id: "1", salon_slug: "demo-luxe", specialist_id: null, name: "Маникюр", price_eur: 25, duration_minutes: 60, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "2", salon_slug: "demo-luxe", specialist_id: null, name: "Педикюр", price_eur: 35, duration_minutes: 75, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "3", salon_slug: "demo-luxe", specialist_id: null, name: "Козметика", price_eur: 50, duration_minutes: 90, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+    ],
+    gallery: [],
+    workingHours: [
+      { id: "1", salon_slug: "demo-luxe", specialist_id: null, day_of_week: 1, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "2", salon_slug: "demo-luxe", specialist_id: null, day_of_week: 2, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "3", salon_slug: "demo-luxe", specialist_id: null, day_of_week: 3, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "4", salon_slug: "demo-luxe", specialist_id: null, day_of_week: 4, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "5", salon_slug: "demo-luxe", specialist_id: null, day_of_week: 5, start_time: "10:00", end_time: "19:00", is_day_off: false },
+      { id: "6", salon_slug: "demo-luxe", specialist_id: null, day_of_week: 6, start_time: "10:00", end_time: "16:00", is_day_off: false },
+      { id: "7", salon_slug: "demo-luxe", specialist_id: null, day_of_week: 0, start_time: "00:00", end_time: "00:00", is_day_off: true },
+    ],
+    specialists: [],
+  },
+  luxe2: {
+    tenant: {
+      id: "demo-luxe2", salon_slug: "demo-luxe2", salon_name: "Студио Елит", plan: "pro",
+      status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
+      stripe_subscription_id: null, domain: null, template: "luxe2", primary_color: "#B8973A",
+      font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
+      phone: "+359 888 000 000", address: "бул. Витоша 42, гр. София",
+      description: "Демо фризьорски салон", instagram_url: null, facebook_url: null, created_at: null,
+      hero_title: "Коса, която", hero_subtitle: "говори", logo_url: null,
+      hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
+      email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
+      owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+    },
+    services: [
+      { id: "1", salon_slug: "demo-luxe2", specialist_id: null, name: "Дамско подстригване", price_eur: 40, duration_minutes: 60, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "2", salon_slug: "demo-luxe2", specialist_id: null, name: "Боядисване", price_eur: 65, duration_minutes: 90, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "3", salon_slug: "demo-luxe2", specialist_id: null, name: "Кичури", price_eur: 90, duration_minutes: 120, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+    ],
+    gallery: [],
+    workingHours: [
+      { id: "1", salon_slug: "demo-luxe2", specialist_id: null, day_of_week: 1, start_time: "09:00", end_time: "19:00", is_day_off: false },
+      { id: "2", salon_slug: "demo-luxe2", specialist_id: null, day_of_week: 2, start_time: "09:00", end_time: "19:00", is_day_off: false },
+      { id: "3", salon_slug: "demo-luxe2", specialist_id: null, day_of_week: 3, start_time: "09:00", end_time: "19:00", is_day_off: false },
+      { id: "4", salon_slug: "demo-luxe2", specialist_id: null, day_of_week: 4, start_time: "09:00", end_time: "19:00", is_day_off: false },
+      { id: "5", salon_slug: "demo-luxe2", specialist_id: null, day_of_week: 5, start_time: "09:00", end_time: "19:00", is_day_off: false },
+      { id: "6", salon_slug: "demo-luxe2", specialist_id: null, day_of_week: 6, start_time: "09:00", end_time: "17:00", is_day_off: false },
+      { id: "7", salon_slug: "demo-luxe2", specialist_id: null, day_of_week: 0, start_time: "00:00", end_time: "00:00", is_day_off: true },
+    ],
+    specialists: [],
+  },
+  bold: {
+    tenant: {
+      id: "demo-bold", salon_slug: "demo-bold", salon_name: "Bold Barber", plan: "pro",
+      status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
+      stripe_subscription_id: null, domain: null, template: "bold", primary_color: "#F97316",
+      font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
+      phone: "+359 888 000 000", address: "ул. Примерна 1, гр. София",
+      description: "Демо барбершоп", instagram_url: null, facebook_url: null, created_at: null,
+      hero_title: "Твоят стил,", hero_subtitle: "нашата прецизност", logo_url: null,
+      hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
+      email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
+      owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+    },
+    services: [
+      { id: "1", salon_slug: "demo-bold", specialist_id: null, name: "Мъжко подстригване", price_eur: 15, duration_minutes: 30, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "2", salon_slug: "demo-bold", specialist_id: null, name: "Брада", price_eur: 10, duration_minutes: 20, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "3", salon_slug: "demo-bold", specialist_id: null, name: "Пакет коса + брада", price_eur: 22, duration_minutes: 45, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+    ],
+    gallery: [],
+    workingHours: [
+      { id: "1", salon_slug: "demo-bold", specialist_id: null, day_of_week: 1, start_time: "09:00", end_time: "20:00", is_day_off: false },
+      { id: "2", salon_slug: "demo-bold", specialist_id: null, day_of_week: 2, start_time: "09:00", end_time: "20:00", is_day_off: false },
+      { id: "3", salon_slug: "demo-bold", specialist_id: null, day_of_week: 3, start_time: "09:00", end_time: "20:00", is_day_off: false },
+      { id: "4", salon_slug: "demo-bold", specialist_id: null, day_of_week: 4, start_time: "09:00", end_time: "20:00", is_day_off: false },
+      { id: "5", salon_slug: "demo-bold", specialist_id: null, day_of_week: 5, start_time: "09:00", end_time: "20:00", is_day_off: false },
+      { id: "6", salon_slug: "demo-bold", specialist_id: null, day_of_week: 6, start_time: "10:00", end_time: "18:00", is_day_off: false },
+      { id: "7", salon_slug: "demo-bold", specialist_id: null, day_of_week: 0, start_time: "00:00", end_time: "00:00", is_day_off: true },
+    ],
+    specialists: [],
+  },
+  zen: {
+    tenant: {
+      id: "demo-zen", salon_slug: "demo-zen", salon_name: "Zen Wellness", plan: "pro",
+      status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
+      stripe_subscription_id: null, domain: null, template: "zen", primary_color: "#5A8A5E",
+      font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
+      phone: "+359 888 000 000", address: "ул. Примерна 1, гр. София",
+      description: "Демо уелнес студио", instagram_url: null, facebook_url: null, created_at: null,
+      hero_title: "Намери своя", hero_subtitle: "баланс", logo_url: null,
+      hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
+      email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
+      owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+    },
+    services: [
+      { id: "1", salon_slug: "demo-zen", specialist_id: null, name: "Класически масаж", price_eur: 40, duration_minutes: 60, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "2", salon_slug: "demo-zen", specialist_id: null, name: "Релаксиращ масаж", price_eur: 55, duration_minutes: 90, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "3", salon_slug: "demo-zen", specialist_id: null, name: "Горещи камъни", price_eur: 70, duration_minutes: 90, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+    ],
+    gallery: [],
+    workingHours: [
+      { id: "1", salon_slug: "demo-zen", specialist_id: null, day_of_week: 1, start_time: "10:00", end_time: "20:00", is_day_off: false },
+      { id: "2", salon_slug: "demo-zen", specialist_id: null, day_of_week: 2, start_time: "10:00", end_time: "20:00", is_day_off: false },
+      { id: "3", salon_slug: "demo-zen", specialist_id: null, day_of_week: 3, start_time: "10:00", end_time: "20:00", is_day_off: false },
+      { id: "4", salon_slug: "demo-zen", specialist_id: null, day_of_week: 4, start_time: "10:00", end_time: "20:00", is_day_off: false },
+      { id: "5", salon_slug: "demo-zen", specialist_id: null, day_of_week: 5, start_time: "10:00", end_time: "20:00", is_day_off: false },
+      { id: "6", salon_slug: "demo-zen", specialist_id: null, day_of_week: 6, start_time: "10:00", end_time: "18:00", is_day_off: false },
+      { id: "7", salon_slug: "demo-zen", specialist_id: null, day_of_week: 0, start_time: "00:00", end_time: "00:00", is_day_off: true },
+    ],
+    specialists: [],
+  },
+  groom: {
+    tenant: {
+      id: "demo-groom", salon_slug: "demo-groom", salon_name: "Paw & Style", plan: "pro",
+      status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
+      stripe_subscription_id: null, domain: null, template: "groom", primary_color: "#C8956A",
+      font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
+      phone: "+359 888 000 000", address: "ул. Оборище 35, гр. София",
+      description: "Демо груминг салон", instagram_url: null, facebook_url: null, created_at: null,
+      hero_title: "Вашият любимец", hero_subtitle: "заслужава най-доброто", logo_url: null,
+      hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
+      email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
+      owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+    },
+    services: [
+      { id: "1", salon_slug: "demo-groom", specialist_id: null, name: "Пълен груминг (малка порода)", price_eur: 25, duration_minutes: 90, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "2", salon_slug: "demo-groom", specialist_id: null, name: "Пълен груминг (голяма порода)", price_eur: 45, duration_minutes: 120, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+      { id: "3", salon_slug: "demo-groom", specialist_id: null, name: "Миене и сушене", price_eur: 15, duration_minutes: 45, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
+    ],
+    gallery: [],
+    workingHours: [
+      { id: "1", salon_slug: "demo-groom", specialist_id: null, day_of_week: 1, start_time: "09:00", end_time: "18:00", is_day_off: false },
+      { id: "2", salon_slug: "demo-groom", specialist_id: null, day_of_week: 2, start_time: "09:00", end_time: "18:00", is_day_off: false },
+      { id: "3", salon_slug: "demo-groom", specialist_id: null, day_of_week: 3, start_time: "09:00", end_time: "18:00", is_day_off: false },
+      { id: "4", salon_slug: "demo-groom", specialist_id: null, day_of_week: 4, start_time: "09:00", end_time: "18:00", is_day_off: false },
+      { id: "5", salon_slug: "demo-groom", specialist_id: null, day_of_week: 5, start_time: "09:00", end_time: "18:00", is_day_off: false },
+      { id: "6", salon_slug: "demo-groom", specialist_id: null, day_of_week: 6, start_time: "10:00", end_time: "16:00", is_day_off: false },
+      { id: "7", salon_slug: "demo-groom", specialist_id: null, day_of_week: 0, start_time: "00:00", end_time: "00:00", is_day_off: true },
+    ],
+    specialists: [],
+  },
+};
+
+export default async function DemoBookingPage(props: { params: Promise<{ template: string }> }) {
+  const { template } = await props.params;
+  const data = DEMO_DATA[template];
+  if (!data) notFound();
+  return <BookingFlow salonData={data} />;
+}
