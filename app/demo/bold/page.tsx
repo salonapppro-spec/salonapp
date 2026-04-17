@@ -5,7 +5,7 @@ import { Bold } from "@/components/templates/Bold";
 const mockData: SalonData = {
   tenant: {
     id: "demo-bold",
-    salon_slug: "demo-bold",
+    salon_slug: "demo/bold",
     salon_name: "MasterCut",
     plan: "pro",
     status: "active",

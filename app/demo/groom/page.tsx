@@ -5,7 +5,7 @@ import { Groom } from "@/components/templates/Groom";
 const mockData: SalonData = {
   tenant: {
     id: "demo-groom",
-    salon_slug: "demo-groom",
+    salon_slug: "demo/groom",
     salon_name: "Paw & Style",
     plan: "pro",
     status: "active",

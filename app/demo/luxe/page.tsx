@@ -5,7 +5,7 @@ import { Luxe } from "@/components/templates/Luxe";
 const mockData: SalonData = {
   tenant: {
     id: "demo-luxe",
-    salon_slug: "demo-luxe",
+    salon_slug: "demo/luxe",
     salon_name: "Студио Елит",
     plan: "pro",
     status: "active",
