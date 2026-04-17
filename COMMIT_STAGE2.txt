@@ -1,0 +1,4 @@
+feat: add public tenant pages and booking API
+
+Implements public salon page templates, booking flow UI, services endpoint, slot scheduling, and bookings API.
+
