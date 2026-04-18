@@ -178,12 +178,12 @@ export default function Home() {
               >
                 Искам Безплатен Месец
               </Link>
-              <Link
-                href={demoSalonHref}
+              <a
+                href="#templates"
                 className="inline-flex min-h-[54px] w-full items-center justify-center border border-[#1A1A1A]/20 px-10 text-sm font-black uppercase tracking-widest text-[#1A1A1A]/60 transition hover:border-[#C9A84C] hover:text-[#C9A84C] sm:w-auto"
               >
                 Виж демо салон
-              </Link>
+              </a>
             </div>
 
             <p className="mt-5 text-xs text-[#1A1A1A]/35 tracking-wide">

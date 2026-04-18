@@ -62,7 +62,7 @@ const TEMPLATES = [
 
 export default function TemplatesSection() {
   return (
-    <section className="bg-[#EAD5C4] px-4 py-16 sm:px-6 md:py-24">
+    <section id="templates" className="bg-[#EAD5C4] px-4 py-16 sm:px-6 md:py-24">
       <div className="mx-auto max-w-6xl">
         {/* Header */}
         <div className="mb-12 border-b border-[#1A1A1A]/10 pb-8">
