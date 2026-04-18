@@ -9,7 +9,7 @@ import { stripePaymentLinkForPlan } from "@/lib/marketing-checkout";
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
 const DARK = "#1A1A1A";
-const CREAM = "#FAF7F2";
+const CREAM = "#EAD5C4";
 const MUTED = "rgba(26,26,26,0.45)";
 const BORDER = "rgba(201,168,76,0.25)";
 
