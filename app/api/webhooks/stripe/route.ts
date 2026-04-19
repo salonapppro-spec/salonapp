@@ -17,9 +17,12 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
  *   customer.subscription.deleted — абонаментът е прекратен
  */
 
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY ?? "", {
-  apiVersion: "2026-03-25.dahlia",
-});
+// Lazy init — не се инициализира при билд, само при реална заявка
+function getStripe(): Stripe {
+  const key = process.env.STRIPE_SECRET_KEY;
+  if (!key) throw new Error("STRIPE_SECRET_KEY не е зададен");
+  return new Stripe(key, { apiVersion: "2026-03-25.dahlia" });
+}
 
 // ── helpers ──────────────────────────────────────────────────────────────────
 
@@ -125,6 +128,7 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
   try {
+    const stripe = getStripe();
     event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
     console.error("[stripe-webhook] Невалиден подпис:", err instanceof Error ? err.message : err);
@@ -167,7 +171,7 @@ export async function POST(req: Request) {
         const customerId = sub.customer as string;
         // Намери имейла от customer обекта
         try {
-          const customer = await stripe.customers.retrieve(customerId) as Stripe.Customer;
+          const customer = await getStripe().customers.retrieve(customerId) as Stripe.Customer;
           if (customer.email) await deactivateByEmail(customer.email);
         } catch {
           console.error(`[stripe-webhook] Не може да се намери customer ${customerId}`);
