@@ -99,15 +99,12 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
   const salonSlug = String(formData.get("salon_slug") ?? "").trim();
   if (!salonSlug) throw new Error("Missing salon_slug");
 
+  // Само полетата от формата — primary_color и font се управляват от салонския админ
   const patch = {
     status: String(formData.get("status") ?? "active"),
     plan: String(formData.get("plan") ?? "standard"),
     template: String(formData.get("template") ?? "bloom"),
-    primary_color: String(formData.get("primary_color") ?? "#F2A58E"),
-    font: String(formData.get("font") ?? "Inter"),
     facebook_pixel_id: String(formData.get("facebook_pixel_id") ?? "") || null,
-    capi_token: String(formData.get("capi_token") ?? "") || null,
-    clarity_id: String(formData.get("clarity_id") ?? "") || null,
     gtm_id: String(formData.get("gtm_id") ?? "") || null,
     owner_email: String(formData.get("owner_email") ?? "") || null,
     owner_phone: String(formData.get("owner_phone") ?? "") || null,
