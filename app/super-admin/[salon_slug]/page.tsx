@@ -157,8 +157,15 @@ export default async function SuperAdminTenantPage({ params }: { params: { salon
           </div>
 
           <div>
-            <label className="text-xs text-neutral-400">Primary color</label>
-            <input name="primary_color" type="color" defaultValue={tenant.primary_color ?? "#F2A58E"} className="mt-1 h-10 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-2 py-1" />
+            <label className="text-xs text-neutral-400">Цвят на сайта</label>
+            <div className="mt-1 flex items-center gap-2">
+              <span
+                className="h-8 w-8 rounded-lg border border-neutral-700 shrink-0"
+                style={{ background: tenant.primary_color ?? "#F2A58E" }}
+              />
+              <span className="font-mono text-sm text-neutral-400">{tenant.primary_color ?? "#F2A58E"}</span>
+              <span className="text-xs text-neutral-600">— управлява се от салона в техния админ панел</span>
+            </div>
           </div>
 
           <div>
