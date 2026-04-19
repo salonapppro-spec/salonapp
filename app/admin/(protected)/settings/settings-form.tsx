@@ -144,10 +144,20 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
+const COLOR_PRESETS = [
+  { label: "Роза",      primary: "#C8826A", name: "rose" },
+  { label: "Злато",     primary: "#C9A84C", name: "gold" },
+  { label: "Лилаво",   primary: "#9B7EBD", name: "purple" },
+  { label: "Тюркоаз",  primary: "#4A9E9E", name: "teal" },
+  { label: "Бордо",    primary: "#8B3A52", name: "bordeaux" },
+  { label: "Антрацит", primary: "#3D3D3D", name: "dark" },
+];
+
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
 
   const [salonName, setSalonName] = useState(tenant.salon_name ?? "");
+  const [primaryColor, setPrimaryColor] = useState((tenant as unknown as Record<string, string>).primary_color ?? "#C8826A");
   const [logoUrl, setLogoUrl] = useState(tenant.logo_url ?? "");
   const [heroTitle, setHeroTitle] = useState(tenant.hero_title ?? "");
   const [heroSubtitle, setHeroSubtitle] = useState(tenant.hero_subtitle ?? "");
@@ -183,6 +193,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const payload = useMemo(
     () => ({
       salon_name: salonName.trim() || undefined,
+      primary_color: primaryColor || undefined,
       logo_url: logoUrl.trim() === "" ? "" : logoUrl.trim(),
       hero_title: heroTitle || undefined,
       hero_subtitle: heroSubtitle || undefined,
@@ -199,7 +210,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       tiktok_url: tiktok || undefined,
       google_maps_embed: mapsEmbed || undefined,
     }),
-    [about1, about2, aboutImageUrl, address, description, email, facebook, heroImageUrl, heroSubtitle, heroTitle, instagram, logoUrl, mapsEmbed, phone, salonName, tiktok]
+    [about1, about2, aboutImageUrl, address, description, email, facebook, heroImageUrl, heroSubtitle, heroTitle, instagram, logoUrl, mapsEmbed, phone, primaryColor, salonName, tiktok]
   );
 
   async function save() {
@@ -278,6 +289,61 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
             hint="Квадратна снимка. Показва се в горната лента на сайта."
             aspect="square"
           />
+
+          {/* Color picker */}
+          <div>
+            <Label>Цвят на сайта</Label>
+            <p className="mb-2 mt-0.5 text-[10px] text-[#1A1A1A]/30">Основен акцентен цвят — бутони, линкове, детайли</p>
+            {/* Presets */}
+            <div className="flex flex-wrap gap-2">
+              {COLOR_PRESETS.map((p) => (
+                <button
+                  key={p.name}
+                  type="button"
+                  title={p.label}
+                  onClick={() => setPrimaryColor(p.primary)}
+                  className="flex flex-col items-center gap-1 transition hover:scale-110"
+                >
+                  <span
+                    className="block h-8 w-8 rounded-full shadow-sm transition-transform"
+                    style={{
+                      background: p.primary,
+                      outline: primaryColor === p.primary ? `3px solid ${p.primary}` : "2px solid transparent",
+                      outlineOffset: "2px",
+                    }}
+                  />
+                  <span className="text-[9px] text-[#1A1A1A]/40">{p.label}</span>
+                </button>
+              ))}
+              {/* Custom color */}
+              <div className="flex flex-col items-center gap-1">
+                <label className="relative block h-8 w-8 cursor-pointer overflow-hidden rounded-full shadow-sm" title="Избери цвят">
+                  <span
+                    className="block h-full w-full rounded-full"
+                    style={{ background: primaryColor }}
+                  />
+                  <input
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
+                  />
+                </label>
+                <span className="text-[9px] text-[#1A1A1A]/40">Custom</span>
+              </div>
+            </div>
+            {/* Preview */}
+            <div className="mt-3 flex items-center gap-3">
+              <button
+                type="button"
+                className="rounded-xl px-4 py-2 text-xs font-black text-white shadow-sm"
+                style={{ background: primaryColor }}
+              >
+                Пример бутон
+              </button>
+              <span className="font-mono text-xs text-[#1A1A1A]/40">{primaryColor}</span>
+            </div>
+          </div>
         </div>
       </FieldCard>
 

@@ -5,6 +5,9 @@ import { useCallback, useState } from "react";
 
 import type { GalleryItem } from "@/types";
 
+const GOLD = "#C9A84C";
+const ROSE = "#C8826A";
+
 export function GalleryClient(props: { initialItems: GalleryItem[] }) {
   const router = useRouter();
   const [items, setItems] = useState<GalleryItem[]>(props.initialItems);
@@ -12,6 +15,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [dragId, setDragId] = useState<string | null>(null);
+  const [showUrlInput, setShowUrlInput] = useState(false);
 
   async function refresh() {
     const res = await fetch("/api/admin/gallery");
@@ -32,6 +36,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Неуспешно");
       setUrl("");
+      setShowUrlInput(false);
       await refresh();
       router.refresh();
     } catch (e) {
@@ -56,10 +61,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
         const res = await fetch("/api/admin/gallery/upload", { method: "POST", body: fd });
         const json = (await res.json()) as { error?: string };
         if (!res.ok) {
-          throw new Error(
-            json?.error ??
-              "Качването не успя. Нужен е публичен Storage bucket „gallery“ в Supabase (или env ADMIN_GALLERY_BUCKET)."
-          );
+          throw new Error(json?.error ?? "Качването не успя. Нужен е публичен Storage bucket 'gallery' в Supabase.");
         }
       }
       await refresh();
@@ -79,10 +81,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
       body: JSON.stringify({ is_visible: !g.is_visible }),
     });
     const json = await res.json();
-    if (!res.ok) {
-      setError(json?.error ?? "Грешка");
-      return;
-    }
+    if (!res.ok) { setError(json?.error ?? "Грешка"); return; }
     await refresh();
     router.refresh();
   }
@@ -91,30 +90,21 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
     setError(null);
     const res = await fetch(`/api/admin/gallery/${id}`, { method: "DELETE" });
     const json = await res.json();
-    if (!res.ok) {
-      setError(json?.error ?? "Грешка");
-      return;
-    }
+    if (!res.ok) { setError(json?.error ?? "Грешка"); return; }
     await refresh();
     router.refresh();
   }
 
-  const reorder = useCallback(
-    async (ordered: GalleryItem[]) => {
-      setItems(ordered);
-      const res = await fetch("/api/admin/gallery/reorder", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ids: ordered.map((x) => x.id) }),
-      });
-      if (!res.ok) {
-        await refresh();
-        return;
-      }
-      router.refresh();
-    },
-    [router]
-  );
+  const reorder = useCallback(async (ordered: GalleryItem[]) => {
+    setItems(ordered);
+    const res = await fetch("/api/admin/gallery/reorder", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ids: ordered.map((x) => x.id) }),
+    });
+    if (!res.ok) { await refresh(); return; }
+    router.refresh();
+  }, [router]);
 
   function onDrop(targetId: string) {
     if (!dragId || dragId === targetId) return;
@@ -129,103 +119,173 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
   }
 
   return (
-    <div className="mt-8 space-y-6">
-      {error ? (
-        <div className="rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-900">{error}</div>
-      ) : null}
+    <div className="mt-6 space-y-4">
+      {error && (
+        <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{error}</div>
+      )}
 
+      {/* Upload zone */}
       <div
-        className="admin-card flex min-h-[220px] flex-col items-center justify-center border-2 border-dashed border-brand-400/70 bg-brand-50/40 px-6 py-10 text-center"
-        onDragOver={(e) => {
-          e.preventDefault();
-          e.currentTarget.classList.add("border-brand-500", "bg-brand-50");
-        }}
-        onDragLeave={(e) => {
-          e.currentTarget.classList.remove("border-brand-500", "bg-brand-50");
-        }}
+        className="relative overflow-hidden rounded-2xl border-2 border-dashed transition-colors"
+        style={{ borderColor: "rgba(201,168,76,0.4)", background: "rgba(201,168,76,0.04)" }}
+        onDragOver={(e) => { e.preventDefault(); e.currentTarget.style.borderColor = GOLD; e.currentTarget.style.background = "rgba(201,168,76,0.08)"; }}
+        onDragLeave={(e) => { e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)"; e.currentTarget.style.background = "rgba(201,168,76,0.04)"; }}
         onDrop={(e) => {
           e.preventDefault();
-          e.currentTarget.classList.remove("border-brand-500", "bg-brand-50");
+          e.currentTarget.style.borderColor = "rgba(201,168,76,0.4)";
+          e.currentTarget.style.background = "rgba(201,168,76,0.04)";
           const list = e.dataTransfer.files;
           if (list?.length) void uploadFiles(Array.from(list));
         }}
       >
-        <h2 className="text-lg font-semibold tracking-tight text-brand-900">Качи снимки</h2>
-        <p className="mt-2 max-w-md text-sm text-brand-800/90">
-          Влачете файлове тук или натисмете бутона. Препоръчително до 5 MB на файл. Форматите са стандартни изображения.
-        </p>
-        <label className="btn-admin-primary mt-6 cursor-pointer px-8">
-          <input
-            type="file"
-            accept="image/*"
-            multiple
-            className="sr-only"
-            disabled={loading}
-            onChange={(e) => {
-              const list = e.target.files;
-              if (!list?.length) return;
-              void uploadFiles(Array.from(list)).then(() => {
-                e.target.value = "";
-              });
-            }}
-          />
-          {loading ? "Качване…" : "Избери снимки"}
-        </label>
+        <div className="flex flex-col items-center px-6 py-10 text-center">
+          <div
+            className="flex h-14 w-14 items-center justify-center rounded-2xl text-2xl shadow-sm"
+            style={{ background: `linear-gradient(135deg, rgba(201,168,76,0.15), rgba(200,130,106,0.15))` }}
+          >
+            📷
+          </div>
+          <h2 className="mt-3 text-base font-black text-[#1A1A1A]">Качи снимки</h2>
+          <p className="mt-1 max-w-xs text-xs text-[#1A1A1A]/40">
+            Влачи файлове тук или натисни бутона. До 5 MB на снимка.
+          </p>
+          <label
+            className="mt-5 cursor-pointer rounded-xl px-5 py-2.5 text-sm font-black text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
+            style={{ background: loading ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+          >
+            <input
+              type="file"
+              accept="image/*"
+              multiple
+              className="sr-only"
+              disabled={loading}
+              onChange={(e) => {
+                const list = e.target.files;
+                if (!list?.length) return;
+                void uploadFiles(Array.from(list)).then(() => { e.target.value = ""; });
+              }}
+            />
+            {loading ? "Качване…" : "📁 Избери снимки"}
+          </label>
+        </div>
       </div>
 
-      <details className="admin-card group">
-        <summary className="cursor-pointer text-sm font-semibold text-brand-800 marker:text-brand-600">
-          Външен линк към снимка <span className="font-normal text-brand-600/90">(по изключение)</span>
-        </summary>
-        <p className="mt-2 text-xs text-brand-700/85">
-          Само ако снимката вече е качена другаде (CDN, социални мрежи). Нормалният начин е качването отгоре.
-        </p>
-        <input
-          className="input-admin mt-3"
-          placeholder="https://..."
-          type="url"
-          value={url}
-          onChange={(e) => setUrl(e.target.value)}
-        />
+      {/* External URL (collapsed) */}
+      <div className="rounded-2xl bg-white p-4" style={{ border: "1px solid rgba(201,168,76,0.18)" }}>
         <button
           type="button"
-          className="btn-admin-ghost mt-3"
-          disabled={!url || loading}
-          onClick={() => void addUrl()}
+          className="flex items-center gap-2 text-xs font-semibold text-[#1A1A1A]/50 hover:text-[#1A1A1A]/80 transition"
+          onClick={() => setShowUrlInput((v) => !v)}
         >
-          Добави от линк
+          <span>{showUrlInput ? "▾" : "▸"}</span>
+          Добави от външен линк <span className="font-normal opacity-60">(по изключение)</span>
         </button>
-      </details>
-
-      <div className="grid gap-4 sm:grid-cols-2">
-        {items.map((g) => (
-          <div
-            key={g.id}
-            draggable
-            onDragStart={() => setDragId(g.id)}
-            onDragOver={(e) => e.preventDefault()}
-            onDrop={() => onDrop(g.id)}
-            className="overflow-hidden rounded-2xl border border-brand-200/80 bg-white shadow-card"
-          >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={g.url} alt="" className="aspect-[4/3] h-auto w-full object-cover opacity-100 sm:h-44 sm:aspect-auto" />
-            <div className="flex flex-col gap-2 p-3 sm:flex-row sm:items-center sm:justify-between">
-              <label className="flex items-center gap-2 text-xs text-brand-800">
-                <input type="checkbox" checked={g.is_visible} onChange={() => void toggleVisible(g)} />
-                Видима на сайта
-              </label>
-              <button
-                type="button"
-                className="btn-admin-ghost shrink-0 border-red-200 text-red-700 hover:bg-red-50"
-                onClick={() => remove(g.id)}
-              >
-                Изтрий
-              </button>
-            </div>
-            <p className="truncate px-3 pb-2 text-[10px] text-brand-600">Влачете картата за пренареждане</p>
+        {showUrlInput && (
+          <div className="mt-3 flex gap-2">
+            <input
+              className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-[#C9A84C]/30"
+              style={{ borderColor: "rgba(201,168,76,0.3)", background: "#FAF7F2" }}
+              placeholder="https://..."
+              type="url"
+              value={url}
+              onChange={(e) => setUrl(e.target.value)}
+            />
+            <button
+              type="button"
+              className="rounded-xl px-4 py-2 text-sm font-black text-white transition hover:opacity-90 disabled:opacity-50"
+              style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+              disabled={!url || loading}
+              onClick={() => void addUrl()}
+            >
+              Добави
+            </button>
           </div>
-        ))}
+        )}
       </div>
+
+      {/* Stats */}
+      {items.length > 0 && (
+        <div className="flex items-center justify-between px-1">
+          <p className="text-xs text-[#1A1A1A]/40">
+            {items.length} снимки · {items.filter((x) => x.is_visible).length} видими
+          </p>
+          <p className="text-[10px] text-[#1A1A1A]/30">Влачи картите за пренареждане</p>
+        </div>
+      )}
+
+      {/* Grid */}
+      {items.length === 0 ? (
+        <div
+          className="rounded-2xl px-6 py-12 text-center text-sm text-[#1A1A1A]/35"
+          style={{ border: "1px dashed rgba(201,168,76,0.25)" }}
+        >
+          Все още няма снимки. Качи първата от бутона горе.
+        </div>
+      ) : (
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {items.map((g) => (
+            <div
+              key={g.id}
+              draggable
+              onDragStart={() => setDragId(g.id)}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={() => onDrop(g.id)}
+              className="group relative cursor-grab overflow-hidden rounded-2xl bg-white active:cursor-grabbing"
+              style={{
+                border: dragId === g.id ? `2px solid ${GOLD}` : "1px solid rgba(201,168,76,0.18)",
+                boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
+                opacity: dragId === g.id ? 0.6 : 1,
+              }}
+            >
+              {/* Image */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={g.url}
+                alt=""
+                className="aspect-[4/3] w-full object-cover"
+              />
+
+              {/* Overlay on hover */}
+              <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                <div className="flex w-full items-center justify-between px-3 pb-3">
+                  <span className="text-[10px] font-semibold text-white/70">⠿ Влачи</span>
+                </div>
+              </div>
+
+              {/* Controls */}
+              <div className="flex items-center justify-between px-3 py-2.5">
+                <label className="flex cursor-pointer items-center gap-2">
+                  <div
+                    className="relative h-4 w-7 rounded-full transition-colors"
+                    style={{ background: g.is_visible ? `linear-gradient(135deg, ${GOLD}, ${ROSE})` : "rgba(0,0,0,0.12)" }}
+                  >
+                    <span
+                      className="absolute top-0.5 h-3 w-3 rounded-full bg-white shadow-sm transition-transform"
+                      style={{ left: g.is_visible ? "14px" : "2px" }}
+                    />
+                    <input
+                      type="checkbox"
+                      className="sr-only"
+                      checked={g.is_visible}
+                      onChange={() => void toggleVisible(g)}
+                    />
+                  </div>
+                  <span className="text-xs font-semibold text-[#1A1A1A]/60">
+                    {g.is_visible ? "Видима" : "Скрита"}
+                  </span>
+                </label>
+                <button
+                  type="button"
+                  className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 transition hover:bg-red-50"
+                  onClick={() => remove(g.id)}
+                >
+                  Изтрий
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
