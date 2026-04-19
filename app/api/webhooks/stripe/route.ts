@@ -27,14 +27,6 @@ function isoDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-function expiryDates(months: number): { expiry: string; grace: string } {
-  const now = new Date();
-  const expiry = new Date(now.getFullYear(), now.getMonth() + months, now.getDate());
-  const grace = new Date(expiry);
-  grace.setDate(grace.getDate() + 30);
-  return { expiry: isoDate(expiry), grace: isoDate(grace) };
-}
-
 async function activateByEmail(email: string, months = 1): Promise<void> {
   if (!email) return;
   const supabase = createSupabaseServiceRoleClient();
