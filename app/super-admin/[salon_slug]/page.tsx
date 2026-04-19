@@ -1,6 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { CopyButton } from "./copy-button";
+
 import { activateTenantManually, enterSalonAdminContextAction, updateTenantBasics } from "@/app/super-admin/actions";
 import { MARKETING_PLANS } from "@/lib/marketing-data";
 import { stripePaymentLinkForPlan } from "@/lib/marketing-checkout";
@@ -107,13 +109,7 @@ export default async function SuperAdminTenantPage({ params }: { params: { salon
             >
               Отвори ↗
             </a>
-            <button
-              type="button"
-              className="shrink-0 rounded-lg border border-neutral-600 px-4 py-2 text-sm font-semibold text-neutral-200 hover:bg-neutral-800"
-              onClick={() => void navigator.clipboard.writeText(stripeLink)}
-            >
-              Копирай
-            </button>
+            <CopyButton text={stripeLink} />
           </div>
         ) : (
           <p className="mt-2 text-sm text-neutral-500">
