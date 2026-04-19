@@ -24,8 +24,11 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Макс. 5 MB" }, { status: 400 });
   }
 
-  const buf = Buffer.from(await file.arrayBuffer());
   const mime = file.type || "application/octet-stream";
+  if (!mime.startsWith("image/")) {
+    return NextResponse.json({ error: "Само изображения (JPG, PNG, WebP)" }, { status: 400 });
+  }
+  const buf = Buffer.from(await file.arrayBuffer());
   const ext = mime.split("/")[1] ?? "bin";
   const path = `${salonSlug}/${randomUUID()}.${ext}`;
 

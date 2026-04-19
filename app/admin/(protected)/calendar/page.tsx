@@ -59,28 +59,44 @@ export default async function AdminCalendarPage(props: { searchParams: Promise<{
     <div className="admin-page-shell max-w-5xl">
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight text-brand-900 sm:text-3xl">Календар</h1>
-          <p className="mt-1 text-sm text-brand-800/85 sm:text-base">
-            {view === "week" ? "Седмица (пон–нед) около избраната дата." : "Резервации и блокировки за деня."}
+          <span
+            className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white"
+            style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
+          >
+            📅 Календар
+          </span>
+          <h1
+            className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A] sm:text-3xl"
+            style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}
+          >
+            {view === "week" ? "Седмица" : "Ден"}
+          </h1>
+          <p className="mt-1 text-sm text-[#1A1A1A]/45">
+            {view === "week" ? "Пон–нед около избраната дата." : "Резервации и блокировки за деня."}
           </p>
         </div>
-        <div className="flex shrink-0 items-center gap-2 rounded-2xl border border-brand-200/80 bg-white p-1 shadow-card">
+        <div
+          className="flex shrink-0 items-center gap-1 rounded-2xl p-1"
+          style={{ border: "1px solid rgba(201,168,76,0.2)", background: "rgba(255,255,255,0.8)" }}
+        >
           <Link
             href={`/admin/calendar?date=${date}&view=day`}
-            className={
+            className="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            style={
               view === "day"
-                ? "rounded-xl bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-900 ring-1 ring-brand-200/80"
-                : "rounded-xl px-4 py-2 text-sm font-medium text-brand-800/85 transition hover:bg-brand-50"
+                ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "white" }
+                : { color: "rgba(26,26,26,0.55)" }
             }
           >
             Ден
           </Link>
           <Link
             href={`/admin/calendar?date=${date}&view=week`}
-            className={
+            className="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            style={
               view === "week"
-                ? "rounded-xl bg-brand-50 px-4 py-2 text-sm font-semibold text-brand-900 ring-1 ring-brand-200/80"
-                : "rounded-xl px-4 py-2 text-sm font-medium text-brand-800/85 transition hover:bg-brand-50"
+                ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "white" }
+                : { color: "rgba(26,26,26,0.55)" }
             }
           >
             Седмица
@@ -88,10 +104,10 @@ export default async function AdminCalendarPage(props: { searchParams: Promise<{
         </div>
       </div>
 
-      <form className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" method="get">
+      <form className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" method="get">
         <input type="hidden" name="view" value={view} />
         <div className="w-full sm:w-auto">
-          <label htmlFor="cal-date" className="text-xs font-medium text-brand-800/85">
+          <label htmlFor="cal-date" className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/45">
             {view === "week" ? "Дата в седмицата" : "Дата"}
           </label>
           <input
@@ -102,15 +118,27 @@ export default async function AdminCalendarPage(props: { searchParams: Promise<{
             className="input-admin !mt-1 max-w-full sm:min-w-[12rem]"
           />
         </div>
-        <button type="submit" className="btn-admin-primary w-full sm:w-auto sm:min-w-[8rem] sm:px-8">
-          Покажи
+        <button
+          type="submit"
+          className="w-full rounded-xl px-6 py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90 sm:w-auto"
+          style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", minHeight: "44px" }}
+        >
+          Покажи →
         </button>
       </form>
 
-      <p className="mt-4 text-sm text-brand-800/85">
-        Работно време (избран ден):{" "}
-        {wh?.is_day_off ? "почивен ден" : wh ? `${wh.start_time} – ${wh.end_time}` : "не е зададено"}
-      </p>
+      <div
+        className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2.5"
+        style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.15)" }}
+      >
+        <span className="text-sm">🕐</span>
+        <p className="text-sm text-[#1A1A1A]/55">
+          Работно време:{" "}
+          <span className="font-semibold text-[#1A1A1A]/75">
+            {wh?.is_day_off ? "Почивен ден" : wh ? `${wh.start_time} – ${wh.end_time}` : "Не е зададено"}
+          </span>
+        </p>
+      </div>
 
       {view === "week" ? (
         <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -121,24 +149,48 @@ export default async function AdminCalendarPage(props: { searchParams: Promise<{
             return (
               <div
                 key={d}
-                className={["admin-card flex flex-col !p-4", isToday ? "ring-2 ring-brand-200/90" : ""].join(" ")}
+                className="relative flex flex-col overflow-hidden rounded-2xl bg-white p-4"
+                style={{
+                  border: isToday ? "1px solid rgba(201,168,76,0.5)" : "1px solid rgba(201,168,76,0.15)",
+                  boxShadow: isToday
+                    ? "0 0 0 3px rgba(201,168,76,0.12), 0 4px 24px rgba(0,0,0,0.06)"
+                    : "0 1px 2px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.05)",
+                }}
               >
+                {isToday && (
+                  <div
+                    className="absolute left-0 right-0 top-0 h-[3px] rounded-t-2xl"
+                    style={{ background: "linear-gradient(90deg, #C9A84C, #C8826A)" }}
+                  />
+                )}
                 <div className="flex items-center justify-between gap-2">
-                  <h2 className="text-sm font-semibold capitalize text-brand-900">{label}</h2>
-                  <Link href={`/admin/calendar?date=${d}&view=day`} className="text-xs font-semibold text-brand-700 underline">
+                  <h2
+                    className="text-sm font-black capitalize"
+                    style={{ color: isToday ? "#C9A84C" : "#1A1A1A" }}
+                  >
+                    {label}
+                  </h2>
+                  <Link
+                    href={`/admin/calendar?date=${d}&view=day`}
+                    className="text-[11px] font-bold transition"
+                    style={{ color: "#C8826A" }}
+                  >
                     Ден →
                   </Link>
                 </div>
-                <ul className="mt-2 flex-1 divide-y divide-brand-100 text-sm">
+                <ul className="mt-3 flex-1 space-y-1.5 text-sm">
                   {list.length === 0 ? (
-                    <li className="py-2 text-brand-700/70">—</li>
+                    <li className="py-2 text-center text-xs text-[#1A1A1A]/30">Няма часове</li>
                   ) : (
                     list.map((b) => (
-                      <li key={b.id} className="flex flex-col gap-2 border-b border-brand-100 py-2 last:border-0">
-                        <div>
-                          <span className="font-medium">{b.booking_time}</span>
-                          <span className="text-brand-800">
-                            {" "}
+                      <li
+                        key={b.id}
+                        className="flex flex-col gap-1.5 rounded-xl p-2"
+                        style={{ background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.1)" }}
+                      >
+                        <div className="flex gap-2">
+                          <span className="font-black tabular-nums" style={{ color: "#C9A84C" }}>{b.booking_time.slice(0,5)}</span>
+                          <span className="truncate text-[#1A1A1A]/70">
                             {b.client_name} — {b.service_name}
                           </span>
                         </div>

@@ -10,24 +10,44 @@ export default async function AdminClientsPage(props: { searchParams: Promise<{ 
 
   return (
     <div className="admin-page-shell max-w-6xl">
-      <h1 className="text-2xl font-semibold tracking-tight text-brand-900 sm:text-3xl">Клиенти</h1>
-      <p className="mt-2 text-sm text-brand-800/85 sm:text-base">Търсене по име или телефон.</p>
+      {/* Header */}
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <span
+            className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white"
+            style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
+          >
+            👤 Клиенти
+          </span>
+          <h1
+            className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A] sm:text-3xl"
+            style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}
+          >
+            База клиенти
+          </h1>
+          <p className="mt-1 text-sm text-[#1A1A1A]/45">
+            {clients.length > 0 ? `${clients.length} клиента` : "Клиентите се добавят автоматично при резервация"}
+          </p>
+        </div>
+      </div>
 
-      <form className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" method="get">
+      {/* Search */}
+      <form className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
         <div className="min-w-0 flex-1">
-          <label htmlFor="clients-q" className="sr-only">
-            Търсене
-          </label>
           <input
             id="clients-q"
             type="search"
             name="q"
             defaultValue={q}
-            placeholder="Име или телефон"
+            placeholder="🔍  Търси по име или телефон…"
             className="input-admin !mt-0 w-full"
           />
         </div>
-        <button type="submit" className="btn-admin-primary w-full shrink-0 sm:w-auto sm:px-8">
+        <button
+          type="submit"
+          className="w-full rounded-xl px-6 py-3 text-sm font-black text-white transition hover:opacity-90 sm:w-auto"
+          style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", minHeight: "44px" }}
+        >
           Търси
         </button>
       </form>

@@ -30,6 +30,9 @@ export default async function SuperAdminLayout({ children }: { children: React.R
               <Link href="/super-admin" className="whitespace-nowrap hover:text-white">
                 Табло
               </Link>
+              <Link href="/super-admin/leads" className="whitespace-nowrap text-amber-300 hover:text-amber-100">
+                Заявки
+              </Link>
               <Link href="/super-admin/new" className="whitespace-nowrap hover:text-white">
                 Нов тенант
               </Link>

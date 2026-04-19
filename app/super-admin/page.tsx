@@ -5,6 +5,12 @@ import { readPublicPlanPriceMonthly } from "@/lib/marketing-pricing-env";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import type { Tenant } from "@/types";
 
+const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
+  active:   { label: "Активен",   cls: "bg-emerald-900/60 text-emerald-300 border border-emerald-700/60" },
+  trial:    { label: "Пробен",    cls: "bg-amber-900/60 text-amber-300 border border-amber-700/60" },
+  inactive: { label: "Неактивен", cls: "bg-red-900/60 text-red-300 border border-red-700/60" },
+};
+
 type SearchParams = { q?: string; plan?: string; status?: string };
 
 function plusDays(dateISO: string, days: number): string {
@@ -22,6 +28,11 @@ function todayISO(): string {
   const m = String(d.getMonth() + 1).padStart(2, "0");
   const da = String(d.getDate()).padStart(2, "0");
   return `${y}-${m}-${da}`;
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const sb = STATUS_BADGE[status] ?? STATUS_BADGE.inactive;
+  return <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${sb.cls}`}>{sb.label}</span>;
 }
 
 function isOverdue(t: Tenant, today: string): boolean {
@@ -193,8 +204,8 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                   </Link>
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-neutral-300">
-                  <p>План: {t.plan}</p>
-                  <p>Статус: {t.status}</p>
+                  <p>План: <span className="font-semibold text-amber-200">{t.plan}</span></p>
+                  <p><StatusBadge status={t.status} /></p>
                   <p className="col-span-2">Собственик: {t.owner_email ?? "—"}</p>
                   <p className="col-span-2">
                     {t.created_at?.slice(0, 10) ?? "—"} · {overdue ? `Просрочен (${t.expiry_date})` : t.expiry_date ? `До ${t.expiry_date}` : "без срок"}
@@ -233,8 +244,8 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                 <tr key={t.id} className={overdue ? "border-b border-red-900/70 bg-red-950/20" : "border-b border-neutral-800/80"}>
                   <td className="py-2 pr-2 font-medium">{t.salon_name}</td>
                   <td className="py-2 pr-2 text-neutral-300">{t.salon_slug}</td>
-                  <td className="py-2 pr-2">{t.plan}</td>
-                  <td className="py-2 pr-2">{t.status}</td>
+                  <td className="py-2 pr-2 font-semibold text-amber-200">{t.plan}</td>
+                  <td className="py-2 pr-2"><StatusBadge status={t.status} /></td>
                   <td className="py-2 pr-2 text-neutral-300">{t.owner_email ?? "—"}</td>
                   <td className="py-2 pr-2 text-neutral-300">
                     {t.created_at?.slice(0, 10) ?? "—"}

@@ -25,8 +25,8 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
     },
   });
 
-  const { data } = await supabase.auth.getSession();
-  if (!data.session) redirect("/admin/login");
+  const { data } = await supabase.auth.getUser();
+  if (!data.user) redirect("/admin/login");
 
   return (
     <>
@@ -40,7 +40,7 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
 
 export default function AdminProtectedGroupLayout(props: { children: React.ReactNode }) {
   return (
-    <div className="min-h-[100dvh] bg-gradient-to-b from-brand-50 via-brand-50 to-brand-100/90 text-brand-900">
+    <div className="min-h-[100dvh] text-[#1A1A1A]" style={{ background: "linear-gradient(160deg, #FAF7F2 0%, #F3EBE0 50%, #EAD5C4 100%)" }}>
       <AdminProtectedFrame>{props.children}</AdminProtectedFrame>
     </div>
   );

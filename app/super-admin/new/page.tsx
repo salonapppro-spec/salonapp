@@ -232,9 +232,10 @@ export default function NewTenantPage() {
             <select value={template} onChange={(e) => setTemplate(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
               <option value="bloom">bloom</option>
               <option value="luxe">luxe</option>
-              <option value="clean">clean</option>
-              <option value="zen">zen</option>
+              <option value="luxe2">luxe2</option>
               <option value="bold">bold</option>
+              <option value="zen">zen</option>
+              <option value="groom">groom</option>
             </select>
           </div>
         </div>
