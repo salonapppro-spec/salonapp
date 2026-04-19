@@ -17,9 +17,10 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 
 const TEMPLATES = ["bloom", "luxe", "luxe2", "bold", "zen", "groom"];
 
-export default async function SuperAdminTenantPage({ params }: { params: { salon_slug: string } }) {
+export default async function SuperAdminTenantPage({ params }: { params: Promise<{ salon_slug: string }> }) {
+  const { salon_slug } = await params;
   const supabase = createSupabaseServiceRoleClient();
-  const { data } = await supabase.from("tenants").select("*").eq("salon_slug", params.salon_slug).maybeSingle();
+  const { data } = await supabase.from("tenants").select("*").eq("salon_slug", salon_slug).maybeSingle();
   const tenant = data as Tenant | null;
   if (!tenant) notFound();
 
@@ -33,11 +34,13 @@ export default async function SuperAdminTenantPage({ params }: { params: { salon
     ? `${baseStripeLink}?prefilled_email=${encodeURIComponent(tenant.owner_email)}`
     : baseStripeLink;
 
-  // Stats
-  const [{ count: bookingCount }, { count: clientCount }] = await Promise.all([
+  // Stats — safe destructuring with fallback
+  const [bookingRes, clientRes] = await Promise.all([
     supabase.from("bookings").select("*", { count: "exact", head: true }).eq("salon_slug", tenant.salon_slug),
     supabase.from("clients").select("*", { count: "exact", head: true }).eq("salon_slug", tenant.salon_slug),
   ]);
+  const bookingCount = bookingRes.count ?? 0;
+  const clientCount = clientRes.count ?? 0;
 
   const sb = STATUS_BADGE[tenant.status] ?? STATUS_BADGE.inactive;
 

@@ -40,14 +40,15 @@ function isOverdue(t: Tenant, today: string): boolean {
   return t.expiry_date < today;
 }
 
-export default async function SuperAdminHomePage({ searchParams }: { searchParams: SearchParams }) {
+export default async function SuperAdminHomePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
+  const { q: rawQ, plan: rawPlan, status: rawStatus } = await searchParams;
   const supabase = createSupabaseServiceRoleClient();
   const { data } = await supabase.from("tenants").select("*").order("created_at", { ascending: false });
   const tenants = ((data ?? []) as Tenant[]).filter(Boolean);
 
-  const q = (searchParams.q ?? "").trim().toLowerCase();
-  const byPlan = (searchParams.plan ?? "").trim();
-  const byStatus = (searchParams.status ?? "").trim();
+  const q = (rawQ ?? "").trim().toLowerCase();
+  const byPlan = (rawPlan ?? "").trim();
+  const byStatus = (rawStatus ?? "").trim();
 
   const filtered = tenants.filter((t) => {
     if (byPlan && t.plan !== byPlan) return false;
@@ -168,15 +169,15 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
           </Link>
         </div>
         <form className="mb-4 grid gap-2 sm:grid-cols-4">
-          <input name="q" defaultValue={q} placeholder="Търси по име/slug/имейл" className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm" />
-          <select name="plan" defaultValue={byPlan} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
+          <input name="q" defaultValue={rawQ ?? ""} placeholder="Търси по ime/slug/имейл" className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm" />
+          <select name="plan" defaultValue={rawPlan ?? ""} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
             <option value="">Всички планове</option>
             <option value="standard">standard</option>
             <option value="pro">pro</option>
             <option value="premium">premium</option>
             <option value="collective">collective</option>
           </select>
-          <select name="status" defaultValue={byStatus} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
+          <select name="status" defaultValue={rawStatus ?? ""} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
             <option value="">Всички статуси</option>
             <option value="trial">trial</option>
             <option value="active">active</option>
