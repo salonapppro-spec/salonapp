@@ -71,9 +71,14 @@ export default async function SuperAdminTenantPage({ params }: { params: { salon
               Влез в админа →
             </button>
           </form>
-          <Link href={`/${tenant.salon_slug}`} target="_blank" className="rounded-lg border border-neutral-600 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800">
+          <a
+            href={`https://${tenant.salon_slug}.salonapp.pro`}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="rounded-lg border border-neutral-600 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800"
+          >
             Виж сайта ↗
-          </Link>
+          </a>
           <Link href="/super-admin" className="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-400 hover:bg-neutral-800">
             ← Обратно
           </Link>
