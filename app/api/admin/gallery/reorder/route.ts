@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -28,5 +29,6 @@ export async function POST(req: Request) {
     order += 1;
   }
 
+  revalidatePath(`/${salonSlug}`);
   return NextResponse.json({ ok: true });
 }

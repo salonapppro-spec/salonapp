@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -29,6 +30,8 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     .maybeSingle();
   if (error) return NextResponse.json({ error: "DB update failed" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
+
+  revalidatePath(`/${salonSlug}`);
   return NextResponse.json({ item: data });
 }
 
@@ -40,5 +43,7 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase.from("gallery").delete().eq("id", id).eq("salon_slug", salonSlug);
   if (error) return NextResponse.json({ error: "DB delete failed" }, { status: 500 });
+
+  revalidatePath(`/${salonSlug}`);
   return NextResponse.json({ ok: true });
 }

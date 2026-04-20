@@ -15,7 +15,7 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   inactive: { label: "Неактивен",  cls: "bg-red-900/60 text-red-300 border-red-700/60" },
 };
 
-const TEMPLATES = ["bloom", "luxe", "luxe2", "bold", "zen", "groom"];
+const TEMPLATES = ["bloom", "luxe", "luxe2", "clean", "bold", "zen", "groom"];
 
 export default async function SuperAdminTenantPage({
   params,

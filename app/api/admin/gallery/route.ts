@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -48,5 +49,7 @@ export async function POST(req: Request) {
     .select("*")
     .maybeSingle();
   if (error) return NextResponse.json({ error: "DB insert failed" }, { status: 500 });
+
+  revalidatePath(`/${salonSlug}`);
   return NextResponse.json({ item: data });
 }

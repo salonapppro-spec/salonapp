@@ -94,20 +94,32 @@ export async function activateTenantManually(formData: FormData): Promise<void> 
   revalidatePath(`/super-admin/${salonSlug}`);
 }
 
+const VALID_TEMPLATES = new Set(["bloom", "luxe", "luxe2", "clean", "bold", "zen", "groom"]);
+const VALID_STATUSES  = new Set(["trial", "active", "inactive"]);
+const VALID_PLANS     = new Set(["standard", "pro", "premium", "collective"]);
+
 export async function updateTenantBasics(formData: FormData): Promise<void> {
   await requireSuperAdminUser();
   const salonSlug = String(formData.get("salon_slug") ?? "").trim();
   if (!salonSlug) throw new Error("Missing salon_slug");
 
-  // Само полетата от формата — primary_color и font се управляват от салонския админ
+  const template = String(formData.get("template") ?? "bloom");
+  const status   = String(formData.get("status") ?? "active");
+  const plan     = String(formData.get("plan") ?? "standard");
+
+  // Guard against invalid values that would break DB CHECK constraints
+  if (!VALID_TEMPLATES.has(template)) throw new Error(`Невалиден шаблон: ${template}`);
+  if (!VALID_STATUSES.has(status))   throw new Error(`Невалиден статус: ${status}`);
+  if (!VALID_PLANS.has(plan))        throw new Error(`Невалиден план: ${plan}`);
+
   const patch = {
-    status: String(formData.get("status") ?? "active"),
-    plan: String(formData.get("plan") ?? "standard"),
-    template: String(formData.get("template") ?? "bloom"),
+    status,
+    plan,
+    template,
     facebook_pixel_id: String(formData.get("facebook_pixel_id") ?? "") || null,
-    gtm_id: String(formData.get("gtm_id") ?? "") || null,
-    owner_email: String(formData.get("owner_email") ?? "") || null,
-    owner_phone: String(formData.get("owner_phone") ?? "") || null,
+    gtm_id:            String(formData.get("gtm_id") ?? "")            || null,
+    owner_email:       String(formData.get("owner_email") ?? "")       || null,
+    owner_phone:       String(formData.get("owner_phone") ?? "")       || null,
   };
 
   const supabase = createSupabaseServiceRoleClient();
@@ -116,7 +128,7 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
 
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
-  revalidatePath(`/${salonSlug}`);       // публичен сайт на салона
+  revalidatePath(`/${salonSlug}`); // публичен сайт на салона — обновява се веднага
   redirect(`/super-admin/${salonSlug}?saved=1`);
 }
 

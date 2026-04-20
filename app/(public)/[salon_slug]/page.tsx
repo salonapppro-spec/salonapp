@@ -13,8 +13,8 @@ import { Luxe } from "@/components/templates/Luxe";
 import { Luxe2 } from "@/components/templates/Luxe2";
 import { Zen } from "@/components/templates/Zen";
 
-function resolveSlug(paramSlug: string): string {
-  const h = headers();
+async function resolveSlug(paramSlug: string): Promise<string> {
+  const h = await headers();
   return h.get("x-salon-slug") ?? paramSlug;
 }
 
@@ -61,7 +61,7 @@ function beautyBusinessJsonLd(data: SalonData, canonicalUrl: string) {
 
 export async function generateMetadata(props: { params: Promise<{ salon_slug: string }> }): Promise<Metadata> {
   const { salon_slug: paramSlug } = await props.params;
-  const slug = resolveSlug(paramSlug);
+  const slug = await resolveSlug(paramSlug);
   const data = await loadPublicSalonData(slug);
   if (!data) {
     return { title: "Салон" };
@@ -108,7 +108,7 @@ export async function generateMetadata(props: { params: Promise<{ salon_slug: st
 
 export default async function PublicSalonPage(props: { params: Promise<{ salon_slug: string }> }) {
   const { salon_slug: paramSlug } = await props.params;
-  const slug = resolveSlug(paramSlug);
+  const slug = await resolveSlug(paramSlug);
   const data = await loadPublicSalonData(slug);
   if (!data) notFound();
 
