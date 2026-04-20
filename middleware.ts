@@ -243,12 +243,18 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL("/temporarily-unavailable", request.url));
   }
 
+  // Rewrite: salon-bizhu.salonapp.pro/ → /salon-bizhu/
+  // Така Next.js routing вижда /[salon_slug] вместо / (marketing page)
+  const rewriteUrl = new URL(
+    `/${tenant.salon_slug}${pathname === "/" ? "" : pathname}`,
+    request.url,
+  );
   const headers = new Headers(request.headers);
   headers.set("x-salon-slug", tenant.salon_slug);
   headers.set("x-pathname", pathname);
   if (byDomain) headers.set("x-tenant-domain", byDomain);
 
-  return NextResponse.next({ request: { headers } });
+  return NextResponse.rewrite(rewriteUrl, { request: { headers } });
 }
 
 export const config = {
