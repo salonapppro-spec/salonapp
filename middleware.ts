@@ -249,12 +249,16 @@ export async function middleware(request: NextRequest) {
     `/${tenant.salon_slug}${pathname === "/" ? "" : pathname}`,
     request.url,
   );
-  const headers = new Headers(request.headers);
-  headers.set("x-salon-slug", tenant.salon_slug);
-  headers.set("x-pathname", pathname);
-  if (byDomain) headers.set("x-tenant-domain", byDomain);
+  const reqHeaders = new Headers(request.headers);
+  reqHeaders.set("x-salon-slug", tenant.salon_slug);
+  reqHeaders.set("x-pathname", pathname);
+  if (byDomain) reqHeaders.set("x-tenant-domain", byDomain);
 
-  return NextResponse.rewrite(rewriteUrl, { request: { headers } });
+  const rewriteRes = NextResponse.rewrite(rewriteUrl, { request: { headers: reqHeaders } });
+  // Prevent CDN caching — всеки субдомейн сервира различен тенант
+  rewriteRes.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+  rewriteRes.headers.set("Vary", "host");
+  return rewriteRes;
 }
 
 export const config = {
