@@ -20,8 +20,6 @@ export function AdminLoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const superAdminOnly = searchParams.get("super_admin_only") === "1";
-  const nextPath = searchParams.get("next") ?? "";
-  const redirectToSuperAdmin = nextPath === "/super-admin" || nextPath.startsWith("/super-admin/");
 
   async function signOutOther() {
     setLoading(true);
