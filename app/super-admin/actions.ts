@@ -112,10 +112,11 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
 
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase.from("tenants").update(patch).eq("salon_slug", salonSlug);
-  if (error) throw new Error("Неуспешен запис");
+  if (error) throw new Error(`Неуспешен запис: ${error.message}`);
 
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
+  redirect(`/super-admin/${salonSlug}?saved=1`);
 }
 
 function randomPassword(): string {

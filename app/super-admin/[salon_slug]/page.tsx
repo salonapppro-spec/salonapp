@@ -17,7 +17,14 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
 
 const TEMPLATES = ["bloom", "luxe", "luxe2", "bold", "zen", "groom"];
 
-export default async function SuperAdminTenantPage({ params }: { params: Promise<{ salon_slug: string }> }) {
+export default async function SuperAdminTenantPage({
+  params,
+  searchParams,
+}: {
+  params: Promise<{ salon_slug: string }>;
+  searchParams: Promise<{ saved?: string }>;
+}) {
+  const { saved } = await searchParams;
   const { salon_slug } = await params;
   const supabase = createSupabaseServiceRoleClient();
   const { data } = await supabase.from("tenants").select("*").eq("salon_slug", salon_slug).maybeSingle();
@@ -46,6 +53,11 @@ export default async function SuperAdminTenantPage({ params }: { params: Promise
 
   return (
     <div className="space-y-6">
+      {saved === "1" && (
+        <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 px-4 py-3 text-sm font-semibold text-emerald-300">
+          ✓ Промените са запазени успешно.
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -75,7 +87,11 @@ export default async function SuperAdminTenantPage({ params }: { params: Promise
             </button>
           </form>
           <a
-            href={`https://${tenant.salon_slug}.salonapp.pro`}
+            href={
+              process.env.NEXT_PUBLIC_APP_URL
+                ? `https://${tenant.salon_slug}.salonapp.pro`
+                : `https://salonapp-ten.vercel.app/${tenant.salon_slug}`
+            }
             target="_blank"
             rel="noopener noreferrer"
             className="rounded-lg border border-neutral-600 px-4 py-2 text-sm text-neutral-300 hover:bg-neutral-800"
