@@ -80,22 +80,8 @@ export function AdminLoginForm() {
           <p className="text-sm font-semibold uppercase tracking-[0.2em] text-brand-700">SalonApp.pro</p>
           <h1 className="mt-2 text-balance text-3xl font-semibold tracking-tight text-brand-900 sm:text-4xl">Админ панел</h1>
           <p className="mx-auto mt-2 max-w-sm text-pretty text-sm leading-relaxed text-brand-800/80 sm:text-base">
-            {redirectToSuperAdmin ? (
-              <>
-                За <strong className="font-semibold text-brand-900">платформения панел</strong> няма отделен адрес за вход — ползваш същата страница. Влез с акаунта, на който в Supabase е зададена роля{" "}
-                <code className="rounded bg-brand-100/90 px-1 text-xs">super_admin</code> в <strong className="font-medium">App metadata</strong>.
-              </>
-            ) : (
-              <>
-                Влез с имейла и паролата на салона. Ако нямаш достъп, помоли този, който ти е създал профила, да ти изпрати отново линк за парола.
-              </>
-            )}
+            Влез с имейла и паролата на салона.
           </p>
-          {redirectToSuperAdmin ? (
-            <p className="mx-auto mt-3 max-w-sm text-pretty text-xs leading-relaxed text-brand-700/90">
-              Директен адрес на панела (след като си логнат/а с правилния акаунт): <span className="font-mono text-[11px] text-brand-800">/super-admin</span>
-            </p>
-          ) : null}
         </div>
 
         <div className="rounded-3xl border border-brand-200/70 bg-white/95 p-6 shadow-card-lg backdrop-blur-md sm:p-8">
