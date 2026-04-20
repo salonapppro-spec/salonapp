@@ -185,8 +185,33 @@ export async function middleware(request: NextRequest) {
     return response;
   }
 
-  if (isRootDomain(hostname) || isVercelDeploymentHost(hostname)) {
-    // Don't pass modified request headers — keeps static pages as static (no lambda required)
+  if (isRootDomain(hostname)) {
+    // Root domain — marketing site, no salon slug needed
+    return NextResponse.next();
+  }
+
+  if (isVercelDeploymentHost(hostname)) {
+    // Vercel preview URL — use first path segment as salon slug (same as dev)
+    const first = pathname.split("/").filter(Boolean)[0] ?? "";
+    const reserved = new Set([
+      "admin",
+      "api",
+      "super-admin",
+      "get-started",
+      "_next",
+      "favicon.ico",
+      "robots.txt",
+      "sitemap.xml",
+      "temporarily-unavailable",
+      "icon.png",
+      "apple-icon.png",
+    ]);
+    if (first && !reserved.has(first) && !first.includes(".")) {
+      const h = new Headers(request.headers);
+      h.set("x-salon-slug", first);
+      h.set("x-pathname", pathname);
+      return NextResponse.next({ request: { headers: h } });
+    }
     return NextResponse.next();
   }
 

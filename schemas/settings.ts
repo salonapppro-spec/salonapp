@@ -20,5 +20,6 @@ export const UpdateTenantPublicFieldsSchema = z.object({
   facebook_url: z.string().url().optional(),
   tiktok_url: z.string().url().optional(),
   google_maps_embed: z.string().max(5000).optional(),
+  primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
 });
 

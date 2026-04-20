@@ -116,6 +116,7 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
 
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
+  revalidatePath(`/${salonSlug}`);       // публичен сайт на салона
   redirect(`/super-admin/${salonSlug}?saved=1`);
 }
 
