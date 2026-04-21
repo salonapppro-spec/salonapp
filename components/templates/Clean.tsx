@@ -16,12 +16,12 @@ const inter = Inter({
   variable: "--font-clean",
 });
 
-const ACCENT = "#0066CC";
 const MUTED = "#F8F8F8";
 
 export function Clean(props: { data: SalonData }) {
   const { data } = props;
   const { tenant, gallery } = data;
+  const ACCENT = tenant.primary_color ?? "#0066CC";
   const multi = useSpecialistSectionsOnPublicSite(data);
   const specs = activeSpecialists(data);
   const title = tenant.hero_title ?? tenant.salon_name;

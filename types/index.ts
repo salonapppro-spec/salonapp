@@ -35,6 +35,7 @@ export interface Tenant {
   domain: string | null;
   template: import("./database").Template;
   primary_color: string | null;
+  background_color: string | null;
   font: string | null;
   /** Лого в хедъра на публичния сайт (https URL). */
   logo_url?: string | null;

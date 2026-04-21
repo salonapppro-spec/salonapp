@@ -13,6 +13,7 @@ const mockData: SalonData = {
     payment_type: null,
     stripe_customer_id: null,
     stripe_subscription_id: null,
+    background_color: null,
     domain: null,
     template: "groom",
     primary_color: "#C8956A",

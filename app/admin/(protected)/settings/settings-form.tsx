@@ -153,11 +153,21 @@ const COLOR_PRESETS = [
   { label: "Антрацит", primary: "#3D3D3D", name: "dark" },
 ];
 
+const BG_PRESETS = [
+  { label: "Крем",     bg: "#FAF7F2", name: "cream" },
+  { label: "Бяло",     bg: "#FFFFFF", name: "white" },
+  { label: "Пясък",    bg: "#F5ECD7", name: "sand" },
+  { label: "Розово",   bg: "#FDF0F0", name: "blush" },
+  { label: "Мента",    bg: "#F0F7F4", name: "mint" },
+  { label: "Тъмно",    bg: "#1A1A2E", name: "dark" },
+];
+
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
 
   const [salonName, setSalonName] = useState(tenant.salon_name ?? "");
-  const [primaryColor, setPrimaryColor] = useState((tenant as unknown as Record<string, string>).primary_color ?? "#C8826A");
+  const [primaryColor, setPrimaryColor] = useState(tenant.primary_color ?? "#C8826A");
+  const [backgroundColor, setBackgroundColor] = useState(tenant.background_color ?? "#FAF7F2");
   const [logoUrl, setLogoUrl] = useState(tenant.logo_url ?? "");
   const [heroTitle, setHeroTitle] = useState(tenant.hero_title ?? "");
   const [heroSubtitle, setHeroSubtitle] = useState(tenant.hero_subtitle ?? "");
@@ -194,6 +204,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     () => ({
       salon_name: salonName.trim() || undefined,
       primary_color: primaryColor || undefined,
+      background_color: backgroundColor || undefined,
       logo_url: logoUrl.trim() === "" ? "" : logoUrl.trim(),
       hero_title: heroTitle || undefined,
       hero_subtitle: heroSubtitle || undefined,
@@ -210,7 +221,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       tiktok_url: tiktok || undefined,
       google_maps_embed: mapsEmbed || undefined,
     }),
-    [about1, about2, aboutImageUrl, address, description, email, facebook, heroImageUrl, heroSubtitle, heroTitle, instagram, logoUrl, mapsEmbed, phone, primaryColor, salonName, tiktok]
+    [about1, about2, aboutImageUrl, address, backgroundColor, description, email, facebook, heroImageUrl, heroSubtitle, heroTitle, instagram, logoUrl, mapsEmbed, phone, primaryColor, salonName, tiktok]
   );
 
   async function save() {
@@ -290,11 +301,10 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
             aspect="square"
           />
 
-          {/* Color picker */}
+          {/* Button / accent color picker */}
           <div>
-            <Label>Цвят на сайта</Label>
-            <p className="mb-2 mt-0.5 text-[10px] text-[#1A1A1A]/30">Основен акцентен цвят — бутони, линкове, детайли</p>
-            {/* Presets */}
+            <Label>Цвят на бутоните</Label>
+            <p className="mb-2 mt-0.5 text-[10px] text-[#1A1A1A]/30">Бутони, линкове и акцентни детайли на сайта</p>
             <div className="flex flex-wrap gap-2">
               {COLOR_PRESETS.map((p) => (
                 <button
@@ -305,7 +315,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
                   className="flex flex-col items-center gap-1 transition hover:scale-110"
                 >
                   <span
-                    className="block h-8 w-8 rounded-full shadow-sm transition-transform"
+                    className="block h-8 w-8 rounded-full shadow-sm"
                     style={{
                       background: p.primary,
                       outline: primaryColor === p.primary ? `3px solid ${p.primary}` : "2px solid transparent",
@@ -315,33 +325,57 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
                   <span className="text-[9px] text-[#1A1A1A]/40">{p.label}</span>
                 </button>
               ))}
-              {/* Custom color */}
               <div className="flex flex-col items-center gap-1">
                 <label className="relative block h-8 w-8 cursor-pointer overflow-hidden rounded-full shadow-sm" title="Избери цвят">
-                  <span
-                    className="block h-full w-full rounded-full"
-                    style={{ background: primaryColor }}
-                  />
-                  <input
-                    type="color"
-                    value={primaryColor}
-                    onChange={(e) => setPrimaryColor(e.target.value)}
-                    className="absolute inset-0 h-full w-full cursor-pointer opacity-0"
-                  />
+                  <span className="block h-full w-full rounded-full" style={{ background: primaryColor }} />
+                  <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
                 </label>
                 <span className="text-[9px] text-[#1A1A1A]/40">Custom</span>
               </div>
             </div>
-            {/* Preview */}
             <div className="mt-3 flex items-center gap-3">
-              <button
-                type="button"
-                className="rounded-xl px-4 py-2 text-xs font-black text-white shadow-sm"
-                style={{ background: primaryColor }}
-              >
+              <button type="button" className="rounded-xl px-4 py-2 text-xs font-black text-white shadow-sm" style={{ background: primaryColor }}>
                 Пример бутон
               </button>
               <span className="font-mono text-xs text-[#1A1A1A]/40">{primaryColor}</span>
+            </div>
+          </div>
+
+          {/* Background color picker */}
+          <div>
+            <Label>Цвят на фона</Label>
+            <p className="mb-2 mt-0.5 text-[10px] text-[#1A1A1A]/30">Основен фон на целия сайт</p>
+            <div className="flex flex-wrap gap-2">
+              {BG_PRESETS.map((p) => (
+                <button
+                  key={p.name}
+                  type="button"
+                  title={p.label}
+                  onClick={() => setBackgroundColor(p.bg)}
+                  className="flex flex-col items-center gap-1 transition hover:scale-110"
+                >
+                  <span
+                    className="block h-8 w-8 rounded-full shadow-sm border border-black/10"
+                    style={{
+                      background: p.bg,
+                      outline: backgroundColor === p.bg ? `3px solid ${primaryColor}` : "2px solid transparent",
+                      outlineOffset: "2px",
+                    }}
+                  />
+                  <span className="text-[9px] text-[#1A1A1A]/40">{p.label}</span>
+                </button>
+              ))}
+              <div className="flex flex-col items-center gap-1">
+                <label className="relative block h-8 w-8 cursor-pointer overflow-hidden rounded-full shadow-sm border border-black/10" title="Избери цвят">
+                  <span className="block h-full w-full rounded-full" style={{ background: backgroundColor }} />
+                  <input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
+                </label>
+                <span className="text-[9px] text-[#1A1A1A]/40">Custom</span>
+              </div>
+            </div>
+            <div className="mt-3 flex items-center gap-3">
+              <div className="h-8 w-24 rounded-xl border border-black/10 shadow-sm" style={{ background: backgroundColor }} />
+              <span className="font-mono text-xs text-[#1A1A1A]/40">{backgroundColor}</span>
             </div>
           </div>
         </div>

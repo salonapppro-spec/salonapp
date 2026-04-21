@@ -75,6 +75,7 @@ export function Luxe({ data }: { data: SalonData }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const gold = tenant.primary_color ?? "#c9a84c";
+  const bg = tenant.background_color ?? null; // null = Luxe defaults to dark
 
   const multi = useSpecialistSectionsOnPublicSite(data);
   const specs = activeSpecialists(data);
@@ -102,10 +103,10 @@ export function Luxe({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap');
 
         :root {
-          --black:   #0a0a0a;
-          --dark:    #111111;
-          --card:    #181818;
-          --border:  #2a2a2a;
+          --black:   ${bg ?? "#0a0a0a"};
+          --dark:    ${bg ? bg + "ee" : "#111111"};
+          --card:    ${bg ? bg + "cc" : "#181818"};
+          --border:  ${bg ? bg + "44" : "#2a2a2a"};
           --gold:    ${gold};
           --gold-lt: #e2c97e;
           --gold-dk: #8a6a20;

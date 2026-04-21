@@ -23,6 +23,7 @@ export function Bold({ data }: { data: SalonData }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const primary = tenant.primary_color ?? "#C8102E";
+  const bg = tenant.background_color ?? null; // null = use template default dark theme
 
   const multi = useSpecialistSectionsOnPublicSite(data);
   const specs = activeSpecialists(data);
@@ -50,10 +51,10 @@ export function Bold({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500&display=swap');
 
         :root {
-          --black:   #0D0D0D;
-          --dark:    #141414;
-          --card:    #1A1A1A;
-          --border:  #2A2A2A;
+          --black:   ${bg ?? "#0D0D0D"};
+          --dark:    ${bg ? bg + "ee" : "#141414"};
+          --card:    ${bg ? bg + "cc" : "#1A1A1A"};
+          --border:  ${bg ? bg + "44" : "#2A2A2A"};
           --red:     ${primary};
           --red-dk:  ${primary}cc;
           --white:   #F0F0F0;

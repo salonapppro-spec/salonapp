@@ -8,7 +8,7 @@ const DEMO_DATA: Record<string, SalonData> = {
     tenant: {
       id: "demo-bloom", salon_slug: "demo-bloom", salon_name: "Студио Шаблон", plan: "pro",
       status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
-      stripe_subscription_id: null, domain: null, template: "bloom", primary_color: "#C8826A",
+      stripe_subscription_id: null, domain: null, template: "bloom", primary_color: "#C8826A", background_color: null,
       font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
       phone: "+359 888 000 000", address: "ул. Примерна 1, гр. София",
       description: "Демо салон", instagram_url: null, facebook_url: null, created_at: null,
@@ -39,7 +39,7 @@ const DEMO_DATA: Record<string, SalonData> = {
     tenant: {
       id: "demo-luxe", salon_slug: "demo-luxe", salon_name: "Студио Елегант", plan: "pro",
       status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
-      stripe_subscription_id: null, domain: null, template: "luxe", primary_color: "#C9A84C",
+      stripe_subscription_id: null, domain: null, template: "luxe", primary_color: "#C9A84C", background_color: null,
       font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
       phone: "+359 888 000 000", address: "ул. Примерна 1, гр. София",
       description: "Демо луксозен салон", instagram_url: null, facebook_url: null, created_at: null,
@@ -69,7 +69,7 @@ const DEMO_DATA: Record<string, SalonData> = {
     tenant: {
       id: "demo-luxe2", salon_slug: "demo-luxe2", salon_name: "Студио Елит", plan: "pro",
       status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
-      stripe_subscription_id: null, domain: null, template: "luxe2", primary_color: "#B8973A",
+      stripe_subscription_id: null, domain: null, template: "luxe2", primary_color: "#B8973A", background_color: null,
       font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
       phone: "+359 888 000 000", address: "бул. Витоша 42, гр. София",
       description: "Демо фризьорски салон", instagram_url: null, facebook_url: null, created_at: null,
@@ -99,7 +99,7 @@ const DEMO_DATA: Record<string, SalonData> = {
     tenant: {
       id: "demo-bold", salon_slug: "demo-bold", salon_name: "Bold Barber", plan: "pro",
       status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
-      stripe_subscription_id: null, domain: null, template: "bold", primary_color: "#F97316",
+      stripe_subscription_id: null, domain: null, template: "bold", primary_color: "#F97316", background_color: null,
       font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
       phone: "+359 888 000 000", address: "ул. Примерна 1, гр. София",
       description: "Демо барбершоп", instagram_url: null, facebook_url: null, created_at: null,
@@ -129,7 +129,7 @@ const DEMO_DATA: Record<string, SalonData> = {
     tenant: {
       id: "demo-zen", salon_slug: "demo-zen", salon_name: "Zen Wellness", plan: "pro",
       status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
-      stripe_subscription_id: null, domain: null, template: "zen", primary_color: "#5A8A5E",
+      stripe_subscription_id: null, domain: null, template: "zen", primary_color: "#5A8A5E", background_color: null,
       font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
       phone: "+359 888 000 000", address: "ул. Примерна 1, гр. София",
       description: "Демо уелнес студио", instagram_url: null, facebook_url: null, created_at: null,
@@ -159,7 +159,7 @@ const DEMO_DATA: Record<string, SalonData> = {
     tenant: {
       id: "demo-groom", salon_slug: "demo-groom", salon_name: "Paw & Style", plan: "pro",
       status: "active", start_date: "2026-01-01", payment_type: null, stripe_customer_id: null,
-      stripe_subscription_id: null, domain: null, template: "groom", primary_color: "#C8956A",
+      stripe_subscription_id: null, domain: null, template: "groom", primary_color: "#C8956A", background_color: null,
       font: null, facebook_pixel_id: null, capi_token: null, clarity_id: null, gtm_id: null,
       phone: "+359 888 000 000", address: "ул. Оборище 35, гр. София",
       description: "Демо груминг салон", instagram_url: null, facebook_url: null, created_at: null,

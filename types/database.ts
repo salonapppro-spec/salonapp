@@ -25,6 +25,7 @@ export interface Tenant {
   domain: string | null;
   template: Template;
   primary_color: string | null;
+  background_color: string | null;
   font: string | null;
   facebook_pixel_id: string | null;
   capi_token: string | null;

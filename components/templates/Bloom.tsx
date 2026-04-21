@@ -19,7 +19,7 @@ export function Bloom({ data }: { data: SalonData }) {
   const { tenant, gallery } = data;
 
   const primary = tenant.primary_color ?? "#C8826A";
-  const bg = "#FFF8F5";
+  const bg = tenant.background_color ?? "#FFF8F5";
   const text = "#3D2B1F";
   const textLight = "#7A5C4F";
   const border = "#E8D5CC";

@@ -74,6 +74,7 @@ export function Zen({ data }: { data: SalonData }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const primary = tenant.primary_color ?? "#4A6741";
+  const bg = tenant.background_color ?? "#F5F0E8";
 
   const multi = useSpecialistSectionsOnPublicSite(data);
   const specs = activeSpecialists(data);
@@ -101,8 +102,8 @@ export function Zen({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Nunito:wght@300;400;500&display=swap');
 
         :root {
-          --beige:    #F5F0E8;
-          --beige-dk: #EDE6D6;
+          --beige:    ${bg};
+          --beige-dk: ${bg}ee;
           --beige-bd: #D9D0BC;
           --green:    ${primary};
           --green-lt: #6B8F62;

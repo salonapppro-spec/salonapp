@@ -69,6 +69,7 @@ export function Groom({ data }: { data: SalonData }) {
   const [pawsVisible, setPawsVisible] = useState(false);
 
   const capu = tenant.primary_color ?? "#C8956A";
+  const bg = tenant.background_color ?? "#FDF5ED";
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -105,9 +106,9 @@ export function Groom({ data }: { data: SalonData }) {
           --capu-dk:color-mix(in srgb,${capu} 80%,black);
           --brown:#5C3520;
           --brown-dk:#2C1810;
-          --cream:#FDF5ED;
-          --cream-dk:#F5E6D3;
-          --cream-bd:#E8D0B5;
+          --cream:${bg};
+          --cream-dk:${bg}ee;
+          --cream-bd:${bg}bb;
           --text:#2C1810;
           --muted:#8B6F5E;
           --white:#FFFFFF;

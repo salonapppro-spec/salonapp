@@ -47,6 +47,7 @@ export function Luxe2({ data }: { data: SalonData }) {
   const [mobileOpen, setMobileOpen] = useState(false);
 
   const gold = tenant.primary_color ?? "#B8973A";
+  const bg = tenant.background_color ?? "#FAF7F2";
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -71,7 +72,7 @@ export function Luxe2({ data }: { data: SalonData }) {
           --gold:${gold};
           --gold-l:color-mix(in srgb,${gold} 70%,white);
           --gold-p:color-mix(in srgb,${gold} 12%,white);
-          --cream:#FAF7F2;
+          --cream:${bg};
           --dark:#1A1714;
           --mid:#4A4540;
           --muted:#8A837A;
