@@ -288,10 +288,9 @@ export function Bloom({ data }: { data: SalonData }) {
         </div>
 
         {/* Google Maps */}
-        {tenant.google_maps_embed && (
+        {tenant.google_maps_embed && tenant.google_maps_embed.startsWith("https://www.google.com/maps/embed?") && (
           <div style={{ maxWidth: "900px", margin: "40px auto 0", borderRadius: "16px", overflow: "hidden", border: `1px solid ${border}` }}>
-            {/* eslint-disable-next-line react/no-danger */}
-            <div dangerouslySetInnerHTML={{ __html: tenant.google_maps_embed }} />
+            <iframe src={tenant.google_maps_embed} width="100%" height="400" style={{ border: 0, display: "block" }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
           </div>
         )}
       </section>

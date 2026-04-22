@@ -557,9 +557,8 @@ export function Zen({ data }: { data: SalonData }) {
             </div>
             <div>
               <div className="map-wrap">
-                {tenant.google_maps_embed ? (
-                  /* eslint-disable-next-line react/no-danger */
-                  <div dangerouslySetInnerHTML={{ __html: tenant.google_maps_embed }} style={{ width: "100%", height: "100%" }} />
+                {tenant.google_maps_embed && tenant.google_maps_embed.startsWith("https://www.google.com/maps/embed?") ? (
+                  <iframe src={tenant.google_maps_embed} style={{ width: "100%", height: "100%", border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                 ) : (
                   <>
                     <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ color: "var(--green)", opacity: .4 }}>
