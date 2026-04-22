@@ -10,13 +10,7 @@ const HairDensitySchema = z.enum(["thin", "medium", "thick"], {
 export const CreateBookingSchema = z.object({
   salon_slug: z.string().min(1, "Липсва салон"),
   specialist_id: z.string().uuid().optional(),
-  service_id: z.string().uuid("Невалидна услуга").optional(),
-  service_name: z.string().min(1, "Въведете име на услуга"),
-  service_price_eur: z.number({ error: () => ({ message: "Невалидна цена" }) }).nonnegative("Цената не може да е отрицателна"),
-  service_duration: z
-    .number({ error: () => ({ message: "Невалидна продължителност" }) })
-    .int("Продължителността е цяло число минути")
-    .positive("Продължителността трябва да е положителна"),
+  service_id: z.string().uuid("Невалидна услуга"),
   booking_date: z.string().min(1, "Изберете дата"),
   booking_time: z.string().min(1, "Изберете час"),
   client_name: z.string().min(1, "Въведете име"),

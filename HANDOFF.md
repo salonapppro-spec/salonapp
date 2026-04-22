@@ -1,5 +1,12 @@
 # HANDOFF — 2026-04-20
 
+### 2026-04-22 — Security fix: booking service integrity
+
+- `schemas/booking.ts`: public/admin booking payload now requires only `service_id` and no longer trusts client-sent `service_name`, `service_price_eur`, or `service_duration`.
+- `lib/booking-mutations.ts`: booking creation now loads the active service server-side by `salon_slug + service_id`, validates specialist ownership, calculates complex duration server-side, and inserts DB-derived name/price/duration.
+- `components/booking/BookingFlow.tsx`, `components/admin/QuickBooking.tsx`, `components/templates/InlineBookingForm.tsx`: forms now send only `service_id` plus date/time/contact details.
+- Verification: `npx tsc --noEmit` and `npm run build` passed.
+
 ## От: Лина → За: Поли
 
 ---

@@ -33,34 +33,58 @@ export async function runCreateBooking(
   const supabase = createSupabaseServiceRoleClient();
   const bufferMinutes = opts.bufferMinutes;
 
-  let serviceDuration = data.service_duration;
+  const { data: serviceRow, error: serviceErr } = await supabase
+    .from("services")
+    .select("*")
+    .eq("salon_slug", data.salon_slug)
+    .eq("id", data.service_id)
+    .eq("is_active", true)
+    .limit(1)
+    .maybeSingle();
 
-  if (data.service_id && data.hair_length && data.hair_density) {
-    const { data: serviceRow } = await supabase
-      .from("services")
-      .select("*")
-      .eq("salon_slug", data.salon_slug)
-      .eq("id", data.service_id)
-      .limit(1)
-      .maybeSingle();
-
-    const service = serviceRow as Service | null;
-    if (service?.is_complex) {
-      const calc = calculateDuration(
-        service,
-        data.hair_length as HairLength,
-        data.hair_density as HairDensity
-      );
-      serviceDuration = calc.totalMinutes;
-    }
+  if (serviceErr) {
+    return { ok: false, error: "Грешка при проверка на услугата." };
   }
 
-  const { data: existing, error: existingErr } = await supabase
+  const service = serviceRow as Service | null;
+  if (!service) {
+    return { ok: false, error: "Услугата не е намерена или не е активна." };
+  }
+
+  if (service.specialist_id && data.specialist_id && service.specialist_id !== data.specialist_id) {
+    return { ok: false, error: "Услугата не принадлежи на избрания специалист." };
+  }
+
+  const bookingSpecialistId = data.specialist_id ?? service.specialist_id ?? null;
+  let serviceDuration = service.duration_minutes ?? 0;
+
+  if (service.is_complex) {
+    if (!data.hair_length || !data.hair_density) {
+      return { ok: false, error: "Изберете дължина и гъстота за тази услуга." };
+    }
+
+    const calc = calculateDuration(
+      service,
+      data.hair_length as HairLength,
+      data.hair_density as HairDensity
+    );
+    serviceDuration = calc.totalMinutes;
+  }
+
+  if (serviceDuration <= 0) {
+    return { ok: false, error: "Услугата няма валидна продължителност." };
+  }
+
+  let existingQuery = supabase
     .from("bookings")
     .select("booking_time,service_duration,status,booking_end_time")
     .eq("salon_slug", data.salon_slug)
-    .eq("booking_date", data.booking_date)
-    .eq("specialist_id", data.specialist_id ?? null);
+    .eq("booking_date", data.booking_date);
+  existingQuery = bookingSpecialistId
+    ? existingQuery.eq("specialist_id", bookingSpecialistId)
+    : existingQuery.is("specialist_id", null);
+
+  const { data: existing, error: existingErr } = await existingQuery;
 
   if (existingErr) {
     return { ok: false, error: "Грешка при проверка на часовете." };
@@ -91,7 +115,7 @@ export async function runCreateBooking(
 
   const blockedSlots = await getBlockedSlotsForDate({
     salonSlug: data.salon_slug,
-    specialistId: data.specialist_id,
+    specialistId: bookingSpecialistId ?? undefined,
     date: data.booking_date,
   });
   for (const bl of blockedSlots) {
@@ -106,10 +130,10 @@ export async function runCreateBooking(
 
   const insertRow = {
     salon_slug: data.salon_slug,
-    specialist_id: data.specialist_id ?? null,
-    service_id: data.service_id ?? null,
-    service_name: data.service_name,
-    service_price_eur: data.service_price_eur,
+    specialist_id: bookingSpecialistId,
+    service_id: service.id,
+    service_name: service.name,
+    service_price_eur: Number(service.price_eur),
     service_duration: serviceDuration,
     booking_date: data.booking_date,
     booking_time: normalizeTimeForDb(data.booking_time),
@@ -143,7 +167,7 @@ export async function runCreateBooking(
       phone: data.client_phone,
       name: data.client_name,
       email: data.client_email ?? null,
-      specialist_id: data.specialist_id ?? null,
+      specialist_id: bookingSpecialistId,
     },
     { onConflict: "salon_slug,phone" }
   );

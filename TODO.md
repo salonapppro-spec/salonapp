@@ -1,5 +1,7 @@
 # SalonApp.pro — TODO
 
+- [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
+
 > Актуализирай след всяка задача. Последна промяна: 2026-04-20
 
 ---

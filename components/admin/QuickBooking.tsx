@@ -3,7 +3,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { createAdminBooking } from "@/app/actions/admin-booking";
-import { calculateDuration } from "@/lib/scheduling";
 import type { HairDensity, HairLength, Plan, Service, Specialist } from "@/types";
 
 const HAIR_LEN: { v: HairLength; l: string }[] = [
@@ -87,11 +86,6 @@ export function QuickBooking(props: {
         ? activeSpecs[0]!.id
         : undefined;
 
-    let duration = selected.duration_minutes ?? 0;
-    if (selected.is_complex) {
-      duration = calculateDuration(selected, hairLength, hairDensity).totalMinutes;
-    }
-
     setSaving(true);
     setError(null);
     try {
@@ -99,9 +93,6 @@ export function QuickBooking(props: {
         salon_slug: salonSlug,
         specialist_id: resolvedSpecialistId,
         service_id: selected.id,
-        service_name: selected.name,
-        service_price_eur: Number(selected.price_eur),
-        service_duration: duration,
         booking_date: date,
         booking_time: bookingTime.length > 5 ? bookingTime.slice(0, 5) : bookingTime,
         client_name: clientName.trim(),

@@ -86,16 +86,12 @@ export function InlineBookingForm({
     }
 
     try {
-      const selected = activeServices.find((s) => s.id === service);
       const res = await fetch("/api/bookings", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           salon_slug: salonSlug,
-          service_id: selected?.id,
-          service_name: selected?.name ?? service,
-          service_price_eur: selected?.price_eur ?? 0,
-          service_duration: selected?.duration_minutes ?? 60,
+          service_id: service,
           booking_date: date,
           booking_time: time,
           client_name: name,

@@ -7,7 +7,6 @@ import type { SalonData } from "@/types/database";
 import type { HairDensity, HairLength, Specialist, TimeSlot } from "@/types";
 import { salonPublicLogoUrl } from "@/components/templates/SalonSiteBrand";
 import { CreateBookingSchema } from "@/schemas/booking";
-import { calculateDuration } from "@/lib/scheduling";
 import { createBooking } from "@/app/actions/booking";
 import { StepSpecialist } from "@/components/booking/StepSpecialist";
 import { StepService } from "@/components/booking/StepService";
@@ -217,17 +216,10 @@ export function BookingFlow(props: { salonData: SalonData }) {
     if (!selectedService) return;
     setSubmitting(true);
     setError(null);
-    let duration = selectedService.duration_minutes ?? 0;
-    if (selectedService.is_complex && hairLength && hairDensity) {
-      duration = calculateDuration(selectedService, hairLength, hairDensity).totalMinutes;
-    }
     const payload = {
       salon_slug: salonSlug,
       specialist_id: specialistId || undefined,
       service_id: selectedService.id,
-      service_name: selectedService.name,
-      service_price_eur: Number(selectedService.price_eur),
-      service_duration: duration,
       booking_date: date,
       booking_time: time,
       client_name: name.trim(),
