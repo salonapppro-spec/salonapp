@@ -5,12 +5,18 @@ import { headers } from "next/headers";
 import { CreateBookingSchema } from "@/schemas/booking";
 import { assertTenantActiveForPublicApi } from "@/lib/public-tenant-guard";
 import { loadCreateBookingContext, runCreateBooking } from "@/lib/booking-mutations";
+import { clientIpFromHeaders, rateLimitOrThrow } from "@/lib/rate-limit-ip";
 
 export type CreateBookingActionResult =
   | { success: true; booking_id: string }
   | { error: string };
 
 export async function createBooking(input: unknown): Promise<CreateBookingActionResult> {
+  const h = await headers();
+  const ip = clientIpFromHeaders(h);
+  const rl = rateLimitOrThrow(`booking-action:${ip}`, 10, 60_000);
+  if (!rl.ok) return { error: "Твърде много заявки. Опитайте след малко." };
+
   const parsed = CreateBookingSchema.safeParse(input);
   if (!parsed.success) {
     const msg = parsed.error.issues[0]?.message ?? "Невалидни данни";
@@ -18,7 +24,6 @@ export async function createBooking(input: unknown): Promise<CreateBookingAction
   }
 
   const data = parsed.data;
-  const h = await headers();
   const headerSlug = h.get("x-salon-slug");
   if (!headerSlug || headerSlug !== data.salon_slug) {
     return { error: "Невалиден салон." };

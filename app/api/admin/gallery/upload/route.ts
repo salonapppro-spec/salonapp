@@ -24,8 +24,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Макс. 5 MB" }, { status: 400 });
   }
 
-  const mime = file.type || "application/octet-stream";
-  if (!mime.startsWith("image/")) {
+  const mime = file.type;
+  const ALLOWED_TYPES = ["image/jpeg", "image/png", "image/webp"];
+  if (!ALLOWED_TYPES.includes(mime)) {
     return NextResponse.json({ error: "Само изображения (JPG, PNG, WebP)" }, { status: 400 });
   }
   const buf = Buffer.from(await file.arrayBuffer());

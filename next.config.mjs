@@ -30,7 +30,7 @@ const nextConfig = {
           { key: "X-DNS-Prefetch-Control", value: "on" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Content-Security-Policy-Report-Only", value: CSP_POLICY },
+          { key: "Content-Security-Policy", value: CSP_POLICY },
         ],
       },
       {
@@ -42,7 +42,7 @@ const nextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
-          { key: "Content-Security-Policy-Report-Only", value: CSP_POLICY },
+          { key: "Content-Security-Policy", value: CSP_POLICY },
         ],
       },
     ];
