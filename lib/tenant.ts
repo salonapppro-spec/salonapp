@@ -5,15 +5,15 @@ import type { Tenant } from "@/types";
 
 export { getTenant } from "@/lib/get-tenant";
 
-export function getSalonSlugFromHeaders(): string | null {
-  const h = headers();
+export async function getSalonSlugFromHeaders(): Promise<string | null> {
+  const h = await headers();
   const slug = h.get("x-salon-slug");
   if (!slug) return null;
   return slug;
 }
 
 export async function getTenantFromRequest(): Promise<Tenant | null> {
-  const slug = getSalonSlugFromHeaders();
+  const slug = await getSalonSlugFromHeaders();
   if (!slug) return null;
   return getTenant(slug);
 }

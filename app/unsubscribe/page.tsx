@@ -1,12 +1,13 @@
 import Link from "next/link";
 
-export default function UnsubscribePage({
+export default async function UnsubscribePage({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const booking = typeof searchParams.booking === "string" ? searchParams.booking : null;
-  const token = typeof searchParams.token === "string" ? searchParams.token : null;
+  const sp = await searchParams;
+  const booking = typeof sp.booking === "string" ? sp.booking : null;
+  const token = typeof sp.token === "string" ? sp.token : null;
 
   return (
     <div className="mx-auto max-w-lg px-4 py-16 text-center">

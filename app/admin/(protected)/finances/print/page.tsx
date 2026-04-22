@@ -14,13 +14,14 @@ function pickParam(v: string | string[] | undefined): string | undefined {
 export default async function FinancePrintPage({
   searchParams,
 }: {
-  searchParams: Record<string, string | string[] | undefined>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
+  const sp = await searchParams;
   const scope = await resolveFinanceScope();
   if (!scope) redirect("/admin/login");
 
-  const y = Number(pickParam(searchParams.y)) || new Date().getFullYear();
-  const mRaw = pickParam(searchParams.m);
+  const y = Number(pickParam(sp.y)) || new Date().getFullYear();
+  const mRaw = pickParam(sp.m);
   const m = mRaw != null && mRaw !== "" ? Number(mRaw) : null;
   const isMonthly = m != null && Number.isFinite(m) && m! >= 1 && m! <= 12;
 
