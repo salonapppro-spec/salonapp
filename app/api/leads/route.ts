@@ -46,6 +46,31 @@ export async function POST(req: Request) {
       event_type: "form_filled",
       source: data.source,
     });
+
+    const resendKey = process.env.RESEND_API_KEY;
+    if (resendKey) {
+      await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${resendKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
+          to: ["admin@salonapp.pro"],
+          subject: `Нова заявка: ${data.salon_name} (${data.plan})`,
+          text: [
+            `Салон: ${data.salon_name}`,
+            `Контакт: ${data.contact_name}`,
+            `Имейл: ${data.email}`,
+            `Телефон: ${data.phone ?? "—"}`,
+            `План: ${data.plan}`,
+            `Съобщение: ${data.message ?? "—"}`,
+            `Источник: ${data.source}`,
+          ].join("\n"),
+        }),
+      }).catch((e) => console.error("[leads] notify email failed", e));
+    }
   } catch (e) {
     console.error("[leads]", e);
     return NextResponse.json({ error: "Конфигурацията на сървъра не е пълна." }, { status: 503 });
