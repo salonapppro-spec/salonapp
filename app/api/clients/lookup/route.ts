@@ -3,7 +3,6 @@ import { z } from "zod";
 
 import { lookupClientByPhone } from "@/lib/data";
 import { assertTenantActiveForPublicApi } from "@/lib/public-tenant-guard";
-import { clientIpFromHeaders, rateLimitOrThrow } from "@/lib/rate-limit-ip";
 
 const QuerySchema = z.object({
   salon_slug: z.string().min(1),
@@ -11,12 +10,6 @@ const QuerySchema = z.object({
 });
 
 export async function GET(req: Request) {
-  const ip = clientIpFromHeaders(req.headers);
-  const rl = rateLimitOrThrow(`clients-lookup:${ip}`, 10, 60_000);
-  if (!rl.ok) {
-    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-  }
-
   const url = new URL(req.url);
   const parsed = QuerySchema.safeParse({
     salon_slug: url.searchParams.get("salon_slug") ?? "",

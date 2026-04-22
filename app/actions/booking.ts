@@ -3,9 +3,10 @@
 import { headers } from "next/headers";
 
 import { CreateBookingSchema } from "@/schemas/booking";
+import { RATE } from "@/lib/rate-limit-policies";
+import { applyRateLimit, clientIpFromHeaders } from "@/lib/rate-limit";
 import { assertTenantActiveForPublicApi } from "@/lib/public-tenant-guard";
 import { loadCreateBookingContext, runCreateBooking } from "@/lib/booking-mutations";
-import { clientIpFromHeaders, rateLimitOrThrow } from "@/lib/rate-limit-ip";
 
 export type CreateBookingActionResult =
   | { success: true; booking_id: string }
@@ -14,8 +15,10 @@ export type CreateBookingActionResult =
 export async function createBooking(input: unknown): Promise<CreateBookingActionResult> {
   const h = await headers();
   const ip = clientIpFromHeaders(h);
-  const rl = rateLimitOrThrow(`booking-action:${ip}`, 10, 60_000);
-  if (!rl.ok) return { error: "Твърде много заявки. Опитайте след малко." };
+  const p = RATE.bookingAction;
+  if (!(await applyRateLimit(`booking-action:${ip}`, p.limit, p.windowMs)).ok) {
+    return { error: "Твърде много заявки. Опитайте след малко." };
+  }
 
   const parsed = CreateBookingSchema.safeParse(input);
   if (!parsed.success) {

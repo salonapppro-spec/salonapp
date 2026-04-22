@@ -1,3 +1,4 @@
+import { randomBytes } from "crypto";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 
@@ -34,9 +35,22 @@ export default async function BuilderPage({
   };
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const previewUrl = appUrl
+  const basePreview = appUrl
     ? `https://${salon_slug}.salonapp.pro`
     : `https://salonapp-ten.vercel.app/${salon_slug}`;
+
+  const previewToken = randomBytes(16).toString("hex");
+  const previewWithToken = (() => {
+    try {
+      const u = new URL(basePreview);
+      u.searchParams.set("builderPreview", "1");
+      u.searchParams.set("pt", previewToken);
+      return u.toString();
+    } catch {
+      const sep = basePreview.includes("?") ? "&" : "?";
+      return `${basePreview}${sep}builderPreview=1&pt=${encodeURIComponent(previewToken)}`;
+    }
+  })();
 
   return (
     <div className="flex flex-col gap-4">
@@ -53,7 +67,8 @@ export default async function BuilderPage({
         salonName={tenant.salon_name}
         initialTokens={initialTokens}
         initialContent={initialContent}
-        previewUrl={previewUrl}
+        previewUrl={previewWithToken}
+        previewToken={previewToken}
       />
     </div>
   );

@@ -6,6 +6,7 @@ import type { CSSProperties } from "react";
 import type { SalonData } from "@/types/database";
 import type { Template } from "@/types";
 import { loadPublicSalonData } from "@/lib/data";
+import { builderPostMessageParentOrigins } from "@/lib/builder-postmessage";
 import { mergeTokens, tokensToCssVars } from "@/lib/design-tokens";
 import { Bloom } from "@/components/templates/Bloom";
 import { Bold } from "@/components/templates/Bold";
@@ -89,8 +90,25 @@ export async function generateMetadata(props: { params: Promise<{ salon_slug: st
   };
 }
 
-export default async function PublicSalonPage(props: { params: Promise<{ salon_slug: string }> }) {
+function previewTokenFromSearchParams(
+  sp: Record<string, string | string[] | undefined> | undefined
+): string | null {
+  if (!sp) return null;
+  const flag = sp.builderPreview;
+  if (flag !== "1" && flag !== "true") return null;
+  const raw = sp.pt;
+  const s = Array.isArray(raw) ? raw[0] : raw;
+  if (typeof s !== "string" || !/^[0-9a-f]{32}$/i.test(s)) return null;
+  return s;
+}
+
+export default async function PublicSalonPage(props: {
+  params: Promise<{ salon_slug: string }>;
+  searchParams?: Promise<Record<string, string | string[] | undefined>>;
+}) {
   const { salon_slug: paramSlug } = await props.params;
+  const sp = (await props.searchParams) ?? {};
+  const builderPreviewToken = previewTokenFromSearchParams(sp);
   const slug = await resolveSlug(paramSlug);
   const data = await loadPublicSalonData(slug);
   if (!data) notFound();
@@ -112,7 +130,10 @@ export default async function PublicSalonPage(props: { params: Promise<{ salon_s
 
   const designVarStyle = tokensToCssVars(tokens) as CSSProperties;
 
-  // Inline script — listens for builder postMessage and applies CSS vars instantly
+  const postMessageParentOrigins = builderPostMessageParentOrigins();
+  const ptJson = builderPreviewToken === null ? "null" : JSON.stringify(builderPreviewToken);
+
+  // Inline script — only applies live tokens when ?builderPreview=1&pt=... (see Visual Builder) + allowlisted origin
   const postMessageScript = `
 (function(){
   var fonts=["Inter, sans-serif","'Playfair Display', serif","Montserrat, sans-serif","'Cormorant Garamond', serif","Lato, sans-serif","Raleway, sans-serif","Poppins, sans-serif","'DM Sans', sans-serif","Outfit, sans-serif","Nunito, sans-serif","'Josefin Sans', sans-serif","'Bebas Neue', sans-serif","Cinzel, serif","'Dancing Script', cursive","Italiana, serif","'Libre Baskerville', serif"];
@@ -120,6 +141,8 @@ export default async function PublicSalonPage(props: { params: Promise<{ salon_s
   var hex=/^#[0-9A-Fa-f]{6}$/;
   var len=/^(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em))$/;
   var pair=/^(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em))(?:\\s+(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em)))?$/;
+  var ALLOW=${JSON.stringify(postMessageParentOrigins)};
+  var PT=${ptJson};
   function allow(v,type){
     if(typeof v!=="string")return false;
     if(type==="hex")return hex.test(v);
@@ -132,8 +155,13 @@ export default async function PublicSalonPage(props: { params: Promise<{ salon_s
   function set(r,name,value,type){
     if(allow(value,type))r.setProperty(name,value);
   }
+  function allowedOrigin(o){
+    return ALLOW.indexOf(o)!==-1;
+  }
   window.addEventListener("message",function(e){
     if(!e.data||e.data.type!=="builder-preview")return;
+    if(PT===null||e.data.previewToken!==PT)return;
+    if(!allowedOrigin(e.origin))return;
     var t=e.data.tokens;
     if(!t)return;
     var el=document.getElementById("salon-design-root");

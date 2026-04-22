@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, useRef, useEffect, useCallback } from "react";
+import { useState, useTransition, useRef, useEffect, useCallback, useMemo } from "react";
 import type { DesignTokens } from "@/types/design-tokens";
 import { DEFAULT_DESIGN_TOKENS } from "@/lib/design-tokens";
 import { saveDesignTokens, saveBuilderContent } from "@/app/super-admin/actions";
@@ -61,12 +61,14 @@ interface Props {
   salonName: string;
   initialTokens: DesignTokens;
   initialContent: BuilderContent;
+  /** Full URL of the salon preview in the iframe (includes ?pt= for live preview handshake). */
   previewUrl: string;
+  previewToken: string;
 }
 
 // ─── Main Component ───────────────────────────────────────────────────────────
 
-export function BuilderClient({ salonSlug, salonName, initialTokens, initialContent, previewUrl }: Props) {
+export function BuilderClient({ salonSlug, salonName, initialTokens, initialContent, previewUrl, previewToken }: Props) {
   const [tab, setTab] = useState<Tab>("design");
   const [tokens, setTokens] = useState<DesignTokens>(initialTokens);
   const [content, setContent] = useState<BuilderContent>(initialContent);
@@ -78,10 +80,25 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, initialCont
   const [isPendingDesign, startDesignTransition] = useTransition();
   const [isPendingContent, startContentTransition] = useTransition();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const previewTargetOrigin = useMemo(() => {
+    try {
+      return new URL(previewUrl).origin;
+    } catch {
+      return "";
+    }
+  }, [previewUrl]);
 
-  const pushTokens = useCallback((t: DesignTokens) => {
-    iframeRef.current?.contentWindow?.postMessage({ type: "builder-preview", tokens: t }, "*");
-  }, []);
+  const pushTokens = useCallback(
+    (t: DesignTokens) => {
+      const w = iframeRef.current?.contentWindow;
+      if (!w || !previewTargetOrigin) return;
+      w.postMessage(
+        { type: "builder-preview", tokens: t, previewToken },
+        previewTargetOrigin
+      );
+    },
+    [previewToken, previewTargetOrigin]
+  );
 
   useEffect(() => { pushTokens(tokens); }, [tokens, pushTokens]);
 

@@ -11,6 +11,12 @@ import {
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
 import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
+import {
+  safeFacebookHref,
+  safeGoogleMapsEmbedSrc,
+  safeInstagramHref,
+  safeTiktokHref,
+} from "@/lib/safe-public-urls";
 
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
@@ -59,7 +65,11 @@ export function Luxe2({ data }: { data: SalonData }) {
   const specs = activeSpecialists(data);
   const flatServices = servicesFlatForPublic(data);
 
-  const hasSocial = tenant.instagram_url || tenant.facebook_url || tenant.tiktok_url;
+  const igHref = safeInstagramHref(tenant.instagram_url);
+  const fbHref = safeFacebookHref(tenant.facebook_url);
+  const tkHref = safeTiktokHref(tenant.tiktok_url);
+  const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
+  const hasSocial = Boolean(igHref || fbHref || tkHref);
   const hasGallery = gallery.length > 0;
   const hasAbout = tenant.about_text1 || tenant.about_text2;
 
@@ -355,9 +365,9 @@ export function Luxe2({ data }: { data: SalonData }) {
                   </div>
                 ))}
               </div>
-              {tenant.instagram_url && (
+              {igHref && (
                 <div className="gig">
-                  <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer" className="btn-o">
+                  <a href={igHref} target="_blank" rel="noopener noreferrer" className="btn-o">
                     Вижте повече в Instagram →
                   </a>
                 </div>
@@ -428,16 +438,16 @@ export function Luxe2({ data }: { data: SalonData }) {
               </dl>
               {hasSocial && (
                 <div className="socials">
-                  {tenant.instagram_url && <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer" className="sl">IG</a>}
-                  {tenant.facebook_url && <a href={tenant.facebook_url} target="_blank" rel="noopener noreferrer" className="sl">FB</a>}
-                  {tenant.tiktok_url && <a href={tenant.tiktok_url} target="_blank" rel="noopener noreferrer" className="sl">TK</a>}
+                  {igHref && <a href={igHref} target="_blank" rel="noopener noreferrer" className="sl">IG</a>}
+                  {fbHref && <a href={fbHref} target="_blank" rel="noopener noreferrer" className="sl">FB</a>}
+                  {tkHref && <a href={tkHref} target="_blank" rel="noopener noreferrer" className="sl">TK</a>}
                 </div>
               )}
             </div>
             <div className="mwrap">
               <div className="mph">
-                {tenant.google_maps_embed
-                  ? <iframe src={tenant.google_maps_embed} allowFullScreen loading="lazy" />
+                {mapsSrc
+                  ? <iframe src={mapsSrc} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                   : <span>Google Maps</span>
                 }
               </div>

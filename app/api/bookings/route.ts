@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { logAbuseEvent } from "@/lib/abuse-log";
+import { clientIpFromHeaders } from "@/lib/rate-limit";
 import type { HairDensity, HairLength } from "@/types";
 import { CreateBookingSchema } from "@/schemas/booking";
 import {
@@ -101,7 +103,18 @@ export async function POST(req: Request) {
       result.code === "23P01" ||
       result.error.includes("зает") ||
       result.error.includes("блокиран");
-    return NextResponse.json({ error: result.error }, { status: conflict ? 409 : 500 });
+    const status = conflict ? 409 : 500;
+    if (status === 500) {
+      logAbuseEvent({
+        kind: "server_error",
+        path: "/api/bookings",
+        method: "POST",
+        status: 500,
+        ip: clientIpFromHeaders(req.headers),
+        detail: result.code ?? "create_booking_failed",
+      });
+    }
+    return NextResponse.json({ error: result.error }, { status });
   }
 
   return NextResponse.json({ success: true, booking_id: result.bookingId });

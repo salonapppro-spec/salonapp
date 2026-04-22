@@ -1,8 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { rateLimitOrThrow, clientIpFromHeaders } from "@/lib/rate-limit-ip";
-
 const Schema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),
@@ -11,10 +9,6 @@ const Schema = z.object({
 });
 
 export async function POST(req: Request) {
-  const ip = clientIpFromHeaders(req.headers);
-  const rl = rateLimitOrThrow(`gdpr-delete:${ip}`, 3, 60_000);
-  if (!rl.ok) return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-
   const body = await req.json().catch(() => null);
   const parsed = Schema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid data" }, { status: 400 });

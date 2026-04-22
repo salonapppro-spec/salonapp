@@ -11,6 +11,12 @@ import {
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
 import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
+import {
+  safeFacebookHref,
+  safeGoogleMapsEmbedSrc,
+  safeInstagramHref,
+  safeTiktokHref,
+} from "@/lib/safe-public-urls";
 
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
@@ -91,7 +97,11 @@ export function Groom({ data }: { data: SalonData }) {
   const specs = activeSpecialists(data);
   const flatServices = servicesFlatForPublic(data);
 
-  const hasSocial = tenant.instagram_url || tenant.facebook_url || tenant.tiktok_url;
+  const igHref = safeInstagramHref(tenant.instagram_url);
+  const fbHref = safeFacebookHref(tenant.facebook_url);
+  const tkHref = safeTiktokHref(tenant.tiktok_url);
+  const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
+  const hasSocial = Boolean(igHref || fbHref || tkHref);
   const hasGallery = gallery.length > 0;
   const hasAbout = tenant.about_text1 || tenant.about_text2;
 
@@ -417,9 +427,9 @@ export function Groom({ data }: { data: SalonData }) {
                 </div>
               ))}
             </div>
-            {tenant.instagram_url && (
+            {igHref && (
               <div style={{ textAlign: "center", marginTop: "2rem" }}>
-                <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer" className="btn-outline-brown">
+                <a href={igHref} target="_blank" rel="noopener noreferrer" className="btn-outline-brown">
                   Вижте повече в Instagram
                 </a>
               </div>
@@ -508,8 +518,8 @@ export function Groom({ data }: { data: SalonData }) {
             </div>
             <div>
               <div className="map-wrap">
-                {tenant.google_maps_embed
-                  ? <iframe src={tenant.google_maps_embed} allowFullScreen loading="lazy" />
+                {mapsSrc
+                  ? <iframe src={mapsSrc} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                   : (
                     <>
                       <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ color: "var(--capu)", opacity: .5 }}><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
@@ -527,26 +537,26 @@ export function Groom({ data }: { data: SalonData }) {
       {hasSocial && (
         <div className="social-bar">
           <div className="social-bar-inner">
-            {tenant.instagram_url && (
+            {igHref && (
               <>
-                <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer" className="social-link">
+                <a href={igHref} target="_blank" rel="noopener noreferrer" className="social-link">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="2" width="20" height="20" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
                   Instagram
                 </a>
                 <div className="social-div" />
               </>
             )}
-            {tenant.facebook_url && (
+            {fbHref && (
               <>
-                <a href={tenant.facebook_url} target="_blank" rel="noopener noreferrer" className="social-link">
+                <a href={fbHref} target="_blank" rel="noopener noreferrer" className="social-link">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
                   Facebook
                 </a>
                 <div className="social-div" />
               </>
             )}
-            {tenant.tiktok_url && (
-              <a href={tenant.tiktok_url} target="_blank" rel="noopener noreferrer" className="social-link">
+            {tkHref && (
+              <a href={tkHref} target="_blank" rel="noopener noreferrer" className="social-link">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5"/></svg>
                 TikTok
               </a>

@@ -8,6 +8,12 @@ import {
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
 import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
+import {
+  safeFacebookHref,
+  safeGoogleMapsEmbedSrc,
+  safeInstagramHref,
+  safeTiktokHref,
+} from "@/lib/safe-public-urls";
 
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
@@ -17,6 +23,11 @@ function eurToBgn(eur: number): string {
 
 export function Bloom({ data }: { data: SalonData }) {
   const { tenant, gallery } = data;
+
+  const igHref = safeInstagramHref(tenant.instagram_url);
+  const fbHref = safeFacebookHref(tenant.facebook_url);
+  const tkHref = safeTiktokHref(tenant.tiktok_url);
+  const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
 
   // CSS vars (--color-primary, --color-bg, --font-family, etc.) are injected
   // server-side by the public page and updated in real-time by the builder.
@@ -267,20 +278,20 @@ export function Bloom({ data }: { data: SalonData }) {
                 </div>
               )}
               <div style={{ display: "flex", gap: "12px", marginTop: "8px", flexWrap: "wrap" }}>
-                {tenant.instagram_url && (
-                  <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer"
+                {igHref && (
+                  <a href={igHref} target="_blank" rel="noopener noreferrer"
                     style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${border}`, backgroundColor: "#fff", color: text, textDecoration: "none", fontSize: "13px", fontWeight: 500 }}>
                     Instagram
                   </a>
                 )}
-                {tenant.facebook_url && (
-                  <a href={tenant.facebook_url} target="_blank" rel="noopener noreferrer"
+                {fbHref && (
+                  <a href={fbHref} target="_blank" rel="noopener noreferrer"
                     style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${border}`, backgroundColor: "#fff", color: text, textDecoration: "none", fontSize: "13px", fontWeight: 500 }}>
                     Facebook
                   </a>
                 )}
-                {tenant.tiktok_url && (
-                  <a href={tenant.tiktok_url} target="_blank" rel="noopener noreferrer"
+                {tkHref && (
+                  <a href={tkHref} target="_blank" rel="noopener noreferrer"
                     style={{ padding: "8px 16px", borderRadius: "8px", border: `1px solid ${border}`, backgroundColor: "#fff", color: text, textDecoration: "none", fontSize: "13px", fontWeight: 500 }}>
                     TikTok
                   </a>
@@ -291,9 +302,9 @@ export function Bloom({ data }: { data: SalonData }) {
         </div>
 
         {/* Google Maps */}
-        {tenant.google_maps_embed && tenant.google_maps_embed.startsWith("https://www.google.com/maps/embed?") && (
+        {mapsSrc && (
           <div style={{ maxWidth: "900px", margin: "40px auto 0", borderRadius: "16px", overflow: "hidden", border: `1px solid ${border}` }}>
-            <iframe src={tenant.google_maps_embed} width="100%" height="400" style={{ border: 0, display: "block" }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+            <iframe src={mapsSrc} width="100%" height="400" style={{ border: 0, display: "block" }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
           </div>
         )}
       </section>

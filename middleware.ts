@@ -1,7 +1,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { clientIpFromHeaders, rateLimitOrThrow } from "@/lib/rate-limit-ip";
+import { logAbuseEvent } from "@/lib/abuse-log";
+import { RATE } from "@/lib/rate-limit-policies";
+import { applyRateLimit, clientIpFromHeaders } from "@/lib/rate-limit";
 
 // ── Hostname helpers ──────────────────────────────────────────────────────────
 
@@ -100,33 +102,85 @@ export async function middleware(request: NextRequest) {
   const hostHeader = request.headers.get("host") ?? "";
   const hostname = normalizeHostname(hostHeader);
 
-  // ── Rate limiting ────────────────────────────────────────────────────────
+  // ── Rate limiting (Upstash when UPSTASH_* env is set, else in-memory) ────
   const ip = clientIpFromHeaders(request.headers);
+  const m = request.method;
 
-  if (pathname === "/api/bookings" && request.method === "POST") {
-    if (!rateLimitOrThrow(`booking-post:${ip}`, 40, 60_000).ok) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  const rl = async (key: string, policy: (typeof RATE)[keyof typeof RATE], label: string) => {
+    if (!(await applyRateLimit(key, policy.limit, policy.windowMs)).ok) {
+      logAbuseEvent({
+        kind: "rate_limited",
+        path: pathname,
+        method: m,
+        status: 429,
+        ip,
+        key: label,
+      });
+      if (pathname.startsWith("/api/confirm/") || pathname.startsWith("/api/cancel/")) {
+        return new NextResponse(
+          "<!DOCTYPE html><html><head><meta charset='utf-8'/><title>Твърде много заявки</title></head><body style='font-family:system-ui;padding:2rem;max-width:24rem'>Моля, опитайте отново след минута.</body></html>",
+          { status: 429, headers: { "Content-Type": "text/html; charset=utf-8", "Retry-After": "60" } }
+        );
+      }
+      return NextResponse.json(
+        { error: "Too many requests" },
+        { status: 429, headers: { "Retry-After": "60" } }
+      );
     }
+    return null;
+  };
+
+  if (pathname === "/api/bookings" && m === "GET") {
+    const r = await rl(`bookings-get:${ip}`, RATE.bookingGet, "bookings_get");
+    if (r) return r;
   }
-  if (pathname === "/api/leads" && request.method === "POST") {
-    if (!rateLimitOrThrow(`leads-post:${ip}`, 15, 60_000).ok) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-    }
+  if (pathname === "/api/bookings" && m === "POST") {
+    const r = await rl(`booking-post:${ip}`, RATE.bookingPost, "booking_post");
+    if (r) return r;
   }
-  if (pathname === "/api/consultation" && request.method === "POST") {
-    if (!rateLimitOrThrow(`consultation-post:${ip}`, 10, 60_000).ok) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-    }
+  if (pathname === "/api/leads" && m === "POST") {
+    const r = await rl(`leads-post:${ip}`, RATE.leadsPost, "leads_post");
+    if (r) return r;
   }
-  if (pathname === "/api/availability" && request.method === "GET") {
-    if (!rateLimitOrThrow(`availability-get:${ip}`, 60, 60_000).ok) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-    }
+  if (pathname === "/api/consultation" && m === "POST") {
+    const r = await rl(`consultation-post:${ip}`, RATE.consultationPost, "consultation_post");
+    if (r) return r;
   }
-  if (pathname === "/api/services" && request.method === "GET") {
-    if (!rateLimitOrThrow(`services-get:${ip}`, 30, 60_000).ok) {
-      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
-    }
+  if (pathname === "/api/availability" && m === "GET") {
+    const r = await rl(`availability-get:${ip}`, RATE.availabilityGet, "availability_get");
+    if (r) return r;
+  }
+  if (pathname === "/api/services" && m === "GET") {
+    const r = await rl(`services-get:${ip}`, RATE.servicesGet, "services_get");
+    if (r) return r;
+  }
+  if (pathname === "/api/clients/lookup" && m === "GET") {
+    const r = await rl(`clients-lookup:${ip}`, RATE.clientsLookupGet, "clients_lookup");
+    if (r) return r;
+  }
+  if (pathname === "/api/gdpr/delete-request" && m === "POST") {
+    const r = await rl(`gdpr-delete:${ip}`, RATE.gdprDeletePost, "gdpr_delete");
+    if (r) return r;
+  }
+  if (pathname === "/api/track" && m === "POST") {
+    const r = await rl(`track-post:${ip}`, RATE.trackPost, "track_post");
+    if (r) return r;
+  }
+  if (pathname.startsWith("/api/confirm/") && (m === "GET" || m === "POST")) {
+    const r = await rl(`token-confirm:${ip}`, RATE.tokenAction, "token_confirm");
+    if (r) return r;
+  }
+  if (pathname.startsWith("/api/cancel/") && (m === "GET" || m === "POST")) {
+    const r = await rl(`token-cancel:${ip}`, RATE.tokenAction, "token_cancel");
+    if (r) return r;
+  }
+  if (pathname.startsWith("/api/cron/")) {
+    const r = await rl(`cron-route:${ip}`, RATE.cronRoute, "cron_route");
+    if (r) return r;
+  }
+  if (pathname === "/api/webhooks/stripe" && m === "POST") {
+    const r = await rl(`stripe-webhook:${ip}`, RATE.stripeWebhookPost, "stripe_webhook");
+    if (r) return r;
   }
 
   // ── Temporarily unavailable bypass ──────────────────────────────────────

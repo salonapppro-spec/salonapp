@@ -12,7 +12,12 @@ export async function POST(req: Request) {
 
   const body = (await req.json().catch(() => null)) as unknown;
   const parsed = UpdateTenantPublicFieldsSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  if (!parsed.success) {
+    return NextResponse.json(
+      { error: parsed.error.issues[0]?.message ?? "Невалидни данни" },
+      { status: 400 },
+    );
+  }
 
   const supabase = createSupabaseServiceRoleClient();
 

@@ -11,6 +11,12 @@ import {
   servicesForSpecialist,
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
+import {
+  safeFacebookHref,
+  safeGoogleMapsEmbedSrc,
+  safeInstagramHref,
+  safeTiktokHref,
+} from "@/lib/safe-public-urls";
 
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
@@ -80,6 +86,11 @@ export function Luxe({ data }: { data: SalonData }) {
   const multi = useSpecialistSectionsOnPublicSite(data);
   const specs = activeSpecialists(data);
   const services = servicesFlatForPublic(data);
+
+  const igHref = safeInstagramHref(tenant.instagram_url);
+  const fbHref = safeFacebookHref(tenant.facebook_url);
+  const tkHref = safeTiktokHref(tenant.tiktok_url);
+  const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
 
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 60);
@@ -875,9 +886,9 @@ export function Luxe({ data }: { data: SalonData }) {
                 </div>
               ))}
             </div>
-            {tenant.instagram_url && (
+            {igHref && (
               <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
-                <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer" className="btn">
+                <a href={igHref} target="_blank" rel="noopener noreferrer" className="btn">
                   Вижте повече в Instagram
                 </a>
               </div>
@@ -979,8 +990,8 @@ export function Luxe({ data }: { data: SalonData }) {
             </div>
             <div>
               <div className="map-wrap">
-                {tenant.google_maps_embed && tenant.google_maps_embed.startsWith("https://www.google.com/maps/embed?") ? (
-                  <iframe src={tenant.google_maps_embed} style={{ width: "100%", height: "100%", border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
+                {mapsSrc ? (
+                  <iframe src={mapsSrc} style={{ width: "100%", height: "100%", border: 0 }} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" />
                 ) : (
                   <>
                     <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ color: "var(--gold)", opacity: 0.4 }}>
@@ -996,33 +1007,33 @@ export function Luxe({ data }: { data: SalonData }) {
       </section>
 
       {/* SOCIAL BAR */}
-      {(tenant.instagram_url || tenant.facebook_url || tenant.tiktok_url) && (
+      {(igHref || fbHref || tkHref) && (
         <div className="social-bar">
           <div className="social-bar-inner">
-            {tenant.instagram_url && (
+            {igHref && (
               <>
-                <a href={tenant.instagram_url} target="_blank" rel="noopener noreferrer" className="social-link">
+                <a href={igHref} target="_blank" rel="noopener noreferrer" className="social-link">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <rect x="2" y="2" width="20" height="20" rx="5" /><circle cx="12" cy="12" r="4" /><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
                   </svg>
                   Instagram
                 </a>
-                {(tenant.facebook_url || tenant.tiktok_url) && <div className="social-divider" />}
+                {(fbHref || tkHref) && <div className="social-divider" />}
               </>
             )}
-            {tenant.facebook_url && (
+            {fbHref && (
               <>
-                <a href={tenant.facebook_url} target="_blank" rel="noopener noreferrer" className="social-link">
+                <a href={fbHref} target="_blank" rel="noopener noreferrer" className="social-link">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                   </svg>
                   Facebook
                 </a>
-                {tenant.tiktok_url && <div className="social-divider" />}
+                {tkHref && <div className="social-divider" />}
               </>
             )}
-            {tenant.tiktok_url && (
-              <a href={tenant.tiktok_url} target="_blank" rel="noopener noreferrer" className="social-link">
+            {tkHref && (
+              <a href={tkHref} target="_blank" rel="noopener noreferrer" className="social-link">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
                 </svg>

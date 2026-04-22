@@ -13,10 +13,24 @@
  */
 
 import { createClient } from "@supabase/supabase-js";
-import * as dotenv from "dotenv";
+import * as fs from "fs";
 import * as path from "path";
 
-dotenv.config({ path: path.resolve(process.cwd(), ".env.local") });
+function loadEnvFile(filePath: string): void {
+  if (!fs.existsSync(filePath)) return;
+  const lines = fs.readFileSync(filePath, "utf8").split(/\r?\n/);
+  for (const line of lines) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#") || !trimmed.includes("=")) continue;
+    const eq = trimmed.indexOf("=");
+    const key = trimmed.slice(0, eq).trim();
+    const raw = trimmed.slice(eq + 1).trim();
+    if (!key || process.env[key]) continue;
+    process.env[key] = raw.replace(/^["']|["']$/g, "");
+  }
+}
+
+loadEnvFile(path.resolve(process.cwd(), ".env.local"));
 
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
