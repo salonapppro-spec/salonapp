@@ -48,7 +48,6 @@ function ImageUpload({
     <div>
       <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "rgba(26,26,26,0.4)" }}>{label}</label>
       <div className="mt-2 flex items-start gap-3">
-        {/* Preview */}
         <div
           className="shrink-0 overflow-hidden rounded-xl border flex items-center justify-center bg-[#FAF7F2]"
           style={{
@@ -65,7 +64,6 @@ function ImageUpload({
           )}
         </div>
 
-        {/* Controls */}
         <div className="flex-1 space-y-1.5">
           <div className="flex gap-2">
             <button
@@ -144,38 +142,9 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
-const COLOR_PRESETS = [
-  { label: "Роза",      primary: "#C8826A", name: "rose" },
-  { label: "Злато",     primary: "#C9A84C", name: "gold" },
-  { label: "Лилаво",   primary: "#9B7EBD", name: "purple" },
-  { label: "Тюркоаз",  primary: "#4A9E9E", name: "teal" },
-  { label: "Бордо",    primary: "#8B3A52", name: "bordeaux" },
-  { label: "Антрацит", primary: "#3D3D3D", name: "dark" },
-];
-
-const BG_PRESETS = [
-  { label: "Крем",     bg: "#FAF7F2", name: "cream" },
-  { label: "Бяло",     bg: "#FFFFFF", name: "white" },
-  { label: "Пясък",    bg: "#F5ECD7", name: "sand" },
-  { label: "Розово",   bg: "#FDF0F0", name: "blush" },
-  { label: "Мента",    bg: "#F0F7F4", name: "mint" },
-  { label: "Тъмно",    bg: "#1A1A2E", name: "dark" },
-];
-
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
 
-  const [salonName, setSalonName] = useState(tenant.salon_name ?? "");
-  const [primaryColor, setPrimaryColor] = useState(tenant.primary_color ?? "#C8826A");
-  const [backgroundColor, setBackgroundColor] = useState(tenant.background_color ?? "#FAF7F2");
-  const [logoUrl, setLogoUrl] = useState(tenant.logo_url ?? "");
-  const [heroTitle, setHeroTitle] = useState(tenant.hero_title ?? "");
-  const [heroSubtitle, setHeroSubtitle] = useState(tenant.hero_subtitle ?? "");
-  const [heroImageUrl, setHeroImageUrl] = useState(tenant.hero_image_url ?? "");
-  const [description, setDescription] = useState(tenant.description ?? "");
-  const [about1, setAbout1] = useState(tenant.about_text1 ?? "");
-  const [about2, setAbout2] = useState(tenant.about_text2 ?? "");
-  const [aboutImageUrl, setAboutImageUrl] = useState(tenant.about_image_url ?? "");
   const [address, setAddress] = useState(tenant.address ?? "");
   const [phone, setPhone] = useState(tenant.phone ?? "");
   const [email, setEmail] = useState(tenant.email ?? "");
@@ -202,17 +171,6 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
 
   const payload = useMemo(
     () => ({
-      salon_name: salonName.trim() || undefined,
-      primary_color: primaryColor || undefined,
-      background_color: backgroundColor || undefined,
-      logo_url: logoUrl.trim() === "" ? "" : logoUrl.trim(),
-      hero_title: heroTitle || undefined,
-      hero_subtitle: heroSubtitle || undefined,
-      hero_image_url: heroImageUrl || undefined,
-      description: description || undefined,
-      about_text1: about1 || undefined,
-      about_text2: about2 || undefined,
-      about_image_url: aboutImageUrl || undefined,
       address: address || undefined,
       phone: phone || undefined,
       email: email || undefined,
@@ -221,7 +179,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       tiktok_url: tiktok || undefined,
       google_maps_embed: mapsEmbed || undefined,
     }),
-    [about1, about2, aboutImageUrl, address, backgroundColor, description, email, facebook, heroImageUrl, heroSubtitle, heroTitle, instagram, logoUrl, mapsEmbed, phone, primaryColor, salonName, tiktok]
+    [address, email, facebook, instagram, mapsEmbed, phone, tiktok]
   );
 
   async function save() {
@@ -284,151 +242,6 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     <div className="space-y-4">
       {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{error}</div>}
       {ok && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{ok}</div>}
-
-      {/* ── Профил на салона ── */}
-      <FieldCard>
-        <SectionHeader icon="🏪" title="Профил на салона" desc="Основна информация, показвана навсякъде" />
-        <div className="space-y-4">
-          <div>
-            <Label>Име на салона</Label>
-            <input className="input-admin" value={salonName} onChange={(e) => setSalonName(e.target.value)} placeholder="Студио Елит" />
-          </div>
-          <ImageUpload
-            label="Лого"
-            value={logoUrl}
-            onChange={setLogoUrl}
-            hint="Квадратна снимка. Показва се в горната лента на сайта."
-            aspect="square"
-          />
-
-          {/* Button / accent color picker */}
-          <div>
-            <Label>Цвят на бутоните</Label>
-            <p className="mb-2 mt-0.5 text-[10px] text-[#1A1A1A]/30">Бутони, линкове и акцентни детайли на сайта</p>
-            <div className="flex flex-wrap gap-2">
-              {COLOR_PRESETS.map((p) => (
-                <button
-                  key={p.name}
-                  type="button"
-                  title={p.label}
-                  onClick={() => setPrimaryColor(p.primary)}
-                  className="flex flex-col items-center gap-1 transition hover:scale-110"
-                >
-                  <span
-                    className="block h-8 w-8 rounded-full shadow-sm"
-                    style={{
-                      background: p.primary,
-                      outline: primaryColor === p.primary ? `3px solid ${p.primary}` : "2px solid transparent",
-                      outlineOffset: "2px",
-                    }}
-                  />
-                  <span className="text-[9px] text-[#1A1A1A]/40">{p.label}</span>
-                </button>
-              ))}
-              <div className="flex flex-col items-center gap-1">
-                <label className="relative block h-8 w-8 cursor-pointer overflow-hidden rounded-full shadow-sm" title="Избери цвят">
-                  <span className="block h-full w-full rounded-full" style={{ background: primaryColor }} />
-                  <input type="color" value={primaryColor} onChange={(e) => setPrimaryColor(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
-                </label>
-                <span className="text-[9px] text-[#1A1A1A]/40">Custom</span>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-3">
-              <button type="button" className="rounded-xl px-4 py-2 text-xs font-black text-white shadow-sm" style={{ background: primaryColor }}>
-                Пример бутон
-              </button>
-              <span className="font-mono text-xs text-[#1A1A1A]/40">{primaryColor}</span>
-            </div>
-          </div>
-
-          {/* Background color picker */}
-          <div>
-            <Label>Цвят на фона</Label>
-            <p className="mb-2 mt-0.5 text-[10px] text-[#1A1A1A]/30">Основен фон на целия сайт</p>
-            <div className="flex flex-wrap gap-2">
-              {BG_PRESETS.map((p) => (
-                <button
-                  key={p.name}
-                  type="button"
-                  title={p.label}
-                  onClick={() => setBackgroundColor(p.bg)}
-                  className="flex flex-col items-center gap-1 transition hover:scale-110"
-                >
-                  <span
-                    className="block h-8 w-8 rounded-full shadow-sm border border-black/10"
-                    style={{
-                      background: p.bg,
-                      outline: backgroundColor === p.bg ? `3px solid ${primaryColor}` : "2px solid transparent",
-                      outlineOffset: "2px",
-                    }}
-                  />
-                  <span className="text-[9px] text-[#1A1A1A]/40">{p.label}</span>
-                </button>
-              ))}
-              <div className="flex flex-col items-center gap-1">
-                <label className="relative block h-8 w-8 cursor-pointer overflow-hidden rounded-full shadow-sm border border-black/10" title="Избери цвят">
-                  <span className="block h-full w-full rounded-full" style={{ background: backgroundColor }} />
-                  <input type="color" value={backgroundColor} onChange={(e) => setBackgroundColor(e.target.value)} className="absolute inset-0 h-full w-full cursor-pointer opacity-0" />
-                </label>
-                <span className="text-[9px] text-[#1A1A1A]/40">Custom</span>
-              </div>
-            </div>
-            <div className="mt-3 flex items-center gap-3">
-              <div className="h-8 w-24 rounded-xl border border-black/10 shadow-sm" style={{ background: backgroundColor }} />
-              <span className="font-mono text-xs text-[#1A1A1A]/40">{backgroundColor}</span>
-            </div>
-          </div>
-        </div>
-      </FieldCard>
-
-      {/* ── Hero секция ── */}
-      <FieldCard>
-        <SectionHeader icon="🖼️" title="Hero секция" desc="Заглавието и снимката на началната страница на сайта" />
-        <div className="space-y-4">
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label>Заглавие</Label>
-              <input className="input-admin" placeholder="Твоята красота, нашата страст" value={heroTitle} onChange={(e) => setHeroTitle(e.target.value)} />
-            </div>
-            <div>
-              <Label>Подзаглавие</Label>
-              <input className="input-admin" placeholder="Запишете си час онлайн" value={heroSubtitle} onChange={(e) => setHeroSubtitle(e.target.value)} />
-            </div>
-          </div>
-          <ImageUpload
-            label="Hero снимка"
-            value={heroImageUrl}
-            onChange={setHeroImageUrl}
-            hint="Голяма хоризонтална снимка за началната секция."
-            aspect="wide"
-          />
-          <div>
-            <Label>Кратко описание</Label>
-            <textarea className="textarea-admin min-h-[5rem]" rows={3} placeholder="Няколко изречения за салона…" value={description} onChange={(e) => setDescription(e.target.value)} />
-          </div>
-        </div>
-      </FieldCard>
-
-      {/* ── За нас ── */}
-      <FieldCard>
-        <SectionHeader icon="💬" title="За нас" desc="Секцията с историята и философията на салона" />
-        <div className="space-y-4">
-          <div>
-            <Label>Текст 1</Label>
-            <textarea className="textarea-admin min-h-[6rem]" rows={4} value={about1} onChange={(e) => setAbout1(e.target.value)} />
-          </div>
-          <div>
-            <Label>Текст 2</Label>
-            <textarea className="textarea-admin min-h-[6rem]" rows={4} value={about2} onChange={(e) => setAbout2(e.target.value)} />
-          </div>
-          <ImageUpload
-            label="Снимка за секция За нас"
-            value={aboutImageUrl}
-            onChange={setAboutImageUrl}
-            aspect="wide"
-          />
-        </div>
-      </FieldCard>
 
       {/* ── Специалисти ── */}
       <FieldCard>
