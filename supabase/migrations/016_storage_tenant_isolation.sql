@@ -8,11 +8,14 @@
 -- Очаквана структура на пътищата: gallery/<salon_slug>/<filename>
 
 -- ---------------------------------------------------------------------------
--- Премахни старите широки политики
+-- Премахни старите широки политики (два варианта на имена от различни миграции)
 -- ---------------------------------------------------------------------------
 DROP POLICY IF EXISTS "Authenticated users can upload gallery images"   ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can update gallery images"   ON storage.objects;
 DROP POLICY IF EXISTS "Authenticated users can delete gallery images"   ON storage.objects;
+DROP POLICY IF EXISTS gallery_auth_insert ON storage.objects;
+DROP POLICY IF EXISTS gallery_auth_update ON storage.objects;
+DROP POLICY IF EXISTS gallery_auth_delete ON storage.objects;
 
 -- ---------------------------------------------------------------------------
 -- Нови политики с tenant path ownership
