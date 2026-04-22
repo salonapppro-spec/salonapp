@@ -36,7 +36,7 @@ async function findTenant(customerId: string | null, email: string) {
   if (customerId) {
     const { data } = await supabase
       .from("tenants")
-      .select("salon_slug, salon_name, expiry_date, owner_email")
+      .select("salon_slug, salon_name, expiry_date, grace_until_date, owner_email")
       .eq("stripe_customer_id", customerId)
       .maybeSingle();
     if (data) return data;
@@ -45,7 +45,7 @@ async function findTenant(customerId: string | null, email: string) {
   if (!email) return null;
   const { data } = await supabase
     .from("tenants")
-    .select("salon_slug, salon_name, expiry_date, owner_email")
+    .select("salon_slug, salon_name, expiry_date, grace_until_date, owner_email")
     .eq("owner_email", email.toLowerCase().trim())
     .maybeSingle();
   return data ?? null;
