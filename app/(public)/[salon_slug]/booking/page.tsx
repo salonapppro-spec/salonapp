@@ -5,14 +5,14 @@ import { notFound } from "next/navigation";
 import { loadPublicSalonData } from "@/lib/data";
 import { BookingFlow } from "@/components/booking/BookingFlow";
 
-function resolveSlug(paramSlug: string): string {
-  const h = headers();
+async function resolveSlug(paramSlug: string): Promise<string> {
+  const h = await headers();
   return h.get("x-salon-slug") ?? paramSlug;
 }
 
 export default async function PublicBookingPage(props: { params: Promise<{ salon_slug: string }> }) {
   const { salon_slug: paramSlug } = await props.params;
-  const slug = resolveSlug(paramSlug);
+  const slug = await resolveSlug(paramSlug);
   const data = await loadPublicSalonData(slug);
   if (!data) notFound();
 
