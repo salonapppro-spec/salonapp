@@ -62,6 +62,7 @@ export interface Tenant {
   expiry_date?: string | null;
   grace_until_date?: string | null;
   created_at: string | null;
+  design_tokens?: import("@/types/design-tokens").DesignTokens | Record<string, unknown> | null;
 }
 
 export interface Booking {

@@ -21,6 +21,18 @@ export default async function BuilderPage({
     tenant.design_tokens as Parameters<typeof mergeTokens>[0] ?? null
   );
 
+  const initialContent = {
+    salonName:    tenant.salon_name      ?? "",
+    logoUrl:      tenant.logo_url        ?? "",
+    heroTitle:    tenant.hero_title      ?? "",
+    heroSubtitle: tenant.hero_subtitle   ?? "",
+    heroImageUrl: tenant.hero_image_url  ?? "",
+    description:  tenant.description     ?? "",
+    aboutText1:   tenant.about_text1     ?? "",
+    aboutText2:   tenant.about_text2     ?? "",
+    aboutImageUrl: tenant.about_image_url ?? "",
+  };
+
   const appUrl = process.env.NEXT_PUBLIC_APP_URL;
   const previewUrl = appUrl
     ? `https://${salon_slug}.salonapp.pro`
@@ -28,7 +40,6 @@ export default async function BuilderPage({
 
   return (
     <div className="flex flex-col gap-4">
-      {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-neutral-500">
         <Link href="/super-admin" className="hover:text-neutral-300">Супер-админ</Link>
         <span>/</span>
@@ -41,6 +52,7 @@ export default async function BuilderPage({
         salonSlug={salon_slug}
         salonName={tenant.salon_name}
         initialTokens={initialTokens}
+        initialContent={initialContent}
         previewUrl={previewUrl}
       />
     </div>

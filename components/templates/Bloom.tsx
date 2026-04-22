@@ -18,10 +18,12 @@ function eurToBgn(eur: number): string {
 export function Bloom({ data }: { data: SalonData }) {
   const { tenant, gallery } = data;
 
-  const primary = tenant.primary_color ?? "#C8826A";
-  const bg = tenant.background_color ?? "#FFF8F5";
-  const text = "#3D2B1F";
-  const textLight = "#7A5C4F";
+  // CSS vars (--color-primary, --color-bg, --font-family, etc.) are injected
+  // server-side by the public page and updated in real-time by the builder.
+  const primary = "var(--color-primary)";
+  const bg = "var(--color-bg)";
+  const text = "var(--color-text)";
+  const textLight = tenant.primary_color ? `${tenant.primary_color}99` : "#7A5C4F";
   const border = "#E8D5CC";
 
   const heroTitle = tenant.hero_title ?? tenant.salon_name;
@@ -31,7 +33,7 @@ export function Bloom({ data }: { data: SalonData }) {
   const services = servicesFlatForPublic(data);
 
   return (
-    <div style={{ backgroundColor: bg, color: text, fontFamily: "Inter, sans-serif", minHeight: "100vh" }}>
+    <div style={{ backgroundColor: bg, color: text, fontFamily: "var(--font-family)", minHeight: "100vh" }}>
 
       {/* ── NAV ── */}
       <nav style={{
@@ -51,7 +53,7 @@ export function Bloom({ data }: { data: SalonData }) {
             // eslint-disable-next-line @next/next/no-img-element
             <img src={tenant.logo_url} alt={tenant.salon_name} style={{ height: "40px" }} />
           ) : (
-            <span style={{ fontFamily: "Georgia, serif", fontSize: "22px", color: primary, fontWeight: 600 }}>
+            <span style={{ fontFamily: "var(--font-family)", fontSize: "22px", color: primary, fontWeight: 600 }}>
               {tenant.salon_name}
             </span>
           )}
@@ -69,7 +71,7 @@ export function Bloom({ data }: { data: SalonData }) {
           ))}
           <Link
             href={`/${tenant.salon_slug}/booking`}
-            style={{ backgroundColor: primary, color: "#fff", padding: "10px 20px", borderRadius: "8px", textDecoration: "none", fontSize: "14px", fontWeight: 600 }}
+            style={{ backgroundColor: primary, color: "#fff", padding: "var(--button-padding, 10px 20px)", borderRadius: "var(--border-radius, 8px)", textDecoration: "none", fontSize: "14px", fontWeight: 600 }}
           >
             Запази час
           </Link>
@@ -78,7 +80,7 @@ export function Bloom({ data }: { data: SalonData }) {
 
       {/* ── HERO ── */}
       <section style={{ padding: "80px 24px", textAlign: "center", maxWidth: "720px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "clamp(36px, 6vw, 64px)", fontWeight: 700, lineHeight: 1.15, color: text, marginBottom: "8px" }}>
+        <h1 style={{ fontSize: "var(--heading-size, clamp(36px, 6vw, 64px))", fontWeight: 700, lineHeight: 1.15, color: text, marginBottom: "8px" }}>
           {heroTitle}
         </h1>
         {heroSubtitle && (
@@ -97,8 +99,8 @@ export function Bloom({ data }: { data: SalonData }) {
             display: "inline-block",
             backgroundColor: primary,
             color: "#fff",
-            padding: "16px 40px",
-            borderRadius: "12px",
+            padding: "var(--button-padding, 16px 40px)",
+            borderRadius: "var(--border-radius, 12px)",
             textDecoration: "none",
             fontSize: "16px",
             fontWeight: 600,
@@ -320,8 +322,8 @@ export function Bloom({ data }: { data: SalonData }) {
       )}
 
       {/* ── FOOTER ── */}
-      <footer style={{ backgroundColor: text, color: "#fff", padding: "32px 24px", textAlign: "center" }}>
-        <p style={{ fontFamily: "Georgia, serif", fontSize: "20px", marginBottom: "8px" }}>{tenant.salon_name}</p>
+      <footer style={{ backgroundColor: "var(--color-text, #3D2B1F)", color: "#fff", padding: "32px 24px", textAlign: "center" }}>
+        <p style={{ fontFamily: "var(--font-family)", fontSize: "20px", marginBottom: "8px" }}>{tenant.salon_name}</p>
         <p style={{ fontSize: "13px", opacity: 0.6 }}>© {new Date().getFullYear()} {tenant.salon_name}. Всички права запазени.</p>
         <p style={{ fontSize: "12px", opacity: 0.4, marginTop: "8px" }}>
           Powered by{" "}

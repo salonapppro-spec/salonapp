@@ -247,3 +247,43 @@ export async function saveDesignTokens(
   revalidatePath(`/super-admin/${salonSlug}/builder`);
   revalidatePath(`/${salonSlug}`);
 }
+
+export interface BuilderContent {
+  salonName: string;
+  logoUrl: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroImageUrl: string;
+  description: string;
+  aboutText1: string;
+  aboutText2: string;
+  aboutImageUrl: string;
+}
+
+export async function saveBuilderContent(
+  salonSlug: string,
+  content: BuilderContent,
+): Promise<void> {
+  await requireSuperAdminUser();
+  if (!salonSlug) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase
+    .from("tenants")
+    .update({
+      salon_name:    content.salonName.trim()    || undefined,
+      logo_url:      content.logoUrl.trim()      || null,
+      hero_title:    content.heroTitle.trim()    || null,
+      hero_subtitle: content.heroSubtitle.trim() || null,
+      hero_image_url: content.heroImageUrl.trim() || null,
+      description:   content.description.trim()  || null,
+      about_text1:   content.aboutText1.trim()   || null,
+      about_text2:   content.aboutText2.trim()   || null,
+      about_image_url: content.aboutImageUrl.trim() || null,
+    })
+    .eq("salon_slug", salonSlug);
+  if (error) throw new Error(`Неуспешен запис: ${error.message}`);
+
+  revalidatePath(`/super-admin/${salonSlug}/builder`);
+  revalidatePath(`/${salonSlug}`);
+}

@@ -55,6 +55,7 @@ export interface Tenant {
   expiry_date?: string | null;
   /** Гратисен срок след expiry (напр. +3 дни). */
   grace_until_date?: string | null;
+  design_tokens?: import("@/types/design-tokens").DesignTokens | Record<string, unknown> | null;
 }
 
 export interface Service {
