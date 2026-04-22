@@ -1,17 +1,13 @@
 import { NextResponse } from "next/server";
 
+import { assertCronSecret } from "@/lib/cron-auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET;
-  const auth = req.headers.get("authorization");
-  const fromVercel = req.headers.get("x-vercel-cron") === "1";
-  const fromManual = secret && auth === `Bearer ${secret}`;
-  if (!fromVercel && !fromManual) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
+  const unauthorized = assertCronSecret(req);
+  if (unauthorized) return unauthorized;
 
   const supabase = createSupabaseServiceRoleClient();
 

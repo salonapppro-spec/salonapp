@@ -3,19 +3,15 @@ import { NextResponse } from "next/server";
 import { tomorrowDateISOInSofia } from "@/lib/booking-datetime";
 import { sendReminderEmail } from "@/lib/email";
 import { getTenant } from "@/lib/get-tenant";
+import { assertCronSecret } from "@/lib/cron-auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import type { Booking } from "@/types";
 
 export const dynamic = "force-dynamic";
 
 export async function GET(req: Request) {
-  const secret = process.env.CRON_SECRET;
-  const auth = req.headers.get("authorization");
-  const fromVercel = req.headers.get("x-vercel-cron") === "1";
-  const fromManual = secret && auth === `Bearer ${secret}`;
-  if (!fromVercel && !fromManual) {
-    return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
-  }
+  const unauthorized = assertCronSecret(req);
+  if (unauthorized) return unauthorized;
 
   const tomorrow = tomorrowDateISOInSofia();
   const supabase = createSupabaseServiceRoleClient();

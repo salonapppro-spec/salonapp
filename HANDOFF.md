@@ -1,5 +1,12 @@
 # HANDOFF — 2026-04-20
 
+### 2026-04-22 — Security fix: cron API auth
+
+- `lib/cron-auth.ts`: added shared fail-closed `CRON_SECRET` Bearer validation.
+- `app/api/cron/reminders/route.ts`, `app/api/cron/billing-expiry/route.ts`: removed `x-vercel-cron` as an auth bypass; cron jobs now require `Authorization: Bearer <CRON_SECRET>`.
+- `README.md`: documented Vercel `CRON_SECRET` env and manual curl tests.
+- Production note: Vercel project must have `CRON_SECRET` set; Vercel Cron sends it automatically as the Authorization header.
+
 ### 2026-04-22 — Security fix: design tokens Stored XSS
 
 - `schemas/design-tokens.ts`: design tokens now use strict Zod validation with font/radius allowlists and constrained CSS length patterns.
