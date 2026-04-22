@@ -225,3 +225,21 @@ export async function createTenantAction(
     setPasswordLink,
   };
 }
+
+export async function saveDesignTokens(
+  salonSlug: string,
+  tokens: import("@/types/design-tokens").DesignTokens,
+): Promise<void> {
+  await requireSuperAdminUser();
+  if (!salonSlug) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase
+    .from("tenants")
+    .update({ design_tokens: tokens })
+    .eq("salon_slug", salonSlug);
+  if (error) throw new Error(`Неуспешен запис: ${error.message}`);
+
+  revalidatePath(`/super-admin/${salonSlug}/builder`);
+  revalidatePath(`/${salonSlug}`);
+}
