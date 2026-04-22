@@ -33,7 +33,7 @@ export async function POST(req: Request) {
       },
       body: JSON.stringify({
         from,
-        to: ["privacy@salonapp.pro"],
+        to: ["salonapppro@gmail.com"],
         subject: `GDPR заявка за изтриване — ${name}`,
         text: [
           `Три имена: ${name}`,

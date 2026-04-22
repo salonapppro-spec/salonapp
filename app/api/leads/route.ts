@@ -57,7 +57,7 @@ export async function POST(req: Request) {
         },
         body: JSON.stringify({
           from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
-          to: ["admin@salonapp.pro"],
+          to: ["salonapppro@gmail.com"],
           subject: `Нова заявка: ${data.salon_name} (${data.plan})`,
           text: [
             `Салон: ${data.salon_name}`,

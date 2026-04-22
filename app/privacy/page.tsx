@@ -19,8 +19,8 @@ export default function PrivacyPolicyPage() {
           <p>
             Администратор на личните данни е <strong>SalonApp.pro</strong>. За въпроси, свързани с
             обработката на лични данни, можете да се свържете с нас на:{" "}
-            <a href="mailto:privacy@salonapp.pro" className="text-amber-700 underline">
-              privacy@salonapp.pro
+            <a href="mailto:salonapppro@gmail.com" className="text-amber-700 underline">
+              salonapppro@gmail.com
             </a>
           </p>
         </div>
@@ -126,8 +126,8 @@ export default function PrivacyPolicyPage() {
           <h2 className="mb-3 text-xl font-semibold">7. Как да упражните правата си</h2>
           <p className="mb-3">
             Изпратете имейл до{" "}
-            <a href="mailto:privacy@salonapp.pro" className="text-amber-700 underline">
-              privacy@salonapp.pro
+            <a href="mailto:salonapppro@gmail.com" className="text-amber-700 underline">
+              salonapppro@gmail.com
             </a>{" "}
             с вашето искане. Отговаряме в срок до <strong>30 дни</strong>.
           </p>
