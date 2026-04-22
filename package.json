@@ -27,6 +27,9 @@
     "twilio": "^5.13.1",
     "zod": "^4.3.6"
   },
+  "overrides": {
+    "follow-redirects": "^1.15.9"
+  },
   "devDependencies": {
     "@types/luxon": "^3.7.1",
     "@types/node": "^20",

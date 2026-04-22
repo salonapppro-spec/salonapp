@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 import { withSentryConfig } from "@sentry/nextjs";
 
-// CSP в report-only режим — не блокира, само логва нарушения в DevTools.
-// Когато провериш, че нищо не се чупи, смени на Content-Security-Policy.
+// CSP в enforcing режим (Content-Security-Policy). Блокира нарушения.
 const CSP_POLICY = [
   "default-src 'self'",
   // Next.js изисква unsafe-inline за hydration; GTM/Pixel/Clarity са external скриптове

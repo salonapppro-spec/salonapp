@@ -29,14 +29,28 @@ function isoDate(d: Date): string {
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 
-async function findTenant(customerId: string | null, email: string) {
+async function findTenant(
+  customerId: string | null,
+  email: string,
+  subscriptionId?: string | null,
+) {
   const supabase = createSupabaseServiceRoleClient();
+  const sel = "salon_slug, salon_name, expiry_date, grace_until_date, owner_email";
 
-  // Предпочита stripe_customer_id — имейлът не е уникален идентификатор
+  // Lookup priority: subscription_id > customer_id > email (email is least reliable)
+  if (subscriptionId) {
+    const { data } = await supabase
+      .from("tenants")
+      .select(sel)
+      .eq("stripe_subscription_id", subscriptionId)
+      .maybeSingle();
+    if (data) return data;
+  }
+
   if (customerId) {
     const { data } = await supabase
       .from("tenants")
-      .select("salon_slug, salon_name, expiry_date, grace_until_date, owner_email")
+      .select(sel)
       .eq("stripe_customer_id", customerId)
       .maybeSingle();
     if (data) return data;
@@ -45,7 +59,7 @@ async function findTenant(customerId: string | null, email: string) {
   if (!email) return null;
   const { data } = await supabase
     .from("tenants")
-    .select("salon_slug, salon_name, expiry_date, grace_until_date, owner_email")
+    .select(sel)
     .eq("owner_email", email.toLowerCase().trim())
     .maybeSingle();
   return data ?? null;
@@ -55,12 +69,13 @@ async function activateTenant(
   customerId: string | null,
   email: string,
   months = 1,
+  subscriptionId?: string | null,
 ): Promise<void> {
   const supabase = createSupabaseServiceRoleClient();
-  const tenant = await findTenant(customerId, email);
+  const tenant = await findTenant(customerId, email, subscriptionId);
 
   if (!tenant) {
-    console.warn(`[stripe-webhook] Не намерен тенант — customer_id=${customerId}, email=${email}`);
+    console.warn(`[stripe-webhook] Не намерен тенант — customer_id=${customerId}, sub_id=${subscriptionId ?? "—"}, email=${email}`);
     return;
   }
 
@@ -78,8 +93,8 @@ async function activateTenant(
     expiry_date: isoDate(expiry),
     grace_until_date: isoDate(grace),
   };
-  // Свързваме customer_id ако не е записан още
   if (customerId) patch.stripe_customer_id = customerId;
+  if (subscriptionId) patch.stripe_subscription_id = subscriptionId;
 
   const { error } = await supabase
     .from("tenants")
@@ -113,9 +128,21 @@ async function activateTenant(
   }
 }
 
-async function deactivateTenant(customerId: string | null, email: string): Promise<void> {
-  const tenant = await findTenant(customerId, email);
+async function deactivateTenant(
+  customerId: string | null,
+  email: string,
+  subscriptionId?: string | null,
+): Promise<void> {
+  const tenant = await findTenant(customerId, email, subscriptionId);
   if (!tenant) return;
+
+  // Изчистваме subscription_id — абонаментът вече не е активен
+  const supabase = createSupabaseServiceRoleClient();
+  await supabase
+    .from("tenants")
+    .update({ stripe_subscription_id: null })
+    .eq("salon_slug", tenant.salon_slug);
+
   // Не деактивираме веднага — оставяме grace периода да изтече естествено.
   console.log(
     `[stripe-webhook] Абонаментът е прекратен за ${tenant.salon_slug}. Grace до: ${tenant.grace_until_date ?? "—"}`,
@@ -214,9 +241,20 @@ export async function POST(req: Request) {
         const session = event.data.object as Stripe.Checkout.Session;
         const customerId = typeof session.customer === "string" ? session.customer : null;
         const email = session.customer_details?.email ?? session.customer_email ?? "";
+        const subId = typeof session.subscription === "string" ? session.subscription : null;
         // За абонаменти invoice.paid ще дойде след малко — пропускаме за да не активираме два пъти
         if (session.mode === "payment") {
           await activateTenant(customerId, email, 1);
+        } else if (session.mode === "subscription" && subId) {
+          // Записваме subscription_id при първото checkout — invoice.paid ще го потвърди
+          const supabase = createSupabaseServiceRoleClient();
+          const tenant = await findTenant(customerId, email);
+          if (tenant) {
+            await supabase
+              .from("tenants")
+              .update({ stripe_subscription_id: subId, stripe_customer_id: customerId })
+              .eq("salon_slug", tenant.salon_slug);
+          }
         }
         break;
       }
@@ -224,8 +262,9 @@ export async function POST(req: Request) {
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
         const customerId = typeof invoice.customer === "string" ? invoice.customer : null;
+        const subId = typeof invoice.subscription === "string" ? invoice.subscription : null;
         const email = (invoice as unknown as { customer_email?: string }).customer_email ?? "";
-        await activateTenant(customerId, email, 1);
+        await activateTenant(customerId, email, 1, subId);
         break;
       }
 
@@ -239,9 +278,10 @@ export async function POST(req: Request) {
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         const customerId = sub.customer as string;
+        const subId = sub.id;
         try {
           const customer = (await getStripe().customers.retrieve(customerId)) as Stripe.Customer;
-          await deactivateTenant(customerId, customer.email ?? "");
+          await deactivateTenant(customerId, customer.email ?? "", subId);
         } catch {
           console.error(`[stripe-webhook] Не може да се намери customer ${customerId}`);
         }
