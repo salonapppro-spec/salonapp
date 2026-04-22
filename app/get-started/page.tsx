@@ -1,21 +1,12 @@
 import type { Metadata } from "next";
-
 import { GetStartedForm } from "@/components/marketing/GetStartedForm";
-import { parsePlanId } from "@/lib/marketing-data";
 
 export const metadata: Metadata = {
-  title: "Заявка — SalonApp.pro",
-  description: "Избор на план и контакт за стартиране на SalonApp.pro за вашия салон.",
+  title: "Безплатна консултация и сайт — SalonApp.pro",
+  description: "Заяви безплатен месец и личен сайт за твоя салон. Ние настройваме всичко вместо теб за 24 часа.",
   robots: { index: true, follow: true },
 };
 
-export default async function GetStartedPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ plan?: string }>;
-}) {
-  const sp = await searchParams;
-  const initialPlan = parsePlanId(sp.plan);
-
-  return <GetStartedForm initialPlan={initialPlan} />;
+export default function GetStartedPage() {
+  return <GetStartedForm />;
 }

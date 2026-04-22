@@ -3,9 +3,6 @@ import { NextResponse } from "next/server";
 import { LeadInquirySchema } from "@/schemas/lead-inquiry";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
-/**
- * Marketing funnel: save pre-sale lead. Requires `platform_leads` migration + SUPABASE_SERVICE_ROLE_KEY in prod.
- */
 export async function POST(req: Request) {
   const raw = (await req.json().catch(() => null)) as Record<string, unknown> | null;
   if (!raw || typeof raw !== "object") {
@@ -25,15 +22,21 @@ export async function POST(req: Request) {
 
   const data = parsed.data;
 
+  // Build message combining business_type and any extra notes
+  const fullMessage = [
+    data.business_type ? `Тип бизнес: ${data.business_type}` : null,
+    data.message || null,
+  ].filter(Boolean).join("\n") || null;
+
   try {
     const supabase = createSupabaseServiceRoleClient();
     const { error } = await supabase.from("platform_leads").insert({
-      plan: data.plan,
+      plan: data.plan ?? "standard",
       salon_name: data.salon_name,
       contact_name: data.contact_name,
-      email: data.email,
-      phone: data.phone || null,
-      message: data.message || null,
+      email: data.email ?? null,
+      phone: data.phone ?? null,
+      message: fullMessage,
       source: data.source,
     });
 
@@ -58,13 +61,13 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
           to: ["salonapppro@gmail.com"],
-          subject: `Нова заявка: ${data.salon_name} (${data.plan})`,
+          subject: `Нова заявка: ${data.salon_name}`,
           text: [
             `Салон: ${data.salon_name}`,
             `Контакт: ${data.contact_name}`,
-            `Имейл: ${data.email}`,
             `Телефон: ${data.phone ?? "—"}`,
-            `План: ${data.plan}`,
+            `Имейл: ${data.email ?? "—"}`,
+            `Тип бизнес: ${data.business_type ?? "—"}`,
             `Съобщение: ${data.message ?? "—"}`,
             `Источник: ${data.source}`,
           ].join("\n"),
