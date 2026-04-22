@@ -1,8 +1,13 @@
 import { DateTime } from "luxon";
 
-/** Календарна дата „утре“ в Europe/Sofia (за напомняния). */
+/** Календарна дата „днес” в Europe/Sofia. */
+export function todayDateISOInSofia(): string {
+  return DateTime.now().setZone(“Europe/Sofia”).toISODate()!;
+}
+
+/** Календарна дата „утре” в Europe/Sofia (за напомняния). */
 export function tomorrowDateISOInSofia(): string {
-  return DateTime.now().setZone("Europe/Sofia").plus({ days: 1 }).toISODate()!;
+  return DateTime.now().setZone(“Europe/Sofia”).plus({ days: 1 }).toISODate()!;
 }
 
 /** Начало на резервацията като UTC `Date` (датата и часът са в салонна зона BG). */

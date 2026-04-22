@@ -101,15 +101,30 @@ export async function middleware(request: NextRequest) {
   const hostname = normalizeHostname(hostHeader);
 
   // ── Rate limiting ────────────────────────────────────────────────────────
+  const ip = clientIpFromHeaders(request.headers);
+
   if (pathname === "/api/bookings" && request.method === "POST") {
-    const ip = clientIpFromHeaders(request.headers);
     if (!rateLimitOrThrow(`booking-post:${ip}`, 40, 60_000).ok) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
   }
   if (pathname === "/api/leads" && request.method === "POST") {
-    const ip = clientIpFromHeaders(request.headers);
     if (!rateLimitOrThrow(`leads-post:${ip}`, 15, 60_000).ok) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+  }
+  if (pathname === "/api/consultation" && request.method === "POST") {
+    if (!rateLimitOrThrow(`consultation-post:${ip}`, 10, 60_000).ok) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+  }
+  if (pathname === "/api/availability" && request.method === "GET") {
+    if (!rateLimitOrThrow(`availability-get:${ip}`, 60, 60_000).ok) {
+      return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+    }
+  }
+  if (pathname === "/api/services" && request.method === "GET") {
+    if (!rateLimitOrThrow(`services-get:${ip}`, 30, 60_000).ok) {
       return NextResponse.json({ error: "Too many requests" }, { status: 429 });
     }
   }

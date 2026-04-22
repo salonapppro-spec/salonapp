@@ -11,10 +11,9 @@ export const dynamic = "force-dynamic";
 export async function GET(req: Request) {
   const secret = process.env.CRON_SECRET;
   const auth = req.headers.get("authorization");
-  const vercelCron = req.headers.get("x-vercel-cron");
-  const isProd = process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
-  const cronHeaderOk = !isProd || vercelCron === "1";
-  if (!secret || auth !== `Bearer ${secret}` || !cronHeaderOk) {
+  const fromVercel = req.headers.get("x-vercel-cron") === "1";
+  const fromManual = secret && auth === `Bearer ${secret}`;
+  if (!fromVercel && !fromManual) {
     return NextResponse.json({ ok: false, error: "Unauthorized" }, { status: 401 });
   }
 

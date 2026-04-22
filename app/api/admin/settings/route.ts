@@ -33,7 +33,10 @@ export async function POST(req: Request) {
   }
 
   const { error } = await supabase.from("tenants").update(patch).eq("salon_slug", salonSlug);
-  if (error) return NextResponse.json({ error: "DB update failed", details: error.message }, { status: 500 });
+  if (error) {
+    console.error(`[admin/settings] DB update failed for ${salonSlug}:`, error.message);
+    return NextResponse.json({ error: "internal_error" }, { status: 500 });
+  }
 
   // Invalidate the public salon page so changes appear immediately
   revalidatePath(`/${salonSlug}`);
