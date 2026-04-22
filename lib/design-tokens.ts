@@ -1,4 +1,5 @@
 import type { DesignTokens } from "@/types/design-tokens";
+import { DesignTokensSchema } from "@/schemas/design-tokens";
 
 export const DEFAULT_DESIGN_TOKENS: DesignTokens = {
   primaryColor:    "#F2A58E",
@@ -18,7 +19,8 @@ export const DEFAULT_DESIGN_TOKENS: DesignTokens = {
 };
 
 export function mergeTokens(saved: Partial<DesignTokens> | null | undefined): DesignTokens {
-  return { ...DEFAULT_DESIGN_TOKENS, ...saved };
+  const parsed = DesignTokensSchema.safeParse({ ...DEFAULT_DESIGN_TOKENS, ...(saved ?? {}) });
+  return parsed.success ? parsed.data : DEFAULT_DESIGN_TOKENS;
 }
 
 export function tokensToCssVars(tokens: DesignTokens): Record<string, string> {

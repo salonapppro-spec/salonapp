@@ -1,5 +1,13 @@
 # HANDOFF — 2026-04-20
 
+### 2026-04-22 — Security fix: design tokens Stored XSS
+
+- `schemas/design-tokens.ts`: design tokens now use strict Zod validation with font/radius allowlists and constrained CSS length patterns.
+- `app/super-admin/actions.ts`: `saveDesignTokens` validates with `SaveDesignTokensSchema.safeParse` before writing to `tenants.design_tokens`.
+- `lib/design-tokens.ts`: saved tokens are parsed before merge; invalid stored values fall back to safe defaults.
+- `app/(public)/[salon_slug]/page.tsx`: removed token-driven `<style dangerouslySetInnerHTML>` and now renders CSS variables via a React `style` object; builder preview updates also validate token values before applying them.
+- Verification: `npx tsc --noEmit` and `npm run build` passed.
+
 ### 2026-04-22 — Security fix: booking service integrity
 
 - `schemas/booking.ts`: public/admin booking payload now requires only `service_id` and no longer trusts client-sent `service_name`, `service_price_eur`, or `service_duration`.

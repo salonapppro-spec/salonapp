@@ -1,5 +1,6 @@
 # SalonApp.pro — TODO
 
+- [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
 > Актуализирай след всяка задача. Последна промяна: 2026-04-20

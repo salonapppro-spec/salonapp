@@ -8,6 +8,7 @@ import { redirect } from "next/navigation";
 import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
 import { recoveryActionLinkForEmail } from "@/lib/owner-recovery-link";
 import { CreateTenantSchema } from "@/schemas/tenant";
+import { SaveDesignTokensSchema } from "@/schemas/design-tokens";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
@@ -231,21 +232,30 @@ export async function saveDesignTokens(
   tokens: import("@/types/design-tokens").DesignTokens,
 ): Promise<void> {
   await requireSuperAdminUser();
-  if (!salonSlug) throw new Error("Missing salon_slug");
+  const parsed = SaveDesignTokensSchema.safeParse({
+    salon_slug: salonSlug,
+    design_tokens: tokens,
+  });
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Невалидни дизайн настройки");
+  }
+
+  const safeSalonSlug = parsed.data.salon_slug;
+  const safeTokens = parsed.data.design_tokens;
 
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase
     .from("tenants")
     .update({
-      design_tokens: tokens,
-      primary_color: tokens.primaryColor,
-      background_color: tokens.backgroundColor,
+      design_tokens: safeTokens,
+      primary_color: safeTokens.primaryColor,
+      background_color: safeTokens.backgroundColor,
     })
-    .eq("salon_slug", salonSlug);
+    .eq("salon_slug", safeSalonSlug);
   if (error) throw new Error(`Неуспешен запис: ${error.message}`);
 
-  revalidatePath(`/super-admin/${salonSlug}/builder`);
-  revalidatePath(`/${salonSlug}`);
+  revalidatePath(`/super-admin/${safeSalonSlug}/builder`);
+  revalidatePath(`/${safeSalonSlug}`);
 }
 
 export interface BuilderContent {

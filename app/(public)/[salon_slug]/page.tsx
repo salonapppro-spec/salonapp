@@ -1,11 +1,12 @@
 import { headers } from "next/headers";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import type { CSSProperties } from "react";
 
 import type { SalonData } from "@/types/database";
 import type { Template } from "@/types";
 import { loadPublicSalonData } from "@/lib/data";
-import { mergeTokens } from "@/lib/design-tokens";
+import { mergeTokens, tokensToCssVars } from "@/lib/design-tokens";
 import { Bloom } from "@/components/templates/Bloom";
 import { Bold } from "@/components/templates/Bold";
 import { Clean } from "@/components/templates/Clean";
@@ -109,47 +110,48 @@ export default async function PublicSalonPage(props: { params: Promise<{ salon_s
     (data.tenant.design_tokens ?? null) as Parameters<typeof mergeTokens>[0]
   );
 
-  // CSS vars initialized server-side — builder updates them via postMessage
-  const cssVars = `
-:root {
-  --color-primary: ${tokens.primaryColor};
-  --color-bg: ${tokens.backgroundColor};
-  --color-text: ${tokens.textColor};
-  --color-accent: ${tokens.accentColor};
-  --font-family: ${tokens.fontFamily};
-  --font-heading: ${tokens.headingFont};
-  --font-body: ${tokens.bodyFont};
-  --font-nav: ${tokens.navFont};
-  --font-button: ${tokens.buttonFont};
-  --heading-size: ${tokens.headingSize};
-  --body-size: ${tokens.bodySize};
-  --border-radius: ${tokens.borderRadius};
-  --button-padding: ${tokens.buttonPadding};
-  --section-padding: ${tokens.sectionPadding};
-}`.trim();
+  const designVarStyle = tokensToCssVars(tokens) as CSSProperties;
 
   // Inline script — listens for builder postMessage and applies CSS vars instantly
   const postMessageScript = `
 (function(){
+  var fonts=["Inter, sans-serif","'Playfair Display', serif","Montserrat, sans-serif","'Cormorant Garamond', serif","Lato, sans-serif","Raleway, sans-serif","Poppins, sans-serif","'DM Sans', sans-serif","Outfit, sans-serif","Nunito, sans-serif","'Josefin Sans', sans-serif","'Bebas Neue', sans-serif","Cinzel, serif","'Dancing Script', cursive","Italiana, serif","'Libre Baskerville', serif"];
+  var radii=["0","0.375rem","0.75rem","1.5rem","9999px"];
+  var hex=/^#[0-9A-Fa-f]{6}$/;
+  var len=/^(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em))$/;
+  var pair=/^(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em))(?:\\s+(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em)))?$/;
+  function allow(v,type){
+    if(typeof v!=="string")return false;
+    if(type==="hex")return hex.test(v);
+    if(type==="font")return fonts.indexOf(v)!==-1;
+    if(type==="radius")return radii.indexOf(v)!==-1;
+    if(type==="length")return len.test(v);
+    if(type==="pair")return pair.test(v);
+    return false;
+  }
+  function set(r,name,value,type){
+    if(allow(value,type))r.setProperty(name,value);
+  }
   window.addEventListener("message",function(e){
     if(!e.data||e.data.type!=="builder-preview")return;
     var t=e.data.tokens;
     if(!t)return;
-    var r=document.documentElement.style;
-    if(t.primaryColor)    r.setProperty("--color-primary",t.primaryColor);
-    if(t.backgroundColor) r.setProperty("--color-bg",t.backgroundColor);
-    if(t.textColor)       r.setProperty("--color-text",t.textColor);
-    if(t.accentColor)     r.setProperty("--color-accent",t.accentColor);
-    if(t.fontFamily)      r.setProperty("--font-family",t.fontFamily);
-    if(t.headingFont)     r.setProperty("--font-heading",t.headingFont);
-    if(t.bodyFont)        r.setProperty("--font-body",t.bodyFont);
-    if(t.navFont)         r.setProperty("--font-nav",t.navFont);
-    if(t.buttonFont)      r.setProperty("--font-button",t.buttonFont);
-    if(t.headingSize)     r.setProperty("--heading-size",t.headingSize);
-    if(t.bodySize)        r.setProperty("--body-size",t.bodySize);
-    if(t.borderRadius)    r.setProperty("--border-radius",t.borderRadius);
-    if(t.buttonPadding)   r.setProperty("--button-padding",t.buttonPadding);
-    if(t.sectionPadding)  r.setProperty("--section-padding",t.sectionPadding);
+    var el=document.getElementById("salon-design-root");
+    var r=(el||document.documentElement).style;
+    set(r,"--color-primary",t.primaryColor,"hex");
+    set(r,"--color-bg",t.backgroundColor,"hex");
+    set(r,"--color-text",t.textColor,"hex");
+    set(r,"--color-accent",t.accentColor,"hex");
+    set(r,"--font-family",t.fontFamily,"font");
+    set(r,"--font-heading",t.headingFont,"font");
+    set(r,"--font-body",t.bodyFont,"font");
+    set(r,"--font-nav",t.navFont,"font");
+    set(r,"--font-button",t.buttonFont,"font");
+    set(r,"--heading-size",t.headingSize,"length");
+    set(r,"--body-size",t.bodySize,"length");
+    set(r,"--border-radius",t.borderRadius,"radius");
+    set(r,"--button-padding",t.buttonPadding,"pair");
+    set(r,"--section-padding",t.sectionPadding,"length");
   });
 })();`.trim();
 
@@ -169,12 +171,12 @@ export default async function PublicSalonPage(props: { params: Promise<{ salon_s
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Italiana&family=Josefin+Sans:wght@300;400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
       />
-      {/* CSS custom properties — overridden in real-time by builder postMessage */}
-      <style dangerouslySetInnerHTML={{ __html: cssVars }} />
       {/* Builder real-time preview listener */}
       <script dangerouslySetInnerHTML={{ __html: postMessageScript }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      {renderTemplate(data.tenant.template, data)}
+      <div id="salon-design-root" style={designVarStyle}>
+        {renderTemplate(data.tenant.template, data)}
+      </div>
     </>
   );
 }
