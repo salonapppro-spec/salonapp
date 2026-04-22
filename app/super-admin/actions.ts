@@ -236,7 +236,11 @@ export async function saveDesignTokens(
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase
     .from("tenants")
-    .update({ design_tokens: tokens })
+    .update({
+      design_tokens: tokens,
+      primary_color: tokens.primaryColor,
+      background_color: tokens.backgroundColor,
+    })
     .eq("salon_slug", salonSlug);
   if (error) throw new Error(`Неуспешен запис: ${error.message}`);
 

@@ -32,6 +32,7 @@ interface Props {
 export function BuilderClient({ salonSlug, salonName, initialTokens, previewUrl }: Props) {
   const [tokens, setTokens] = useState<DesignTokens>(initialTokens);
   const [saved, setSaved] = useState(false);
+  const [iframeKey, setIframeKey] = useState(0);
   const [isPending, startTransition] = useTransition();
 
   function update<K extends keyof DesignTokens>(key: K, value: DesignTokens[K]) {
@@ -43,6 +44,7 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, previewUrl 
     startTransition(async () => {
       await saveDesignTokens(salonSlug, tokens);
       setSaved(true);
+      setIframeKey((k) => k + 1);
     });
   }
 
@@ -51,7 +53,7 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, previewUrl 
     setSaved(false);
   }
 
-  const previewWithTokens = `${previewUrl}?preview=1`;
+  const previewWithTokens = `${previewUrl}?_t=${iframeKey}`;
 
   return (
     <div className="flex h-[calc(100vh-6rem)] gap-0 overflow-hidden rounded-2xl border border-neutral-800">
@@ -160,6 +162,7 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, previewUrl 
           </a>
         </div>
         <iframe
+          key={iframeKey}
           src={previewWithTokens}
           className="flex-1 w-full border-0"
           title={`Preview — ${salonName}`}
