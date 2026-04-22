@@ -7,16 +7,9 @@ import {
   getWorkingHoursForDate,
 } from "@/lib/data";
 import { requireAdminTenantSlugForPage } from "@/lib/admin-tenant-page";
+import { todayDateISOInSofia } from "@/lib/booking-datetime";
 
 import { ScheduleBoard } from "@/components/admin/ScheduleBoard";
-
-function todayLocalISO(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
 
 function formatBGDate(iso: string): string {
   const [y, m, d] = iso.split("-");
@@ -26,7 +19,7 @@ function formatBGDate(iso: string): string {
 
 export default async function AdminDashboardPage() {
   const salonSlug = await requireAdminTenantSlugForPage();
-  const today = todayLocalISO();
+  const today = todayDateISOInSofia();
   const dayOfWeek = new Date(`${today}T12:00:00`).getDay();
 
   const [tenant, bookings, revenue, workingHours, services, specialists] = await Promise.all([
