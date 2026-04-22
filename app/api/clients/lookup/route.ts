@@ -30,5 +30,5 @@ export async function GET(req: Request) {
   if (!gate.ok) return gate.response;
 
   const result = await lookupClientByPhone(parsed.data.salon_slug, parsed.data.phone);
-  return NextResponse.json(result);
+  return NextResponse.json({ name: result.name });
 }
