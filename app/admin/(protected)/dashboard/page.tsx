@@ -104,7 +104,7 @@ export default async function AdminDashboardPage() {
           />
           <div className="flex items-start justify-between">
             <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">
-              Оборот днес
+              Прогноза днес
             </div>
             <span className="text-xl">💶</span>
           </div>
@@ -115,7 +115,7 @@ export default async function AdminDashboardPage() {
             {revenue.toFixed(2)}<span className="ml-1 text-lg font-bold opacity-60">€</span>
           </div>
           {revenue === 0 && (
-            <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Завърши час → оборотът ще расте 📈</p>
+            <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Завърши час → прогнозата ще расте 📈</p>
           )}
         </div>
 

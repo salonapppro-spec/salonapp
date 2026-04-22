@@ -33,7 +33,7 @@ export function FinanceSummarySection(props: {
   return (
     <section className="space-y-6">
       <h2 className="text-lg font-semibold tracking-tight text-brand-900">Обобщение</h2>
-      <p className="text-sm text-brand-800/85">Оборот само от резервации със статус „Завършено“ (completed).</p>
+      <p className=”text-sm text-brand-800/85”>Прогнозна стойност само от резервации със статус „Завършено” (completed).</p>
 
       <div className="grid gap-3 sm:grid-cols-3">
         <div className="admin-card py-5">
@@ -59,7 +59,7 @@ export function FinanceSummarySection(props: {
 
       <div className="admin-card">
         <h3 className="text-sm font-semibold text-brand-900">
-          Оборот по дни — {props.month}.{props.year}
+          Прогноза по дни — {props.month}.{props.year}
         </h3>
         <div className="mt-4 flex h-40 items-end gap-0.5 overflow-x-auto pb-1">
           {daily.map((d) => (

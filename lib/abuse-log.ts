@@ -20,3 +20,21 @@ export function logAbuseEvent(event: {
     })
   );
 }
+
+/** Structured audit log for privileged actions (impersonation, tenant changes). */
+export function logAuditEvent(event: {
+  action: "impersonation_enter" | "impersonation_exit";
+  adminId: string;
+  targetSlug?: string;
+  detail?: string;
+}): void {
+  if (process.env.NODE_ENV === "test") return;
+  console.log(
+    JSON.stringify({
+      t: "salonapp_audit",
+      at: new Date().toISOString(),
+      service: "salonapp",
+      ...event,
+    })
+  );
+}

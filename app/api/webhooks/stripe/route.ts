@@ -126,13 +126,47 @@ async function deactivateTenant(customerId: string | null, email: string): Promi
 
 async function claimEvent(eventId: string, eventType: string): Promise<boolean> {
   const supabase = createSupabaseServiceRoleClient();
+
+  // Allow retry of previously-failed events by deleting the 'failed' record first
+  const { data: existing } = await supabase
+    .from("stripe_events")
+    .select("status")
+    .eq("stripe_event_id", eventId)
+    .maybeSingle();
+
+  if (existing) {
+    if (existing.status === "failed") {
+      // Previous attempt failed — delete and allow re-claim
+      await supabase.from("stripe_events").delete().eq("stripe_event_id", eventId);
+    } else {
+      // 'processing' or 'completed' — already handled
+      return false;
+    }
+  }
+
   const { error } = await supabase
     .from("stripe_events")
-    .insert({ stripe_event_id: eventId, event_type: eventType });
+    .insert({ stripe_event_id: eventId, event_type: eventType, status: "processing" });
 
-  if (!error) return true; // claimed
-  if (error.code === "23505") return false; // duplicate — already processed
+  if (!error) return true;
+  if (error.code === "23505") return false; // concurrent request won the race
   throw new Error(`stripe_events INSERT: ${error.message}`);
+}
+
+async function markEventCompleted(eventId: string): Promise<void> {
+  const supabase = createSupabaseServiceRoleClient();
+  await supabase
+    .from("stripe_events")
+    .update({ status: "completed" })
+    .eq("stripe_event_id", eventId);
+}
+
+async function markEventFailed(eventId: string): Promise<void> {
+  const supabase = createSupabaseServiceRoleClient();
+  await supabase
+    .from("stripe_events")
+    .update({ status: "failed" })
+    .eq("stripe_event_id", eventId);
 }
 
 // ── Webhook handler ───────────────────────────────────────────────────────────
@@ -172,6 +206,8 @@ export async function POST(req: Request) {
     return NextResponse.json({ received: true });
   }
 
+  // Mark completed after successful processing
+  let processingError: unknown = null;
   try {
     switch (event.type) {
       case "checkout.session.completed": {
@@ -216,14 +252,16 @@ export async function POST(req: Request) {
         break;
     }
   } catch (err) {
-    // Връщаме 500 — Stripe ще retry-ва. Събитието вече е в stripe_events,
-    // затова следващият retry ще мине claimEvent и ще пробва отново.
-    console.error("[stripe-webhook] Грешка при обработка:", err);
-    // Изтриваме записа за да може retry-ят да го reclaim-не
-    const supabase = createSupabaseServiceRoleClient();
-    await supabase.from("stripe_events").delete().eq("stripe_event_id", event.id);
+    processingError = err;
+  }
+
+  if (processingError) {
+    console.error("[stripe-webhook] Грешка при обработка:", processingError);
+    // Mark as failed — Stripe will retry; claimEvent will allow re-processing of failed events
+    await markEventFailed(event.id);
     return NextResponse.json({ error: "Processing error" }, { status: 500 });
   }
 
+  await markEventCompleted(event.id);
   return NextResponse.json({ received: true });
 }

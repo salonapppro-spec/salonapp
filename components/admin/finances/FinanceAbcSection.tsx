@@ -139,7 +139,7 @@ export function FinanceAbcSection(props: { initialSettings: FinancialSettings; s
             />
           </div>
           <div>
-            <label className="text-xs font-medium text-brand-800">Месечна цел — оборот (€)</label>
+            <label className="text-xs font-medium text-brand-800">Месечна цел — прогноза (€)</label>
             <input
               className="input-admin tabular-nums"
               inputMode="decimal"

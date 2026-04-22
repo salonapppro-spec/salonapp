@@ -46,6 +46,17 @@ export function mimeMatchesMagic(claimedBlobType: string, kind: DetectedImageKin
   return m === "image/webp";
 }
 
+const SHARP_TIMEOUT_MS = 10_000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number, label: string): Promise<T> {
+  return Promise.race([
+    promise,
+    new Promise<never>((_, reject) =>
+      setTimeout(() => reject(new Error(`${label}_TIMEOUT`)), ms)
+    ),
+  ]);
+}
+
 /**
  * Decode → auto-orient → strip metadata by re-encoding → WebP.
  * Rejects polyglot / truncated payloads via sharp failOn + decode errors.
@@ -60,7 +71,11 @@ export async function sanitizeImageToWebp(input: Buffer): Promise<Buffer> {
     sequentialRead: true,
   }).rotate();
 
-  return pipeline.webp({ quality: 86, effort: 4, smartSubsample: true }).toBuffer();
+  return withTimeout(
+    pipeline.webp({ quality: 86, effort: 4, smartSubsample: true }).toBuffer(),
+    SHARP_TIMEOUT_MS,
+    "SHARP"
+  );
 }
 
 export type ProcessUploadImageResult =

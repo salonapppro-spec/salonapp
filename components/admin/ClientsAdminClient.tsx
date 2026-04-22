@@ -296,7 +296,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {[
-                    { label: "Оборот", value: `${detail.stats.totalRevenue.toFixed(0)} €`, color: GOLD },
+                    { label: "Прогноза", value: `${detail.stats.totalRevenue.toFixed(0)} €`, color: GOLD },
                     { label: "Резервации", value: String(detail.stats.bookingCount), color: ROSE },
                     { label: "Завършени", value: String(detail.stats.completedCount), color: "#34d399" },
                     { label: "No-show", value: String(detail.stats.noShowCount), color: "#f87171" },

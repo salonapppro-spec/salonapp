@@ -135,10 +135,9 @@ export function BookingFlow(props: { salonData: SalonData }) {
     try {
       const qs = new URLSearchParams({ salon_slug: salonSlug, phone: p });
       const res = await fetch(`/api/clients/lookup?${qs.toString()}`);
-      const json = (await res.json()) as { name: string | null; email: string | null; error?: string };
+      const json = (await res.json()) as { name: string | null; error?: string };
       if (!res.ok) throw new Error(json?.error ?? "lookup failed");
       if (json.name) setName(json.name);
-      if (json.email) setEmail(json.email);
       setLookupStatus("done");
     } catch {
       setLookupStatus("error");

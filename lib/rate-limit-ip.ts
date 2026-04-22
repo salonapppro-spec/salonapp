@@ -17,9 +17,17 @@ export function rateLimitOrThrow(key: string, limit: number, windowMs: number): 
 }
 
 export function clientIpFromHeaders(h: Headers): string {
-  const xf = h.get("x-forwarded-for");
-  if (xf) return xf.split(",")[0]?.trim() ?? "unknown";
+  // x-real-ip is set by Vercel's edge network and cannot be spoofed by clients
   const ri = h.get("x-real-ip");
-  if (ri) return ri.trim();
+  if (ri?.trim()) return ri.trim();
+
+  // Fallback: last entry in x-forwarded-for is the one appended by the trusted proxy
+  // (first entry can be spoofed by the client prepending arbitrary values)
+  const xf = h.get("x-forwarded-for");
+  if (xf) {
+    const last = xf.split(",").at(-1)?.trim();
+    if (last) return last;
+  }
+
   return "unknown";
 }

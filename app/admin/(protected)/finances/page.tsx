@@ -68,12 +68,12 @@ export default async function AdminFinancesPage() {
     <div className="admin-page-shell max-w-5xl">
       <h1 className="text-2xl font-semibold tracking-tight text-brand-900 sm:text-3xl">Финанси</h1>
       <p className="mt-2 text-sm text-brand-800/85 sm:text-base">
-        Оборот от завършени резервации, ABC анализ и разходи.
+        Прогнозна стойност от завършени резервации, ABC анализ и разходи.
       </p>
 
       {specialistIdFilter ? (
         <p className="mt-3 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
-          Колективен режим: виждате оборота и услугите за вашия профил. Техническият администратор вижда салона
+          Колективен режим: виждате прогнозната стойност и услугите за вашия профил. Техническият администратор вижда салона
           изцяло.
         </p>
       ) : null}

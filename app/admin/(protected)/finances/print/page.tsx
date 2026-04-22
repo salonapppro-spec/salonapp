@@ -64,7 +64,7 @@ export default async function FinancePrintPage({
       </div>
 
       <header className="border-b border-brand-200 pb-4">
-        <p className="text-xs uppercase tracking-wide text-brand-600">Финансов отчет (ориентировъчен)</p>
+        <p className="text-xs uppercase tracking-wide text-brand-600">Бизнес Калкулатор (ориентировъчен)</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-brand-900">
           {isMonthly ? "Месечен отчет" : "Годишен отчет"} — {tenant?.salon_name ?? salonSlug}
         </h1>
@@ -78,11 +78,11 @@ export default async function FinancePrintPage({
 
       <section className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-brand-200/80 bg-white px-4 py-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/85">Оборот (completed)</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/85">Прогнозна стойност</div>
           <div className="mt-1 text-xl font-semibold tabular-nums text-brand-900">{revenue.toFixed(2)} €</div>
         </div>
         <div className="rounded-xl border border-brand-200/80 bg-white px-4 py-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/85">Разходни фактури</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/85">Разходи и Отчети</div>
           <div className="mt-1 text-xl font-semibold tabular-nums text-brand-900">{expenseTotal.toFixed(2)} €</div>
         </div>
         <div className="rounded-xl border border-brand-200/80 bg-white px-4 py-3">
@@ -117,7 +117,7 @@ export default async function FinancePrintPage({
 
       <p className="mt-10 text-xs leading-relaxed text-brand-700">
         Задължителна бележка за СУПТО: документът е само за вътрешна информация и не замества счетоводен одит, НСС или
-        изисквания на НАП. Оборотът е от резервации със статус „completed“.
+        изисквания на НАП. Прогнозната стойност е от резервации със статус „completed”.
       </p>
     </div>
   );

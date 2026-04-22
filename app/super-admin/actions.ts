@@ -6,6 +6,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
+import { logAuditEvent } from "@/lib/abuse-log";
 import { recoveryActionLinkForEmail } from "@/lib/owner-recovery-link";
 import { CreateTenantSchema } from "@/schemas/tenant";
 import { SaveDesignTokensSchema } from "@/schemas/design-tokens";
@@ -30,7 +31,7 @@ async function requireSuperAdminUser() {
 
 /** Задава httpOnly контекст и отваря салонския админ (данните се четат със service role по slug). */
 export async function enterSalonAdminContextAction(formData: FormData): Promise<void> {
-  await requireSuperAdminUser();
+  const adminUser = await requireSuperAdminUser();
   const salonSlug = String(formData.get("salon_slug") ?? "").trim();
   if (!ADMIN_SLUG_RE.test(salonSlug)) throw new Error("Невалиден slug");
 
@@ -38,15 +39,27 @@ export async function enterSalonAdminContextAction(formData: FormData): Promise<
   const { data } = await supabase.from("tenants").select("id").eq("salon_slug", salonSlug).maybeSingle();
   if (!data) throw new Error("Няма такъв тенант");
 
+  logAuditEvent({ action: "impersonation_enter", adminId: adminUser.id, targetSlug: salonSlug });
+
   const cookieStore = await cookies();
   cookieStore.set(SUPER_ADMIN_SALON_COOKIE, salonSlug, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 12,
+    maxAge: 60 * 60, // 1 час
   });
   redirect("/admin/dashboard");
+}
+
+/** Изтрива impersonation контекста и връща в super-admin. */
+export async function exitSalonAdminContextAction(): Promise<void> {
+  const adminUser = await requireSuperAdminUser();
+  const cookieStore = await cookies();
+  const currentSlug = cookieStore.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim();
+  cookieStore.delete(SUPER_ADMIN_SALON_COOKIE);
+  logAuditEvent({ action: "impersonation_exit", adminId: adminUser.id, targetSlug: currentSlug });
+  redirect("/super-admin");
 }
 
 export async function activateTenantManually(formData: FormData): Promise<void> {
@@ -134,7 +147,7 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
 }
 
 function randomPassword(): string {
-  return `${randomBytes(12).toString("base64url")}9!`;
+  return randomBytes(32).toString("base64url");
 }
 
 export async function createTenantAction(

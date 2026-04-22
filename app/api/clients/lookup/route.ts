@@ -23,5 +23,8 @@ export async function GET(req: Request) {
   if (!gate.ok) return gate.response;
 
   const result = await lookupClientByPhone(parsed.data.salon_slug, parsed.data.phone);
-  return NextResponse.json({ name: result.name });
+  return NextResponse.json(
+    { name: result.name },
+    { headers: { "Cache-Control": "no-store, no-cache, must-revalidate" } }
+  );
 }

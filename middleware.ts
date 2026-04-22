@@ -310,7 +310,11 @@ export async function middleware(request: NextRequest) {
 
   if (isSalonSubdomain(hostname)) {
     // salon-bizhu.salonapp.pro → slug = "salon-bizhu"
-    salonSlug = hostname.replace(/\.salonapp\.pro$/, "");
+    const extracted = hostname.replace(/\.salonapp\.pro$/, "");
+    if (RESERVED_PATHS.has(extracted)) {
+      return NextResponse.redirect(new URL("https://salonapp.pro"));
+    }
+    salonSlug = extracted;
   } else {
     // Custom domain: bizhu.bg
     byDomain = hostname;

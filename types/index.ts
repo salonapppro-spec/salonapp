@@ -82,6 +82,7 @@ export interface Booking {
   client_email: string | null;
   status: import("./database").BookingStatus;
   confirmation_token: string | null;
+  unsubscribe_token: string | null;
   confirmed_at: string | null;
   notes: string | null;
   hair_length: HairLength | null;
