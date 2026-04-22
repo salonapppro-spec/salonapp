@@ -65,13 +65,13 @@ export function Bloom({ data }: { data: SalonData }) {
             { label: "Галерия", href: "#gallery" },
             { label: "Контакти", href: "#contacts" },
           ].map((link) => (
-            <a key={link.href} href={link.href} style={{ color: textLight, textDecoration: "none", fontSize: "14px", fontWeight: 500 }}>
+            <a key={link.href} href={link.href} style={{ color: textLight, textDecoration: "none", fontSize: "14px", fontWeight: 500, fontFamily: "var(--font-nav)" }}>
               {link.label}
             </a>
           ))}
           <Link
             href={`/${tenant.salon_slug}/booking`}
-            style={{ backgroundColor: primary, color: "#fff", padding: "var(--button-padding, 10px 20px)", borderRadius: "var(--border-radius, 8px)", textDecoration: "none", fontSize: "14px", fontWeight: 600 }}
+            style={{ backgroundColor: primary, color: "#fff", padding: "var(--button-padding, 10px 20px)", borderRadius: "var(--border-radius, 8px)", textDecoration: "none", fontSize: "14px", fontWeight: 600, fontFamily: "var(--font-button)" }}
           >
             Запази час
           </Link>
@@ -80,16 +80,16 @@ export function Bloom({ data }: { data: SalonData }) {
 
       {/* ── HERO ── */}
       <section style={{ padding: "80px 24px", textAlign: "center", maxWidth: "720px", margin: "0 auto" }}>
-        <h1 style={{ fontSize: "var(--heading-size, clamp(36px, 6vw, 64px))", fontWeight: 700, lineHeight: 1.15, color: text, marginBottom: "8px" }}>
+        <h1 style={{ fontSize: "var(--heading-size, clamp(36px, 6vw, 64px))", fontFamily: "var(--font-heading)", fontWeight: 700, lineHeight: 1.15, color: text, marginBottom: "8px" }}>
           {heroTitle}
         </h1>
         {heroSubtitle && (
-          <h2 style={{ fontSize: "clamp(28px, 5vw, 52px)", fontWeight: 700, lineHeight: 1.15, color: primary, marginBottom: "24px" }}>
+          <h2 style={{ fontSize: "clamp(28px, 5vw, 52px)", fontFamily: "var(--font-heading)", fontWeight: 700, lineHeight: 1.15, color: primary, marginBottom: "24px" }}>
             {heroSubtitle}
           </h2>
         )}
         {tenant.description && (
-          <p style={{ fontSize: "18px", color: textLight, marginBottom: "40px", lineHeight: 1.7 }}>
+          <p style={{ fontSize: "18px", fontFamily: "var(--font-body)", color: textLight, marginBottom: "40px", lineHeight: 1.7 }}>
             {tenant.description}
           </p>
         )}
@@ -103,6 +103,7 @@ export function Bloom({ data }: { data: SalonData }) {
             borderRadius: "var(--border-radius, 12px)",
             textDecoration: "none",
             fontSize: "16px",
+            fontFamily: "var(--font-button)",
             fontWeight: 600,
             boxShadow: `0 4px 24px ${primary}55`,
           }}
@@ -115,7 +116,7 @@ export function Bloom({ data }: { data: SalonData }) {
       {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && (
         <section id="about" style={{ backgroundColor: "#fff", padding: "64px 24px" }}>
           <div style={{ maxWidth: "800px", margin: "0 auto" }}>
-            <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "24px", textAlign: "center" }}>
+            <h2 style={{ fontSize: "32px", fontFamily: "var(--font-heading)", fontWeight: 700, color: text, marginBottom: "24px", textAlign: "center" }}>
               За нас
             </h2>
             {tenant.about_image_url && (
@@ -127,12 +128,12 @@ export function Bloom({ data }: { data: SalonData }) {
               />
             )}
             {tenant.about_text1 && (
-              <p style={{ fontSize: "16px", lineHeight: 1.8, color: textLight, marginBottom: "16px" }}>
+              <p style={{ fontSize: "16px", fontFamily: "var(--font-body)", lineHeight: 1.8, color: textLight, marginBottom: "16px" }}>
                 {tenant.about_text1}
               </p>
             )}
             {tenant.about_text2 && (
-              <p style={{ fontSize: "16px", lineHeight: 1.8, color: textLight }}>
+              <p style={{ fontSize: "16px", fontFamily: "var(--font-body)", lineHeight: 1.8, color: textLight }}>
                 {tenant.about_text2}
               </p>
             )}
@@ -143,10 +144,10 @@ export function Bloom({ data }: { data: SalonData }) {
       {/* ── SERVICES ── */}
       <section id="services" style={{ padding: "64px 24px" }}>
         <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-          <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "8px", textAlign: "center" }}>
+          <h2 style={{ fontSize: "32px", fontFamily: "var(--font-heading)", fontWeight: 700, color: text, marginBottom: "8px", textAlign: "center" }}>
             Услуги и цени
           </h2>
-          <p style={{ textAlign: "center", color: textLight, marginBottom: "40px" }}>
+          <p style={{ textAlign: "center", fontFamily: "var(--font-body)", color: textLight, marginBottom: "40px" }}>
             Всички цени са в EUR. BGN еквивалент при плащане в брой.
           </p>
 
@@ -156,14 +157,14 @@ export function Bloom({ data }: { data: SalonData }) {
               if (list.length === 0) return null;
               return (
                 <div key={sp.id} style={{ marginBottom: "40px" }}>
-                  <h3 style={{ fontSize: "22px", fontWeight: 700, color: text, marginBottom: "16px" }}>
+                  <h3 style={{ fontSize: "22px", fontFamily: "var(--font-heading)", fontWeight: 700, color: text, marginBottom: "16px" }}>
                     {sp.name}
                   </h3>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: "16px" }}>
                     {list.map((s) => (
                       <div key={s.id} style={{ backgroundColor: "#fff", border: `1px solid ${border}`, borderRadius: "12px", padding: "24px" }}>
-                        <h3 style={{ fontSize: "17px", fontWeight: 600, color: text, marginBottom: "8px" }}>{s.name}</h3>
-                        <p style={{ fontSize: "13px", color: textLight, marginBottom: "16px" }}>
+                        <h3 style={{ fontSize: "17px", fontFamily: "var(--font-heading)", fontWeight: 600, color: text, marginBottom: "8px" }}>{s.name}</h3>
+                        <p style={{ fontSize: "13px", fontFamily: "var(--font-body)", color: textLight, marginBottom: "16px" }}>
                           {s.is_complex ? "Времето се уточнява" : `⏱ ${s.duration_minutes ?? 0} мин`}
                         </p>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
@@ -201,13 +202,13 @@ export function Bloom({ data }: { data: SalonData }) {
       <section id="booking" style={{ backgroundColor: "#fff", padding: "64px 24px" }}>
         <div style={{ maxWidth: "560px", margin: "0 auto" }}>
           <div style={{ textAlign: "center", marginBottom: "36px" }}>
-            <p style={{ fontSize: "12px", fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: primary, marginBottom: "8px" }}>
+            <p style={{ fontSize: "12px", fontFamily: "var(--font-body)", fontWeight: 700, letterSpacing: "0.3em", textTransform: "uppercase", color: primary, marginBottom: "8px" }}>
               Онлайн записване
             </p>
-            <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "8px" }}>
+            <h2 style={{ fontSize: "32px", fontFamily: "var(--font-heading)", fontWeight: 700, color: text, marginBottom: "8px" }}>
               Запазете своя час
             </h2>
-            <p style={{ color: textLight, fontSize: "15px" }}>
+            <p style={{ color: textLight, fontFamily: "var(--font-body)", fontSize: "15px" }}>
               Попълнете формата и ще получите имейл потвърждение в рамките на минути.
             </p>
           </div>
@@ -233,7 +234,7 @@ export function Bloom({ data }: { data: SalonData }) {
         }}>
           {/* Working hours */}
           <div>
-            <h3 style={{ fontSize: "22px", fontWeight: 700, color: text, marginBottom: "20px" }}>Работно време</h3>
+            <h3 style={{ fontSize: "22px", fontFamily: "var(--font-heading)", fontWeight: 700, color: text, marginBottom: "20px" }}>Работно време</h3>
             {data.workingHours.map((wh) => (
               <div key={wh.id} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", borderBottom: `1px solid ${border}`, fontSize: "15px" }}>
                 <span style={{ color: text }}>{DAY_LABELS[wh.day_of_week]}</span>
@@ -246,7 +247,7 @@ export function Bloom({ data }: { data: SalonData }) {
 
           {/* Contact info */}
           <div>
-            <h3 style={{ fontSize: "22px", fontWeight: 700, color: text, marginBottom: "20px" }}>Контакти</h3>
+            <h3 style={{ fontSize: "22px", fontFamily: "var(--font-heading)", fontWeight: 700, color: text, marginBottom: "20px" }}>Контакти</h3>
             <div style={{ display: "flex", flexDirection: "column", gap: "14px" }}>
               {tenant.address && (
                 <div style={{ display: "flex", gap: "10px", alignItems: "flex-start", fontSize: "15px", color: textLight }}>
@@ -301,7 +302,7 @@ export function Bloom({ data }: { data: SalonData }) {
       {gallery.length > 0 && (
         <section id="gallery" style={{ backgroundColor: "#fff", padding: "64px 24px" }}>
           <div style={{ maxWidth: "900px", margin: "0 auto" }}>
-            <h2 style={{ fontSize: "32px", fontWeight: 700, color: text, marginBottom: "32px", textAlign: "center" }}>
+            <h2 style={{ fontSize: "32px", fontFamily: "var(--font-heading)", fontWeight: 700, color: text, marginBottom: "32px", textAlign: "center" }}>
               Галерия
             </h2>
             <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: "16px" }}>

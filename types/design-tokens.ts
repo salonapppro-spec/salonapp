@@ -7,8 +7,18 @@ export interface DesignTokens {
   textColor: string;
   /** Accent / secondary color */
   accentColor: string;
-  /** CSS font-family string */
+
+  /** Global / fallback font-family */
   fontFamily: string;
+  /** Font for h1, h2, h3 headings */
+  headingFont: string;
+  /** Font for paragraphs and body text */
+  bodyFont: string;
+  /** Font for navigation links */
+  navFont: string;
+  /** Font for buttons */
+  buttonFont: string;
+
   /** Hero heading — CSS font-size with unit */
   headingSize: string;
   /** Body copy — CSS font-size with unit */

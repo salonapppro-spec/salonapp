@@ -117,6 +117,10 @@ export default async function PublicSalonPage(props: { params: Promise<{ salon_s
   --color-text: ${tokens.textColor};
   --color-accent: ${tokens.accentColor};
   --font-family: ${tokens.fontFamily};
+  --font-heading: ${tokens.headingFont};
+  --font-body: ${tokens.bodyFont};
+  --font-nav: ${tokens.navFont};
+  --font-button: ${tokens.buttonFont};
   --heading-size: ${tokens.headingSize};
   --body-size: ${tokens.bodySize};
   --border-radius: ${tokens.borderRadius};
@@ -137,6 +141,10 @@ export default async function PublicSalonPage(props: { params: Promise<{ salon_s
     if(t.textColor)       r.setProperty("--color-text",t.textColor);
     if(t.accentColor)     r.setProperty("--color-accent",t.accentColor);
     if(t.fontFamily)      r.setProperty("--font-family",t.fontFamily);
+    if(t.headingFont)     r.setProperty("--font-heading",t.headingFont);
+    if(t.bodyFont)        r.setProperty("--font-body",t.bodyFont);
+    if(t.navFont)         r.setProperty("--font-nav",t.navFont);
+    if(t.buttonFont)      r.setProperty("--font-button",t.buttonFont);
     if(t.headingSize)     r.setProperty("--heading-size",t.headingSize);
     if(t.bodySize)        r.setProperty("--body-size",t.bodySize);
     if(t.borderRadius)    r.setProperty("--border-radius",t.borderRadius);
@@ -159,7 +167,7 @@ export default async function PublicSalonPage(props: { params: Promise<{ salon_s
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link
         rel="stylesheet"
-        href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Inter:wght@400;500;600;700&family=Lato:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Raleway:wght@400;500;600;700&display=swap"
+        href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Italiana&family=Josefin+Sans:wght@300;400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
       />
       {/* CSS custom properties — overridden in real-time by builder postMessage */}
       <style dangerouslySetInnerHTML={{ __html: cssVars }} />

@@ -9,12 +9,22 @@ import type { BuilderContent } from "@/app/super-admin/actions";
 // ─── Constants ────────────────────────────────────────────────────────────────
 
 const FONT_OPTIONS = [
-  { label: "Inter",              value: "Inter, sans-serif" },
-  { label: "Playfair Display",   value: "'Playfair Display', serif" },
-  { label: "Montserrat",         value: "Montserrat, sans-serif" },
-  { label: "Cormorant Garamond", value: "'Cormorant Garamond', serif" },
-  { label: "Lato",               value: "Lato, sans-serif" },
-  { label: "Raleway",            value: "Raleway, sans-serif" },
+  { label: "Inter",               value: "Inter, sans-serif" },
+  { label: "Playfair Display",    value: "'Playfair Display', serif" },
+  { label: "Montserrat",          value: "Montserrat, sans-serif" },
+  { label: "Cormorant Garamond",  value: "'Cormorant Garamond', serif" },
+  { label: "Lato",                value: "Lato, sans-serif" },
+  { label: "Raleway",             value: "Raleway, sans-serif" },
+  { label: "Poppins",             value: "Poppins, sans-serif" },
+  { label: "DM Sans",             value: "'DM Sans', sans-serif" },
+  { label: "Outfit",              value: "Outfit, sans-serif" },
+  { label: "Nunito",              value: "Nunito, sans-serif" },
+  { label: "Josefin Sans",        value: "'Josefin Sans', sans-serif" },
+  { label: "Bebas Neue",          value: "'Bebas Neue', sans-serif" },
+  { label: "Cinzel",              value: "Cinzel, serif" },
+  { label: "Dancing Script",      value: "'Dancing Script', cursive" },
+  { label: "Italiana",            value: "Italiana, serif" },
+  { label: "Libre Baskerville",   value: "'Libre Baskerville', serif" },
 ];
 
 const BORDER_RADIUS_OPTIONS = [
@@ -256,24 +266,11 @@ function DesignTab({
 
       <Section title="Типография">
         <div className="space-y-3">
-          <div>
-            <label className="mb-1 block text-xs text-neutral-400">Шрифт</label>
-            <select
-              value={tokens.fontFamily}
-              onChange={(e) => update("fontFamily", e.target.value)}
-              className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100"
-            >
-              {FONT_OPTIONS.map((f) => (
-                <option key={f.value} value={f.value}>{f.label}</option>
-              ))}
-            </select>
-            <div
-              className="mt-2 rounded-lg border border-neutral-800 px-3 py-2 text-sm text-neutral-300"
-              style={{ fontFamily: tokens.fontFamily }}
-            >
-              Красив текст • Beautiful Type
-            </div>
-          </div>
+          <FontField label="Глобален шрифт"  value={tokens.fontFamily}   onChange={(v) => update("fontFamily", v)} />
+          <FontField label="Заглавия (h1-h3)" value={tokens.headingFont}  onChange={(v) => update("headingFont", v)} />
+          <FontField label="Текст / абзаци"  value={tokens.bodyFont}     onChange={(v) => update("bodyFont", v)} />
+          <FontField label="Навигация"       value={tokens.navFont}      onChange={(v) => update("navFont", v)} />
+          <FontField label="Бутони"          value={tokens.buttonFont}   onChange={(v) => update("buttonFont", v)} />
           <SizeField label="Размер на заглавие" value={tokens.headingSize} onChange={(v) => update("headingSize", v)} />
           <SizeField label="Размер на текст"    value={tokens.bodySize}    onChange={(v) => update("bodySize", v)} />
         </div>
@@ -415,6 +412,29 @@ function ColorField({
             style={{ background: p }}
           />
         ))}
+      </div>
+    </div>
+  );
+}
+
+function FontField({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
+  return (
+    <div>
+      <label className="mb-1 block text-xs text-neutral-400">{label}</label>
+      <select
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm text-neutral-100"
+      >
+        {FONT_OPTIONS.map((f) => (
+          <option key={f.value} value={f.value}>{f.label}</option>
+        ))}
+      </select>
+      <div
+        className="mt-1 rounded border border-neutral-800 px-2 py-1.5 text-xs text-neutral-300"
+        style={{ fontFamily: value }}
+      >
+        Красив текст • Aa Bb Cc
       </div>
     </div>
   );

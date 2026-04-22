@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 const hexColor = z.string().regex(/^#[0-9A-Fa-f]{6}$/, "Невалиден hex цвят (напр. #F2A58E)");
-const cssValue = z.string().min(1).max(100);
+const cssValue = z.string().min(1).max(200);
 
 export const DesignTokensSchema = z.object({
   primaryColor:    hexColor,
@@ -9,6 +9,10 @@ export const DesignTokensSchema = z.object({
   textColor:       hexColor,
   accentColor:     hexColor,
   fontFamily:      cssValue,
+  headingFont:     cssValue,
+  bodyFont:        cssValue,
+  navFont:         cssValue,
+  buttonFont:      cssValue,
   headingSize:     cssValue,
   bodySize:        cssValue,
   borderRadius:    cssValue,

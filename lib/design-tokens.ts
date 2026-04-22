@@ -1,11 +1,15 @@
 import type { DesignTokens } from "@/types/design-tokens";
 
 export const DEFAULT_DESIGN_TOKENS: DesignTokens = {
-  primaryColor:   "#F2A58E",
+  primaryColor:    "#F2A58E",
   backgroundColor: "#FFFFFF",
   textColor:       "#1A1A1A",
   accentColor:     "#E07A5F",
   fontFamily:      "Inter, sans-serif",
+  headingFont:     "Inter, sans-serif",
+  bodyFont:        "Inter, sans-serif",
+  navFont:         "Inter, sans-serif",
+  buttonFont:      "Inter, sans-serif",
   headingSize:     "2.5rem",
   bodySize:        "1rem",
   borderRadius:    "0.75rem",
@@ -19,15 +23,19 @@ export function mergeTokens(saved: Partial<DesignTokens> | null | undefined): De
 
 export function tokensToCssVars(tokens: DesignTokens): Record<string, string> {
   return {
-    "--color-primary":    tokens.primaryColor,
-    "--color-bg":         tokens.backgroundColor,
-    "--color-text":       tokens.textColor,
-    "--color-accent":     tokens.accentColor,
-    "--font-family":      tokens.fontFamily,
-    "--heading-size":     tokens.headingSize,
-    "--body-size":        tokens.bodySize,
-    "--border-radius":    tokens.borderRadius,
-    "--button-padding":   tokens.buttonPadding,
-    "--section-padding":  tokens.sectionPadding,
+    "--color-primary":   tokens.primaryColor,
+    "--color-bg":        tokens.backgroundColor,
+    "--color-text":      tokens.textColor,
+    "--color-accent":    tokens.accentColor,
+    "--font-family":     tokens.fontFamily,
+    "--font-heading":    tokens.headingFont,
+    "--font-body":       tokens.bodyFont,
+    "--font-nav":        tokens.navFont,
+    "--font-button":     tokens.buttonFont,
+    "--heading-size":    tokens.headingSize,
+    "--body-size":       tokens.bodySize,
+    "--border-radius":   tokens.borderRadius,
+    "--button-padding":  tokens.buttonPadding,
+    "--section-padding": tokens.sectionPadding,
   };
 }
