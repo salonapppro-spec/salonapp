@@ -8,7 +8,7 @@ import { sendConfirmationEmail } from "@/lib/email";
 function addMinutesToTime(time: string, durationMinutes: number): string {
   const [h, m] = time.split(":").map(Number);
   const total = h * 60 + m + durationMinutes;
-  const hh = Math.floor(total / 60) % 24;
+  const hh = Math.floor(total / 60);
   const mm = total % 60;
   return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
 }
@@ -68,6 +68,10 @@ export async function runCreateBooking(
 
   const start = timeToMinutes(data.booking_time);
   const end = start + serviceDuration + bufferMinutes;
+
+  if (end > 24 * 60) {
+    return { ok: false, error: "Часът не може да приключи след полунощ. Моля изберете по-ранен час." };
+  }
 
   for (const b of (existing ?? []) as Array<{
     booking_time: string;
