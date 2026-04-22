@@ -37,5 +37,5 @@ next-env.d.ts
 
 .vercel
 
-# claude worktrees (local only)
-.claude/worktrees/
+# MCP server config (contains API tokens)
+.mcp.json
