@@ -17,62 +17,81 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
  *   customer.subscription.deleted — абонаментът е прекратен
  */
 
-// Lazy init — не се инициализира при билд, само при реална заявка
 function getStripe(): Stripe {
   const key = process.env.STRIPE_SECRET_KEY;
   if (!key) throw new Error("STRIPE_SECRET_KEY не е зададен");
   return new Stripe(key, { apiVersion: "2026-03-25.dahlia" });
 }
 
-// ── helpers ──────────────────────────────────────────────────────────────────
-
 function isoDate(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 }
 
-async function activateByEmail(email: string, months = 1): Promise<void> {
-  if (!email) return;
+// ── helpers ───────────────────────────────────────────────────────────────────
+
+async function findTenant(customerId: string | null, email: string) {
   const supabase = createSupabaseServiceRoleClient();
 
-  // Намери тенанта по имейл на собственика
-  const { data: tenant } = await supabase
+  // Предпочита stripe_customer_id — имейлът не е уникален идентификатор
+  if (customerId) {
+    const { data } = await supabase
+      .from("tenants")
+      .select("salon_slug, salon_name, expiry_date, owner_email")
+      .eq("stripe_customer_id", customerId)
+      .maybeSingle();
+    if (data) return data;
+  }
+
+  if (!email) return null;
+  const { data } = await supabase
     .from("tenants")
-    .select("salon_slug, salon_name, expiry_date")
+    .select("salon_slug, salon_name, expiry_date, owner_email")
     .eq("owner_email", email.toLowerCase().trim())
     .maybeSingle();
+  return data ?? null;
+}
+
+async function activateTenant(
+  customerId: string | null,
+  email: string,
+  months = 1,
+): Promise<void> {
+  const supabase = createSupabaseServiceRoleClient();
+  const tenant = await findTenant(customerId, email);
 
   if (!tenant) {
-    console.warn(`[stripe-webhook] Не намерен тенант за имейл: ${email}`);
+    console.warn(`[stripe-webhook] Не намерен тенант — customer_id=${customerId}, email=${email}`);
     return;
   }
 
-  // Ако има активен период, удължаваме от края му (не от днес)
-  const base = tenant.expiry_date && tenant.expiry_date > isoDate(new Date())
-    ? new Date(`${tenant.expiry_date}T00:00:00`)
-    : new Date();
+  const base =
+    tenant.expiry_date && tenant.expiry_date > isoDate(new Date())
+      ? new Date(`${tenant.expiry_date}T00:00:00`)
+      : new Date();
   const expiry = new Date(base.getFullYear(), base.getMonth() + months, base.getDate());
   const grace = new Date(expiry);
   grace.setDate(grace.getDate() + 30);
 
+  const patch: Record<string, unknown> = {
+    status: "active",
+    payment_type: "stripe",
+    expiry_date: isoDate(expiry),
+    grace_until_date: isoDate(grace),
+  };
+  // Свързваме customer_id ако не е записан още
+  if (customerId) patch.stripe_customer_id = customerId;
+
   const { error } = await supabase
     .from("tenants")
-    .update({
-      status: "active",
-      payment_type: "stripe",
-      expiry_date: isoDate(expiry),
-      grace_until_date: isoDate(grace),
-    })
+    .update(patch)
     .eq("salon_slug", tenant.salon_slug);
 
-  if (error) {
-    console.error(`[stripe-webhook] Грешка при активация на ${tenant.salon_slug}:`, error.message);
-    return;
-  }
+  if (error) throw new Error(`Активация на ${tenant.salon_slug}: ${error.message}`);
 
   console.log(`[stripe-webhook] ✓ Активиран ${tenant.salon_slug} до ${isoDate(expiry)}`);
 
-  // Изпрати имейл за потвърждение (ако Resend е настроен)
-  if (process.env.RESEND_API_KEY) {
+  const notifyEmail = tenant.owner_email ?? email;
+  if (notifyEmail && process.env.RESEND_API_KEY) {
     await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -81,7 +100,7 @@ async function activateByEmail(email: string, months = 1): Promise<void> {
       },
       body: JSON.stringify({
         from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
-        to: [email],
+        to: [notifyEmail],
         subject: "SalonApp — платен абонамент активиран ✓",
         html: `
           <p>Здравейте,</p>
@@ -94,20 +113,26 @@ async function activateByEmail(email: string, months = 1): Promise<void> {
   }
 }
 
-async function deactivateByEmail(email: string): Promise<void> {
-  if (!email) return;
-  const supabase = createSupabaseServiceRoleClient();
-  const { data: tenant } = await supabase
-    .from("tenants")
-    .select("salon_slug, grace_until_date")
-    .eq("owner_email", email.toLowerCase().trim())
-    .maybeSingle();
-
+async function deactivateTenant(customerId: string | null, email: string): Promise<void> {
+  const tenant = await findTenant(customerId, email);
   if (!tenant) return;
-
   // Не деактивираме веднага — оставяме grace периода да изтече естествено.
-  // Само логваме за информация.
-  console.log(`[stripe-webhook] Абонаментът е прекратен за ${tenant.salon_slug}. Grace до: ${tenant.grace_until_date ?? "—"}`);
+  console.log(
+    `[stripe-webhook] Абонаментът е прекратен за ${tenant.salon_slug}. Grace до: ${tenant.grace_until_date ?? "—"}`,
+  );
+}
+
+// ── Idempotency ───────────────────────────────────────────────────────────────
+
+async function claimEvent(eventId: string, eventType: string): Promise<boolean> {
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase
+    .from("stripe_events")
+    .insert({ stripe_event_id: eventId, event_type: eventType });
+
+  if (!error) return true; // claimed
+  if (error.code === "23505") return false; // duplicate — already processed
+  throw new Error(`stripe_events INSERT: ${error.message}`);
 }
 
 // ── Webhook handler ───────────────────────────────────────────────────────────
@@ -128,51 +153,59 @@ export async function POST(req: Request) {
 
   let event: Stripe.Event;
   try {
-    const stripe = getStripe();
-    event = stripe.webhooks.constructEvent(body, sig, webhookSecret);
+    event = getStripe().webhooks.constructEvent(body, sig, webhookSecret);
   } catch (err) {
     console.error("[stripe-webhook] Невалиден подпис:", err instanceof Error ? err.message : err);
     return NextResponse.json({ error: "Invalid signature" }, { status: 400 });
   }
 
+  // Idempotency — ако event-ът е вече обработен, спираме тук
+  let claimed: boolean;
+  try {
+    claimed = await claimEvent(event.id, event.type);
+  } catch (err) {
+    console.error("[stripe-webhook] claimEvent грешка:", err);
+    return NextResponse.json({ error: "Database error" }, { status: 500 });
+  }
+  if (!claimed) {
+    console.log(`[stripe-webhook] Duplicate event ${event.id} — пропускам`);
+    return NextResponse.json({ received: true });
+  }
+
   try {
     switch (event.type) {
-      // ── Успешен checkout (еднократно плащане или първи абонамент) ──
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
+        const customerId = typeof session.customer === "string" ? session.customer : null;
         const email = session.customer_details?.email ?? session.customer_email ?? "";
         // За абонаменти invoice.paid ще дойде след малко — пропускаме за да не активираме два пъти
         if (session.mode === "payment") {
-          await activateByEmail(email, 1);
+          await activateTenant(customerId, email, 1);
         }
         break;
       }
 
-      // ── Платена фактура (абонамент — първо и всяко следващо плащане) ──
       case "invoice.paid": {
         const invoice = event.data.object as Stripe.Invoice;
+        const customerId = typeof invoice.customer === "string" ? invoice.customer : null;
         const email = (invoice as unknown as { customer_email?: string }).customer_email ?? "";
-        await activateByEmail(email, 1);
+        await activateTenant(customerId, email, 1);
         break;
       }
 
-      // ── Неуспешно плащане ──
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const email = (invoice as unknown as { customer_email?: string }).customer_email ?? "";
         console.warn(`[stripe-webhook] ⚠️ Неуспешно плащане за ${email}`);
-        // Не деактивираме — Stripe ще retry-ва. Grace периодът ще свърши работа.
         break;
       }
 
-      // ── Прекратен абонамент ──
       case "customer.subscription.deleted": {
         const sub = event.data.object as Stripe.Subscription;
         const customerId = sub.customer as string;
-        // Намери имейла от customer обекта
         try {
-          const customer = await getStripe().customers.retrieve(customerId) as Stripe.Customer;
-          if (customer.email) await deactivateByEmail(customer.email);
+          const customer = (await getStripe().customers.retrieve(customerId)) as Stripe.Customer;
+          await deactivateTenant(customerId, customer.email ?? "");
         } catch {
           console.error(`[stripe-webhook] Не може да се намери customer ${customerId}`);
         }
@@ -180,13 +213,16 @@ export async function POST(req: Request) {
       }
 
       default:
-        // Игнорираме останалите events
         break;
     }
   } catch (err) {
+    // Връщаме 500 — Stripe ще retry-ва. Събитието вече е в stripe_events,
+    // затова следващият retry ще мине claimEvent и ще пробва отново.
     console.error("[stripe-webhook] Грешка при обработка:", err);
-    // Връщаме 200 за да не retry-ва Stripe (грешката е наша, не негова)
-    return NextResponse.json({ received: true, warning: "Processing error logged" });
+    // Изтриваме записа за да може retry-ят да го reclaim-не
+    const supabase = createSupabaseServiceRoleClient();
+    await supabase.from("stripe_events").delete().eq("stripe_event_id", event.id);
+    return NextResponse.json({ error: "Processing error" }, { status: 500 });
   }
 
   return NextResponse.json({ received: true });
