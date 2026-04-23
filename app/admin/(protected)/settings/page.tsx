@@ -47,10 +47,10 @@ export default async function AdminSettingsPage() {
       {/* Quick-nav cards */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
+          { icon: "👥", label: "Специалисти", href: "#specialists", desc: "Екип и профили" },
           { icon: "🕐", label: "Работно време", href: "/admin/working-hours", desc: "График по дни" },
           { icon: "🖼️", label: "Галерия", href: "/admin/gallery", desc: "Снимки на салона" },
           { icon: "✂️", label: "Услуги", href: "/admin/services", desc: "Цени и описания" },
-          { icon: "👥", label: "Специалисти", href: "#specialists", desc: "Екип и профили" },
         ].map((card) => (
           <Link
             key={card.label}

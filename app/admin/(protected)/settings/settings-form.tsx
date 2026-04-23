@@ -411,88 +411,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         </div>
       )}
 
-      {/* ── Контакти ── */}
-      <FieldCard>
-        <SectionHeader icon="📍" title="Контакти" desc="Адрес, телефон и имейл за контакт" />
-        {hasUnsavedContacts && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <Label>Адрес</Label>
-            <input className="input-admin" placeholder="бул. Витоша 42, София" value={address} onChange={(e) => setAddress(e.target.value)} />
-          </div>
-          <div>
-            <Label>Телефон</Label>
-            <input className="input-admin" placeholder="+359 88 …" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
-          <div>
-            <Label>Имейл</Label>
-            <input className="input-admin" type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-        </div>
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            className={sectionSaveClass(!!savingSection)}
-            style={{ background: savingSection === "contacts" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-            onClick={() => void saveContacts()}
-            disabled={savingSection != null}
-          >
-            {savingSection === "contacts" ? "Запазване…" : "✓ Запази контактите"}
-          </button>
-        </div>
-      </FieldCard>
-
-      {/* ── Социални мрежи ── */}
-      <FieldCard>
-        <SectionHeader icon="📱" title="Социални мрежи" desc="Instagram, Facebook и TikTok линкове" />
-        {hasUnsavedSocial && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <Label>📸 Instagram</Label>
-            <input className="input-admin" type="url" inputMode="url" placeholder="https://instagram.com/…" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
-          </div>
-          <div>
-            <Label>👍 Facebook</Label>
-            <input className="input-admin" type="url" inputMode="url" placeholder="https://facebook.com/…" value={facebook} onChange={(e) => setFacebook(e.target.value)} />
-          </div>
-          <div>
-            <Label>🎵 TikTok</Label>
-            <input className="input-admin" type="url" inputMode="url" placeholder="https://tiktok.com/…" value={tiktok} onChange={(e) => setTiktok(e.target.value)} />
-          </div>
-        </div>
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            className={sectionSaveClass(!!savingSection)}
-            style={{ background: savingSection === "social" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-            onClick={() => void saveSocial()}
-            disabled={savingSection != null}
-          >
-            {savingSection === "social" ? "Запазване…" : "✓ Запази социалните мрежи"}
-          </button>
-        </div>
-      </FieldCard>
-
-      {/* ── Google Maps ── */}
-      <FieldCard>
-        <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете само embed URL (не iframe код)" />
-        {hasUnsavedMaps && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
-        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай само `src` URL, напр. `https://www.google.com/maps/embed?...`</p>
-        <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
-        <div className="mt-4 flex justify-end">
-          <button
-            type="button"
-            className={sectionSaveClass(!!savingSection)}
-            style={{ background: savingSection === "maps" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-            onClick={() => void saveMapsSection()}
-            disabled={savingSection != null}
-          >
-            {savingSection === "maps" ? "Запазване…" : "✓ Запази картата"}
-          </button>
-        </div>
-      </FieldCard>
-
-      {/* ── Специалисти ── */}
+      {/* ── Специалисти (най-отгоре) ── */}
       <FieldCard>
         <div id="specialists">
           <div className="mb-4 flex items-center justify-between border-b pb-4" style={{ borderColor: "rgba(201,168,76,0.12)" }}>
@@ -592,6 +511,87 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
               ))
             )}
           </div>
+        </div>
+      </FieldCard>
+
+      {/* ── Контакти ── */}
+      <FieldCard>
+        <SectionHeader icon="📍" title="Контакти" desc="Адрес, телефон и имейл за контакт" />
+        {hasUnsavedContacts && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <Label>Адрес</Label>
+            <input className="input-admin" placeholder="бул. Витоша 42, София" value={address} onChange={(e) => setAddress(e.target.value)} />
+          </div>
+          <div>
+            <Label>Телефон</Label>
+            <input className="input-admin" placeholder="+359 88 …" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div>
+            <Label>Имейл</Label>
+            <input className="input-admin" type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "contacts" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveContacts()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "contacts" ? "Запазване…" : "✓ Запази контактите"}
+          </button>
+        </div>
+      </FieldCard>
+
+      {/* ── Социални мрежи ── */}
+      <FieldCard>
+        <SectionHeader icon="📱" title="Социални мрежи" desc="Instagram, Facebook и TikTok линкове" />
+        {hasUnsavedSocial && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <Label>📸 Instagram</Label>
+            <input className="input-admin" type="url" inputMode="url" placeholder="https://instagram.com/…" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
+          </div>
+          <div>
+            <Label>👍 Facebook</Label>
+            <input className="input-admin" type="url" inputMode="url" placeholder="https://facebook.com/…" value={facebook} onChange={(e) => setFacebook(e.target.value)} />
+          </div>
+          <div>
+            <Label>🎵 TikTok</Label>
+            <input className="input-admin" type="url" inputMode="url" placeholder="https://tiktok.com/…" value={tiktok} onChange={(e) => setTiktok(e.target.value)} />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "social" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveSocial()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "social" ? "Запазване…" : "✓ Запази социалните мрежи"}
+          </button>
+        </div>
+      </FieldCard>
+
+      {/* ── Google Maps ── */}
+      <FieldCard>
+        <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете само embed URL (не iframe код)" />
+        {hasUnsavedMaps && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай само `src` URL, напр. `https://www.google.com/maps/embed?...`</p>
+        <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "maps" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveMapsSection()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "maps" ? "Запазване…" : "✓ Запази картата"}
+          </button>
         </div>
       </FieldCard>
 
