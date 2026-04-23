@@ -34,10 +34,7 @@ export default async function BuilderPage({
     aboutImageUrl: tenant.about_image_url ?? "",
   };
 
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
-  const basePreview = appUrl
-    ? `https://${salon_slug}.salonapp.pro`
-    : `https://salonapp-ten.vercel.app/${salon_slug}`;
+  const basePreview = `/${salon_slug}`;
 
   const previewToken = randomBytes(16).toString("hex");
   const previewWithToken = (() => {
@@ -53,6 +50,17 @@ export default async function BuilderPage({
   })();
 
   return (
+    <>
+    {/* Google Fonts — нужни за живия preview на шрифтове в страничния панел */}
+    {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
+    {/* eslint-disable-next-line @next/next/no-page-custom-font */}
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Italiana&family=Josefin+Sans:wght@300;400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
+    />
     <div className="flex flex-col gap-4">
       <div className="flex items-center gap-2 text-sm text-neutral-500">
         <Link href="/super-admin" className="hover:text-neutral-300">Супер-админ</Link>
@@ -71,5 +79,6 @@ export default async function BuilderPage({
         previewToken={previewToken}
       />
     </div>
+    </>
   );
 }

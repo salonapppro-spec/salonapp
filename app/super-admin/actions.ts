@@ -1,7 +1,7 @@
 "use server";
 
 import { randomBytes } from "crypto";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 
@@ -142,6 +142,7 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
   const { error } = await supabase.from("tenants").update(patch).eq("salon_slug", salonSlug);
   if (error) throw new Error(`Неуспешен запис: ${error.message}`);
 
+  revalidateTag(`tenant-${salonSlug}`);
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
   revalidatePath(`/${salonSlug}`); // публичен сайт на салона — обновява се веднага
@@ -269,6 +270,7 @@ export async function saveDesignTokens(
     .eq("salon_slug", safeSalonSlug);
   if (error) throw new Error(`Неуспешен запис: ${error.message}`);
 
+  revalidateTag(`tenant-${safeSalonSlug}`);
   revalidatePath(`/super-admin/${safeSalonSlug}/builder`);
   revalidatePath(`/${safeSalonSlug}`);
 }
@@ -309,6 +311,7 @@ export async function saveBuilderContent(
     .eq("salon_slug", salonSlug);
   if (error) throw new Error(`Неуспешен запис: ${error.message}`);
 
+  revalidateTag(`tenant-${salonSlug}`);
   revalidatePath(`/super-admin/${salonSlug}/builder`);
   revalidatePath(`/${salonSlug}`);
 }
