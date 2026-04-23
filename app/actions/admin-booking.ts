@@ -32,7 +32,7 @@ export async function createAdminBooking(input: unknown): Promise<AdminBookingAc
     return { error: "Салонът не е намерен." };
   }
 
-  const result = await runCreateBooking(data, ctx);
+  const result = await runCreateBooking(data, { ...ctx, debugDbErrors: true });
   if (!result.ok) {
     return { error: result.error };
   }

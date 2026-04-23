@@ -57,7 +57,7 @@ export type CreateBookingResult =
 
 export async function runCreateBooking(
   data: CreateBookingInput,
-  opts: { salonName: string; bufferMinutes: number }
+  opts: { salonName: string; bufferMinutes: number; debugDbErrors?: boolean }
 ): Promise<CreateBookingResult> {
   const db = tenantDb(data.salon_slug);
   const bufferMinutes = opts.bufferMinutes;
@@ -206,12 +206,26 @@ export async function runCreateBooking(
   if (error) {
     console.error("[runCreateBooking] bookings.insert failed", {
       salon_slug: data.salon_slug,
+      insert_payload: {
+        service_id: service.id,
+        specialist_id: bookingSpecialistId,
+        booking_date: data.booking_date,
+        booking_time: normalizeTimeForDb(data.booking_time),
+        booking_end_time: normalizeTimeForDb(endTime),
+        status: "pending",
+        hair_length: hairLength,
+        hair_density: hairDensity,
+      },
       code: error.code,
       message: error.message,
       details: error.details,
     });
     if (error.code === "23P01") {
       return { ok: false, error: "Този час току-що беше зает. Моля изберете друг.", code: "23P01" };
+    }
+    if (opts.debugDbErrors) {
+      const raw = [error.code, error.message, error.details].filter(Boolean).join(" | ");
+      return { ok: false, error: `DB: ${raw || "unknown_error"}` };
     }
     return { ok: false, error: insertErrorMessage(error) };
   }
