@@ -75,6 +75,10 @@ export function QuickBooking(props: {
       setError("Името на клиента е задължително.");
       return;
     }
+    if (phone.trim() && phone.trim().length < 5) {
+      setError("Телефонът трябва да е поне 5 символа или да остане празен.");
+      return;
+    }
     if (needSpecialist && !specialistId) {
       setError("Изберете специалист.");
       return;
@@ -88,7 +92,9 @@ export function QuickBooking(props: {
 
     setSaving(true);
     setError(null);
+    let didSave = false;
     try {
+      const normalizedPhone = phone.trim().length >= 5 ? phone.trim() : "00000";
       const payload = {
         salon_slug: salonSlug,
         specialist_id: resolvedSpecialistId,
@@ -96,7 +102,7 @@ export function QuickBooking(props: {
         booking_date: date,
         booking_time: bookingTime.length > 5 ? bookingTime.slice(0, 5) : bookingTime,
         client_name: clientName.trim(),
-        client_phone: phone.trim() || "00000",
+        client_phone: normalizedPhone,
         client_email: email.trim() || undefined,
         hair_length: selected.is_complex ? hairLength : undefined,
         hair_density: selected.is_complex ? hairDensity : undefined,
@@ -107,18 +113,23 @@ export function QuickBooking(props: {
         setError(result.error);
         return;
       }
-      onSaved();
+      didSave = true;
       onClose();
+      onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка");
     } finally {
       setSaving(false);
+      if (didSave) {
+        // Safety net for edge cases where parent refresh interrupts close timing.
+        onClose();
+      }
     }
   }
 
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center" role="dialog" aria-modal>
-      <button type="button" className="absolute inset-0 cursor-default" aria-label="Затвори" onClick={onClose} />
+      <button type="button" className="absolute inset-0 cursor-default" aria-label="Затвори" onClick={() => { if (!saving) onClose(); }} />
       <div className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-0 shadow-2xl" style={{ border: "1px solid rgba(201,168,76,0.25)" }}>
         {/* Header */}
         <div className="relative overflow-hidden rounded-t-2xl px-5 py-4" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.12), rgba(200,130,106,0.12))" }}>
@@ -128,11 +139,17 @@ export function QuickBooking(props: {
               <h2 className="text-lg font-black text-[#1A1A1A]" style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}>✦ Бърз час</h2>
               <p className="mt-0.5 text-xs text-[#1A1A1A]/45">{date}</p>
             </div>
-            <button type="button" onClick={onClose} className="rounded-xl p-2 text-[#1A1A1A]/40 transition hover:bg-black/5 hover:text-[#1A1A1A]">✕</button>
+            <button type="button" disabled={saving} onClick={onClose} className="rounded-xl p-2 text-[#1A1A1A]/40 transition hover:bg-black/5 hover:text-[#1A1A1A] disabled:opacity-50">✕</button>
           </div>
         </div>
 
-        <div className="p-5">
+        <form
+          className="p-5 pb-24"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void save();
+          }}
+        >
           {error ? <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</div> : null}
 
           <div className="space-y-3">
@@ -224,21 +241,22 @@ export function QuickBooking(props: {
             </div>
           ) : null}
         </div>
-          <div className="mt-5 flex gap-2">
-            <button type="button" className="flex-1 rounded-xl border py-3 text-sm font-semibold text-[#1A1A1A]/55 transition hover:bg-black/5" style={{ borderColor: "rgba(201,168,76,0.2)" }} onClick={onClose}>
+          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[120] mx-auto w-full max-w-md p-4 sm:absolute sm:inset-x-0 sm:bottom-0 sm:p-5">
+            <div className="pointer-events-auto flex gap-2 rounded-xl bg-white/95 p-2 shadow-[0_-6px_22px_rgba(0,0,0,0.12)] backdrop-blur">
+            <button type="button" className="flex-1 rounded-xl border py-3 text-sm font-semibold text-[#1A1A1A]/55 transition hover:bg-black/5 disabled:opacity-50" style={{ borderColor: "rgba(201,168,76,0.2)" }} onClick={onClose} disabled={saving}>
               Отказ
             </button>
             <button
-              type="button"
+              type="submit"
               className="flex-1 rounded-xl py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
               style={{ background: saving ? "rgba(201,168,76,0.5)" : "linear-gradient(135deg, #C9A84C, #C8826A)" }}
               disabled={saving}
-              onClick={() => void save()}
             >
               {saving ? "Запазване…" : "✓ Запази"}
             </button>
+            </div>
           </div>
-        </div>
+        </form>
       </div>
     </div>
   );
