@@ -30,6 +30,7 @@ export function QuickBooking(props: {
 
   const activeServices = useMemo(() => services.filter((s) => s.is_active), [services]);
 
+  const [bookingDate, setBookingDate] = useState(date);
   const [bookingTime, setBookingTime] = useState(time.length > 5 ? time.slice(0, 5) : time);
   const [clientName, setClientName] = useState("");
   const [phone, setPhone] = useState("");
@@ -66,9 +67,17 @@ export function QuickBooking(props: {
     }
   }, [activeServices, serviceId]);
 
+  useEffect(() => {
+    setBookingDate(date);
+  }, [date]);
+
   async function save() {
     if (!selected) {
       setError("Изберете услуга.");
+      return;
+    }
+    if (!bookingDate) {
+      setError("Изберете дата.");
       return;
     }
     if (!clientName.trim()) {
@@ -98,7 +107,7 @@ export function QuickBooking(props: {
         salon_slug: salonSlug,
         specialist_id: resolvedSpecialistId,
         service_id: selected.id,
-        booking_date: date,
+        booking_date: bookingDate,
         booking_time: bookingTime.length > 5 ? bookingTime.slice(0, 5) : bookingTime,
         client_name: clientName.trim(),
         client_phone: normalizedPhone,
@@ -131,7 +140,7 @@ export function QuickBooking(props: {
           <div className="flex items-center justify-between">
             <div>
               <h2 className="text-lg font-black text-[#1A1A1A]" style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}>✦ Бърз час</h2>
-              <p className="mt-0.5 text-xs text-[#1A1A1A]/45">{date}</p>
+              <p className="mt-0.5 text-xs text-[#1A1A1A]/45">{bookingDate}</p>
             </div>
             <button type="button" disabled={saving} onClick={onClose} className="rounded-xl p-2 text-[#1A1A1A]/40 transition hover:bg-black/5 hover:text-[#1A1A1A] disabled:opacity-50">✕</button>
           </div>
@@ -147,6 +156,17 @@ export function QuickBooking(props: {
           {error ? <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</div> : null}
 
           <div className="space-y-3">
+            <div>
+              <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Дата *</label>
+              <input
+                type="date"
+                className="input-admin"
+                value={bookingDate}
+                onChange={(e) => setBookingDate(e.target.value)}
+                required
+              />
+            </div>
+
             {/* Time picker — prominent */}
             <div>
               <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Час *</label>

@@ -1,8 +1,9 @@
 import type { Booking, HairDensity, HairLength, Service } from "@/types";
 import type { CreateBookingInput } from "@/schemas/booking";
-import { getBlockedSlotsForDate, getFinancialSettings } from "@/lib/data";
+import { getBlockedSlotsForDate, getFinancialSettings, getWorkingHoursForDate } from "@/lib/data";
 import { getTenant } from "@/lib/get-tenant";
 import { tenantDb } from "@/lib/tenant-db";
+import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 import { calculateDuration, timeToMinutes } from "@/lib/scheduling";
 import { sendConfirmationEmail } from "@/lib/email";
 
@@ -116,6 +117,36 @@ export async function runCreateBooking(
 
   if (end > 24 * 60) {
     return { ok: false, error: "Часът не може да приключи след полунощ. Моля изберете по-ранен час." };
+  }
+
+  const [yy, mm, dd] = data.booking_date.split("-").map(Number);
+  const dayOfWeek = Number.isFinite(yy) && Number.isFinite(mm) && Number.isFinite(dd)
+    ? new Date(Date.UTC(yy, mm - 1, dd)).getUTCDay()
+    : NaN;
+  if (!Number.isFinite(dayOfWeek)) {
+    return { ok: false, error: "Невалидна дата за резервация." };
+  }
+
+  const dayRow = await getWorkingHoursForDate({
+    salonSlug: data.salon_slug,
+    specialistId: bookingSpecialistId ?? undefined,
+    dayOfWeek,
+  });
+  const fallback = DEFAULT_WORKING_HOURS_DAYS[dayOfWeek] ?? { start_time: "09:00", end_time: "18:00", is_day_off: false };
+  const workingDay = dayRow ?? {
+    ...fallback,
+    day_of_week: dayOfWeek,
+    specialist_id: bookingSpecialistId,
+    id: `fallback-${data.salon_slug}-${dayOfWeek}`,
+    salon_slug: data.salon_slug,
+  };
+  if (workingDay.is_day_off) {
+    return { ok: false, error: "Денят е отбелязан като почивен. Изберете друга дата." };
+  }
+  const dayStart = timeToMinutes(workingDay.start_time);
+  const dayEnd = timeToMinutes(workingDay.end_time);
+  if (start < dayStart || end > dayEnd) {
+    return { ok: false, error: `Часът е извън работното време (${workingDay.start_time}–${workingDay.end_time}).` };
   }
 
   for (const b of (existing ?? []) as Array<{
