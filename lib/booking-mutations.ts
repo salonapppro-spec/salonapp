@@ -13,6 +13,13 @@ function isMissingBookingEndTimeColumnError(error: unknown): boolean {
   return e.code === "42703" || e.code === "PGRST204" || msg.includes("booking_end_time");
 }
 
+function isCheckConstraintError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { code?: string; message?: string };
+  const msg = (e.message ?? "").toLowerCase();
+  return e.code === "23514" || msg.includes("check constraint") || msg.includes("violates check constraint");
+}
+
 function insertErrorMessage(error: { code?: string; message?: string; details?: string }): string {
   const code = error.code ?? "";
   const msg = (error.message ?? "").toLowerCase();
@@ -142,7 +149,7 @@ export async function runCreateBooking(
 
   const endTime = addMinutesToTime(data.booking_time, serviceDuration + bufferMinutes);
 
-  const insertRow = {
+  const baseInsertRow = {
     salon_slug: data.salon_slug,
     specialist_id: bookingSpecialistId,
     service_id: service.id,
@@ -151,14 +158,18 @@ export async function runCreateBooking(
     service_duration: serviceDuration,
     booking_date: data.booking_date,
     booking_time: normalizeTimeForDb(data.booking_time),
-    booking_end_time: normalizeTimeForDb(endTime),
     client_name: data.client_name,
     client_phone: data.client_phone,
     client_email: data.client_email ?? null,
     notes: data.notes ?? null,
+    status: "pending" as const,
+  };
+
+  const insertRow = {
+    ...baseInsertRow,
+    booking_end_time: normalizeTimeForDb(endTime),
     hair_length: hairLength,
     hair_density: hairDensity,
-    status: "pending" as const,
   };
 
   let { data: createdRaw, error } = await db.bookings.create(insertRow);
@@ -170,6 +181,25 @@ export async function runCreateBooking(
     const retried = await db.bookings.create(legacyInsertRow);
     createdRaw = retried.data;
     error = retried.error;
+    created = createdRaw as Booking | null;
+  }
+
+  // Compatibility fallback: some production tenants may have legacy/strict hair checks.
+  // If CHECK fails, retry without hair fields (they are optional business metadata).
+  if (error && isCheckConstraintError(error)) {
+    const compatInsertRow: Record<string, unknown> = { ...baseInsertRow, booking_end_time: normalizeTimeForDb(endTime) };
+    const retriedCompat = await db.bookings.create(compatInsertRow);
+    createdRaw = retriedCompat.data;
+    error = retriedCompat.error;
+    created = createdRaw as Booking | null;
+  }
+
+  // Legacy compatibility on top of CHECK fallback if booking_end_time is missing in old schemas.
+  if (error && isMissingBookingEndTimeColumnError(error)) {
+    const legacyCompatInsertRow: Record<string, unknown> = { ...baseInsertRow };
+    const retriedLegacyCompat = await db.bookings.create(legacyCompatInsertRow);
+    createdRaw = retriedLegacyCompat.data;
+    error = retriedLegacyCompat.error;
     created = createdRaw as Booking | null;
   }
 
