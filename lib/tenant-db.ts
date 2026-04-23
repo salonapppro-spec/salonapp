@@ -46,6 +46,12 @@ export function tenantDb(rawSlug: string) {
           .limit(1)
           .maybeSingle();
       },
+      getById(serviceId: string) {
+        return q("services").select("*").eq("salon_slug", salonSlug).eq("id", serviceId).maybeSingle();
+      },
+      deleteById(serviceId: string) {
+        return q("services").delete().eq("salon_slug", salonSlug).eq("id", serviceId);
+      },
       create(values: AnyRow) {
         return q("services").insert(withTenantSlug(values, salonSlug)).select("*").maybeSingle();
       },

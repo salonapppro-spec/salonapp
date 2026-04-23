@@ -19,6 +19,7 @@ export function ServicesClient(props: { initialServices: Service[] }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const active = useMemo(() => services.filter((s) => s.is_active), [services]);
   const inactive = useMemo(() => services.filter((s) => !s.is_active), [services]);
@@ -96,6 +97,28 @@ export function ServicesClient(props: { initialServices: Service[] }) {
     }
     setEditingId(null);
     await refresh();
+  }
+
+  async function removeInactive(id: string, label: string) {
+    if (
+      !window.confirm(
+        `Да изтрием изцяло услугата „${label}“? Стари резервации ще останат, но вече няма да сочат тази услуга.`
+      )
+    ) {
+      return;
+    }
+    setDeletingId(id);
+    setError(null);
+    try {
+      const res = await fetch(`/api/admin/services/${id}`, { method: "DELETE" });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(json?.error ?? "Грешка");
+      await refresh();
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка");
+    } finally {
+      setDeletingId(null);
+    }
   }
 
   return (
@@ -224,9 +247,24 @@ export function ServicesClient(props: { initialServices: Service[] }) {
                   {Number(s.price_eur).toFixed(0)} € · {s.duration_minutes ?? 0} мин
                 </div>
               </div>
-              <button type="button" className="btn-admin-ghost" onClick={() => toggle(s.id, s.is_active)}>
-                Активирай
-              </button>
+              <div className="flex flex-wrap items-center justify-end gap-2">
+                <button
+                  type="button"
+                  className="btn-admin-ghost"
+                  disabled={deletingId === s.id}
+                  onClick={() => toggle(s.id, s.is_active)}
+                >
+                  Активирай
+                </button>
+                <button
+                  type="button"
+                  className="btn-admin-ghost text-red-700 hover:bg-red-50"
+                  disabled={deletingId === s.id}
+                  onClick={() => void removeInactive(s.id, s.name)}
+                >
+                  {deletingId === s.id ? "…" : "Изтрий"}
+                </button>
+              </div>
             </li>
           ))}
           {inactive.length === 0 ? <li className="px-4 py-8 text-center text-brand-700/75">Няма.</li> : null}
