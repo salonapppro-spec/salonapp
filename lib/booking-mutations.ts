@@ -73,16 +73,24 @@ export async function runCreateBooking(
   const bookingSpecialistId = data.specialist_id ?? service.specialist_id ?? null;
   let serviceDuration = service.duration_minutes ?? 0;
 
-  if (service.is_complex) {
-    if (!data.hair_length || !data.hair_density) {
-      return { ok: false, error: "Изберете дължина и гъстота за тази услуга." };
-    }
+  const hairLenAllowed = new Set<string>(["short", "medium", "long"]);
+  const hairDenAllowed = new Set<string>(["thin", "medium", "thick"]);
+  /** Винаги null за проста услуга — празен низ от клиента нарушава CHECK в Postgres. */
+  let hairLength: string | null = null;
+  let hairDensity: string | null = null;
 
-    const calc = calculateDuration(
-      service,
-      data.hair_length as HairLength,
-      data.hair_density as HairDensity
-    );
+  if (service.is_complex) {
+    const hl = typeof data.hair_length === "string" ? data.hair_length.trim() : "";
+    const hd = typeof data.hair_density === "string" ? data.hair_density.trim() : "";
+    if (!hairLenAllowed.has(hl)) {
+      return { ok: false, error: "Изберете дължина на косата (къса / средна / дълга)." };
+    }
+    if (!hairDenAllowed.has(hd)) {
+      return { ok: false, error: "Изберете гъстота (тънка / средна / гъста)." };
+    }
+    hairLength = hl;
+    hairDensity = hd;
+    const calc = calculateDuration(service, hl as HairLength, hd as HairDensity);
     serviceDuration = calc.totalMinutes;
   }
 
@@ -148,8 +156,8 @@ export async function runCreateBooking(
     client_phone: data.client_phone,
     client_email: data.client_email ?? null,
     notes: data.notes ?? null,
-    hair_length: data.hair_length ?? null,
-    hair_density: data.hair_density ?? null,
+    hair_length: hairLength,
+    hair_density: hairDensity,
     status: "pending" as const,
   };
 

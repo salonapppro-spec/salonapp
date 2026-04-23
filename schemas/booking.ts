@@ -7,6 +7,12 @@ const HairDensitySchema = z.enum(["thin", "medium", "thick"], {
   error: () => ({ message: "Изберете гъстота на косата" }),
 });
 
+/** Празен низ от формуляр не трябва да стига до DB — CHECK приема само enum или NULL. */
+function emptyToUndefined(v: unknown): unknown {
+  if (v === "" || v === null) return undefined;
+  return v;
+}
+
 export const CreateBookingSchema = z.object({
   salon_slug: z.string().min(1, "Липсва салон"),
   specialist_id: z.string().uuid().optional(),
@@ -17,8 +23,8 @@ export const CreateBookingSchema = z.object({
   client_phone: z.string().min(5, "Въведете телефон"),
   client_email: z.string().email("Невалиден имейл").optional(),
   notes: z.string().optional(),
-  hair_length: HairLengthSchema.optional(),
-  hair_density: HairDensitySchema.optional(),
+  hair_length: z.preprocess(emptyToUndefined, HairLengthSchema.optional()),
+  hair_density: z.preprocess(emptyToUndefined, HairDensitySchema.optional()),
 });
 
 export type CreateBookingInput = z.infer<typeof CreateBookingSchema>;
