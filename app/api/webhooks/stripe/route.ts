@@ -44,6 +44,12 @@ type TenantLookupResult =
   | { tenant: ResolvedTenant; resolvedBy: "subscription" | "customer" | "owner_email" }
   | { tenant: null; resolvedBy: null };
 
+function allowOwnerEmailFallback(): boolean {
+  const raw = process.env.STRIPE_ALLOW_OWNER_EMAIL_FALLBACK?.trim().toLowerCase();
+  if (!raw) return true; // default safe migration path
+  return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
+}
+
 async function findTenant(
   customerId: string | null,
   subscriptionId: string | null,
@@ -68,6 +74,23 @@ async function findTenant(
       .eq("stripe_customer_id", customerId)
       .maybeSingle();
     if (data) return { tenant: data as ResolvedTenant, resolvedBy: "customer" };
+  }
+
+  if (!allowOwnerEmailFallback()) {
+    if (email) {
+      const msg = `[stripe-webhook] owner_email fallback is disabled (customer_id=${customerId}, subscription_id=${subscriptionId}, email=${email})`;
+      console.warn(msg);
+      logAbuseEvent({
+        kind: "client_error",
+        path: "/api/webhooks/stripe",
+        method: "POST",
+        status: 200,
+        ip: "stripe_webhook",
+        key: "stripe_lookup_owner_email_fallback_disabled",
+        detail: msg,
+      });
+    }
+    return { tenant: null, resolvedBy: null };
   }
 
   if (!email) return { tenant: null, resolvedBy: null };

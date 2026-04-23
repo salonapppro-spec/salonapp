@@ -13,6 +13,7 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 const ADMIN_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const IMPERSONATION_MAX_AGE_SECONDS = 60 * 60;
 
 function isSuperAdminRole(user: { app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> }): boolean {
   return user.app_metadata?.role === "super_admin";
@@ -44,9 +45,23 @@ export async function enterSalonAdminContextAction(formData: FormData): Promise<
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",
     path: "/",
-    maxAge: 60 * 60 * 12,
+    maxAge: IMPERSONATION_MAX_AGE_SECONDS,
   });
   redirect("/admin/dashboard");
+}
+
+/** Изчиства super-admin impersonation контекста и връща към super-admin таблото. */
+export async function exitSalonAdminContextAction(): Promise<void> {
+  await requireSuperAdminUser();
+  const cookieStore = await cookies();
+  cookieStore.set(SUPER_ADMIN_SALON_COOKIE, "", {
+    httpOnly: true,
+    secure: process.env.NODE_ENV === "production",
+    sameSite: "lax",
+    path: "/",
+    maxAge: 0,
+  });
+  redirect("/super-admin");
 }
 
 export async function activateTenantManually(formData: FormData): Promise<void> {

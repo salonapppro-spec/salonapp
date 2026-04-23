@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { logAbuseEvent } from "@/lib/abuse-log";
 import { assertCronSecret } from "@/lib/cron-auth";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
@@ -21,7 +22,16 @@ export async function GET(req: Request) {
 
   if (error) {
     console.error("[billing-expiry] Грешка при деактивация:", error.message);
-    return NextResponse.json({ ok: false, error: error.message }, { status: 500 });
+    logAbuseEvent({
+      kind: "server_error",
+      path: "/api/cron/billing-expiry",
+      method: "GET",
+      status: 500,
+      ip: "cron",
+      key: "billing_expiry_update_failed",
+      detail: error.code ?? "db_error",
+    });
+    return NextResponse.json({ ok: false, error: "internal_error" }, { status: 500 });
   }
 
   const count = data?.length ?? 0;

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import type { SalonData, Service } from "@/types/database";
 import {
@@ -139,7 +140,7 @@ export function Luxe2({ data }: { data: SalonData }) {
         .about{padding:6rem 0;background:#fff}
         .ag{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:center}
         .aiw{position:relative}
-        .ai{width:100%;aspect-ratio:3/4;background:var(--gold-p);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;overflow:hidden}
+        .ai{width:100%;aspect-ratio:3/4;background:var(--gold-p);display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:.9rem;overflow:hidden;position:relative}
         .ai img{width:100%;height:100%;object-fit:cover}
         .abadge{position:absolute;bottom:-1.5rem;right:-1.5rem;width:100px;height:100px;background:var(--gold);color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
         .bn{font-family:var(--serif);font-size:2rem;line-height:1}
@@ -169,7 +170,7 @@ export function Luxe2({ data }: { data: SalonData }) {
         .gallery{padding:6rem 0;background:#fff}
         .ggrid{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
         .gi{overflow:hidden}
-        .gp{aspect-ratio:3/4;background:var(--gold-p);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.5rem;transition:transform .4s;overflow:hidden}
+        .gp{aspect-ratio:3/4;background:var(--gold-p);display:flex;align-items:center;justify-content:center;color:var(--gold);font-size:1.5rem;transition:transform .4s;overflow:hidden;position:relative}
         .gp img{width:100%;height:100%;object-fit:cover;transition:transform .4s}
         .gi:hover .gp img,.gi:hover .gp{transform:scale(1.03)}
         .gig{text-align:center;margin-top:2.5rem}
@@ -271,10 +272,16 @@ export function Luxe2({ data }: { data: SalonData }) {
             <div className="cnt ag">
               <div className="aiw">
                 <div className="ai">
-                  {tenant.about_image_url
-                    ? <img src={tenant.about_image_url} alt={tenant.salon_name} />
-                    : <span>снимка</span>
-                  }
+                  {tenant.about_image_url ? (
+                    <Image
+                      src={tenant.about_image_url}
+                      alt={tenant.salon_name}
+                      fill
+                      sizes="(max-width: 768px) 100vw, 40vw"
+                    />
+                  ) : (
+                    <span>снимка</span>
+                  )}
                 </div>
                 <div className="abadge">
                   <span className="bn">✦</span>
@@ -360,7 +367,7 @@ export function Luxe2({ data }: { data: SalonData }) {
                 {gallery.slice(0, 6).map((img, i) => (
                   <div key={i} className="gi">
                     <div className="gp">
-                      <img src={img.url} alt="" />
+                      <Image src={img.url} alt="" fill sizes="(max-width: 480px) 100vw, (max-width: 768px) 50vw, 33vw" />
                     </div>
                   </div>
                 ))}

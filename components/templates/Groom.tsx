@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 
 import type { SalonData, Service } from "@/types/database";
 import {
@@ -358,10 +359,16 @@ export function Groom({ data }: { data: SalonData }) {
           <div className="container">
             <div className="about-grid">
               <div className="about-img">
-                {tenant.about_image_url
-                  ? <img src={tenant.about_image_url} alt={tenant.salon_name} />
-                  : <span>🐕</span>
-                }
+                {tenant.about_image_url ? (
+                  <Image
+                    src={tenant.about_image_url}
+                    alt={tenant.salon_name}
+                    fill
+                    sizes="(max-width: 768px) 100vw, 40vw"
+                  />
+                ) : (
+                  <span>🐕</span>
+                )}
                 <div className="about-img-tag">Certified Groomer 🐾</div>
               </div>
               <div>
@@ -423,7 +430,7 @@ export function Groom({ data }: { data: SalonData }) {
             <div className="gallery-grid">
               {gallery.slice(0, 6).map((img, i) => (
                 <div className="g-item" key={i}>
-                  <img src={img.url} alt="" />
+                  <Image src={img.url} alt="" fill sizes="(max-width: 768px) 50vw, 33vw" />
                 </div>
               ))}
             </div>
