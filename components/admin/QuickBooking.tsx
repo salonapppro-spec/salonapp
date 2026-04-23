@@ -161,9 +161,12 @@ export function QuickBooking(props: {
   return (
     <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center" role="dialog" aria-modal>
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Затвори" onClick={() => { if (!saving) onClose(); }} />
-      <div className="relative z-10 max-h-[90vh] w-full max-w-md overflow-y-auto rounded-2xl bg-white p-0 shadow-2xl" style={{ border: "1px solid rgba(201,168,76,0.25)" }}>
+      <div
+        className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl bg-white p-0 shadow-2xl"
+        style={{ border: "1px solid rgba(201,168,76,0.25)" }}
+      >
         {/* Header */}
-        <div className="relative overflow-hidden rounded-t-2xl px-5 py-4" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.12), rgba(200,130,106,0.12))" }}>
+        <div className="relative shrink-0 overflow-hidden rounded-t-2xl px-5 py-4" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.12), rgba(200,130,106,0.12))" }}>
           <div className="absolute left-0 right-0 top-0 h-[3px]" style={{ background: "linear-gradient(90deg, #C9A84C, #C8826A)" }} />
           <div className="flex items-center justify-between">
             <div>
@@ -175,12 +178,12 @@ export function QuickBooking(props: {
         </div>
 
         <form
-          className="p-5 pb-24"
           onSubmit={(e) => {
             e.preventDefault();
             void save();
           }}
         >
+          <div className="max-h-[min(70vh,520px)] overflow-y-auto overflow-x-hidden p-5 pb-3">
           {error ? <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</div> : null}
 
           <div className="space-y-3">
@@ -305,8 +308,13 @@ export function QuickBooking(props: {
             </div>
           ) : null}
         </div>
-          <div className="pointer-events-none fixed inset-x-0 bottom-0 z-[120] mx-auto w-full max-w-md p-4 sm:absolute sm:inset-x-0 sm:bottom-0 sm:p-5">
-            <div className="pointer-events-auto flex gap-2 rounded-xl bg-white/95 p-2 shadow-[0_-6px_22px_rgba(0,0,0,0.12)] backdrop-blur">
+          </div>
+
+          <div
+            className="shrink-0 border-t bg-white p-4"
+            style={{ borderColor: "rgba(201,168,76,0.2)", boxShadow: "0 -4px 18px rgba(0,0,0,0.06)" }}
+          >
+            <div className="flex gap-2">
             <button type="button" className="flex-1 rounded-xl border py-3 text-sm font-semibold text-[#1A1A1A]/55 transition hover:bg-black/5 disabled:opacity-50" style={{ borderColor: "rgba(201,168,76,0.2)" }} onClick={onClose} disabled={saving}>
               Отказ
             </button>
