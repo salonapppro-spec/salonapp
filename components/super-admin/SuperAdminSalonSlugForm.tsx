@@ -85,7 +85,11 @@ export function SuperAdminSalonSlugForm(props: { currentSlug: string }) {
           />
         </div>
       </div>
-      {err && <p className="text-xs text-red-400">{err}</p>}
+      {err && (
+        <p className="text-xs leading-relaxed text-red-300 break-words ring-1 ring-red-900/50 rounded-md bg-red-950/20 p-2">
+          {err}
+        </p>
+      )}
       {ok && <p className="text-xs font-semibold text-emerald-400">{ok}</p>}
       <button
         type="submit"

@@ -8,6 +8,30 @@ import {
   rewriteGalleryPathInUrl,
 } from "@/lib/tenant-slug-rename";
 
+type PgishError = { message: string; code?: string; details?: string; hint?: string };
+
+function formatTenantSlugUpdateError(err: PgishError | null | undefined): string {
+  if (!err?.message) return "Неуспешна смяна в базата. Моля, опитай пак.";
+
+  const { message, code } = err;
+  const m = message.toLowerCase();
+  if (
+    code === "23503" ||
+    /foreign key|fk_|violate[s]? foreign|references.*tenants/i.test(message) ||
+    m.includes("foreign key constraint")
+  ) {
+    return [
+      "Базата не позволява да се смени slug, докато външните ключове към tenants(salon_slug) нямат ON UPDATE CASCADE.",
+      "В Supabase Dashboard → SQL Editor: изпълни еднократно съдържанието на",
+      "supabase/migrations/019_tenant_salon_slug_on_update_cascade.sql",
+      "След това пак опитай смяната.",
+      `(детайл: ${code ?? "?"} — ${message})`,
+    ].join(" ");
+  }
+
+  return `Неуспешна смяна в базата: ${message}`;
+}
+
 /**
  * Смяна на `tenants.salon_slug` + storage + URL в полетата. Изисква service role client.
  * Връща `{ error }` при неуспех; иначе обновява и metadata на текущата сесия, само ако
@@ -35,7 +59,7 @@ export async function performSalonSlugRename(
   if (copyErr) return { error: copyErr };
 
   const { error: updErr } = await admin.from("tenants").update({ salon_slug: newSlug }).eq("salon_slug", oldSlug);
-  if (updErr) return { error: "Неуспешна смяна в базата. Моля, опитай пак." };
+  if (updErr) return { error: formatTenantSlugUpdateError(updErr as PgishError) };
 
   const { data: tr } = await admin
     .from("tenants")
