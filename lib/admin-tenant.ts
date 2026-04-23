@@ -86,13 +86,17 @@ export async function requireAdminTenantSlugForApi(): Promise<AdminTenantApiResu
 
   const h = await headers();
   const headerSlug = h.get("x-salon-slug")?.trim();
-  if (!headerSlug || !SLUG_RE.test(headerSlug)) {
+  // Compatibility guard:
+  // tenant identity comes from the authenticated user/session (JWT/cookie context).
+  // Enforce x-salon-slug only when it is explicitly present, so missing forwarded headers
+  // do not break legitimate admin actions after middleware/auth refactors.
+  if (headerSlug && !SLUG_RE.test(headerSlug)) {
     return {
       ok: false,
-      response: NextResponse.json({ error: "Missing tenant context", code: "ADMIN_TENANT_CONTEXT_MISSING" }, { status: 400 }),
+      response: NextResponse.json({ error: "Invalid tenant context", code: "ADMIN_TENANT_CONTEXT_INVALID" }, { status: 400 }),
     };
   }
-  if (headerSlug !== slug) {
+  if (headerSlug && headerSlug !== slug) {
     return {
       ok: false,
       response: NextResponse.json({ error: "Tenant mismatch", code: "ADMIN_TENANT_CONTEXT_MISMATCH" }, { status: 403 }),

@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo, useState } from "react";
 
 import type { Specialist, Tenant } from "@/types";
 
@@ -144,6 +144,7 @@ function Label({ children }: { children: React.ReactNode }) {
 
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
+  const initialSerializedRef = useRef<string>("");
 
   const [address, setAddress] = useState(tenant.address ?? "");
   const [phone, setPhone] = useState(tenant.phone ?? "");
@@ -186,6 +187,25 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     }),
     [address, email, facebook, instagram, mapsEmbed, phone, tiktok]
   );
+  const serializedPayload = JSON.stringify(payload);
+
+  useEffect(() => {
+    if (!initialSerializedRef.current) {
+      initialSerializedRef.current = serializedPayload;
+    }
+  }, [serializedPayload]);
+
+  const hasUnsavedChanges = initialSerializedRef.current !== "" && serializedPayload !== initialSerializedRef.current;
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   async function save() {
     setSaving(true); setError(null); setOk(null);
@@ -194,6 +214,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
       setOk("✓ Промените са запазени успешно.");
+      initialSerializedRef.current = JSON.stringify(payload);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
@@ -247,6 +268,11 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     <div className="space-y-4">
       {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{error}</div>}
       {ok && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{ok}</div>}
+      {hasUnsavedChanges && (
+        <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
+          Имате незапазени промени.
+        </div>
+      )}
 
       {/* ── Специалисти ── */}
       <FieldCard>

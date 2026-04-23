@@ -253,9 +253,10 @@ export function ScheduleBoard(props: {
       {showFab ? (
         <button
           type="button"
-          className="fixed z-40 flex items-center gap-2 rounded-full font-black text-white shadow-xl transition hover:opacity-90 active:scale-95"
+          className="fixed z-[60] flex items-center gap-2 rounded-full font-black text-white shadow-xl transition hover:opacity-90 active:scale-95"
           style={{
-            bottom: "max(5.5rem, calc(env(safe-area-inset-bottom) + 4.5rem))",
+            // Keep FAB clearly above the mobile bottom nav hit area.
+            bottom: "max(6.75rem, calc(env(safe-area-inset-bottom) + 5.5rem))",
             right: "1rem",
             background: "linear-gradient(135deg, #C9A84C, #C8826A)",
             padding: "0 20px 0 16px",

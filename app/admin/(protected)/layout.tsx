@@ -49,7 +49,7 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
       )}
       <AdminChrome />
       <div className="md:pl-56">
-        <div className="mx-auto max-w-6xl px-3 pb-36 pt-2 md:px-6 md:pb-8 md:pt-6">{props.children}</div>
+        <div className="mx-auto max-w-6xl px-3 pb-[calc(8.5rem+env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-8 md:pt-6">{props.children}</div>
       </div>
     </>
   );

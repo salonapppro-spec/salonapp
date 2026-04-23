@@ -50,6 +50,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
   const [newPhone, setNewPhone] = useState("");
   const [newEmail, setNewEmail] = useState("");
   const [addError, setAddError] = useState<string | null>(null);
+  const [addOk, setAddOk] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
   const loadDetail = useCallback(async (id: string) => {
@@ -116,13 +117,21 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
   }
 
   async function addClient() {
+    const trimmedName = newName.trim();
+    const trimmedPhone = newPhone.trim();
+    const trimmedEmail = newEmail.trim();
+    if (!trimmedName || !trimmedPhone) {
+      setAddError("Името и телефонът са задължителни.");
+      return;
+    }
     setAdding(true);
     setAddError(null);
+    setAddOk(null);
     try {
       const res = await fetch("/api/admin/clients", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newName.trim(), phone: newPhone.trim(), email: newEmail.trim() || null }),
+        body: JSON.stringify({ name: trimmedName, phone: trimmedPhone, email: trimmedEmail || null }),
       });
       const json = (await res.json()) as { client?: Client; error?: string };
       if (!res.ok) throw new Error(json?.error ?? "Грешка");
@@ -132,6 +141,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
       }
       setAddOpen(false);
       setNewName(""); setNewPhone(""); setNewEmail("");
+      setAddOk("✓ Клиентът е добавен успешно.");
     } catch (e) {
       setAddError(e instanceof Error ? e.message : "Грешка");
     } finally {
@@ -187,6 +197,12 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
               </div>
             </div>
           </div>
+        </div>
+      )}
+
+      {addOk && (
+        <div className="mt-3 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-sm font-semibold text-emerald-800">
+          {addOk}
         </div>
       )}
 

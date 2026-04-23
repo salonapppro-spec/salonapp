@@ -18,6 +18,10 @@ const secondaryLinks = [
   { href: "/admin/settings", label: "Настройки", icon: "⚙️" },
 ] as const;
 
+const mobileHeaderLinks = [
+  { href: "/admin/settings", label: "Настройки" },
+] as const;
+
 export function AdminChrome() {
   const pathname = usePathname();
 
@@ -129,13 +133,6 @@ export function AdminChrome() {
         </div>
       </aside>
 
-      {/* Mobile: sign-out above tab bar */}
-      <div className="fixed bottom-[calc(3.35rem+max(0.5rem,env(safe-area-inset-bottom)))] left-0 right-0 z-50 border-t border-[#C9A84C]/20 bg-[#FAF7F2]/98 px-3 py-2 shadow-[0_-2px_12px_rgba(0,0,0,0.06)] backdrop-blur-md md:hidden">
-        <SignOutButton className="w-full rounded-xl border border-[#C9A84C]/25 bg-white/80 px-3 py-2 text-sm font-semibold text-[#1A1A1A]/70 hover:bg-white hover:text-[#1A1A1A]">
-          Изход от акаунта
-        </SignOutButton>
-      </div>
-
       {/* Mobile bottom tab bar */}
       <nav
         className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-[#C9A84C]/20 bg-[#FAF7F2]/97 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden"
@@ -185,7 +182,7 @@ export function AdminChrome() {
             </span>
           </Link>
           <div className="flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-            {secondaryLinks.map((l) => (
+            {mobileHeaderLinks.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -199,6 +196,9 @@ export function AdminChrome() {
                 {l.label.split(" ")[0]}
               </Link>
             ))}
+            <SignOutButton className="shrink-0 rounded-lg px-2 py-1.5 text-xs font-medium text-[#1A1A1A]/55 transition hover:bg-black/5 hover:text-[#1A1A1A]">
+              Изход
+            </SignOutButton>
           </div>
         </div>
       </header>
