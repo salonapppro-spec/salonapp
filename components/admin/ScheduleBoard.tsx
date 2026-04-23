@@ -125,7 +125,9 @@ export function ScheduleBoard(props: {
             onClose={() => setQuickOpen(false)}
             onSaved={() => {
               setQuickOpen(false);
-              refresh();
+              setTimeout(() => {
+                refresh();
+              }, 0);
             }}
           />
         ) : null}
@@ -290,7 +292,9 @@ export function ScheduleBoard(props: {
           onClose={() => setQuickOpen(false)}
           onSaved={() => {
             setQuickOpen(false);
-            refresh();
+            setTimeout(() => {
+              refresh();
+            }, 0);
           }}
         />
       ) : null}
