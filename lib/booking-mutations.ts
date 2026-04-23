@@ -5,6 +5,13 @@ import { getTenant } from "@/lib/get-tenant";
 import { tenantDb } from "@/lib/tenant-db";
 import { calculateDuration, timeToMinutes } from "@/lib/scheduling";
 import { sendConfirmationEmail } from "@/lib/email";
+
+function isMissingBookingEndTimeColumnError(error: unknown): boolean {
+  if (!error || typeof error !== "object") return false;
+  const e = error as { code?: string; message?: string };
+  const msg = (e.message ?? "").toLowerCase();
+  return e.code === "42703" || e.code === "PGRST204" || msg.includes("booking_end_time");
+}
 function addMinutesToTime(time: string, durationMinutes: number): string {
   const [h, m] = time.split(":").map(Number);
   const total = h * 60 + m + durationMinutes;
@@ -131,8 +138,17 @@ export async function runCreateBooking(
     status: "pending" as const,
   };
 
-  const { data: createdRaw, error } = await db.bookings.create(insertRow);
-  const created = createdRaw as Booking | null;
+  let { data: createdRaw, error } = await db.bookings.create(insertRow);
+  let created = createdRaw as Booking | null;
+
+  if (error && isMissingBookingEndTimeColumnError(error)) {
+    const legacyInsertRow = { ...insertRow } as Record<string, unknown>;
+    delete legacyInsertRow.booking_end_time;
+    const retried = await db.bookings.create(legacyInsertRow);
+    createdRaw = retried.data;
+    error = retried.error;
+    created = createdRaw as Booking | null;
+  }
 
   if (error) {
     if (error.code === "23P01") {
