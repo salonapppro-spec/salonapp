@@ -1,94 +1,53 @@
 import type { Client, GalleryItem, Service, Specialist, Tenant, WorkingHours, BlockedSlot, Booking } from "@/types";
 import type { FinancialSettings, SalonData } from "@/types/database";
 import { getTenant } from "@/lib/get-tenant";
+import { tenantDb } from "@/lib/tenant-db";
 import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 export async function getTenantBySalonSlug(salonSlug: string): Promise<Tenant | null> {
   return getTenant(salonSlug);
 }
 
 export async function getServices(salonSlug: string): Promise<Service[]> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("services")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .eq("is_active", true)
-    .order("created_at", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).services.listActive();
   if (error) throw error;
   return (data as Service[]) ?? [];
 }
 
 export async function getAllServicesAdmin(salonSlug: string): Promise<Service[]> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("services")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .order("created_at", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).services.listAll();
   if (error) throw error;
   return (data as Service[]) ?? [];
 }
 
 export async function getClientsAdmin(salonSlug: string, search?: string): Promise<Client[]> {
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase.from("clients").select("*").eq("salon_slug", salonSlug).order("created_at", { ascending: false });
-  if (search && search.trim()) {
-    const term = `%${search.trim()}%`;
-    q = q.or(`name.ilike.${term},phone.ilike.${term},email.ilike.${term}`);
-  }
-  const { data, error } = await q.limit(200);
+  const { data, error } = await tenantDb(salonSlug).clients.list(search);
   if (error) throw error;
   return (data as Client[]) ?? [];
 }
 
 export async function getGalleryAdmin(salonSlug: string): Promise<GalleryItem[]> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("gallery")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .order("order_index", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).gallery.listAll();
   if (error) throw error;
   return (data as GalleryItem[]) ?? [];
 }
 
 export async function getTodayRevenueEur(salonSlug: string, date: string): Promise<number> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("service_price_eur")
-    .eq("salon_slug", salonSlug)
-    .eq("booking_date", date)
-    .eq("status", "completed");
+  const { data, error } = await tenantDb(salonSlug).bookings.listCompletedRevenue(date, date);
   if (error) throw error;
-  return (data ?? []).reduce((sum, row: { service_price_eur: number }) => sum + Number(row.service_price_eur), 0);
+  return (data ?? []).reduce((sum: number, row: { service_price_eur: number }) => sum + Number(row.service_price_eur), 0);
 }
 
 export async function getExpensesForMonth(salonSlug: string, year: number, month: number) {
-  const supabase = createSupabaseServiceRoleClient();
   const start = `${year}-${String(month).padStart(2, "0")}-01`;
   const next = month === 12 ? `${year + 1}-01-01` : `${year}-${String(month + 1).padStart(2, "0")}-01`;
-  const { data, error } = await supabase
-    .from("expenses")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .gte("date", start)
-    .lt("date", next)
-    .order("date", { ascending: false });
+  const { data, error } = await tenantDb(salonSlug).expenses.listByMonth(start, next);
   if (error) throw error;
   return data ?? [];
 }
 
 export async function getGallery(salonSlug: string): Promise<GalleryItem[]> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("gallery")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .eq("is_visible", true)
-    .order("order_index", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).gallery.listVisible();
   if (error) throw error;
   return (data as GalleryItem[]) ?? [];
 }
@@ -106,13 +65,7 @@ function withFinancialDefaults(row: Record<string, unknown> | null): FinancialSe
 }
 
 export async function getFinancialSettings(salonSlug: string) {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("financial_settings")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .limit(1)
-    .maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).financialSettings.getOne();
   if (error) throw error;
   return withFinancialDefaults(data as Record<string, unknown> | null);
 }
@@ -146,18 +99,10 @@ export async function getCompletedRevenueBetween(
   to: string,
   specialistId?: string | null
 ): Promise<number> {
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase
-    .from("bookings")
-    .select("service_price_eur")
-    .eq("salon_slug", salonSlug)
-    .eq("status", "completed")
-    .gte("booking_date", from)
-    .lte("booking_date", to);
-  if (specialistId) q = q.eq("specialist_id", specialistId);
+  const q = tenantDb(salonSlug).bookings.listCompletedRevenue(from, to, specialistId);
   const { data, error } = await q;
   if (error) throw error;
-  return (data ?? []).reduce((s, row: { service_price_eur: number }) => s + Number(row.service_price_eur), 0);
+  return (data ?? []).reduce((s: number, row: { service_price_eur: number }) => s + Number(row.service_price_eur), 0);
 }
 
 export async function getCompletedBookingAmountsInRange(
@@ -166,15 +111,7 @@ export async function getCompletedBookingAmountsInRange(
   to: string,
   specialistId?: string | null
 ): Promise<Array<{ booking_date: string; service_price_eur: number }>> {
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase
-    .from("bookings")
-    .select("booking_date,service_price_eur")
-    .eq("salon_slug", salonSlug)
-    .eq("status", "completed")
-    .gte("booking_date", from)
-    .lte("booking_date", to);
-  if (specialistId) q = q.eq("specialist_id", specialistId);
+  const q = tenantDb(salonSlug).bookings.listCompletedAmounts(from, to, specialistId);
   const { data, error } = await q;
   if (error) throw error;
   return (data ?? []) as Array<{ booking_date: string; service_price_eur: number }>;
@@ -185,14 +122,7 @@ export async function getExpensesBetween(
   from: string,
   to: string
 ): Promise<Array<{ id: string; date: string; amount: number; description: string; supplier: string | null }>> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("expenses")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .gte("date", from)
-    .lte("date", to)
-    .order("date", { ascending: false });
+  const { data, error } = await tenantDb(salonSlug).expenses.listByRange(from, to);
   if (error) throw error;
   return (data ?? []) as Array<{ id: string; date: string; amount: number; description: string; supplier: string | null }>;
 }
@@ -203,16 +133,7 @@ export async function getWorkingHoursForDate(params: {
   dayOfWeek: number; // 0-6
 }): Promise<WorkingHours | null> {
   const { salonSlug, specialistId, dayOfWeek } = params;
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase
-    .from("working_hours")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .eq("day_of_week", dayOfWeek)
-    .limit(1);
-  if (specialistId) q = q.eq("specialist_id", specialistId);
-  else q = q.is("specialist_id", null);
-  const { data, error } = await q.maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).workingHours.getForDay(dayOfWeek, specialistId);
   if (error) throw error;
   return (data as WorkingHours | null) ?? null;
 }
@@ -223,15 +144,7 @@ export async function getBookingsForDate(params: {
   date: string; // YYYY-MM-DD
 }): Promise<Booking[]> {
   const { salonSlug, specialistId, date } = params;
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase
-    .from("bookings")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .eq("booking_date", date)
-    .not("status", "in", "(cancelled,no_show)");
-  if (specialistId) q = q.eq("specialist_id", specialistId);
-  const { data, error } = await q.order("booking_time", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).bookings.listByDate(date, specialistId);
   if (error) throw error;
   return (data as Booking[]) ?? [];
 }
@@ -243,15 +156,7 @@ export async function getBookingsForDates(params: {
 }): Promise<Booking[]> {
   const { salonSlug, specialistId, dates } = params;
   if (dates.length === 0) return [];
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase
-    .from("bookings")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .in("booking_date", dates)
-    .not("status", "in", "(cancelled,no_show)");
-  if (specialistId) q = q.eq("specialist_id", specialistId);
-  const { data, error } = await q.order("booking_date", { ascending: true }).order("booking_time", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).bookings.listByDates(dates, specialistId);
   if (error) throw error;
   return (data as Booking[]) ?? [];
 }
@@ -263,10 +168,7 @@ export async function getBookingsForDateAdmin(params: {
   date: string;
 }): Promise<Booking[]> {
   const { salonSlug, specialistId, date } = params;
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase.from("bookings").select("*").eq("salon_slug", salonSlug).eq("booking_date", date);
-  if (specialistId) q = q.eq("specialist_id", specialistId);
-  const { data, error } = await q.order("booking_time", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).bookings.listByDateAdmin(date, specialistId);
   if (error) throw error;
   return (data as Booking[]) ?? [];
 }
@@ -278,10 +180,7 @@ export async function getBookingsForDatesAdmin(params: {
 }): Promise<Booking[]> {
   const { salonSlug, specialistId, dates } = params;
   if (dates.length === 0) return [];
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase.from("bookings").select("*").eq("salon_slug", salonSlug).in("booking_date", dates);
-  if (specialistId) q = q.eq("specialist_id", specialistId);
-  const { data, error } = await q.order("booking_date", { ascending: true }).order("booking_time", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).bookings.listByDatesAdmin(dates, specialistId);
   if (error) throw error;
   return (data as Booking[]) ?? [];
 }
@@ -292,18 +191,7 @@ export async function getBlockedSlotsForDate(params: {
   date: string; // YYYY-MM-DD
 }): Promise<BlockedSlot[]> {
   const { salonSlug, specialistId, date } = params;
-  const supabase = createSupabaseServiceRoleClient();
-  let q = supabase
-    .from("blocked_slots")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .eq("blocked_date", date);
-  if (specialistId) {
-    q = q.or(`specialist_id.is.null,specialist_id.eq.${specialistId}`);
-  } else {
-    q = q.is("specialist_id", null);
-  }
-  const { data, error } = await q.order("start_time", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).blockedSlots.listForPublicDate(date, specialistId);
   if (error) throw error;
   return (data as BlockedSlot[]) ?? [];
 }
@@ -312,13 +200,7 @@ export async function getBlockedSlotsForDate(params: {
 export async function getWorkingHoursWeekMerged(salonSlug: string): Promise<
   Array<{ start_time: string; end_time: string; is_day_off: boolean }>
 > {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("working_hours")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .is("specialist_id", null)
-    .order("day_of_week", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).workingHours.listSalonDefaultWeek();
   if (error) throw error;
   const rows = (data as WorkingHours[]) ?? [];
   const byDay = new Map<number, WorkingHours>(rows.map((r) => [r.day_of_week, r]));
@@ -337,12 +219,7 @@ export async function replaceWorkingHoursSalonDefault(
   salonSlug: string,
   days: Array<{ start_time: string; end_time: string; is_day_off: boolean }>
 ): Promise<void> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { error: delErr } = await supabase
-    .from("working_hours")
-    .delete()
-    .eq("salon_slug", salonSlug)
-    .is("specialist_id", null);
+  const { error: delErr } = await tenantDb(salonSlug).workingHours.deleteSalonDefaultWeek();
   if (delErr) throw delErr;
 
   const insertRows = days.map((d, day_of_week) => ({
@@ -354,19 +231,13 @@ export async function replaceWorkingHoursSalonDefault(
     is_day_off: d.is_day_off,
   }));
 
-  const { error: insErr } = await supabase.from("working_hours").insert(insertRows);
+  const { error: insErr } = await tenantDb(salonSlug).workingHours.insertRows(insertRows);
   if (insErr) throw insErr;
 }
 
 /** Активни специалисти за публични страници. */
 export async function getSpecialistsPublic(salonSlug: string): Promise<Specialist[]> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("specialists")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .eq("is_active", true)
-    .order("created_at", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).specialists.listActive();
   if (error) {
     // Някои среди са инициализирани без таблица specialists.
     if ((error as { code?: string }).code === "PGRST205") return [];
@@ -377,8 +248,7 @@ export async function getSpecialistsPublic(salonSlug: string): Promise<Specialis
 
 /** Специалисти за админ панела (всички, включително неактивни). */
 export async function getSpecialistsAdmin(salonSlug: string): Promise<Specialist[]> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase.from("specialists").select("*").eq("salon_slug", salonSlug).order("created_at", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).specialists.listAll();
   if (error) {
     if ((error as { code?: string }).code === "PGRST205") return [];
     throw error;
@@ -388,13 +258,7 @@ export async function getSpecialistsAdmin(salonSlug: string): Promise<Specialist
 
 /** Работно време на салона (без per-specialist), 7 реда 0–6. */
 export async function getSalonWorkingHoursPublic(salonSlug: string): Promise<WorkingHours[]> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("working_hours")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .is("specialist_id", null)
-    .order("day_of_week", { ascending: true });
+  const { data, error } = await tenantDb(salonSlug).workingHours.listSalonDefaultWeek();
   if (error) throw error;
   const rows = (data as WorkingHours[]) ?? [];
   const byDay = new Map(rows.map((r) => [r.day_of_week, r]));
@@ -440,24 +304,15 @@ export async function loadPublicSalonData(salonSlug: string): Promise<SalonData 
 
 /** Търсене на клиент по телефон (service role). */
 export async function getClientByIdAdmin(salonSlug: string, id: string): Promise<Client | null> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase.from("clients").select("*").eq("salon_slug", salonSlug).eq("id", id).maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).clients.getById(id);
   if (error) throw error;
-  return (data as Client) ?? null;
+  return (data as Client | null) ?? null;
 }
 
 export async function getBookingsForClientPhoneAdmin(salonSlug: string, phone: string): Promise<Booking[]> {
   const normalized = phone.trim();
   if (!normalized) return [];
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("*")
-    .eq("salon_slug", salonSlug)
-    .eq("client_phone", normalized)
-    .order("booking_date", { ascending: false })
-    .order("booking_time", { ascending: false })
-    .limit(200);
+  const { data, error } = await tenantDb(salonSlug).bookings.listByClientPhone(normalized);
   if (error) throw error;
   return (data as Booking[]) ?? [];
 }
@@ -465,13 +320,7 @@ export async function getBookingsForClientPhoneAdmin(salonSlug: string, phone: s
 export async function lookupClientByPhone(salonSlug: string, phone: string): Promise<{ name: string | null; email: string | null }> {
   const normalized = phone.trim();
   if (!normalized) return { name: null, email: null };
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("clients")
-    .select("name,email")
-    .eq("salon_slug", salonSlug)
-    .eq("phone", normalized)
-    .maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).clients.lookupByPhone(normalized);
   if (error || !data) return { name: null, email: null };
   const row = data as { name: string; email: string | null };
   return { name: row.name ?? null, email: row.email ?? null };

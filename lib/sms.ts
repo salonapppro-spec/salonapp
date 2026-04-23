@@ -1,7 +1,7 @@
 import twilio from "twilio";
 
 import type { Booking, Tenant } from "@/types";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 import type { Specialist } from "@/types/database";
 
 function normalizeBgPhone(phone: string): string | null {
@@ -31,12 +31,7 @@ export async function sendSMSReminder(booking: Booking, tenant: Tenant): Promise
 
   let specialist: Specialist | null = null;
   if (booking.specialist_id) {
-    const supabase = createSupabaseServiceRoleClient();
-    const { data } = await supabase
-      .from("specialists")
-      .select("*")
-      .eq("id", booking.specialist_id)
-      .maybeSingle();
+    const { data } = await tenantDb(booking.salon_slug).specialists.getById(booking.specialist_id);
     specialist = data as Specialist | null;
   }
 

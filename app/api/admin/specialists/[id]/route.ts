@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 const PatchSpecialistSchema = z.object({
   name: z.string().min(1).max(120).optional(),
@@ -26,14 +26,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const patch: Record<string, unknown> = { ...parsed.data };
   if (typeof patch.name === "string") patch.name = patch.name.trim();
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("specialists")
-    .update(patch)
-    .eq("id", id)
-    .eq("salon_slug", a.slug)
-    .select("*")
-    .maybeSingle();
+  const { data, error } = await tenantDb(a.slug).specialists.updateById(id, patch);
 
   if (error) return NextResponse.json({ error: "DB update failed" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Specialist not found" }, { status: 404 });

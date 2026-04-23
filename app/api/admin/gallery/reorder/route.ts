@@ -3,7 +3,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 const BodySchema = z.object({
   ids: z.array(z.string().uuid()).min(1),
@@ -17,14 +17,9 @@ export async function POST(req: Request) {
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
 
-  const supabase = createSupabaseServiceRoleClient();
   let order = 0;
   for (const id of parsed.data.ids) {
-    const { error } = await supabase
-      .from("gallery")
-      .update({ order_index: order })
-      .eq("id", id)
-      .eq("salon_slug", salonSlug);
+    const { error } = await tenantDb(salonSlug).gallery.updateOrderById(id, order);
     if (error) return NextResponse.json({ error: "DB update failed" }, { status: 500 });
     order += 1;
   }

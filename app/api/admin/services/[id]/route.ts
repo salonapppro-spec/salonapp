@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 const PatchSchema = z.object({
   name: z.string().min(1).optional(),
@@ -27,14 +27,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const parsed = PatchSchema.safeParse(body);
   if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("services")
-    .update(parsed.data)
-    .eq("id", id)
-    .eq("salon_slug", salonSlug)
-    .select("*")
-    .maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).services.updateById(id, parsed.data as Record<string, unknown>);
   if (error) return NextResponse.json({ error: "DB update failed" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
   return NextResponse.json({ service: data });

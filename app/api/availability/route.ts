@@ -10,6 +10,7 @@ import {
 } from "@/lib/data";
 import { assertTenantActiveForPublicApi } from "@/lib/public-tenant-guard";
 import { calculateDuration, generateSlots } from "@/lib/scheduling";
+import { requireTenantFromHeaders } from "@/lib/tenant-request";
 import type { HairDensity, HairLength } from "@/types";
 
 const QuerySchema = z.object({
@@ -36,24 +37,28 @@ export async function GET(req: Request) {
   }
 
   const { salon_slug, date, service_id, specialist_id, hair_length, hair_density } = parsed.data;
-  const gate = await assertTenantActiveForPublicApi(salon_slug);
+  const tenant = requireTenantFromHeaders(req, { claimedSlug: salon_slug, path: "/api/availability", method: "GET" });
+  if (!tenant.ok) return tenant.response;
+  const trustedSalonSlug = tenant.salonSlug;
+
+  const gate = await assertTenantActiveForPublicApi(trustedSalonSlug);
   if (!gate.ok) return gate.response;
 
-  const services = await getServices(salon_slug);
+  const services = await getServices(trustedSalonSlug);
   const service = services.find((s) => s.id === service_id);
   if (!service) return NextResponse.json({ error: "Service not found" }, { status: 404 });
 
-  const settings = await getFinancialSettings(salon_slug);
+  const settings = await getFinancialSettings(trustedSalonSlug);
   const bufferMinutes = Number(settings?.buffer_minutes ?? 10);
   const magneticEnabled = Boolean(settings?.magnetic_scheduling ?? true);
 
   const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
-  const workingHours = await getWorkingHoursForDate({ salonSlug: salon_slug, specialistId: specialist_id, dayOfWeek });
+  const workingHours = await getWorkingHoursForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, dayOfWeek });
   if (!workingHours || workingHours.is_day_off) return NextResponse.json({ slots: [] });
 
   const [bookings, blockedSlots] = await Promise.all([
-    getBookingsForDate({ salonSlug: salon_slug, specialistId: specialist_id, date }),
-    getBlockedSlotsForDate({ salonSlug: salon_slug, specialistId: specialist_id, date }),
+    getBookingsForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, date }),
+    getBlockedSlotsForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, date }),
   ]);
 
   let serviceDuration = service.duration_minutes ?? 0;

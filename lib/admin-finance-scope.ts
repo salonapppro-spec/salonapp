@@ -1,7 +1,7 @@
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import { getTenantBySalonSlug } from "@/lib/data";
 import { resolveAdminTenantSlug } from "@/lib/admin-tenant";
+import { tenantDb } from "@/lib/tenant-db";
 
 export type FinanceScope = {
   salonSlug: string;
@@ -38,13 +38,7 @@ export async function resolveFinanceScope(): Promise<FinanceScope | null> {
           : null;
 
     if (sid) {
-      const db = createSupabaseServiceRoleClient();
-      const { data: spec } = await db
-        .from("specialists")
-        .select("id,is_technical_admin")
-        .eq("id", sid)
-        .eq("salon_slug", salonSlug)
-        .maybeSingle();
+      const { data: spec } = await tenantDb(salonSlug).specialists.getById(sid);
 
       const row = spec as { id: string; is_technical_admin: boolean } | null;
       if (row && !row.is_technical_admin) {

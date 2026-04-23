@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { normalizeTenantSettingsPatch } from "@/lib/settings-normalization";
 import { UpdateTenantPublicFieldsSchema } from "@/schemas/settings";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 export async function POST(req: Request) {
   const a = await requireAdminTenantSlugForApi();
@@ -20,11 +20,9 @@ export async function POST(req: Request) {
     );
   }
 
-  const supabase = createSupabaseServiceRoleClient();
-
   const patch = normalizeTenantSettingsPatch(parsed.data as Record<string, unknown>);
 
-  const { error } = await supabase.from("tenants").update(patch).eq("salon_slug", salonSlug);
+  const { error } = await tenantDb(salonSlug).tenant.updatePublicFields(patch);
   if (error) {
     console.error(`[admin/settings] DB update failed for ${salonSlug}:`, error.message);
     return NextResponse.json({ error: "internal_error" }, { status: 500 });

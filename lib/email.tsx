@@ -7,7 +7,7 @@ import BookingReminderEmail from "@/emails/BookingReminder";
 import { bookingStartUtc } from "@/lib/booking-datetime";
 import { getPublicAppUrl } from "@/lib/site-url";
 import { sendSMSReminder } from "@/lib/sms";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 import type { Booking, Tenant } from "@/types";
 
 const FROM_DEFAULT = "SalonApp <no-reply@salonapp.pro>";
@@ -56,9 +56,7 @@ async function logEmail(params: {
   type: "confirmation" | "reminder";
   status: "sent" | "failed";
 }): Promise<void> {
-  const supabase = createSupabaseServiceRoleClient();
-  await supabase.from("email_logs").insert({
-    salon_slug: params.salon_slug,
+  await tenantDb(params.salon_slug).emailLogs.insert({
     booking_id: params.booking_id,
     type: params.type,
     status: params.status,
@@ -86,13 +84,7 @@ async function sendResendHtml(to: string, subject: string, html: string): Promis
 
 async function loadServiceIsComplex(serviceId: string | null, salonSlug: string): Promise<boolean> {
   if (!serviceId) return false;
-  const supabase = createSupabaseServiceRoleClient();
-  const { data } = await supabase
-    .from("services")
-    .select("is_complex")
-    .eq("salon_slug", salonSlug)
-    .eq("id", serviceId)
-    .maybeSingle();
+  const { data } = await tenantDb(salonSlug).services.getComplexFlag(serviceId);
   return Boolean((data as { is_complex?: boolean } | null)?.is_complex);
 }
 

@@ -80,13 +80,20 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, initialCont
   const [isPendingDesign, startDesignTransition] = useTransition();
   const [isPendingContent, startContentTransition] = useTransition();
   const iframeRef = useRef<HTMLIFrameElement>(null);
-  const previewTargetOrigin = useMemo(() => {
+  const normalizedPreviewPath = useMemo(() => {
     try {
-      return new URL(previewUrl).origin;
+      const u = new URL(previewUrl, "https://salonapp.pro");
+      return `${u.pathname}${u.search}${u.hash}`;
     } catch {
-      return "";
+      return previewUrl;
     }
   }, [previewUrl]);
+  const previewTargetOrigin = useMemo(() => {
+    if (typeof window !== "undefined" && window.location?.origin) {
+      return window.location.origin;
+    }
+    return "https://salonapp.pro";
+  }, []);
 
   const pushTokens = useCallback(
     (t: DesignTokens) => {
@@ -213,7 +220,7 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, initialCont
 
         {/* Toolbar */}
         <div className="flex items-center gap-2 border-b border-neutral-800 bg-neutral-950 px-4 py-2 shrink-0">
-          <code className="flex-1 truncate text-xs text-neutral-400">{previewUrl}</code>
+          <code className="flex-1 truncate text-xs text-neutral-400">{normalizedPreviewPath}</code>
           <div className="flex gap-1 shrink-0">
             {(Object.entries(VIEWPORT_CONFIG) as [Viewport, typeof VIEWPORT_CONFIG[Viewport]][]).map(([key, cfg]) => (
               <button
@@ -231,7 +238,7 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, initialCont
             ))}
           </div>
           <a
-            href={previewUrl}
+            href={normalizedPreviewPath}
             target="_blank"
             rel="noopener noreferrer"
             className="shrink-0 rounded border border-neutral-700 px-2 py-1 text-xs text-neutral-400 hover:bg-neutral-800 transition"
@@ -249,7 +256,7 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, initialCont
             <iframe
               key={iframeKey}
               ref={iframeRef}
-              src={previewUrl}
+              src={normalizedPreviewPath}
               className="h-full w-full border-0"
               title={`Preview — ${salonName}`}
               onLoad={() => pushTokens(tokens)}

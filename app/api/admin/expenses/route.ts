@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { getExpensesBetween } from "@/lib/data";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 const PostSchema = z.object({
   date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/),
@@ -36,18 +36,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Невалидни данни" }, { status: 400 });
   }
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("expenses")
-    .insert({
-      salon_slug: salonSlug,
-      date: parsed.data.date,
-      amount: parsed.data.amount,
-      description: parsed.data.description,
-      supplier: parsed.data.supplier ?? null,
-    })
-    .select("*")
-    .maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).expenses.create({
+    date: parsed.data.date,
+    amount: parsed.data.amount,
+    description: parsed.data.description,
+    supplier: parsed.data.supplier ?? null,
+  });
 
   if (error) return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
   return NextResponse.json({ expense: data });

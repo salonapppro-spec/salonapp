@@ -1,8 +1,8 @@
 import type { Booking, HairDensity, HairLength, Service } from "@/types";
 import type { CreateBookingInput } from "@/schemas/booking";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import { getBlockedSlotsForDate, getFinancialSettings } from "@/lib/data";
 import { getTenant } from "@/lib/get-tenant";
+import { tenantDb } from "@/lib/tenant-db";
 import { calculateDuration, timeToMinutes } from "@/lib/scheduling";
 import { sendConfirmationEmail } from "@/lib/email";
 function addMinutesToTime(time: string, durationMinutes: number): string {
@@ -30,17 +30,10 @@ export async function runCreateBooking(
   data: CreateBookingInput,
   opts: { salonName: string; bufferMinutes: number }
 ): Promise<CreateBookingResult> {
-  const supabase = createSupabaseServiceRoleClient();
+  const db = tenantDb(data.salon_slug);
   const bufferMinutes = opts.bufferMinutes;
 
-  const { data: serviceRow, error: serviceErr } = await supabase
-    .from("services")
-    .select("*")
-    .eq("salon_slug", data.salon_slug)
-    .eq("id", data.service_id)
-    .eq("is_active", true)
-    .limit(1)
-    .maybeSingle();
+  const { data: serviceRow, error: serviceErr } = await db.services.getActiveById(data.service_id);
 
   if (serviceErr) {
     return { ok: false, error: "Грешка при проверка на услугата." };
@@ -75,16 +68,7 @@ export async function runCreateBooking(
     return { ok: false, error: "Услугата няма валидна продължителност." };
   }
 
-  let existingQuery = supabase
-    .from("bookings")
-    .select("booking_time,service_duration,status,booking_end_time")
-    .eq("salon_slug", data.salon_slug)
-    .eq("booking_date", data.booking_date);
-  existingQuery = bookingSpecialistId
-    ? existingQuery.eq("specialist_id", bookingSpecialistId)
-    : existingQuery.is("specialist_id", null);
-
-  const { data: existing, error: existingErr } = await existingQuery;
+  const { data: existing, error: existingErr } = await db.bookings.listConflictRows(data.booking_date, bookingSpecialistId);
 
   if (existingErr) {
     return { ok: false, error: "Грешка при проверка на часовете." };
@@ -147,7 +131,8 @@ export async function runCreateBooking(
     status: "pending" as const,
   };
 
-  const { data: created, error } = await supabase.from("bookings").insert(insertRow).select("*").maybeSingle();
+  const { data: createdRaw, error } = await db.bookings.create(insertRow);
+  const created = createdRaw as Booking | null;
 
   if (error) {
     if (error.code === "23P01") {
@@ -161,16 +146,12 @@ export async function runCreateBooking(
     return { ok: false, error: "Неуспешно записване. Опитайте отново." };
   }
 
-  await supabase.from("clients").upsert(
-    {
-      salon_slug: data.salon_slug,
-      phone: data.client_phone,
-      name: data.client_name,
-      email: data.client_email ?? null,
-      specialist_id: bookingSpecialistId,
-    },
-    { onConflict: "salon_slug,phone" }
-  );
+  await db.clients.upsertByPhone({
+    phone: data.client_phone,
+    name: data.client_name,
+    email: data.client_email ?? null,
+    specialist_id: bookingSpecialistId,
+  });
 
   const tenant = await getTenant(data.salon_slug);
   if (tenant) {
@@ -184,8 +165,8 @@ export async function loadCreateBookingContext(salonSlug: string): Promise<{
   salonName: string;
   bufferMinutes: number;
 } | null> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data: tenant } = await supabase.from("tenants").select("salon_name").eq("salon_slug", salonSlug).maybeSingle();
+  const { data: tenantRaw } = await tenantDb(salonSlug).tenant.getSalonName();
+  const tenant = tenantRaw as { salon_name?: string | null } | null;
   if (!tenant?.salon_name) return null;
   const settings = await getFinancialSettings(salonSlug);
   const bufferMinutes = Number(settings?.buffer_minutes ?? 10);

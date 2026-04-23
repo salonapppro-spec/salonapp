@@ -38,6 +38,9 @@ function isSuperAdminRole(user: {
   return user.app_metadata?.role === "super_admin";
 }
 
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+const SUPER_ADMIN_SALON_COOKIE = "salonapp_super_admin_salon";
+
 // Пътища, запазени за платформата — не са salon slugs
 const RESERVED_PATHS = new Set([
   "admin",
@@ -223,6 +226,18 @@ export async function middleware(request: NextRequest) {
     const { data } = await supabase.auth.getUser();
     user = data.user;
 
+    const userSlug =
+      typeof user?.app_metadata?.salon_slug === "string" ? user.app_metadata.salon_slug.trim() : "";
+    if (userSlug && SLUG_RE.test(userSlug)) {
+      requestHeaders.set("x-salon-slug", userSlug);
+    }
+    if (user && isSuperAdminRole(user)) {
+      const contextSlug = request.cookies.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim() ?? "";
+      if (contextSlug && SLUG_RE.test(contextSlug)) {
+        requestHeaders.set("x-salon-slug", contextSlug);
+      }
+    }
+
     // ── Auth guards ────────────────────────────────────────────────────
     // Only apply on root domain and Vercel URL; subdomains are public sites
     if (isRootDomain(hostname) || isVercelDeploymentHost(hostname) || isDevHost(hostname)) {
@@ -350,6 +365,8 @@ export async function middleware(request: NextRequest) {
   // Без CDN кеш — всеки субдомейн = различен тенант
   rewriteRes.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
   rewriteRes.headers.set("Vary", "host");
+  // Public tenant previews must be embeddable in super-admin builder iframe.
+  rewriteRes.headers.delete("X-Frame-Options");
   return rewriteRes;
 }
 

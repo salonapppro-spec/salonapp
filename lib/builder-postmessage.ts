@@ -5,6 +5,10 @@
  */
 export function builderPostMessageParentOrigins(): string[] {
   const out = new Set<string>();
+  // Production super-admin origins (always allow, regardless of env setup).
+  out.add("https://salonapp.pro");
+  out.add("https://www.salonapp.pro");
+
   const app = process.env.NEXT_PUBLIC_APP_URL?.trim().replace(/\/$/, "");
   if (app) {
     try {

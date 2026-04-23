@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 import { AdminBookingPatchSchema } from "@/schemas/booking-admin";
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
@@ -16,7 +16,6 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 
   const { status, notes } = parsed.data;
-  const supabase = createSupabaseServiceRoleClient();
 
   const updates: Record<string, unknown> = { status };
   if (notes !== undefined) updates.notes = notes;
@@ -24,13 +23,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     updates.confirmed_at = new Date().toISOString();
   }
 
-  const { data, error } = await supabase
-    .from("bookings")
-    .update(updates)
-    .eq("id", id)
-    .eq("salon_slug", salonSlug)
-    .select("*")
-    .maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).bookings.updateById(id, updates);
 
   if (error) return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Не е намерена резервация" }, { status: 404 });
@@ -43,8 +36,7 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const { id } = await ctx.params;
-  const supabase = createSupabaseServiceRoleClient();
-  const { error } = await supabase.from("bookings").delete().eq("id", id).eq("salon_slug", salonSlug);
+  const { error } = await tenantDb(salonSlug).bookings.deleteById(id);
   if (error) return NextResponse.json({ error: "Грешка при изтриване" }, { status: 500 });
   return NextResponse.json({ ok: true });
 }

@@ -107,6 +107,9 @@ types/                         # TypeScript типове
 - RLS политиките са по `salon_slug` — всеки тенант вижда само своите данни
 - `primary_color` се управлява **само** от салонския админ
 - `plan`, `template`, `status` се управляват **само** от супер-админа
+- Tenant queries през service-role минават само през tenant layer (`tenantDb(slug)`)
+- `createSupabaseServiceRoleClient()` е забранен извън `lib/tenant-db.ts`, `lib/supabase-admin.ts`, `lib/internal/**` (CI enforce)
+- NO ESCAPE: tenant slug е задължителен и валиден; без fallback/undefined/празна стойност
 
 ---
 

@@ -33,13 +33,18 @@ const CSP_POLICY = [
   "font-src 'self' https://fonts.gstatic.com data:",
   // Supabase Storage за снимки
   "img-src 'self' data: blob: https://*.supabase.co https://*.salonapp.pro https://www.google.com https://www.gstatic.com",
-  // Google Maps iframe (след XSS fix)
-  "frame-src https://www.google.com",
+  // Iframe preview в super-admin builder + Google Maps iframe
+  "frame-src 'self' https://www.google.com https://*.salonapp.pro",
   // Supabase realtime + REST, Stripe, Meta CAPI + Sentry ingest
   `connect-src ${connectSrcParts.join(" ")}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
+].join("; ");
+
+const PUBLIC_CSP_POLICY = [
+  CSP_POLICY,
+  "frame-ancestors 'self' https://salonapp.pro https://www.salonapp.pro https://*.salonapp.pro",
 ].join("; ");
 
 const nextConfig = {
@@ -52,7 +57,7 @@ const nextConfig = {
           { key: "X-DNS-Prefetch-Control", value: "on" },
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
-          { key: "Content-Security-Policy", value: CSP_POLICY },
+          { key: "Content-Security-Policy", value: PUBLIC_CSP_POLICY },
         ],
       },
       {

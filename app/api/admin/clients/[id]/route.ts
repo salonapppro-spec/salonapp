@@ -3,7 +3,7 @@ import { z } from "zod";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { getBookingsForClientPhoneAdmin, getClientByIdAdmin } from "@/lib/data";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 const PatchSchema = z.object({
   name: z.string().min(1).optional(),
@@ -60,14 +60,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   const patch = { ...parsed.data };
   if (patch.email === "") patch.email = null;
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("clients")
-    .update(patch)
-    .eq("id", id)
-    .eq("salon_slug", salonSlug)
-    .select("*")
-    .maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).clients.updateById(id, patch);
   if (error) return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Не е намерен" }, { status: 404 });
   return NextResponse.json({ client: data });
@@ -85,20 +78,11 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   const phoneKey = (client.phone ?? "").trim();
   if (!phoneKey) return NextResponse.json({ error: "Липсва телефон" }, { status: 400 });
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { error: uErr } = await supabase
-    .from("bookings")
-    .update({
-      client_name: "Анонимизиран",
-      client_email: null,
-      client_phone: `anon-${id.slice(0, 8)}`,
-    })
-    .eq("salon_slug", salonSlug)
-    .eq("client_phone", phoneKey);
+  const { error: uErr } = await tenantDb(salonSlug).bookings.anonymizeByPhone(phoneKey, `anon-${id.slice(0, 8)}`);
 
   if (uErr) return NextResponse.json({ error: "Грешка при анонимизация" }, { status: 500 });
 
-  const { error: dErr } = await supabase.from("clients").delete().eq("id", id).eq("salon_slug", salonSlug);
+  const { error: dErr } = await tenantDb(salonSlug).clients.deleteById(id);
   if (dErr) return NextResponse.json({ error: "Грешка при изтриване" }, { status: 500 });
 
   return NextResponse.json({ ok: true });

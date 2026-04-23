@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { getFinancialSettings } from "@/lib/data";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 import { FinancialSettingsPatchSchema } from "@/schemas/financial-admin";
 
 const DEFAULT_ROW = {
@@ -62,15 +62,9 @@ export async function PATCH(req: Request) {
 
   const current = await getFinancialSettings(salonSlug);
   const merged = mergeFinancialRow(current as Record<string, unknown> | null, parsed.data as Partial<Record<PatchKeys, unknown>>);
-  merged.salon_slug = salonSlug;
   if (current?.id) merged.id = current.id;
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("financial_settings")
-    .upsert(merged, { onConflict: "salon_slug" })
-    .select("*")
-    .maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).financialSettings.upsert(merged);
 
   if (error) {
     const hint =

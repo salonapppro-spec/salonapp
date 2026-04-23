@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 const CreateSchema = z.object({
   name: z.string().min(1, "Името е задължително"),
@@ -23,18 +23,12 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: first?.message ?? "Невалидни данни" }, { status: 400 });
   }
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("clients")
-    .insert({
-      salon_slug: salonSlug,
-      name: parsed.data.name.trim(),
-      phone: parsed.data.phone.trim(),
-      email: parsed.data.email || null,
-      notes: parsed.data.notes || null,
-    })
-    .select("*")
-    .maybeSingle();
+  const { data, error } = await tenantDb(salonSlug).clients.create({
+    name: parsed.data.name.trim(),
+    phone: parsed.data.phone.trim(),
+    email: parsed.data.email || null,
+    notes: parsed.data.notes || null,
+  });
 
   if (error) {
     if (error.code === "23505") {

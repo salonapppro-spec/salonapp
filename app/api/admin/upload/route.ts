@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { processAdminImageUpload } from "@/lib/safe-image-upload";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 const BUCKET = process.env.ADMIN_GALLERY_BUCKET ?? "gallery";
 
@@ -40,16 +40,13 @@ export async function POST(req: Request) {
 
   const path = `${salonSlug}/settings/${randomUUID()}.${processed.extension}`;
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { data: up, error: upErr } = await supabase.storage.from(BUCKET).upload(path, processed.buffer, {
-    contentType: processed.contentType,
-    upsert: false,
-  });
+  const db = tenantDb(salonSlug);
+  const { data: up, error: upErr } = await db.storage.uploadImage(BUCKET, path, processed.buffer, processed.contentType);
 
   if (upErr || !up) {
     return NextResponse.json({ error: "Качването не успя. Проверете Supabase Storage bucket." }, { status: 501 });
   }
 
-  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(up.path);
+  const { data: pub } = db.storage.getPublicUrl(BUCKET, up.path);
   return NextResponse.json({ url: pub.publicUrl });
 }

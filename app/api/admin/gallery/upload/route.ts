@@ -4,7 +4,7 @@ import { NextResponse } from "next/server";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { processAdminImageUpload } from "@/lib/safe-image-upload";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 
 const BUCKET = process.env.ADMIN_GALLERY_BUCKET ?? "gallery";
 
@@ -37,11 +37,8 @@ export async function POST(req: Request) {
   }
   const path = `${salonSlug}/${randomUUID()}.${processed.extension}`;
 
-  const supabase = createSupabaseServiceRoleClient();
-  const { data: up, error: upErr } = await supabase.storage.from(BUCKET).upload(path, processed.buffer, {
-    contentType: processed.contentType,
-    upsert: false,
-  });
+  const db = tenantDb(salonSlug);
+  const { data: up, error: upErr } = await db.storage.uploadImage(BUCKET, path, processed.buffer, processed.contentType);
 
   if (upErr || !up) {
     return NextResponse.json(
@@ -53,25 +50,17 @@ export async function POST(req: Request) {
     );
   }
 
-  const { data: pub } = supabase.storage.from(BUCKET).getPublicUrl(up.path);
+  const { data: pub } = db.storage.getPublicUrl(BUCKET, up.path);
   const publicUrl = pub.publicUrl;
 
-  const { count } = await supabase
-    .from("gallery")
-    .select("*", { count: "exact", head: true })
-    .eq("salon_slug", salonSlug);
+  const { count } = await db.gallery.count();
   const orderIndex = (count ?? 0) + 1;
 
-  const { data: row, error: insErr } = await supabase
-    .from("gallery")
-    .insert({
-      salon_slug: salonSlug,
-      url: publicUrl,
-      order_index: orderIndex,
-      is_visible: true,
-    })
-    .select("*")
-    .maybeSingle();
+  const { data: row, error: insErr } = await db.gallery.create({
+    url: publicUrl,
+    order_index: orderIndex,
+    is_visible: true,
+  });
 
   if (insErr) return NextResponse.json({ error: "DB insert failed" }, { status: 500 });
 

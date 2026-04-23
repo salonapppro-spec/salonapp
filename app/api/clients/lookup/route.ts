@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { lookupClientByPhone } from "@/lib/data";
 import { assertTenantActiveForPublicApi } from "@/lib/public-tenant-guard";
+import { requireTenantFromHeaders } from "@/lib/tenant-request";
 
 const QuerySchema = z.object({
   salon_slug: z.string().min(1),
@@ -19,9 +20,17 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Invalid query" }, { status: 400 });
   }
 
-  const gate = await assertTenantActiveForPublicApi(parsed.data.salon_slug);
+  const tenant = requireTenantFromHeaders(req, {
+    claimedSlug: parsed.data.salon_slug,
+    path: "/api/clients/lookup",
+    method: "GET",
+  });
+  if (!tenant.ok) return tenant.response;
+  const salonSlug = tenant.salonSlug;
+
+  const gate = await assertTenantActiveForPublicApi(salonSlug);
   if (!gate.ok) return gate.response;
 
-  const result = await lookupClientByPhone(parsed.data.salon_slug, parsed.data.phone);
+  const result = await lookupClientByPhone(salonSlug, parsed.data.phone);
   return NextResponse.json({ name: result.name });
 }

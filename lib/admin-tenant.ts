@@ -1,4 +1,4 @@
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -77,10 +77,27 @@ export type AdminTenantApiResult = { ok: true; slug: string } | { ok: false; res
 /** Route Handlers: 401 if session/JWT cannot resolve tenant (no trust in headers/body). */
 export async function requireAdminTenantSlugForApi(): Promise<AdminTenantApiResult> {
   const slug = await resolveAdminTenantSlug();
-  if (slug) return { ok: true, slug };
-  return {
-    ok: false,
-    response: NextResponse.json({ error: "Unauthorized", code: "ADMIN_TENANT_REQUIRED" }, { status: 401 }),
-  };
+  if (!slug) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Unauthorized", code: "ADMIN_TENANT_REQUIRED" }, { status: 401 }),
+    };
+  }
+
+  const h = await headers();
+  const headerSlug = h.get("x-salon-slug")?.trim();
+  if (!headerSlug || !SLUG_RE.test(headerSlug)) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Missing tenant context", code: "ADMIN_TENANT_CONTEXT_MISSING" }, { status: 400 }),
+    };
+  }
+  if (headerSlug !== slug) {
+    return {
+      ok: false,
+      response: NextResponse.json({ error: "Tenant mismatch", code: "ADMIN_TENANT_CONTEXT_MISMATCH" }, { status: 403 }),
+    };
+  }
+  return { ok: true, slug };
 }
 
