@@ -41,6 +41,11 @@ export async function listStorageFilesRecursive(
   return acc;
 }
 
+/**
+ * Копира всички обекти от `oldSlug/…` в `newSlug/…` в същия bucket.
+ * Преди `copy` премахваме целевия път, ако е останал от неуспял/частичен опит
+ * (Storage връща „The resource already exists“).
+ */
 export async function copyStorageFolderToNewSlug(
   supabase: SupabaseClient,
   oldSlug: string,
@@ -53,6 +58,8 @@ export async function copyStorageFolderToNewSlug(
     if (segs[0] !== oldSlug) continue;
     segs[0] = newSlug;
     const toPath = segs.join("/");
+    // best-effort: няма опасност да изтрием „грешна“ съдбина, защото toPath държи същото име като fromPath, само slug-папката е сменена
+    await supabase.storage.from(BUCKET).remove([toPath]);
     const { error } = await supabase.storage.from(BUCKET).copy(fromPath, toPath);
     if (error) {
       return { error: `Storage copy failed (${fromPath}): ${error.message}` };
