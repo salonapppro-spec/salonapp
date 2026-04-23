@@ -10,6 +10,13 @@ export function tomorrowDateISOInSofia(): string {
   return DateTime.now().setZone("Europe/Sofia").plus({ days: 1 }).toISODate()!;
 }
 
+/** Add calendar days to a YYYY-MM-DD in Europe/Sofia (keeps local date arithmetic correct). */
+export function addCalendarDaysInSofia(ymd: string, deltaDays: number): string {
+  return DateTime.fromISO(ymd, { zone: "Europe/Sofia" })
+    .plus({ days: deltaDays })
+    .toISODate()!;
+}
+
 /** Booking start as a UTC Date; booking date/time are entered in Bulgaria salon time. */
 export function bookingStartUtc(bookingDate: string, bookingTime: string): Date {
   const [y, mo, d] = bookingDate.split("-").map(Number);

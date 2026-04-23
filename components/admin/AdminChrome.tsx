@@ -22,7 +22,11 @@ const mobileHeaderLinks = [
   { href: "/admin/settings", label: "Настройки" },
 ] as const;
 
-export function AdminChrome() {
+export function AdminChrome(props: {
+  /** Second row under the logo on small screens — always shows „Утре“ without scrolling the page. */
+  mobileScheduleQuickLinks?: { tomorrow: string; week: string; calendar: string };
+}) {
+  const { mobileScheduleQuickLinks } = props;
   const pathname = usePathname();
 
   function isActive(href: string) {
@@ -167,21 +171,21 @@ export function AdminChrome() {
         })}
       </nav>
 
-      {/* Mobile header */}
+      {/* Mobile header: brand row + full-width day shortcuts (no horizontal squeeze) */}
       <header className="sticky top-0 z-30 border-b border-[#C9A84C]/20 bg-[#FAF7F2]/92 backdrop-blur-md md:hidden">
         <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-          <Link href="/admin/dashboard" className="flex shrink-0 items-center gap-1.5">
+          <Link href="/admin/dashboard" className="flex min-w-0 shrink-0 items-center gap-1.5">
             <span
               className="flex h-6 w-6 items-center justify-center rounded-md text-xs font-black text-white"
               style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
             >
               S
             </span>
-            <span className="text-sm font-bold text-[#1A1A1A]">
+            <span className="truncate text-sm font-bold text-[#1A1A1A]">
               Salon<span style={{ color: "#C9A84C" }}>App</span>
             </span>
           </Link>
-          <div className="flex min-w-0 flex-1 items-center justify-end gap-1 overflow-x-auto [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+          <div className="flex shrink-0 items-center justify-end gap-1">
             {mobileHeaderLinks.map((l) => (
               <Link
                 key={l.href}
@@ -201,6 +205,32 @@ export function AdminChrome() {
             </SignOutButton>
           </div>
         </div>
+        {mobileScheduleQuickLinks ? (
+          <div
+            className="grid grid-cols-3 gap-2 border-t border-[#C9A84C]/15 px-3 pb-3 pt-2.5"
+            aria-label="График: други дни"
+          >
+            <Link
+              href={mobileScheduleQuickLinks.tomorrow}
+              className="inline-flex min-h-[48px] items-center justify-center rounded-xl text-xs font-black text-white shadow-sm transition active:opacity-90"
+              style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
+            >
+              Утре
+            </Link>
+            <Link
+              href={mobileScheduleQuickLinks.week}
+              className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-[#C9A84C]/40 bg-white text-xs font-bold text-[#1A1A1A]/80 shadow-sm transition active:bg-[#C9A84C]/5"
+            >
+              7 дни
+            </Link>
+            <Link
+              href={mobileScheduleQuickLinks.calendar}
+              className="inline-flex min-h-[48px] items-center justify-center rounded-xl border border-[#C9A84C]/30 bg-white/90 text-xs font-bold text-[#1A1A1A]/65 shadow-sm transition active:bg-white"
+            >
+              Календар
+            </Link>
+          </div>
+        ) : null}
       </header>
     </>
   );

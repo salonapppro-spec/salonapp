@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import {
   getAllServicesAdmin,
   getBookingsForDateAdmin,
@@ -7,7 +9,7 @@ import {
   getWorkingHoursForDate,
 } from "@/lib/data";
 import { requireAdminTenantSlugForPage } from "@/lib/admin-tenant-page";
-import { todayDateISOInSofia } from "@/lib/booking-datetime";
+import { todayDateISOInSofia, tomorrowDateISOInSofia } from "@/lib/booking-datetime";
 
 import { ScheduleBoard } from "@/components/admin/ScheduleBoard";
 
@@ -20,6 +22,7 @@ function formatBGDate(iso: string): string {
 export default async function AdminDashboardPage() {
   const salonSlug = await requireAdminTenantSlugForPage();
   const today = todayDateISOInSofia();
+  const tomorrow = tomorrowDateISOInSofia();
   const dayOfWeek = new Date(`${today}T12:00:00`).getDay();
 
   const [tenant, bookings, revenue, workingHours, services, specialists] = await Promise.all([
@@ -176,16 +179,42 @@ export default async function AdminDashboardPage() {
         </div>
       </div>
 
-      {/* Schedule */}
-      <div className="mt-8 flex items-center gap-3">
-        <h2
-          className="text-lg font-black text-[#1A1A1A]"
-          style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}
-        >
-          График
-        </h2>
-        <div className="h-px flex-1" style={{ background: "linear-gradient(90deg, rgba(201,168,76,0.4), transparent)" }} />
-        <span className="text-xs text-[#1A1A1A]/35">{today}</span>
+      {/* Schedule — „Днес“ is always today; other days: Календар or shortcuts below */}
+      <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between sm:gap-4">
+        <div className="min-w-0">
+          <h2
+            className="text-lg font-black text-[#1A1A1A]"
+            style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}
+          >
+            График
+          </h2>
+          <p className="mt-1 text-xs text-[#1A1A1A]/45 sm:max-w-md">
+            Тук е само днешният ден. За утре и други дни ползвай бутоните вдясно или таба{" "}
+            <span className="font-semibold text-[#1A1A1A]/55">Календар</span> долу.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 sm:shrink-0">
+          <span className="text-xs text-[#1A1A1A]/35">{today}</span>
+          <Link
+            href={`/admin/calendar?date=${encodeURIComponent(tomorrow)}&view=day`}
+            className="inline-flex min-h-[40px] items-center justify-center rounded-xl px-3.5 py-2 text-xs font-bold text-white shadow-sm transition hover:opacity-90"
+            style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
+          >
+            Утре
+          </Link>
+          <Link
+            href="/admin/calendar?view=week"
+            className="inline-flex min-h-[40px] items-center justify-center rounded-xl border border-[#C9A84C]/35 bg-white px-3.5 py-2 text-xs font-bold text-[#1A1A1A]/70 shadow-sm transition hover:border-[#C9A84C]/55"
+          >
+            Седмица
+          </Link>
+          <Link
+            href="/admin/calendar"
+            className="inline-flex min-h-[40px] items-center justify-center rounded-xl border border-[#C9A84C]/25 bg-white/80 px-3.5 py-2 text-xs font-semibold text-[#1A1A1A]/60 transition hover:bg-white"
+          >
+            Календар
+          </Link>
+        </div>
       </div>
 
       <ScheduleBoard

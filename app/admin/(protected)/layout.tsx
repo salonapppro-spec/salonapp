@@ -5,6 +5,7 @@ import { createServerClient } from "@supabase/ssr";
 import { exitSalonAdminContextAction } from "@/app/super-admin/actions";
 import { AdminChrome } from "@/components/admin/AdminChrome";
 import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
+import { tomorrowDateISOInSofia } from "@/lib/booking-datetime";
 
 async function AdminProtectedFrame(props: { children: React.ReactNode }) {
   const cookieStore = await cookies();
@@ -35,6 +36,13 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
     ? cookieStore.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim() ?? null
     : null;
 
+  const tomorrow = tomorrowDateISOInSofia();
+  const mobileScheduleQuickLinks = {
+    tomorrow: `/admin/calendar?date=${tomorrow}&view=day`,
+    week: `/admin/calendar?view=week`,
+    calendar: `/admin/calendar`,
+  };
+
   return (
     <>
       {impersonatedSlug && (
@@ -47,7 +55,7 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
           </form>
         </div>
       )}
-      <AdminChrome />
+      <AdminChrome mobileScheduleQuickLinks={mobileScheduleQuickLinks} />
       <div className="md:pl-56">
         <div className="mx-auto max-w-6xl px-3 pb-[calc(8.5rem+env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-8 md:pt-6">{props.children}</div>
       </div>

@@ -12,6 +12,7 @@ import {
   getWorkingHoursForDate,
 } from "@/lib/data";
 import { requireAdminTenantSlugForPage } from "@/lib/admin-tenant-page";
+import { addCalendarDaysInSofia } from "@/lib/booking-datetime";
 
 function todayLocalISO(): string {
   const d = new Date();
@@ -54,6 +55,8 @@ export default async function AdminCalendarPage(props: { searchParams: Promise<{
 
   const byDate = view === "week" ? groupBookingsByDate(weekBookings) : null;
   const todayStr = todayLocalISO();
+  const prevDate = addCalendarDaysInSofia(date, -1);
+  const nextDate = addCalendarDaysInSofia(date, 1);
 
   return (
     <div className="admin-page-shell max-w-5xl">
@@ -106,25 +109,47 @@ export default async function AdminCalendarPage(props: { searchParams: Promise<{
 
       <form className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" method="get">
         <input type="hidden" name="view" value={view} />
-        <div className="w-full sm:w-auto">
-          <label htmlFor="cal-date" className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/45">
-            {view === "week" ? "Дата в седмицата" : "Дата"}
-          </label>
-          <input
-            id="cal-date"
-            type="date"
-            name="date"
-            defaultValue={date}
-            className="input-admin !mt-1 max-w-full sm:min-w-[12rem]"
-          />
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end sm:gap-3">
+          <div className="flex w-full items-stretch gap-2 sm:w-auto sm:items-end">
+            <Link
+              href={`/admin/calendar?date=${prevDate}&view=${view}`}
+              className="inline-flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-xl border text-lg font-black transition hover:bg-black/[0.03]"
+              style={{ borderColor: "rgba(201,168,76,0.35)", color: "#C8826A" }}
+              aria-label="Предишен ден"
+              title="Предишен ден"
+            >
+              ←
+            </Link>
+            <div className="min-w-0 flex-1">
+              <label htmlFor="cal-date" className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/45">
+                {view === "week" ? "Дата в седмицата" : "Дата"}
+              </label>
+              <input
+                id="cal-date"
+                type="date"
+                name="date"
+                defaultValue={date}
+                className="input-admin !mt-1 w-full max-w-full sm:min-w-[12rem]"
+              />
+            </div>
+            <Link
+              href={`/admin/calendar?date=${nextDate}&view=${view}`}
+              className="inline-flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-xl border text-lg font-black transition hover:bg-black/[0.03]"
+              style={{ borderColor: "rgba(201,168,76,0.35)", color: "#C8826A" }}
+              aria-label="Следващ ден"
+              title="Следващ ден"
+            >
+              →
+            </Link>
+          </div>
+          <button
+            type="submit"
+            className="w-full rounded-xl px-6 py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90 sm:w-auto"
+            style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", minHeight: "44px" }}
+          >
+            Покажи →
+          </button>
         </div>
-        <button
-          type="submit"
-          className="w-full rounded-xl px-6 py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90 sm:w-auto"
-          style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", minHeight: "44px" }}
-        >
-          Покажи →
-        </button>
       </form>
 
       <div
