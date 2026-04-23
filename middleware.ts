@@ -194,6 +194,23 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
+  // Админ/супер-админ API са само на основния host (salonapp.pro, localhost, *.vercel.app).
+  // Поддомейн/кастом домейн на салон: /admin* иначе се rewrite-ва като /{slug}/... и влизането „не работи“.
+  if (
+    (pathname.startsWith("/admin") ||
+      pathname.startsWith("/super-admin") ||
+      pathname.startsWith("/api/admin")) &&
+    !isRootDomain(hostname) &&
+    !isDevHost(hostname) &&
+    !isVercelDeploymentHost(hostname)
+  ) {
+    const dest = new URL(request.url);
+    dest.protocol = "https:";
+    dest.hostname = "salonapp.pro";
+    dest.port = "";
+    return NextResponse.redirect(dest, 307);
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 

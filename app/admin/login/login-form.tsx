@@ -41,6 +41,11 @@ export function AdminLoginForm() {
     try {
       const supabase = createSupabaseBrowserClient();
       const emailTrimmed = email.trim();
+      if (!emailTrimmed || !password) {
+        setError("Въведи имейл и парола.");
+        setLoading(false);
+        return;
+      }
       const { error: authErr } = await supabase.auth.signInWithPassword({ email: emailTrimmed, password });
       if (authErr) throw authErr;
       const next = searchParams.get("next");
@@ -144,12 +149,17 @@ export function AdminLoginForm() {
                 aria-invalid={error ? true : undefined}
               />
             </div>
-            <button type="submit" className="btn-admin-primary w-full text-base" disabled={!email || !password || loading}>
+            <button type="submit" className="btn-admin-primary w-full text-base" disabled={loading}>
               {loading ? "Влизане…" : "Вход"}
             </button>
           </form>
 
-          <p className="mt-6 text-center text-xs leading-relaxed text-brand-800/70">
+          <p className="mt-4 rounded-2xl border border-brand-200/60 bg-brand-50/50 px-3 py-2 text-center text-xs leading-relaxed text-brand-800/80">
+            Админ панелът е само на <strong className="text-brand-900">salonapp.pro</strong>. Ако влизаш от линк към сайта
+            на салона (поддомейн), отвори директно <strong className="text-brand-900">salonapp.pro/admin</strong>.
+          </p>
+
+          <p className="mt-4 text-center text-xs leading-relaxed text-brand-800/70">
             Достъпът е само за упълномощени администратори на салона.
           </p>
         </div>
