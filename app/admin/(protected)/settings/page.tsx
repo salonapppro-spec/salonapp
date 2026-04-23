@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 
 import { FinancialSettingsForm } from "@/components/admin/FinancialSettingsForm";
 import { PremiumSmsSection } from "@/components/admin/PremiumSmsSection";
-import { SignOutButton } from "@/components/admin/SignOutButton";
 import { getFinancialSettings, getSpecialistsAdmin, getTenantBySalonSlug } from "@/lib/data";
 import type { FinancialSettings } from "@/types";
 import { requireAdminTenantSlugForPage } from "@/lib/admin-tenant-page";
@@ -83,21 +82,22 @@ export default async function AdminSettingsPage() {
         </div>
       ) : null}
 
-      {/* Account / sign out */}
+      {/* Account hint — изходът е в навигацията (сайдбар / моб. хедър), за да няма дублиран бутон */}
       <div
         className="mt-6 rounded-2xl p-5"
-        style={{ background: "rgba(248,113,113,0.05)", border: "1px solid rgba(248,113,113,0.15)" }}
+        style={{ background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.2)" }}
       >
-        <div className="flex items-center gap-3">
+        <div className="flex items-start gap-3">
           <span className="text-2xl">🔐</span>
           <div>
             <h2 className="text-sm font-black text-[#1A1A1A]">Акаунт</h2>
-            <p className="mt-0.5 text-xs text-[#1A1A1A]/45">Изход от админ панела. Ще трябва отново да въведеш имейл и парола.</p>
+            <p className="mt-0.5 text-xs leading-relaxed text-[#1A1A1A]/45">
+              За изход използвай <span className="font-semibold text-[#1A1A1A]/60">«Изход от акаунта»</span> в лентата вляво на
+              десктоп или <span className="font-semibold text-[#1A1A1A]/60">«Изход»</span> в горния лент на телефон. Ще трябва
+              отново да влезеш с имейл и парола.
+            </p>
           </div>
         </div>
-        <SignOutButton className="mt-4 inline-flex items-center justify-center rounded-xl border border-red-200 bg-white px-4 py-2.5 text-sm font-semibold text-red-700 transition hover:bg-red-50">
-          Изход от акаунта
-        </SignOutButton>
       </div>
     </div>
   );
