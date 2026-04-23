@@ -12,6 +12,21 @@ function isMissingBookingEndTimeColumnError(error: unknown): boolean {
   const msg = (e.message ?? "").toLowerCase();
   return e.code === "42703" || e.code === "PGRST204" || msg.includes("booking_end_time");
 }
+
+function insertErrorMessage(error: { code?: string; message?: string; details?: string }): string {
+  const code = error.code ?? "";
+  const msg = (error.message ?? "").toLowerCase();
+  if (code === "23514" || msg.includes("check constraint") || msg.includes("violates check constraint")) {
+    return "Данните не отговарят на правилата в базата (проверка). Опитайте друга услуга или час.";
+  }
+  if (code === "23502" || msg.includes("not null")) {
+    return "Липсва задължително поле за резервацията. Свържете се с поддръжка.";
+  }
+  if (code === "23503" || msg.includes("foreign key")) {
+    return "Невалидна услуга или специалист. Презаредете страницата и опитайте отново.";
+  }
+  return "Неуспешно записване. Опитайте отново.";
+}
 function addMinutesToTime(time: string, durationMinutes: number): string {
   const [h, m] = time.split(":").map(Number);
   const total = h * 60 + m + durationMinutes;
@@ -151,27 +166,45 @@ export async function runCreateBooking(
   }
 
   if (error) {
+    console.error("[runCreateBooking] bookings.insert failed", {
+      salon_slug: data.salon_slug,
+      code: error.code,
+      message: error.message,
+      details: error.details,
+    });
     if (error.code === "23P01") {
       return { ok: false, error: "Този час току-що беше зает. Моля изберете друг.", code: "23P01" };
     }
-    return { ok: false, error: "Неуспешно записване. Опитайте отново." };
+    return { ok: false, error: insertErrorMessage(error) };
   }
 
   const bookingId = created?.id;
   if (!bookingId || !created) {
+    console.error("[runCreateBooking] insert returned no row", { salon_slug: data.salon_slug });
     return { ok: false, error: "Неуспешно записване. Опитайте отново." };
   }
 
-  await db.clients.upsertByPhone({
-    phone: data.client_phone,
-    name: data.client_name,
-    email: data.client_email ?? null,
-    specialist_id: bookingSpecialistId,
-  });
+  try {
+    const { error: upsertErr } = await db.clients.upsertByPhone({
+      phone: data.client_phone,
+      name: data.client_name,
+      email: data.client_email ?? null,
+      specialist_id: bookingSpecialistId,
+    });
+    if (upsertErr) {
+      console.error("[runCreateBooking] clients.upsertByPhone failed (booking already saved)", upsertErr);
+    }
+  } catch (e) {
+    console.error("[runCreateBooking] clients.upsertByPhone threw (booking already saved)", e);
+  }
 
-  const tenant = await getTenant(data.salon_slug);
-  if (tenant) {
-    await sendConfirmationEmail(created as Booking, tenant);
+  try {
+    const tenant = await getTenant(data.salon_slug);
+    if (tenant) {
+      await sendConfirmationEmail(created as Booking, tenant);
+    }
+  } catch (e) {
+    console.error("[runCreateBooking] sendConfirmationEmail failed (booking already saved)", e);
   }
 
   return { ok: true, bookingId };

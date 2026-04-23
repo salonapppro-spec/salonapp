@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useMemo, useState, useTransition } from "react";
 
 import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
 import type { Booking, BookingStatus, Plan, Service, Specialist, WorkingHours } from "@/types";
@@ -51,6 +51,7 @@ export function ScheduleBoard(props: {
 }) {
   const { salonSlug, date, bookings, workingHours, services, specialists, plan, showFab, children } = props;
   const router = useRouter();
+  const [, startTransition] = useTransition();
 
   const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
   const [quickOpen, setQuickOpen] = useState(false);
@@ -125,9 +126,9 @@ export function ScheduleBoard(props: {
             onClose={() => setQuickOpen(false)}
             onSaved={() => {
               setQuickOpen(false);
-              setTimeout(() => {
+              startTransition(() => {
                 refresh();
-              }, 0);
+              });
             }}
           />
         ) : null}
@@ -292,9 +293,9 @@ export function ScheduleBoard(props: {
           onClose={() => setQuickOpen(false)}
           onSaved={() => {
             setQuickOpen(false);
-            setTimeout(() => {
+            startTransition(() => {
               refresh();
-            }, 0);
+            });
           }}
         />
       ) : null}

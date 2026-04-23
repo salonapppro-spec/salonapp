@@ -92,7 +92,6 @@ export function QuickBooking(props: {
 
     setSaving(true);
     setError(null);
-    let didSave = false;
     try {
       const normalizedPhone = phone.trim().length >= 5 ? phone.trim() : "00000";
       const payload = {
@@ -113,17 +112,12 @@ export function QuickBooking(props: {
         setError(result.error);
         return;
       }
-      didSave = true;
-      onClose();
+      // Parent `onSaved` closes the modal and refreshes — avoid racing onClose + refresh here.
       onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка");
     } finally {
       setSaving(false);
-      if (didSave) {
-        // Safety net for edge cases where parent refresh interrupts close timing.
-        onClose();
-      }
     }
   }
 
