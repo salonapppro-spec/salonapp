@@ -16,6 +16,27 @@ const HAIR_DEN: { v: HairDensity; l: string }[] = [
   { v: "thick", l: "Гъста" },
 ];
 
+const HOUR_OPTS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
+const MIN_OPTS_15 = ["00", "15", "30", "45"] as const;
+
+/** Нормализира към 24-ч. HH:MM със стъпка 15 мин (както графикът), без нативен 12-ч. UI. */
+function parseTimeTo24Parts15(raw: string): { h: string; m: string } {
+  const t = (raw.length > 5 ? raw.slice(0, 5) : raw).trim();
+  const parts = t.split(":");
+  let h = parseInt(parts[0] || "0", 10);
+  let mi = parseInt((parts[1] || "0").replace(/\D.*/, ""), 10);
+  if (!Number.isFinite(h)) h = 9;
+  h = Math.max(0, Math.min(23, h));
+  if (!Number.isFinite(mi)) mi = 0;
+  mi = Math.max(0, Math.min(59, mi));
+  let snapped = Math.round(mi / 15) * 15;
+  if (snapped === 60) {
+    h = Math.min(23, h + 1);
+    snapped = 0;
+  }
+  return { h: String(h).padStart(2, "0"), m: String(snapped).padStart(2, "0") };
+}
+
 export function QuickBooking(props: {
   salonSlug: string;
   date: string;
@@ -31,7 +52,8 @@ export function QuickBooking(props: {
   const activeServices = useMemo(() => services.filter((s) => s.is_active), [services]);
 
   const [bookingDate, setBookingDate] = useState(date);
-  const [bookingTime, setBookingTime] = useState(time.length > 5 ? time.slice(0, 5) : time);
+  const [timeHour, setTimeHour] = useState(() => parseTimeTo24Parts15(time).h);
+  const [timeMin, setTimeMin] = useState(() => parseTimeTo24Parts15(time).m);
   const [clientName, setClientName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -71,6 +93,12 @@ export function QuickBooking(props: {
     setBookingDate(date);
   }, [date]);
 
+  useEffect(() => {
+    const p = parseTimeTo24Parts15(time);
+    setTimeHour(p.h);
+    setTimeMin(p.m);
+  }, [time]);
+
   async function save() {
     if (!selected) {
       setError("Изберете услуга.");
@@ -108,7 +136,7 @@ export function QuickBooking(props: {
         specialist_id: resolvedSpecialistId,
         service_id: selected.id,
         booking_date: bookingDate,
-        booking_time: bookingTime.length > 5 ? bookingTime.slice(0, 5) : bookingTime,
+        booking_time: `${timeHour}:${timeMin}`,
         client_name: clientName.trim(),
         client_phone: normalizedPhone,
         client_email: email.trim() || undefined,
@@ -167,17 +195,39 @@ export function QuickBooking(props: {
               />
             </div>
 
-            {/* Time picker — prominent */}
             <div>
-              <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Час *</label>
-              <input
-                type="time"
-                className="input-admin text-xl font-black tabular-nums"
-                style={{ color: "#C9A84C", fontFamily: "inherit" }}
-                value={bookingTime}
-                onChange={(e) => setBookingTime(e.target.value)}
-                required
-              />
+              <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Час * (24 ч.)</label>
+              <div className="grid grid-cols-2 gap-2">
+                <select
+                  className="input-admin text-xl font-black tabular-nums"
+                  style={{ color: "#C9A84C", fontFamily: "inherit" }}
+                  value={timeHour}
+                  onChange={(e) => setTimeHour(e.target.value)}
+                  required
+                  aria-label="Час (24-часов)"
+                >
+                  {HOUR_OPTS_24.map((h) => (
+                    <option key={h} value={h}>
+                      {h} ч
+                    </option>
+                  ))}
+                </select>
+                <select
+                  className="input-admin text-xl font-black tabular-nums"
+                  style={{ color: "#C9A84C", fontFamily: "inherit" }}
+                  value={timeMin}
+                  onChange={(e) => setTimeMin(e.target.value)}
+                  required
+                  aria-label="Минути"
+                >
+                  {MIN_OPTS_15.map((m) => (
+                    <option key={m} value={m}>
+                      {m} мин
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <p className="mt-1 text-xs text-[#1A1A1A]/40">Степка 15 мин, както в графика.</p>
             </div>
 
             <div className="my-1 border-t" style={{ borderColor: "rgba(201,168,76,0.12)" }} />
