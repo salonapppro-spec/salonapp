@@ -2,6 +2,7 @@ import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { normalizeTenantSettingsPatch } from "@/lib/settings-normalization";
 import { UpdateTenantPublicFieldsSchema } from "@/schemas/settings";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
@@ -21,21 +22,7 @@ export async function POST(req: Request) {
 
   const supabase = createSupabaseServiceRoleClient();
 
-  const patch: Record<string, unknown> = { ...parsed.data };
-  delete patch.salon_slug;
-
-  // Normalize logo_url: empty string → null
-  if (Object.prototype.hasOwnProperty.call(patch, "logo_url")) {
-    const v = patch.logo_url;
-    patch.logo_url = typeof v === "string" && v.trim() === "" ? null : v;
-  }
-  // Normalize other optional URL fields the same way
-  for (const key of ["hero_image_url", "about_image_url"] as const) {
-    if (Object.prototype.hasOwnProperty.call(patch, key)) {
-      const v = patch[key];
-      patch[key] = typeof v === "string" && v.trim() === "" ? null : v;
-    }
-  }
+  const patch = normalizeTenantSettingsPatch(parsed.data as Record<string, unknown>);
 
   const { error } = await supabase.from("tenants").update(patch).eq("salon_slug", salonSlug);
   if (error) {

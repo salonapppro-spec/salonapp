@@ -1,6 +1,27 @@
 /** @type {import('next').NextConfig} */
 import { withSentryConfig } from "@sentry/nextjs";
 
+function sentryIngestOrigin() {
+  const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
+  if (!dsn) return null;
+  try {
+    return new URL(dsn).origin;
+  } catch {
+    return null;
+  }
+}
+
+const sentryOrigin = sentryIngestOrigin();
+const connectSrcParts = [
+  "'self'",
+  "https://*.supabase.co",
+  "wss://*.supabase.co",
+  "https://api.stripe.com",
+  "https://www.facebook.com",
+  "https://region1.analytics.google.com",
+  ...(sentryOrigin ? [sentryOrigin] : []),
+];
+
 // CSP в report-only режим — не блокира, само логва нарушения в DevTools.
 // Когато провериш, че нищо не се чупи, смени на Content-Security-Policy.
 const CSP_POLICY = [
@@ -14,8 +35,8 @@ const CSP_POLICY = [
   "img-src 'self' data: blob: https://*.supabase.co https://*.salonapp.pro https://www.google.com https://www.gstatic.com",
   // Google Maps iframe (след XSS fix)
   "frame-src https://www.google.com",
-  // Supabase realtime + REST, Stripe, Meta CAPI
-  "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://api.stripe.com https://www.facebook.com https://region1.analytics.google.com",
+  // Supabase realtime + REST, Stripe, Meta CAPI + Sentry ingest
+  `connect-src ${connectSrcParts.join(" ")}`,
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
@@ -56,6 +77,8 @@ export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
   widenClientFileUpload: true,
   hideSourceMaps: true,
-  disableLogger: true,
-  automaticVercelMonitors: true,
+  webpack: {
+    treeshake: { removeDebugLogging: true },
+    automaticVercelMonitors: true,
+  },
 });

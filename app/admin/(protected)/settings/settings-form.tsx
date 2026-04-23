@@ -169,15 +169,20 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     }))
   );
 
+  const stringOrNull = (v: string) => {
+    const t = v.trim();
+    return t === "" ? null : t;
+  };
+
   const payload = useMemo(
     () => ({
       address: address || undefined,
       phone: phone || undefined,
       email: email || undefined,
-      instagram_url: instagram || undefined,
-      facebook_url: facebook || undefined,
-      tiktok_url: tiktok || undefined,
-      google_maps_embed: mapsEmbed || undefined,
+      instagram_url: stringOrNull(instagram),
+      facebook_url: stringOrNull(facebook),
+      tiktok_url: stringOrNull(tiktok),
+      google_maps_embed: stringOrNull(mapsEmbed),
     }),
     [address, email, facebook, instagram, mapsEmbed, phone, tiktok]
   );
@@ -373,9 +378,9 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
 
       {/* ── Google Maps ── */}
       <FieldCard>
-        <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете iframe кода от Google Maps" />
-        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай целия {'<iframe …>'} код</p>
-        <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="<iframe src=&quot;https://www.google.com/maps/embed?...&quot; ...></iframe>" />
+        <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете само embed URL (не iframe код)" />
+        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай само `src` URL, напр. `https://www.google.com/maps/embed?...`</p>
+        <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
       </FieldCard>
 
       {/* Save button */}

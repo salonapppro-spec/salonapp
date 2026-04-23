@@ -8,7 +8,8 @@ import {
 } from "@/lib/safe-public-urls";
 
 function trimEmptyToUndefined(v: unknown): unknown {
-  if (v === undefined || v === null) return undefined;
+  if (v === undefined) return undefined;
+  if (v === null) return null;
   if (typeof v !== "string") return v;
   const t = v.trim();
   return t === "" ? undefined : t;
@@ -18,6 +19,7 @@ const optionalInstagram = z.preprocess(
   trimEmptyToUndefined,
   z.union([
     z.undefined(),
+    z.null(),
     z.string().max(512).refine(isSafeInstagramUrl, {
       message: "Instagram: само https връзка към instagram.com",
     }),
@@ -28,6 +30,7 @@ const optionalFacebook = z.preprocess(
   trimEmptyToUndefined,
   z.union([
     z.undefined(),
+    z.null(),
     z.string().max(512).refine(isSafeFacebookUrl, {
       message: "Facebook: само https връзка към facebook.com или fb.com",
     }),
@@ -38,6 +41,7 @@ const optionalTiktok = z.preprocess(
   trimEmptyToUndefined,
   z.union([
     z.undefined(),
+    z.null(),
     z.string().max(512).refine(isSafeTiktokUrl, {
       message: "TikTok: само https връзка към tiktok.com",
     }),
@@ -48,6 +52,7 @@ const optionalGoogleMapsEmbed = z.preprocess(
   trimEmptyToUndefined,
   z.union([
     z.undefined(),
+    z.null(),
     z.string().max(2000).refine(isSafeGoogleMapsEmbedUrl, {
       message: "Google Maps: само https://www.google.com/maps/embed?... (embed от Google)",
     }),
