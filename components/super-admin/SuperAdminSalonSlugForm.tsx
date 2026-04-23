@@ -1,17 +1,28 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const SLUG_HINT = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function sanitizeSlugInput(raw: string): string {
+  return raw.toLowerCase().replace(/[^a-z0-9-]/g, "");
+}
 
 /** Смяна на публичния path (`salonapp.pro/slug` и `slug.salonapp.pro`) — само super_admin, виж /api/super-admin/tenant/slug. */
 export function SuperAdminSalonSlugForm(props: { currentSlug: string }) {
   const router = useRouter();
-  const [val, setVal] = useState(props.currentSlug);
+  /** Празно по подразбиране: старият slug е показан отделно. Така с кирилица не „яде“ буквите (филтърът маха всичко не-латинско). */
+  const [val, setVal] = useState("");
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
+
+  useEffect(() => {
+    setVal("");
+    setErr(null);
+    setOk(null);
+  }, [props.currentSlug]);
 
   const canSubmit =
     val.trim() !== "" &&
@@ -72,16 +83,28 @@ export function SuperAdminSalonSlugForm(props: { currentSlug: string }) {
         <label htmlFor="sa-new-salon-slug" className="text-[10px] font-bold uppercase tracking-widest text-neutral-500">
           Нов адрес (латиница, тирета)
         </label>
+        <p className="text-[11px] text-neutral-500">
+          Текущ: <code className="text-neutral-300">{props.currentSlug}</code> — в полето по-долу напиши{" "}
+          <span className="font-semibold text-neutral-400">новия</span> адрес (само латиница, цифри и тире; с кирилска
+          подредба низът няма да приема букви).
+        </p>
         <div className="mt-1 flex items-center gap-1">
           <span className="shrink-0 text-xs text-neutral-600">…/</span>
           <input
             id="sa-new-salon-slug"
-            className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100"
+            type="text"
+            inputMode="text"
+            lang="en"
+            autoCapitalize="off"
+            autoCorrect="off"
+            className="w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm text-neutral-100 placeholder:text-neutral-600 focus:border-amber-600/50 focus:outline-none focus:ring-1 focus:ring-amber-600/30 disabled:cursor-not-allowed disabled:opacity-50"
             value={val}
-            onChange={(e) => setVal(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ""))}
-            placeholder="my-salon"
+            onChange={(e) => setVal(sanitizeSlugInput(e.target.value))}
+            placeholder="напиши новия slug тук, напр. euphoria"
             autoComplete="off"
             spellCheck={false}
+            disabled={busy}
+            aria-label="Нов публичен адрес (slug) на латиница"
           />
         </div>
       </div>
