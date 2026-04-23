@@ -98,8 +98,47 @@ export function tenantDb(rawSlug: string) {
           .eq("phone", phone)
           .maybeSingle();
       },
+      /**
+       * Слива клиент по уникален ключ (salon_slug, phone).
+       * Използваме SELECT + UPDATE/INSERT вместо PostgREST `upsert(onConflict: …)`,
+       * защото при някои инсталации composite upsert не се прилага надеждно и грешката остава скрита.
+       */
       upsertByPhone(values: AnyRow) {
-        return q("clients").upsert(withTenantSlug(values, salonSlug), { onConflict: "salon_slug,phone" });
+        const phoneRaw = String((values as { phone?: unknown }).phone ?? "").trim();
+        const phone = phoneRaw.length > 0 ? phoneRaw : "00000";
+        const row = withTenantSlug(
+          {
+            phone,
+            name: String((values as { name?: unknown }).name ?? "").trim() || "Клиент",
+            email: (values as { email?: string | null }).email ?? null,
+            specialist_id: (values as { specialist_id?: string | null }).specialist_id ?? null,
+            notes: (values as { notes?: string | null }).notes ?? null,
+          } as AnyRow,
+          salonSlug
+        );
+        return (async () => {
+          const { data: exist, error: findErr } = await q("clients")
+            .select("id")
+            .eq("salon_slug", salonSlug)
+            .eq("phone", phone)
+            .maybeSingle();
+          if (findErr) return { data: null, error: findErr };
+          const existingId =
+            exist && typeof exist === "object" && "id" in exist ? String((exist as { id: string }).id) : null;
+          if (existingId) {
+            return q("clients")
+              .update({
+                name: row.name,
+                email: row.email ?? null,
+                specialist_id: row.specialist_id ?? null,
+              })
+              .eq("id", existingId)
+              .eq("salon_slug", salonSlug)
+              .select("id")
+              .maybeSingle();
+          }
+          return q("clients").insert(row).select("id").maybeSingle();
+        })();
       },
     },
     bookings: {
