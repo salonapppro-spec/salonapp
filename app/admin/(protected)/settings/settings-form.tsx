@@ -150,8 +150,9 @@ function sectionSaveClass(disabled: boolean) {
 
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
-  const sectionInitialRef = useRef<{ contacts: string; social: string; maps: string } | null>(null);
+  const sectionInitialRef = useRef<{ logo: string; contacts: string; social: string; maps: string } | null>(null);
 
+  const [logo, setLogo] = useState(tenant.logo_url ?? "");
   const [address, setAddress] = useState(tenant.address ?? "");
   const [phone, setPhone] = useState(tenant.phone ?? "");
   const [email, setEmail] = useState(tenant.email ?? "");
@@ -160,7 +161,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const [tiktok, setTiktok] = useState(tenant.tiktok_url ?? "");
   const [mapsEmbed, setMapsEmbed] = useState(tenant.google_maps_embed ?? "");
 
-  const [savingSection, setSavingSection] = useState<"contacts" | "social" | "maps" | "all" | null>(null);
+  const [savingSection, setSavingSection] = useState<"logo" | "contacts" | "social" | "maps" | "all" | null>(null);
   const [savingSpecialists, setSavingSpecialists] = useState<string | null>(null);
   const [deletingSpecialist, setDeletingSpecialist] = useState<string | null>(null);
   const [addingSpecialist, setAddingSpecialist] = useState(false);
@@ -183,6 +184,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     return t === "" ? null : t;
   };
 
+  const snapLogo = () => JSON.stringify([logo.trim()]);
   const snapContacts = () => JSON.stringify([address.trim(), phone.trim(), email.trim()]);
   const snapSocial = () => JSON.stringify([instagram.trim(), facebook.trim(), tiktok.trim()]);
   const snapMaps = () => JSON.stringify([mapsEmbed.trim()]);
@@ -190,6 +192,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   useEffect(() => {
     if (sectionInitialRef.current) return;
     sectionInitialRef.current = {
+      logo: JSON.stringify([(tenant.logo_url ?? "").trim()]),
       contacts: JSON.stringify([
         (tenant.address ?? "").trim(),
         (tenant.phone ?? "").trim(),
@@ -204,11 +207,12 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     };
   }, [tenant]);
 
+  const hasUnsavedLogo = sectionInitialRef.current != null && snapLogo() !== sectionInitialRef.current.logo;
   const hasUnsavedContacts =
     sectionInitialRef.current != null && snapContacts() !== sectionInitialRef.current.contacts;
   const hasUnsavedSocial = sectionInitialRef.current != null && snapSocial() !== sectionInitialRef.current.social;
   const hasUnsavedMaps = sectionInitialRef.current != null && snapMaps() !== sectionInitialRef.current.maps;
-  const hasUnsavedChanges = hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
+  const hasUnsavedChanges = hasUnsavedLogo || hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
 
   useEffect(() => {
     if (!hasUnsavedChanges) return;
@@ -222,6 +226,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
 
   const payload = useMemo(
     () => ({
+      logo_url: logo.trim() === "" ? "" : logo.trim(),
       address: address || undefined,
       phone: phone || undefined,
       email: email || undefined,
@@ -230,12 +235,13 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       tiktok_url: stringOrNull(tiktok),
       google_maps_embed: stringOrNull(mapsEmbed),
     }),
-    [address, email, facebook, instagram, mapsEmbed, phone, tiktok]
+    [address, email, facebook, instagram, logo, mapsEmbed, phone, tiktok]
   );
 
   function markProfileSaved() {
     if (!sectionInitialRef.current) return;
     sectionInitialRef.current = {
+      logo: snapLogo(),
       contacts: snapContacts(),
       social: snapSocial(),
       maps: snapMaps(),
@@ -250,6 +256,24 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
+  }
+
+  async function saveLogo() {
+    setSavingSection("logo");
+    setError(null);
+    setOk(null);
+    try {
+      const t = logo.trim();
+      await postSettingsPartial({ logo_url: t === "" ? "" : t });
+      if (sectionInitialRef.current) {
+        sectionInitialRef.current = { ...sectionInitialRef.current, logo: snapLogo() };
+      }
+      setOk("✓ Логото е запазено.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setSavingSection(null);
+    }
   }
 
   async function saveContacts() {
@@ -514,6 +538,32 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         </div>
       </FieldCard>
 
+      {/* ── Лого (публичен сайт) — салонският /admin, без super-admin ── */}
+      <FieldCard>
+        <div id="salon-logo">
+          <SectionHeader icon="🏷️" title="Лого на салона" desc="Показва се в шапката на публичния сайт на салона" />
+          {hasUnsavedLogo && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+          <ImageUpload
+            label="Качи лого (PNG, JPG, WebP)"
+            value={logo}
+            onChange={setLogo}
+            aspect="wide"
+            hint="По възможност хоризонтално лого. „Премахни“ маха логото от сайта."
+          />
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              className={sectionSaveClass(!!savingSection)}
+              style={{ background: savingSection === "logo" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+              onClick={() => void saveLogo()}
+              disabled={savingSection != null}
+            >
+              {savingSection === "logo" ? "Запазване…" : "✓ Запази логото"}
+            </button>
+          </div>
+        </div>
+      </FieldCard>
+
       {/* ── Контакти ── */}
       <FieldCard>
         <SectionHeader icon="📍" title="Контакти" desc="Адрес, телефон и имейл за контакт" />
@@ -595,7 +645,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         </div>
       </FieldCard>
 
-      <p className="text-center text-xs text-[#1A1A1A]/40">По избор: един бутон за трите секции (контакти, социални, карта) наведнъж.</p>
+      <p className="text-center text-xs text-[#1A1A1A]/40">По избор: един бутон за лого, контакти, социални мрежи и карта наведнъж.</p>
       <div className="flex justify-center">
         <button
           type="button"
@@ -604,7 +654,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
           onClick={save}
           disabled={savingSection != null}
         >
-          {savingSection === "all" ? "Запазване…" : "✓ Запази наведнъж (контакти + мрежи + карта)"}
+          {savingSection === "all" ? "Запазване…" : "✓ Запази наведнъж (лого + контакти + мрежи + карта)"}
         </button>
       </div>
     </div>

@@ -361,10 +361,12 @@ function ContentTab({
         <div className="space-y-3">
           <TextField label="Име на салона" value={content.salonName} onChange={(v) => update("salonName", v)} />
           <TextField label="URL на логото" value={content.logoUrl} onChange={(v) => update("logoUrl", v)} placeholder="https://..." />
-          {content.logoUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={content.logoUrl} alt="logo" className="h-10 rounded object-contain" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-          )}
+          <ImagePreviewWithClear
+            url={content.logoUrl}
+            alt="Лого"
+            imgClassName="h-10 max-w-full rounded object-contain"
+            onClear={() => update("logoUrl", "")}
+          />
         </div>
       </Section>
 
@@ -374,10 +376,12 @@ function ContentTab({
           <TextField     label="Подзаглавие" value={content.heroSubtitle} onChange={(v) => update("heroSubtitle", v)} placeholder="Запишете си час онлайн" />
           <TextareaField label="Описание"    value={content.description}  onChange={(v) => update("description", v)}  rows={3} />
           <TextField label="URL на Hero снимката" value={content.heroImageUrl} onChange={(v) => update("heroImageUrl", v)} placeholder="https://..." />
-          {content.heroImageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={content.heroImageUrl} alt="hero" className="w-full h-20 rounded object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-          )}
+          <ImagePreviewWithClear
+            url={content.heroImageUrl}
+            alt="Hero"
+            imgClassName="h-20 w-full rounded object-cover"
+            onClear={() => update("heroImageUrl", "")}
+          />
         </div>
       </Section>
 
@@ -386,10 +390,12 @@ function ContentTab({
           <TextareaField label="Текст 1"       value={content.aboutText1}    onChange={(v) => update("aboutText1", v)}    rows={4} />
           <TextareaField label="Текст 2"       value={content.aboutText2}    onChange={(v) => update("aboutText2", v)}    rows={4} />
           <TextField     label="URL на снимка" value={content.aboutImageUrl} onChange={(v) => update("aboutImageUrl", v)} placeholder="https://..." />
-          {content.aboutImageUrl && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img src={content.aboutImageUrl} alt="about" className="w-full h-20 rounded object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-          )}
+          <ImagePreviewWithClear
+            url={content.aboutImageUrl}
+            alt="За нас"
+            imgClassName="h-20 w-full rounded object-cover"
+            onClear={() => update("aboutImageUrl", "")}
+          />
         </div>
       </Section>
     </div>
@@ -503,6 +509,38 @@ function TextareaField({ label, value, onChange, rows = 3 }: { label: string; va
         rows={rows}
         className="w-full rounded-lg border border-neutral-700 bg-neutral-900 px-3 py-2 text-xs text-neutral-200 resize-none"
       />
+    </div>
+  );
+}
+
+/** Превю + бутон за изчистване на URL, за да може да се качи нова снимка след запис. */
+function ImagePreviewWithClear({
+  url, alt, imgClassName, onClear,
+}: {
+  url: string;
+  alt: string;
+  imgClassName: string;
+  onClear: () => void;
+}) {
+  if (!url.trim()) return null;
+  return (
+    <div className="flex items-start gap-2 rounded-lg border border-neutral-800 bg-neutral-900/50 p-2">
+      {/* eslint-disable-next-line @next/next/no-img-element -- builder preview of remote URL */}
+      <img
+        src={url}
+        alt={alt}
+        className={`min-w-0 flex-1 ${imgClassName}`}
+        onError={(e) => {
+          (e.currentTarget as HTMLImageElement).style.display = "none";
+        }}
+      />
+      <button
+        type="button"
+        onClick={onClear}
+        className="shrink-0 rounded border border-red-900/50 bg-red-950/30 px-2.5 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-red-300 transition hover:bg-red-950/50"
+      >
+        Изтрий
+      </button>
     </div>
   );
 }

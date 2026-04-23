@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { CopyButton } from "./copy-button";
 
+import { SuperAdminSalonSlugForm } from "@/components/super-admin/SuperAdminSalonSlugForm";
 import { activateTenantManually, enterSalonAdminContextAction, updateTenantBasics } from "@/app/super-admin/actions";
 import { MARKETING_PLANS } from "@/lib/marketing-data";
 import { stripePaymentLinkForPlan } from "@/lib/marketing-checkout";
@@ -124,6 +125,16 @@ export default async function SuperAdminTenantPage({
           </div>
         ))}
       </div>
+
+      {/* Public URL / slug — само super_admin (салонският /admin няма тази опция). */}
+      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
+        <h2 className="text-base font-semibold text-neutral-100">🔗 Публичен адрес (slug)</h2>
+        <p className="mt-1 text-sm text-neutral-500">
+          Промяна на сегмента в URL (path и субдомейн). Само за <span className="text-neutral-400">super_admin</span> — в
+          салонския <span className="text-neutral-400">/admin</span> няма смяна на slug.
+        </p>
+        <SuperAdminSalonSlugForm currentSlug={tenant.salon_slug} />
+      </section>
 
       {/* Stripe payment link */}
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
