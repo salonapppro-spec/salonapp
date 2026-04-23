@@ -378,6 +378,9 @@ export function tenantDb(rawSlug: string) {
           .eq("id", id)
           .maybeSingle();
       },
+      deleteById(id: string) {
+        return q("specialists").delete().eq("salon_slug", salonSlug).eq("id", id);
+      },
     },
     emailLogs: {
       insert(values: AnyRow) {

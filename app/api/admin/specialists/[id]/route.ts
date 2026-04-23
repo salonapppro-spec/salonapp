@@ -1,3 +1,4 @@
+import { revalidatePath } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -31,4 +32,26 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (error) return NextResponse.json({ error: "DB update failed" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Specialist not found" }, { status: 404 });
   return NextResponse.json({ ok: true, specialist: data });
+}
+
+export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
+  const a = await requireAdminTenantSlugForApi();
+  if (!a.ok) return a.response;
+
+  const { id } = await ctx.params;
+  if (!id) return NextResponse.json({ error: "Missing id" }, { status: 400 });
+
+  const { data: row, error: fetchErr } = await tenantDb(a.slug).specialists.getById(id);
+  if (fetchErr) return NextResponse.json({ error: "DB error" }, { status: 500 });
+  if (!row) return NextResponse.json({ error: "Specialist not found" }, { status: 404 });
+  if ((row as { is_technical_admin: boolean }).is_technical_admin) {
+    return NextResponse.json({ error: "Този специалист е системен и не може да бъде изтрит." }, { status: 403 });
+  }
+
+  const { error } = await tenantDb(a.slug).specialists.deleteById(id);
+  if (error) return NextResponse.json({ error: "DB delete failed" }, { status: 500 });
+
+  revalidatePath(`/${a.slug}`);
+
+  return NextResponse.json({ ok: true });
 }

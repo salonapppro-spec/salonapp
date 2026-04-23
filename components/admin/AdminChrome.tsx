@@ -23,11 +23,15 @@ const mobileHeaderLinks = [
 ] as const;
 
 export function AdminChrome(props: {
-  /** Second row under the logo on small screens — always shows „Утре“ without scrolling the page. */
+  /**
+   * URLs for „Утре / 7 дни / Календар“. Показва се **само** на мобилен, на страниците
+   * „Днес“ и „Календар“ — не в настройки, услуги и т.н.
+   */
   mobileScheduleQuickLinks?: { tomorrow: string; week: string; calendar: string };
 }) {
   const { mobileScheduleQuickLinks } = props;
   const pathname = usePathname();
+  const isDashboardOrCalendar = pathname === "/admin/dashboard" || pathname === "/admin/calendar";
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -205,7 +209,7 @@ export function AdminChrome(props: {
             </SignOutButton>
           </div>
         </div>
-        {mobileScheduleQuickLinks ? (
+        {mobileScheduleQuickLinks && isDashboardOrCalendar ? (
           <div
             className="grid grid-cols-3 gap-2 border-t border-[#C9A84C]/15 px-3 pb-3 pt-2.5"
             aria-label="График: други дни"

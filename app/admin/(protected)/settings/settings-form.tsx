@@ -4,7 +4,7 @@ import { useEffect, useRef, useMemo, useState } from "react";
 
 import type { Specialist, Tenant } from "@/types";
 
-type SpecialistDraft = Pick<Specialist, "id" | "name" | "role" | "bio" | "avatar_url" | "is_active">;
+type SpecialistDraft = Pick<Specialist, "id" | "name" | "role" | "bio" | "avatar_url" | "is_active" | "is_technical_admin">;
 
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
@@ -142,9 +142,15 @@ function Label({ children }: { children: React.ReactNode }) {
   );
 }
 
+function sectionSaveClass(disabled: boolean) {
+  return `w-full rounded-xl py-3 text-xs font-black text-white shadow-sm transition sm:w-auto sm:min-w-[12rem] disabled:opacity-50 ${
+    disabled ? "" : "hover:opacity-90"
+  }`;
+}
+
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
-  const initialSerializedRef = useRef<string>("");
+  const sectionInitialRef = useRef<{ contacts: string; social: string; maps: string } | null>(null);
 
   const [address, setAddress] = useState(tenant.address ?? "");
   const [phone, setPhone] = useState(tenant.phone ?? "");
@@ -154,8 +160,9 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const [tiktok, setTiktok] = useState(tenant.tiktok_url ?? "");
   const [mapsEmbed, setMapsEmbed] = useState(tenant.google_maps_embed ?? "");
 
-  const [saving, setSaving] = useState(false);
+  const [savingSection, setSavingSection] = useState<"contacts" | "social" | "maps" | "all" | null>(null);
   const [savingSpecialists, setSavingSpecialists] = useState<string | null>(null);
+  const [deletingSpecialist, setDeletingSpecialist] = useState<string | null>(null);
   const [addingSpecialist, setAddingSpecialist] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
@@ -167,6 +174,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       bio: s.bio ?? "",
       avatar_url: s.avatar_url ?? "",
       is_active: s.is_active,
+      is_technical_admin: s.is_technical_admin,
     }))
   );
 
@@ -174,6 +182,43 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     const t = v.trim();
     return t === "" ? null : t;
   };
+
+  const snapContacts = () => JSON.stringify([address.trim(), phone.trim(), email.trim()]);
+  const snapSocial = () => JSON.stringify([instagram.trim(), facebook.trim(), tiktok.trim()]);
+  const snapMaps = () => JSON.stringify([mapsEmbed.trim()]);
+
+  useEffect(() => {
+    if (sectionInitialRef.current) return;
+    sectionInitialRef.current = {
+      contacts: JSON.stringify([
+        (tenant.address ?? "").trim(),
+        (tenant.phone ?? "").trim(),
+        (tenant.email ?? "").trim(),
+      ]),
+      social: JSON.stringify([
+        (tenant.instagram_url ?? "").trim(),
+        (tenant.facebook_url ?? "").trim(),
+        (tenant.tiktok_url ?? "").trim(),
+      ]),
+      maps: JSON.stringify([(tenant.google_maps_embed ?? "").trim()]),
+    };
+  }, [tenant]);
+
+  const hasUnsavedContacts =
+    sectionInitialRef.current != null && snapContacts() !== sectionInitialRef.current.contacts;
+  const hasUnsavedSocial = sectionInitialRef.current != null && snapSocial() !== sectionInitialRef.current.social;
+  const hasUnsavedMaps = sectionInitialRef.current != null && snapMaps() !== sectionInitialRef.current.maps;
+  const hasUnsavedChanges = hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
+
+  useEffect(() => {
+    if (!hasUnsavedChanges) return;
+    const onBeforeUnload = (event: BeforeUnloadEvent) => {
+      event.preventDefault();
+      event.returnValue = "";
+    };
+    window.addEventListener("beforeunload", onBeforeUnload);
+    return () => window.removeEventListener("beforeunload", onBeforeUnload);
+  }, [hasUnsavedChanges]);
 
   const payload = useMemo(
     () => ({
@@ -187,38 +232,99 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     }),
     [address, email, facebook, instagram, mapsEmbed, phone, tiktok]
   );
-  const serializedPayload = JSON.stringify(payload);
 
-  useEffect(() => {
-    if (!initialSerializedRef.current) {
-      initialSerializedRef.current = serializedPayload;
-    }
-  }, [serializedPayload]);
-
-  const hasUnsavedChanges = initialSerializedRef.current !== "" && serializedPayload !== initialSerializedRef.current;
-
-  useEffect(() => {
-    if (!hasUnsavedChanges) return;
-    const onBeforeUnload = (event: BeforeUnloadEvent) => {
-      event.preventDefault();
-      event.returnValue = "";
+  function markProfileSaved() {
+    if (!sectionInitialRef.current) return;
+    sectionInitialRef.current = {
+      contacts: snapContacts(),
+      social: snapSocial(),
+      maps: snapMaps(),
     };
-    window.addEventListener("beforeunload", onBeforeUnload);
-    return () => window.removeEventListener("beforeunload", onBeforeUnload);
-  }, [hasUnsavedChanges]);
+  }
 
-  async function save() {
-    setSaving(true); setError(null); setOk(null);
+  async function postSettingsPartial(body: Record<string, unknown>) {
+    const res = await fetch("/api/admin/settings", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const json = await res.json();
+    if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
+  }
+
+  async function saveContacts() {
+    setSavingSection("contacts");
+    setError(null);
+    setOk(null);
     try {
-      const res = await fetch("/api/admin/settings", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
-      setOk("✓ Промените са запазени успешно.");
-      initialSerializedRef.current = JSON.stringify(payload);
+      await postSettingsPartial({
+        address: address || undefined,
+        phone: phone || undefined,
+        email: email || undefined,
+      });
+      if (sectionInitialRef.current) {
+        sectionInitialRef.current = { ...sectionInitialRef.current, contacts: snapContacts() };
+      }
+      setOk("✓ Контактите са запазени.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
-      setSaving(false);
+      setSavingSection(null);
+    }
+  }
+
+  async function saveSocial() {
+    setSavingSection("social");
+    setError(null);
+    setOk(null);
+    try {
+      await postSettingsPartial({
+        instagram_url: stringOrNull(instagram),
+        facebook_url: stringOrNull(facebook),
+        tiktok_url: stringOrNull(tiktok),
+      });
+      if (sectionInitialRef.current) {
+        sectionInitialRef.current = { ...sectionInitialRef.current, social: snapSocial() };
+      }
+      setOk("✓ Социалните мрежи са запазени.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setSavingSection(null);
+    }
+  }
+
+  async function saveMapsSection() {
+    setSavingSection("maps");
+    setError(null);
+    setOk(null);
+    try {
+      await postSettingsPartial({
+        google_maps_embed: stringOrNull(mapsEmbed),
+      });
+      if (sectionInitialRef.current) {
+        sectionInitialRef.current = { ...sectionInitialRef.current, maps: snapMaps() };
+      }
+      setOk("✓ Картата е запазена.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setSavingSection(null);
+    }
+  }
+
+  async function save() {
+    setSavingSection("all");
+    setError(null);
+    setOk(null);
+    try {
+      await postSettingsPartial(payload);
+      markProfileSaved();
+      setOk("✓ Всички настройки от страницата са запазени.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setSavingSection(null);
     }
   }
 
@@ -254,7 +360,18 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       if (!res.ok) throw new Error(json?.error ?? "Неуспешно добавяне.");
       const created = json?.specialist as SpecialistDraft | undefined;
       if (created?.id) {
-        setSpecialists((curr) => [...curr, { id: created.id, name: created.name ?? "Нов специалист", role: created.role ?? "", bio: created.bio ?? "", avatar_url: created.avatar_url ?? "", is_active: created.is_active ?? true }]);
+        setSpecialists((curr) => [
+          ...curr,
+          {
+            id: created.id,
+            name: created.name ?? "Нов специалист",
+            role: created.role ?? "",
+            bio: created.bio ?? "",
+            avatar_url: created.avatar_url ?? "",
+            is_active: created.is_active ?? true,
+            is_technical_admin: created.is_technical_admin ?? false,
+          },
+        ]);
       }
       setOk("✓ Добавен нов специалист.");
     } catch (e) {
@@ -264,15 +381,116 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     }
   }
 
+  async function deleteSpecialist(id: string) {
+    const s = specialists.find((x) => x.id === id);
+    if (!s || s.is_technical_admin) return;
+    if (!window.confirm("Да се изтрие този специалист? Тази стъпка не може да бъде отменена.")) return;
+    setDeletingSpecialist(id);
+    setError(null);
+    setOk(null);
+    try {
+      const res = await fetch(`/api/admin/specialists/${id}`, { method: "DELETE" });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(json?.error ?? "Неуспешно изтриване.");
+      setSpecialists((curr) => curr.filter((x) => x.id !== id));
+      setOk("✓ Специалистът е премахнат.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при изтриване.");
+    } finally {
+      setDeletingSpecialist(null);
+    }
+  }
+
   return (
     <div className="space-y-4">
       {error && <div className="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">{error}</div>}
       {ok && <div className="rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">{ok}</div>}
       {hasUnsavedChanges && (
         <div className="rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm font-semibold text-amber-900">
-          Имате незапазени промени.
+          Имате незапазени промени в някоя секция по-долу — ползвай съответния бутон „Запази“.
         </div>
       )}
+
+      {/* ── Контакти ── */}
+      <FieldCard>
+        <SectionHeader icon="📍" title="Контакти" desc="Адрес, телефон и имейл за контакт" />
+        {hasUnsavedContacts && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="md:col-span-2">
+            <Label>Адрес</Label>
+            <input className="input-admin" placeholder="бул. Витоша 42, София" value={address} onChange={(e) => setAddress(e.target.value)} />
+          </div>
+          <div>
+            <Label>Телефон</Label>
+            <input className="input-admin" placeholder="+359 88 …" value={phone} onChange={(e) => setPhone(e.target.value)} />
+          </div>
+          <div>
+            <Label>Имейл</Label>
+            <input className="input-admin" type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "contacts" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveContacts()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "contacts" ? "Запазване…" : "✓ Запази контактите"}
+          </button>
+        </div>
+      </FieldCard>
+
+      {/* ── Социални мрежи ── */}
+      <FieldCard>
+        <SectionHeader icon="📱" title="Социални мрежи" desc="Instagram, Facebook и TikTok линкове" />
+        {hasUnsavedSocial && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <Label>📸 Instagram</Label>
+            <input className="input-admin" type="url" inputMode="url" placeholder="https://instagram.com/…" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
+          </div>
+          <div>
+            <Label>👍 Facebook</Label>
+            <input className="input-admin" type="url" inputMode="url" placeholder="https://facebook.com/…" value={facebook} onChange={(e) => setFacebook(e.target.value)} />
+          </div>
+          <div>
+            <Label>🎵 TikTok</Label>
+            <input className="input-admin" type="url" inputMode="url" placeholder="https://tiktok.com/…" value={tiktok} onChange={(e) => setTiktok(e.target.value)} />
+          </div>
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "social" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveSocial()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "social" ? "Запазване…" : "✓ Запази социалните мрежи"}
+          </button>
+        </div>
+      </FieldCard>
+
+      {/* ── Google Maps ── */}
+      <FieldCard>
+        <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете само embed URL (не iframe код)" />
+        {hasUnsavedMaps && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай само `src` URL, напр. `https://www.google.com/maps/embed?...`</p>
+        <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "maps" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveMapsSection()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "maps" ? "Запазване…" : "✓ Запази картата"}
+          </button>
+        </div>
+      </FieldCard>
 
       {/* ── Специалисти ── */}
       <FieldCard>
@@ -284,7 +502,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
               </div>
               <div>
                 <h2 className="text-sm font-black text-[#1A1A1A]">Специалисти</h2>
-                <p className="mt-0.5 text-xs text-[#1A1A1A]/45">Екипът на салона с профили и снимки</p>
+                <p className="mt-0.5 text-xs text-[#1A1A1A]/45">Екипът на салона с профили и снимки. Всеки ред се запазва отделно.</p>
               </div>
             </div>
             <button
@@ -292,7 +510,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
               className="rounded-xl px-3 py-2 text-xs font-black text-white transition hover:opacity-90"
               style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
               onClick={addSpecialist}
-              disabled={addingSpecialist}
+              disabled={addingSpecialist || savingSection != null}
             >
               {addingSpecialist ? "…" : "+ Добави"}
             </button>
@@ -306,24 +524,27 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
             ) : (
               specialists.map((s) => (
                 <div key={s.id} className="rounded-xl p-4" style={{ background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.12)" }}>
-                  <div className="flex items-center gap-3 mb-3">
+                  <div className="mb-3 flex items-center gap-3">
                     {s.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={s.avatar_url} alt={s.name} className="h-10 w-10 rounded-xl object-cover shrink-0" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                      <img src={s.avatar_url} alt={s.name} className="h-10 w-10 shrink-0 rounded-xl object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
                     ) : (
                       <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}>
                         {s.name.slice(0, 1).toUpperCase()}
                       </div>
                     )}
-                    <div>
+                    <div className="min-w-0 flex-1">
                       <div className="text-sm font-black text-[#1A1A1A]">{s.name || "Нов специалист"}</div>
                       <div className="text-xs text-[#1A1A1A]/40">{s.role || "Без роля"}</div>
                     </div>
-                    <label className="ml-auto flex items-center gap-1.5 text-xs font-semibold text-[#1A1A1A]/55 cursor-pointer">
+                    <label className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-[#1A1A1A]/55 cursor-pointer">
                       <input type="checkbox" checked={s.is_active} onChange={(e) => patchSpecialistLocal(s.id, { is_active: e.target.checked })} className="rounded" />
                       Активен
                     </label>
                   </div>
+                  {s.is_technical_admin && (
+                    <p className="mb-2 text-[11px] text-[#1A1A1A]/45">Свързан с администраторския акаунт — изтриване не е възможно от тук.</p>
+                  )}
 
                   <div className="grid gap-3 sm:grid-cols-2">
                     <div>
@@ -348,15 +569,25 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
                       <textarea className="textarea-admin min-h-[4rem]" rows={3} value={s.bio ?? ""} onChange={(e) => patchSpecialistLocal(s.id, { bio: e.target.value })} />
                     </div>
                   </div>
-                  <button
-                    type="button"
-                    className="mt-3 w-full rounded-xl py-2.5 text-xs font-black text-white transition hover:opacity-90 disabled:opacity-50"
-                    style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-                    onClick={() => void saveSpecialist(s.id)}
-                    disabled={savingSpecialists === s.id}
-                  >
-                    {savingSpecialists === s.id ? "Запазване…" : "✓ Запази специалиста"}
-                  </button>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      className="w-full rounded-xl py-2.5 text-xs font-black text-white transition hover:opacity-90 disabled:opacity-50 sm:w-auto sm:min-w-[12rem]"
+                      style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+                      onClick={() => void saveSpecialist(s.id)}
+                      disabled={savingSpecialists === s.id || savingSection != null}
+                    >
+                      {savingSpecialists === s.id ? "Запазване…" : "✓ Запази специалиста"}
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full rounded-xl border border-red-200 bg-white py-2.5 text-xs font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-50 sm:w-auto sm:min-w-[10rem]"
+                      onClick={() => void deleteSpecialist(s.id)}
+                      disabled={s.is_technical_admin || deletingSpecialist != null || savingSection != null}
+                    >
+                      {deletingSpecialist === s.id ? "Премахване…" : "Изтрий специалиста"}
+                    </button>
+                  </div>
                 </div>
               ))
             )}
@@ -364,61 +595,18 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         </div>
       </FieldCard>
 
-      {/* ── Контакти ── */}
-      <FieldCard>
-        <SectionHeader icon="📍" title="Контакти" desc="Адрес, телефон и имейл за контакт" />
-        <div className="grid gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <Label>Адрес</Label>
-            <input className="input-admin" placeholder="бул. Витоша 42, София" value={address} onChange={(e) => setAddress(e.target.value)} />
-          </div>
-          <div>
-            <Label>Телефон</Label>
-            <input className="input-admin" placeholder="+359 88 …" value={phone} onChange={(e) => setPhone(e.target.value)} />
-          </div>
-          <div>
-            <Label>Имейл</Label>
-            <input className="input-admin" type="email" inputMode="email" value={email} onChange={(e) => setEmail(e.target.value)} />
-          </div>
-        </div>
-      </FieldCard>
-
-      {/* ── Социални мрежи ── */}
-      <FieldCard>
-        <SectionHeader icon="📱" title="Социални мрежи" desc="Instagram, Facebook и TikTok линкове" />
-        <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <Label>📸 Instagram</Label>
-            <input className="input-admin" type="url" inputMode="url" placeholder="https://instagram.com/…" value={instagram} onChange={(e) => setInstagram(e.target.value)} />
-          </div>
-          <div>
-            <Label>👍 Facebook</Label>
-            <input className="input-admin" type="url" inputMode="url" placeholder="https://facebook.com/…" value={facebook} onChange={(e) => setFacebook(e.target.value)} />
-          </div>
-          <div>
-            <Label>🎵 TikTok</Label>
-            <input className="input-admin" type="url" inputMode="url" placeholder="https://tiktok.com/…" value={tiktok} onChange={(e) => setTiktok(e.target.value)} />
-          </div>
-        </div>
-      </FieldCard>
-
-      {/* ── Google Maps ── */}
-      <FieldCard>
-        <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете само embed URL (не iframe код)" />
-        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай само `src` URL, напр. `https://www.google.com/maps/embed?...`</p>
-        <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
-      </FieldCard>
-
-      {/* Save button */}
-      <button
-        type="button"
-        className="w-full rounded-xl py-4 text-sm font-black text-white shadow-md transition hover:opacity-90 disabled:opacity-50 sm:w-auto sm:min-w-[14rem]"
-        style={{ background: saving ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-        onClick={save}
-        disabled={saving}
-      >
-        {saving ? "Запазване…" : "✓ Запази всички промени"}
-      </button>
+      <p className="text-center text-xs text-[#1A1A1A]/40">По избор: един бутон за трите секции (контакти, социални, карта) наведнъж.</p>
+      <div className="flex justify-center">
+        <button
+          type="button"
+          className="w-full max-w-md rounded-xl py-4 text-sm font-black text-white shadow-md transition hover:opacity-90 disabled:opacity-50"
+          style={{ background: savingSection === "all" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+          onClick={save}
+          disabled={savingSection != null}
+        >
+          {savingSection === "all" ? "Запазване…" : "✓ Запази наведнъж (контакти + мрежи + карта)"}
+        </button>
+      </div>
     </div>
   );
 }
