@@ -136,7 +136,9 @@ export function tenantDb(rawSlug: string) {
       },
       listConflictRows(date: string, specialistId: string | null) {
         let query = q("bookings")
-          .select("booking_time,service_duration,status,booking_end_time")
+          // Keep this query schema-compatible with tenants where booking_end_time
+          // is not present yet; overlap fallback uses booking_time + duration.
+          .select("booking_time,service_duration,status")
           .eq("salon_slug", salonSlug)
           .eq("booking_date", date);
         query = specialistId ? query.eq("specialist_id", specialistId) : query.is("specialist_id", null);
