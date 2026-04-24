@@ -112,21 +112,33 @@ export function Groom({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Nunito:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;1,400&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
-          --capu:${capu};
-          --capu-lt:color-mix(in srgb,${capu} 70%,white);
-          --capu-dk:color-mix(in srgb,${capu} 80%,black);
-          --brown:#5C3520;
+          --capu:    var(--color-primary, ${capu});
+          --capu-lt: color-mix(in srgb, var(--color-primary, ${capu}) 70%, white);
+          --capu-dk: color-mix(in srgb, var(--color-primary, ${capu}) 80%, black);
+          --brown:   #5C3520;
           --brown-dk:#2C1810;
-          --cream:${bg};
+          --cream:   var(--color-bg, ${bg});
           --cream-dk:${bg}ee;
           --cream-bd:${bg}bb;
-          --text:#2C1810;
-          --muted:#8B6F5E;
-          --white:#FFFFFF;
-          --serif:'Playfair Display',Georgia,serif;
-          --sans:'Nunito',sans-serif;
-          --radius:50px;
-          --trans:0.3s ease
+          --text:    var(--color-text, #2C1810);
+          --muted:   #8B6F5E;
+          --white:   #FFFFFF;
+          --serif:   var(--font-heading, 'Playfair Display',Georgia,serif);
+          --sans:    var(--font-body, 'Nunito',sans-serif);
+          --radius:  50px;
+          --trans:   0.3s ease
+        }
+        /* Design token bridge — builder/postMessage updates --color-* and --font-* on #salon-design-root */
+        #salon-design-root{
+          --capu:     var(--color-primary, ${capu});
+          --capu-lt:  color-mix(in srgb, var(--color-primary, ${capu}) 70%, white);
+          --capu-dk:  color-mix(in srgb, var(--color-primary, ${capu}) 80%, black);
+          --cream:    var(--color-bg, ${bg});
+          --cream-dk: color-mix(in srgb, var(--color-bg, ${bg}) 93%, transparent);
+          --cream-bd: color-mix(in srgb, var(--color-bg, ${bg}) 73%, transparent);
+          --text:     var(--color-text, #2C1810);
+          --serif:    var(--font-heading, 'Playfair Display', Georgia, serif);
+          --sans:     var(--font-body, 'Nunito', sans-serif);
         }
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html{scroll-behavior:smooth}

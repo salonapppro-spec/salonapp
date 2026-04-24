@@ -114,19 +114,30 @@ export function Luxe({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500&display=swap');
 
         :root {
-          --black:   ${bg ?? "#0a0a0a"};
+          --black:   var(--color-bg, ${bg ?? "#0a0a0a"});
           --dark:    ${bg ? bg + "ee" : "#111111"};
           --card:    ${bg ? bg + "cc" : "#181818"};
           --border:  ${bg ? bg + "44" : "#2a2a2a"};
-          --gold:    ${gold};
-          --gold-lt: #e2c97e;
-          --gold-dk: #8a6a20;
+          --gold:    var(--color-primary, ${gold});
+          --gold-lt: color-mix(in srgb, var(--color-primary, ${gold}) 70%, white);
+          --gold-dk: color-mix(in srgb, var(--color-primary, ${gold}) 60%, black);
           --cream:   #f5ede0;
           --muted:   #888888;
           --text:    #e8e0d4;
-          --serif:   'Cormorant Garamond', Georgia, serif;
-          --sans:    'Jost', sans-serif;
+          --serif:   var(--font-heading, 'Cormorant Garamond', Georgia, serif);
+          --sans:    var(--font-body, 'Jost', sans-serif);
           --trans:   0.35s cubic-bezier(0.4,0,0.2,1);
+        }
+
+        /* Design token bridge — builder/postMessage updates --color-* and --font-* on #salon-design-root */
+        #salon-design-root {
+          --gold:   var(--color-primary, ${gold});
+          --black:  var(--color-bg, ${bg ?? "#0a0a0a"});
+          --dark:   color-mix(in srgb, var(--color-bg, ${bg ?? "#0a0a0a"}) 93%, transparent);
+          --card:   color-mix(in srgb, var(--color-bg, ${bg ?? "#0a0a0a"}) 80%, transparent);
+          --border: color-mix(in srgb, var(--color-bg, ${bg ?? "#0a0a0a"}) 27%, transparent);
+          --serif:  var(--font-heading, 'Cormorant Garamond', Georgia, serif);
+          --sans:   var(--font-body, 'Jost', sans-serif);
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

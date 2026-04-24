@@ -165,21 +165,26 @@ export default async function PublicSalonPage(props: {
     var t=e.data.tokens;
     if(!t)return;
     var el=document.getElementById("salon-design-root");
-    var r=(el||document.documentElement).style;
-    set(r,"--color-primary",t.primaryColor,"hex");
-    set(r,"--color-bg",t.backgroundColor,"hex");
-    set(r,"--color-text",t.textColor,"hex");
-    set(r,"--color-accent",t.accentColor,"hex");
-    set(r,"--font-family",t.fontFamily,"font");
-    set(r,"--font-heading",t.headingFont,"font");
-    set(r,"--font-body",t.bodyFont,"font");
-    set(r,"--font-nav",t.navFont,"font");
-    set(r,"--font-button",t.buttonFont,"font");
-    set(r,"--heading-size",t.headingSize,"length");
-    set(r,"--body-size",t.bodySize,"length");
-    set(r,"--border-radius",t.borderRadius,"radius");
-    set(r,"--button-padding",t.buttonPadding,"pair");
-    set(r,"--section-padding",t.sectionPadding,"length");
+    var r=document.documentElement.style;
+    var rs=el?el.style:null;
+    function setAll(name,value,type){
+      set(r,name,value,type);
+      if(rs)set(rs,name,value,type);
+    }
+    setAll("--color-primary",t.primaryColor,"hex");
+    setAll("--color-bg",t.backgroundColor,"hex");
+    setAll("--color-text",t.textColor,"hex");
+    setAll("--color-accent",t.accentColor,"hex");
+    setAll("--font-family",t.fontFamily,"font");
+    setAll("--font-heading",t.headingFont,"font");
+    setAll("--font-body",t.bodyFont,"font");
+    setAll("--font-nav",t.navFont,"font");
+    setAll("--font-button",t.buttonFont,"font");
+    setAll("--heading-size",t.headingSize,"length");
+    setAll("--body-size",t.bodySize,"length");
+    setAll("--border-radius",t.borderRadius,"radius");
+    setAll("--button-padding",t.buttonPadding,"pair");
+    setAll("--section-padding",t.sectionPadding,"length");
   });
 })();`.trim();
 

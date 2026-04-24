@@ -62,17 +62,29 @@ export function Bold({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Inter:wght@300;400;500&display=swap');
 
         :root {
-          --black:   ${bg ?? "#0D0D0D"};
+          --black:   var(--color-bg, ${bg ?? "#0D0D0D"});
           --dark:    ${bg ? bg + "ee" : "#141414"};
           --card:    ${bg ? bg + "cc" : "#1A1A1A"};
           --border:  ${bg ? bg + "44" : "#2A2A2A"};
-          --red:     ${primary};
-          --red-dk:  ${primary}cc;
+          --red:     var(--color-primary, ${primary});
+          --red-dk:  color-mix(in srgb, var(--color-primary, ${primary}) 80%, black);
           --white:   #F0F0F0;
           --muted:   #666666;
-          --serif:   'Bebas Neue', sans-serif;
-          --sans:    'Inter', sans-serif;
+          --serif:   var(--font-heading, 'Bebas Neue', sans-serif);
+          --sans:    var(--font-body, 'Inter', sans-serif);
           --trans:   0.25s ease;
+        }
+
+        /* Design token bridge — builder/postMessage updates --color-* and --font-* on #salon-design-root */
+        #salon-design-root {
+          --red:    var(--color-primary, ${primary});
+          --red-dk: color-mix(in srgb, var(--color-primary, ${primary}) 80%, black);
+          --black:  var(--color-bg, ${bg ?? "#0D0D0D"});
+          --dark:   color-mix(in srgb, var(--color-bg, ${bg ?? "#0D0D0D"}) 93%, transparent);
+          --card:   color-mix(in srgb, var(--color-bg, ${bg ?? "#0D0D0D"}) 80%, transparent);
+          --border: color-mix(in srgb, var(--color-bg, ${bg ?? "#0D0D0D"}) 27%, transparent);
+          --serif:  var(--font-heading, 'Bebas Neue', sans-serif);
+          --sans:   var(--font-body, 'Inter', sans-serif);
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

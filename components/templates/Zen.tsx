@@ -113,19 +113,31 @@ export function Zen({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Nunito:wght@300;400;500&display=swap');
 
         :root {
-          --beige:    ${bg};
+          --beige:    var(--color-bg, ${bg});
           --beige-dk: ${bg}ee;
           --beige-bd: #D9D0BC;
-          --green:    ${primary};
-          --green-lt: #6B8F62;
-          --green-dk: #2E4228;
+          --green:    var(--color-primary, ${primary});
+          --green-lt: color-mix(in srgb, var(--color-primary, ${primary}) 70%, white);
+          --green-dk: color-mix(in srgb, var(--color-primary, ${primary}) 55%, black);
           --brown:    #8B6F5E;
-          --text:     #2A2A2A;
+          --text:     var(--color-text, #2A2A2A);
           --muted:    #888880;
           --white:    #FDFCF9;
-          --serif:    'Playfair Display', Georgia, serif;
-          --sans:     'Nunito', sans-serif;
+          --serif:    var(--font-heading, 'Playfair Display', Georgia, serif);
+          --sans:     var(--font-body, 'Nunito', sans-serif);
           --trans:    0.35s ease;
+        }
+
+        /* Design token bridge — builder/postMessage updates --color-* and --font-* on #salon-design-root */
+        #salon-design-root {
+          --green:    var(--color-primary, ${primary});
+          --green-lt: color-mix(in srgb, var(--color-primary, ${primary}) 70%, white);
+          --green-dk: color-mix(in srgb, var(--color-primary, ${primary}) 55%, black);
+          --beige:    var(--color-bg, ${bg});
+          --beige-dk: color-mix(in srgb, var(--color-bg, ${bg}) 93%, transparent);
+          --text:     var(--color-text, #2A2A2A);
+          --serif:    var(--font-heading, 'Playfair Display', Georgia, serif);
+          --sans:     var(--font-body, 'Nunito', sans-serif);
         }
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

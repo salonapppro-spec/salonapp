@@ -80,19 +80,29 @@ export function Luxe2({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Jost:wght@300;400;500&display=swap');
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         :root{
-          --gold:${gold};
-          --gold-l:color-mix(in srgb,${gold} 70%,white);
-          --gold-p:color-mix(in srgb,${gold} 12%,white);
-          --cream:${bg};
-          --dark:#1A1714;
-          --mid:#4A4540;
-          --muted:#8A837A;
-          --border:color-mix(in srgb,${gold} 30%,transparent);
-          --bl:rgba(0,0,0,.08);
-          --serif:'Cormorant Garamond',Georgia,serif;
-          --sans:'Jost',system-ui,sans-serif;
-          --max:1200px;
-          --side:clamp(1rem,5vw,4rem)
+          --gold:   var(--color-primary, ${gold});
+          --gold-l: color-mix(in srgb, var(--color-primary, ${gold}) 70%, white);
+          --gold-p: color-mix(in srgb, var(--color-primary, ${gold}) 12%, white);
+          --cream:  var(--color-bg, ${bg});
+          --dark:   #1A1714;
+          --mid:    #4A4540;
+          --muted:  #8A837A;
+          --border: color-mix(in srgb, var(--color-primary, ${gold}) 30%, transparent);
+          --bl:     rgba(0,0,0,.08);
+          --serif:  var(--font-heading, 'Cormorant Garamond',Georgia,serif);
+          --sans:   var(--font-body, 'Jost',system-ui,sans-serif);
+          --max:    1200px;
+          --side:   clamp(1rem,5vw,4rem)
+        }
+        /* Design token bridge — builder/postMessage updates --color-* and --font-* on #salon-design-root */
+        #salon-design-root{
+          --gold:   var(--color-primary, ${gold});
+          --gold-l: color-mix(in srgb, var(--color-primary, ${gold}) 70%, white);
+          --gold-p: color-mix(in srgb, var(--color-primary, ${gold}) 12%, white);
+          --cream:  var(--color-bg, ${bg});
+          --border: color-mix(in srgb, var(--color-primary, ${gold}) 30%, transparent);
+          --serif:  var(--font-heading, 'Cormorant Garamond', Georgia, serif);
+          --sans:   var(--font-body, 'Jost', system-ui, sans-serif);
         }
         html{scroll-behavior:smooth}
         body{font-family:var(--sans);font-weight:300;color:var(--dark);background:var(--cream);-webkit-font-smoothing:antialiased}

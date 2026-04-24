@@ -27,11 +27,11 @@ export function Clean(props: { data: SalonData }) {
   const title = tenant.hero_title ?? tenant.salon_name;
 
   return (
-    <div className={`${inter.variable} min-h-screen bg-white text-neutral-900`} style={{ fontFamily: "var(--font-clean), system-ui, sans-serif" }}>
+    <div className={`${inter.variable} min-h-screen bg-white text-neutral-900`} style={{ fontFamily: "var(--font-body, var(--font-clean), system-ui, sans-serif)" }}>
       <header className="border-b border-neutral-200">
         <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-4">
           <SalonSiteBrand data={data} nameClassName="text-lg font-semibold" />
-          <Link href={`/${tenant.salon_slug}/booking`} className="rounded-md px-4 py-2 text-sm font-medium text-white" style={{ background: "#333" }}>
+          <Link href={`/${tenant.salon_slug}/booking`} className="rounded-md px-4 py-2 text-sm font-medium text-white" style={{ background: `var(--color-primary, ${ACCENT})` }}>
             Запази час
           </Link>
         </div>
@@ -103,7 +103,7 @@ export function Clean(props: { data: SalonData }) {
       </main>
 
       <footer className="border-t border-neutral-200 py-6 text-center text-xs text-neutral-500">
-        © {new Date().getFullYear()} {tenant.salon_name} · <span style={{ color: ACCENT }}>SalonApp.pro</span>
+        © {new Date().getFullYear()} {tenant.salon_name} · <span style={{ color: `var(--color-primary, ${ACCENT})` }}>SalonApp.pro</span>
       </footer>
     </div>
   );
