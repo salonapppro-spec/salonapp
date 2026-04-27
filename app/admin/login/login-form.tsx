@@ -20,6 +20,7 @@ export function AdminLoginForm() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const superAdminOnly = searchParams.get("super_admin_only") === "1";
+  const tenantRequired = searchParams.get("tenant_required") === "1";
 
   async function signOutOther() {
     setLoading(true);
@@ -94,6 +95,24 @@ export function AdminLoginForm() {
               <p className="mt-1 text-amber-900/90">
                 В момента си влязъл/а със салонски профил (без роля <code className="rounded bg-amber-100/80 px-1">super_admin</code> в Supabase). Излез и влез с акаунта, на който е зададена тази роля в{" "}
                 <strong>Authentication → Users → App metadata</strong>.
+              </p>
+              <button
+                type="button"
+                className="btn-admin-primary mt-3 w-full text-sm sm:w-auto"
+                disabled={loading}
+                onClick={() => void signOutOther()}
+              >
+                Изход от текущия акаунт
+              </button>
+            </div>
+          ) : null}
+          {tenantRequired ? (
+            <div className="mb-5 rounded-2xl border border-amber-200 bg-amber-50/95 px-4 py-3 text-sm text-amber-950">
+              <p className="font-medium">Профилът няма валиден салонски достъп</p>
+              <p className="mt-1 text-amber-900/90">
+                В момента акаунтът е вписан, но не може да се определи активен салон за админ панела.
+                Излез от текущия акаунт и влез отново. Ако проблемът остане, вероятно има разминаване в
+                <code className="rounded bg-amber-100/80 px-1">app_metadata.salon_slug</code>.
               </p>
               <button
                 type="button"

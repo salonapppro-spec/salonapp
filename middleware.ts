@@ -264,6 +264,7 @@ export async function middleware(request: NextRequest) {
       // Redirect already-logged-in users away from login
       if (isLoginPath && user) {
         const superOnly = request.nextUrl.searchParams.get("super_admin_only") === "1";
+        const tenantRequired = request.nextUrl.searchParams.get("tenant_required") === "1";
         const nextParam = request.nextUrl.searchParams.get("next");
         const safeNext =
           nextParam &&
@@ -280,7 +281,7 @@ export async function middleware(request: NextRequest) {
           response.cookies.getAll().forEach((c) => r.cookies.set(c.name, c.value));
           return r;
         }
-        if (!superOnly) {
+        if (!superOnly && !tenantRequired) {
           const dest = safeNext ?? "/admin/dashboard";
           const r = NextResponse.redirect(new URL(dest, request.url));
           response.cookies.getAll().forEach((c) => r.cookies.set(c.name, c.value));
