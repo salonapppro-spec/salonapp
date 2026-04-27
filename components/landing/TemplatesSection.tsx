@@ -87,8 +87,8 @@ export default function TemplatesSection() {
           </p>
         </div>
 
-        {/* Asymmetric grid — Bloom featured (col-span-2) */}
-        <div className="grid grid-cols-1 gap-[30px] sm:grid-cols-2 lg:grid-cols-3">
+        {/* Asymmetric grid — 4 cols: Bloom(2)+Luxe+Luxe2 / Bold+Zen+Groom(2) */}
+        <div className="grid grid-cols-1 gap-[30px] sm:grid-cols-2 lg:grid-cols-4">
           {TEMPLATES.map((t) => (
             <Link
               key={t.slug}
@@ -96,6 +96,8 @@ export default function TemplatesSection() {
               target="_blank"
               className={`group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl${
                 t.featured ? " sm:col-span-2 lg:col-span-2" : ""
+              }${
+                t.slug === "groom" ? " sm:col-span-2 lg:col-span-2" : ""
               }`}
             >
               {/* Badge */}
@@ -111,7 +113,7 @@ export default function TemplatesSection() {
               {/* Preview image — 65% of card height */}
               <div
                 className={`relative overflow-hidden${
-                  t.featured ? " h-[300px]" : " h-[200px]"
+                  t.featured || t.slug === "groom" ? " h-[280px]" : " h-[200px]"
                 }`}
               >
                 <Image
