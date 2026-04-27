@@ -382,19 +382,20 @@ export default function Home() {
         {/* ── TEMPLATES — "Избери своя стил" ── */}
         <TemplatesSection />
 
-        {/* ── PROBLEMS — alternating image/text ── */}
-        <section>
-          <div className="mx-auto max-w-6xl px-4 py-16 sm:px-6 md:py-20">
+        {/* ── PROBLEMS — grid cards ── */}
+        <section className="px-4 py-16 sm:px-6 md:py-20">
+          <div className="mx-auto max-w-5xl">
             <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C9A84C]">
-              Решения
+              Познато ли ти е?
             </p>
-            <h2
-              className="playfair mt-3 text-3xl font-black text-[#1A1A1A] md:text-5xl"
-            >
-              Проблемите, които решаваме.
+            <h2 className="playfair mt-3 mb-2 text-3xl font-black text-[#1A1A1A] md:text-5xl">
+              Познато ли ти е това?
             </h2>
+            <p className="mb-10 text-base text-[#1A1A1A]/55">
+              Създадохме SalonApp, за да върнем контрола в твоите ръце.
+            </p>
+            <ProblemsSection />
           </div>
-          <ProblemsSection />
         </section>
 
         {/* ── СРАВНИТЕЛНА ТАБЛИЦА ── */}
