@@ -12,6 +12,7 @@ const TEMPLATES = [
     href: "/demo/bloom",
     accent: "#C8826A",
     tag: "Най-популярен",
+    featured: true,
   },
   {
     slug: "luxe",
@@ -21,6 +22,7 @@ const TEMPLATES = [
     href: "/demo/luxe",
     accent: "#C9A84C",
     tag: null,
+    featured: false,
   },
   {
     slug: "luxe2",
@@ -30,6 +32,7 @@ const TEMPLATES = [
     href: "/demo/luxe2",
     accent: "#B8973A",
     tag: null,
+    featured: false,
   },
   {
     slug: "bold",
@@ -39,6 +42,7 @@ const TEMPLATES = [
     href: "/demo/bold",
     accent: "#F97316",
     tag: null,
+    featured: false,
   },
   {
     slug: "zen",
@@ -48,6 +52,7 @@ const TEMPLATES = [
     href: "/demo/zen",
     accent: "#5A8A5E",
     tag: null,
+    featured: false,
   },
   {
     slug: "groom",
@@ -57,13 +62,15 @@ const TEMPLATES = [
     href: "/demo/groom",
     accent: "#C8956A",
     tag: "Ново",
+    featured: false,
   },
 ];
 
 export default function TemplatesSection() {
   return (
-    <section id="templates" className="bg-[#EAD5C4] px-4 py-16 sm:px-6 md:py-24">
+    <section id="templates" className="bg-[#EDE4D8] px-4 py-16 sm:px-6 md:py-24">
       <div className="mx-auto max-w-6xl">
+
         {/* Header */}
         <div className="mb-12 border-b border-[#1A1A1A]/10 pb-8">
           <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C9A84C]">
@@ -80,25 +87,33 @@ export default function TemplatesSection() {
           </p>
         </div>
 
-        {/* Grid */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {/* Asymmetric grid — Bloom featured (col-span-2) */}
+        <div className="grid grid-cols-1 gap-[30px] sm:grid-cols-2 lg:grid-cols-3">
           {TEMPLATES.map((t) => (
-            <div
+            <Link
               key={t.slug}
-              className="group relative flex flex-col overflow-hidden border border-[#1A1A1A]/10 bg-white shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+              href={t.href}
+              target="_blank"
+              className={`group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl${
+                t.featured ? " sm:col-span-2 lg:col-span-2" : ""
+              }`}
             >
-              {/* Tag */}
+              {/* Badge */}
               {t.tag && (
                 <span
-                  className="absolute left-3 top-3 z-10 px-2.5 py-1 text-[9px] font-black uppercase tracking-widest text-white"
+                  className="absolute right-3 top-3 z-10 rounded-full px-3 py-1 text-[9px] font-black uppercase tracking-widest text-white shadow-sm"
                   style={{ background: t.accent }}
                 >
                   {t.tag}
                 </span>
               )}
 
-              {/* Screenshot preview */}
-              <div className="relative h-48 overflow-hidden">
+              {/* Preview image — 65% of card height */}
+              <div
+                className={`relative overflow-hidden${
+                  t.featured ? " h-[300px]" : " h-[200px]"
+                }`}
+              >
                 <Image
                   src={`/previews/${t.slug}.jpg`}
                   alt={`${t.name} шаблон превю`}
@@ -106,44 +121,45 @@ export default function TemplatesSection() {
                   className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-                {/* Hover overlay */}
-                <div className="absolute inset-0 flex items-center justify-center bg-black/0 transition-all duration-300 group-hover:bg-black/40">
-                  <span className="translate-y-2 scale-90 rounded-sm bg-white px-4 py-2 text-[11px] font-black uppercase tracking-widest text-[#1A1A1A] opacity-0 transition-all duration-300 group-hover:translate-y-0 group-hover:scale-100 group-hover:opacity-100">
-                    Виж демото →
-                  </span>
-                </div>
+                {/* Subtle hover overlay */}
+                <div className="absolute inset-0 bg-black/0 transition-all duration-300 group-hover:bg-black/10" />
               </div>
 
               {/* Card body */}
-              <div className="flex flex-1 flex-col p-5">
+              <div className="flex flex-1 flex-col p-6">
                 <p
-                  className="text-[10px] font-black uppercase tracking-[0.3em]"
+                  className="text-[10px] font-black uppercase tracking-[0.35em]"
                   style={{ color: t.accent }}
                 >
                   {t.type}
                 </p>
-                <h3 className="mt-0.5 text-lg font-black text-[#1A1A1A]">{t.name}</h3>
-                <p className="mt-2 flex-1 text-xs leading-relaxed text-[#1A1A1A]/50">{t.desc}</p>
-                <Link
-                  href={t.href}
-                  target="_blank"
-                  className="mt-4 flex items-center justify-center border py-2.5 text-[11px] font-black uppercase tracking-widest transition-all duration-200 hover:text-white"
-                  style={{ borderColor: t.accent, color: t.accent }}
-                  onMouseEnter={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.background = t.accent;
-                    (e.currentTarget as HTMLAnchorElement).style.color = "white";
-                  }}
-                  onMouseLeave={(e) => {
-                    (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                    (e.currentTarget as HTMLAnchorElement).style.color = t.accent;
-                  }}
+                <h3
+                  className="mt-1 text-xl font-black text-[#1A1A1A]"
+                  style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
                 >
-                  Виж демото
-                </Link>
+                  {t.name}
+                </h3>
+                <p className="mt-2 flex-1 text-sm leading-relaxed text-[#1A1A1A]/50">
+                  {t.desc}
+                </p>
+
+                {/* Arrow link */}
+                <div
+                  className="mt-5 flex items-center gap-1.5 text-[12px] font-bold transition-colors duration-200"
+                  style={{ color: t.accent }}
+                >
+                  <span className="border-b border-transparent transition-colors duration-200 group-hover:border-current">
+                    Виж демото
+                  </span>
+                  <span className="transition-transform duration-200 group-hover:translate-x-1">
+                    →
+                  </span>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
+
       </div>
     </section>
   );
