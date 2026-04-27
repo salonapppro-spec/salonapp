@@ -52,7 +52,18 @@ export async function resolveAdminTenantSlug(): Promise<string | null> {
   }
 
   const fromJwt = slugFromUser(data.user);
-  if (fromJwt) return fromJwt;
+  if (fromJwt) {
+    // Fail closed: JWT slug must resolve to a real tenant.
+    // Prevents silent empty admin state when metadata is stale after slug rename.
+    const { data: tenant, error: tenantErr } = await supabase
+      .from("tenants")
+      .select("salon_slug")
+      .eq("salon_slug", fromJwt)
+      .limit(1)
+      .maybeSingle();
+    if (!tenantErr && tenant) return fromJwt;
+    if (isProductionRuntime()) return null;
+  }
 
   if (data.user.app_metadata?.role === "super_admin") {
     const cookieStore = await cookies();

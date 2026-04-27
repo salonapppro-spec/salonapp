@@ -9,6 +9,66 @@ import {
 } from "@/lib/tenant-slug-rename";
 
 type PgishError = { message: string; code?: string; details?: string; hint?: string };
+type AuthUser = {
+  id: string;
+  app_metadata?: Record<string, unknown> | null;
+  user_metadata?: Record<string, unknown> | null;
+};
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
+function slugFromMetadata(meta: Record<string, unknown> | null | undefined): string | null {
+  const raw = typeof meta?.salon_slug === "string" ? meta.salon_slug.trim() : "";
+  return raw && SLUG_RE.test(raw) ? raw : null;
+}
+
+async function listAllAuthUsers(admin: SupabaseClient): Promise<{ users: AuthUser[]; error?: string }> {
+  const users: AuthUser[] = [];
+  const perPage = 200;
+  let page = 1;
+  for (;;) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage });
+    if (error) return { users: [], error: `Грешка при четене на auth потребители: ${error.message}` };
+    const chunk = (data?.users ?? []) as AuthUser[];
+    users.push(...chunk);
+    if (chunk.length < perPage) break;
+    page += 1;
+  }
+  return { users };
+}
+
+async function syncOwnerMetadataForSlugRename(
+  admin: SupabaseClient,
+  oldSlug: string,
+  newSlug: string
+): Promise<{ updatedCount: number; error?: string }> {
+  const { users, error } = await listAllAuthUsers(admin);
+  if (error) return { updatedCount: 0, error };
+
+  let updatedCount = 0;
+  for (const user of users) {
+    const appMeta = (user.app_metadata ?? {}) as Record<string, unknown>;
+    const userMeta = (user.user_metadata ?? {}) as Record<string, unknown>;
+    const appSlug = slugFromMetadata(appMeta);
+    const userSlug = slugFromMetadata(userMeta);
+    if (appSlug !== oldSlug && userSlug !== oldSlug) continue;
+
+    const nextAppMeta = appSlug === oldSlug ? { ...appMeta, salon_slug: newSlug } : appMeta;
+    const nextUserMeta = userSlug === oldSlug ? { ...userMeta, salon_slug: newSlug } : userMeta;
+
+    const { error: updErr } = await admin.auth.admin.updateUserById(user.id, {
+      app_metadata: nextAppMeta,
+      user_metadata: nextUserMeta,
+    });
+    if (updErr) {
+      return {
+        updatedCount,
+        error: `Базата е обновена, но auth metadata не успя за user ${user.id}: ${updErr.message}`,
+      };
+    }
+    updatedCount += 1;
+  }
+  return { updatedCount };
+}
 
 function formatTenantSlugUpdateError(err: PgishError | null | undefined): string {
   if (!err?.message) return "Неуспешна смяна в базата. Моля, опитай пак.";
@@ -34,8 +94,8 @@ function formatTenantSlugUpdateError(err: PgishError | null | undefined): string
 
 /**
  * Смяна на `tenants.salon_slug` + storage + URL в полетата. Изисква service role client.
- * Връща `{ error }` при неуспех; иначе обновява и metadata на текущата сесия, само ако
- * потребителят вече има `salon_slug === oldSlug` (собственик) — super_admin без този slug не се пипа.
+ * Връща `{ error }` при неуспех; иначе синхронизира auth metadata за ВСИЧКИ засегнати
+ * потребители, които сочат към old slug (app_metadata и user_metadata).
  */
 export async function performSalonSlugRename(
   admin: SupabaseClient,
@@ -95,20 +155,19 @@ export async function performSalonSlugRename(
 
   await removeStoragePrefix(admin, oldSlug);
 
+  const { error: authSyncError } = await syncOwnerMetadataForSlugRename(admin, oldSlug, newSlug);
+  if (authSyncError) return { error: authSyncError };
+
   const ssr = await createSupabaseServerClient();
   if (ssr) {
     const { data: u } = await ssr.auth.getUser();
-    if (u.user) {
-      const am = (u.user.app_metadata ?? {}) as Record<string, unknown>;
-      const um = (u.user.user_metadata ?? {}) as Record<string, unknown>;
-      const fromAm = typeof am.salon_slug === "string" ? am.salon_slug : null;
-      const fromUm = typeof um.salon_slug === "string" ? um.salon_slug : null;
-      if (fromAm === oldSlug || fromUm === oldSlug) {
-        await admin.auth.admin.updateUserById(u.user.id, {
-          app_metadata: { ...am, salon_slug: newSlug },
-          user_metadata: { ...um, salon_slug: newSlug },
-        });
-      }
+    const appMetaSlug = slugFromMetadata((u.user?.app_metadata ?? null) as Record<string, unknown> | null);
+    const userMetaSlug = slugFromMetadata((u.user?.user_metadata ?? null) as Record<string, unknown> | null);
+    if (u.user && (appMetaSlug === oldSlug || userMetaSlug === oldSlug)) {
+      await admin.auth.admin.updateUserById(u.user.id, {
+        app_metadata: { ...(u.user.app_metadata ?? {}), salon_slug: newSlug },
+        user_metadata: { ...(u.user.user_metadata ?? {}), salon_slug: newSlug },
+      });
     }
   }
 
