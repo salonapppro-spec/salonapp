@@ -208,21 +208,29 @@ export function ServicesClient(props: { initialServices: Service[] }) {
         <ul className="admin-list mt-3">
           {active.map((s) => (
             <li key={s.id} className="px-6 py-3.5 text-sm">
-              <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex flex-col gap-2.5 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
                 <div className="min-w-0 flex-1">
-                  <div className="font-medium text-brand-900">{s.name}</div>
-                  <div className="text-brand-800/85">
+                  <div className="break-words font-medium text-brand-900">{s.name}</div>
+                  <div className="mt-0.5 text-brand-800/85">
                     {Number(s.price_eur).toFixed(0)} € ·{" "}
                     {s.is_complex
                       ? `сложна (${s.active_start_min ?? "?"}–${s.active_start_max ?? "?"} / ${s.waiting_min ?? "?"}–${s.waiting_max ?? "?"} / ${s.active_finish_min ?? "?"}–${s.active_finish_max ?? "?"})`
                       : `${s.duration_minutes ?? 0} мин`}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" className="btn-admin-ghost px-5 py-2.5 text-xs" onClick={() => setEditingId(editingId === s.id ? null : s.id)}>
+                <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                  <button
+                    type="button"
+                    className="btn-admin-ghost min-h-[36px] px-3 py-1.5 text-[11px] sm:min-h-[40px] sm:px-4 sm:py-2 sm:text-xs"
+                    onClick={() => setEditingId(editingId === s.id ? null : s.id)}
+                  >
                     {editingId === s.id ? "Затвори" : "Редактирай"}
                   </button>
-                  <button type="button" className="btn-admin-ghost px-5 py-2.5" onClick={() => toggle(s.id, s.is_active)}>
+                  <button
+                    type="button"
+                    className="btn-admin-ghost min-h-[36px] px-3 py-1.5 text-[11px] sm:min-h-[40px] sm:px-4 sm:py-2 sm:text-xs"
+                    onClick={() => toggle(s.id, s.is_active)}
+                  >
                     Деактивирай
                   </button>
                 </div>
