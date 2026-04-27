@@ -60,8 +60,11 @@ async function ClientsListSection(props: { q: string }) {
   return <ClientsAdminClient initialClients={clients} searchQ={props.q} />;
 }
 
-export default function AdminClientsPage(props: { searchParams?: { q?: string } }) {
-  const q = props.searchParams?.q ?? "";
+type ClientsSearchParams = { q?: string };
+
+export default async function AdminClientsPage(props: { searchParams?: Promise<ClientsSearchParams> }) {
+  const searchParams = await props.searchParams;
+  const q = searchParams?.q ?? "";
 
   return (
     <div className="admin-page-shell max-w-6xl">

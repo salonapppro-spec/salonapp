@@ -211,8 +211,10 @@ async function CalendarDataSection(props: { date: string; view: "day" | "week" }
   );
 }
 
-export default function AdminCalendarPage(props: { searchParams?: { date?: string; view?: string } }) {
-  const sp = props.searchParams;
+type CalendarSearchParams = { date?: string; view?: string };
+
+export default async function AdminCalendarPage(props: { searchParams?: Promise<CalendarSearchParams> }) {
+  const sp = await props.searchParams;
   const date = sp?.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : todayLocalISO();
   const view = sp?.view === "week" ? "week" : "day";
 
