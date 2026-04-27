@@ -184,7 +184,7 @@ export function GetStartedForm() {
 
               <div>
                 <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
-                  Ime и Фамилия *
+                  Име и Фамилия *
                 </label>
                 <input
                   className={inputCls}
@@ -213,7 +213,7 @@ export function GetStartedForm() {
 
               <div>
                 <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
-                  Ime на салона *
+                  Име на салона *
                 </label>
                 <input
                   className={inputCls}
