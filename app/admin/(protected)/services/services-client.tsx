@@ -207,7 +207,7 @@ export function ServicesClient(props: { initialServices: Service[] }) {
         <h2 className="text-lg font-semibold tracking-tight text-brand-900">Активни</h2>
         <ul className="admin-list mt-3">
           {active.map((s) => (
-            <li key={s.id} className="px-5 py-3.5 text-sm">
+            <li key={s.id} className="px-6 py-3.5 text-sm">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="min-w-0 flex-1">
                   <div className="font-medium text-brand-900">{s.name}</div>
@@ -219,10 +219,10 @@ export function ServicesClient(props: { initialServices: Service[] }) {
                   </div>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <button type="button" className="btn-admin-ghost px-4 text-xs" onClick={() => setEditingId(editingId === s.id ? null : s.id)}>
+                  <button type="button" className="btn-admin-ghost px-5 py-2.5 text-xs" onClick={() => setEditingId(editingId === s.id ? null : s.id)}>
                     {editingId === s.id ? "Затвори" : "Редактирай"}
                   </button>
-                  <button type="button" className="btn-admin-ghost px-4" onClick={() => toggle(s.id, s.is_active)}>
+                  <button type="button" className="btn-admin-ghost px-5 py-2.5" onClick={() => toggle(s.id, s.is_active)}>
                     Деактивирай
                   </button>
                 </div>
@@ -232,7 +232,7 @@ export function ServicesClient(props: { initialServices: Service[] }) {
               ) : null}
             </li>
           ))}
-          {active.length === 0 ? <li className="px-5 py-8 text-center text-brand-700/75">Няма активни.</li> : null}
+          {active.length === 0 ? <li className="px-6 py-8 text-center text-brand-700/75">Няма активни.</li> : null}
         </ul>
       </section>
 
@@ -240,7 +240,7 @@ export function ServicesClient(props: { initialServices: Service[] }) {
         <h2 className="text-lg font-semibold tracking-tight text-brand-900">Неактивни (скрити от сайта)</h2>
         <ul className="admin-list mt-3">
           {inactive.map((s) => (
-            <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3.5 text-sm">
+            <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 text-sm">
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-brand-900">{s.name}</div>
                 <div className="text-brand-800/85">
@@ -267,7 +267,7 @@ export function ServicesClient(props: { initialServices: Service[] }) {
               </div>
             </li>
           ))}
-          {inactive.length === 0 ? <li className="px-5 py-8 text-center text-brand-700/75">Няма.</li> : null}
+          {inactive.length === 0 ? <li className="px-6 py-8 text-center text-brand-700/75">Няма.</li> : null}
         </ul>
       </section>
     </div>
