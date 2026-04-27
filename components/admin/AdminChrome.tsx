@@ -30,7 +30,7 @@ export function AdminChrome(props: {
   mobileScheduleQuickLinks?: { tomorrow: string; week: string; calendar: string };
 }) {
   const { mobileScheduleQuickLinks } = props;
-  const pathname = usePathname();
+  const pathname = usePathname() ?? "";
   const isDashboardOrCalendar = pathname === "/admin/dashboard" || pathname === "/admin/calendar";
 
   function isActive(href: string) {
