@@ -46,9 +46,9 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
   return (
     <>
       {impersonatedSlug && (
-        <div className="sticky top-0 z-[100] flex items-center justify-between gap-3 bg-amber-400 px-4 py-2 text-sm font-semibold text-neutral-900">
-          <span>⚠ Супер-админ режим — преглеждаш салон: <strong>{impersonatedSlug}</strong></span>
-          <form action={exitSalonAdminContextAction}>
+        <div className="sticky top-0 z-[100] flex items-center justify-between gap-2 bg-amber-400 px-3 py-2 text-sm font-semibold text-neutral-900">
+          <span className="min-w-0 flex-1 truncate">⚠ Супер-админ режим — преглеждаш салон: <strong>{impersonatedSlug}</strong></span>
+          <form action={exitSalonAdminContextAction} className="shrink-0">
             <button type="submit" className="rounded bg-neutral-900/15 px-3 py-1 text-xs hover:bg-neutral-900/25">
               Изход
             </button>
@@ -56,7 +56,7 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
         </div>
       )}
       <AdminChrome mobileScheduleQuickLinks={mobileScheduleQuickLinks} />
-      <div className="md:pl-56">
+      <div className="overflow-x-hidden md:pl-56">
         <div className="mx-auto max-w-6xl px-3 pb-[calc(8.5rem+env(safe-area-inset-bottom))] pt-2 md:px-6 md:pb-8 md:pt-6">{props.children}</div>
       </div>
     </>

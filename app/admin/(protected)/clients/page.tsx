@@ -85,21 +85,19 @@ export default function AdminClientsPage(props: { searchParams?: { q?: string } 
       </div>
 
       {/* Search */}
-      <form className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
-        <div className="min-w-0 flex-1">
-          <input
-            id="clients-q"
-            type="search"
-            name="q"
-            defaultValue={q}
-            placeholder="🔍  Търси по име или телефон…"
-            className="input-admin !mt-0 h-16 w-full"
-          />
-        </div>
+      <form className="mt-6 flex gap-2" method="get">
+        <input
+          id="clients-q"
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="🔍  Търси по име или телефон…"
+          className="input-admin !mt-0 h-11 min-w-0 flex-1"
+        />
         <button
           type="submit"
-          className="w-full rounded-xl px-6 py-3 text-sm font-black text-white transition hover:opacity-90 sm:w-auto"
-          style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", minHeight: "44px" }}
+          className="shrink-0 rounded-xl px-4 text-sm font-black text-white transition hover:opacity-90"
+          style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", height: "44px" }}
         >
           Търси
         </button>
