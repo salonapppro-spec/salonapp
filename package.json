@@ -8,7 +8,7 @@
     "start": "next start",
     "lint": "next lint",
     "test": "tsx --test tests/settings-clear-behavior.test.ts",
-    "test:integration": "tsx --test tests/integration/**/*.test.ts",
+    "test:integration": "node scripts/run-integration-tests.mjs",
     "test:all": "npm run test && npm run test:integration",
     "check:service-role-boundary": "node scripts/check-service-role-boundary.mjs",
     "db:apply-019": "node scripts/apply-019-tenant-cascade.cjs"
