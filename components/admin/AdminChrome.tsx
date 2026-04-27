@@ -65,7 +65,8 @@ export function AdminChrome(props: {
               <Link
                 key={l.href}
                 href={l.href}
-                className="group relative flex items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-150"
+                prefetch={true}
+                className="group relative flex min-h-[44px] items-center gap-2.5 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-100 active:scale-[0.98] md:duration-150 md:hover:bg-[rgba(201,168,76,0.08)] md:active:scale-100"
                 style={
                   active
                     ? {
@@ -75,12 +76,6 @@ export function AdminChrome(props: {
                       }
                     : { color: "rgba(26,26,26,0.65)" }
                 }
-                onMouseEnter={(e) => {
-                  if (!active) (e.currentTarget as HTMLAnchorElement).style.background = "rgba(201,168,76,0.08)";
-                }}
-                onMouseLeave={(e) => {
-                  if (!active) (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                }}
               >
                 {active && (
                   <span
@@ -102,7 +97,8 @@ export function AdminChrome(props: {
                 <Link
                   key={l.href}
                   href={l.href}
-                  className="group relative mt-0.5 flex items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-150"
+                  prefetch={true}
+                  className="group relative mt-0.5 flex min-h-[44px] items-center gap-2.5 rounded-xl px-3 py-2 text-sm font-medium transition-all duration-100 active:scale-[0.98] md:duration-150 md:hover:bg-[rgba(201,168,76,0.08)] md:active:scale-100"
                   style={
                     active
                       ? {
@@ -112,12 +108,6 @@ export function AdminChrome(props: {
                         }
                       : { color: "rgba(26,26,26,0.55)" }
                   }
-                  onMouseEnter={(e) => {
-                    if (!active) (e.currentTarget as HTMLAnchorElement).style.background = "rgba(201,168,76,0.08)";
-                  }}
-                  onMouseLeave={(e) => {
-                    if (!active) (e.currentTarget as HTMLAnchorElement).style.background = "transparent";
-                  }}
                 >
                   {active && (
                     <span
@@ -135,7 +125,7 @@ export function AdminChrome(props: {
 
         {/* Sign out */}
         <div className="shrink-0 border-t border-[#C9A84C]/15 p-3">
-          <SignOutButton className="w-full rounded-xl border border-[#C9A84C]/25 bg-white/70 px-3 py-2.5 text-sm font-semibold text-[#1A1A1A]/70 shadow-sm transition hover:border-[#C9A84C]/40 hover:bg-white hover:text-[#1A1A1A]">
+          <SignOutButton className="w-full rounded-xl border border-[#C9A84C]/25 bg-white/70 px-3 py-2.5 text-sm font-semibold text-[#1A1A1A]/70 shadow-sm transition active:scale-[0.98] md:hover:border-[#C9A84C]/40 md:hover:bg-white md:hover:text-[#1A1A1A] md:active:scale-100">
             Изход от акаунта
           </SignOutButton>
         </div>
@@ -152,10 +142,11 @@ export function AdminChrome(props: {
             <Link
               key={l.href}
               href={l.href}
-              className="flex min-h-[3rem] flex-1 flex-col items-center justify-center gap-0.5 px-1"
+              prefetch={true}
+              className="flex min-h-[44px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 transition-transform duration-100 active:scale-95 md:duration-150"
             >
               <span
-                className="flex h-8 w-8 items-center justify-center rounded-xl text-base transition-all duration-200"
+                className="flex h-11 w-11 items-center justify-center rounded-xl text-base transition-all duration-100 md:duration-200"
                 style={
                   active
                     ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", fontSize: "16px" }
@@ -194,7 +185,8 @@ export function AdminChrome(props: {
               <Link
                 key={l.href}
                 href={l.href}
-                className="shrink-0 rounded-lg px-2 py-1.5 text-xs font-medium transition"
+                prefetch={true}
+                className="shrink-0 rounded-lg px-2.5 py-2 text-xs font-medium transition duration-100 active:scale-95 md:duration-150 md:active:scale-100"
                 style={
                   isActive(l.href)
                     ? { background: "rgba(201,168,76,0.15)", color: "#C9A84C" }
@@ -204,7 +196,7 @@ export function AdminChrome(props: {
                 {l.label.split(" ")[0]}
               </Link>
             ))}
-            <SignOutButton className="shrink-0 rounded-lg px-2 py-1.5 text-xs font-medium text-[#1A1A1A]/55 transition hover:bg-black/5 hover:text-[#1A1A1A]">
+            <SignOutButton className="shrink-0 rounded-lg px-2.5 py-2 text-xs font-medium text-[#1A1A1A]/55 transition active:scale-95 md:hover:bg-black/5 md:hover:text-[#1A1A1A] md:active:scale-100">
               Изход
             </SignOutButton>
           </div>

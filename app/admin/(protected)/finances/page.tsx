@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
 import { FinancialSettingsForm } from "@/components/admin/FinancialSettingsForm";
@@ -23,7 +24,27 @@ function todayLocalISO(): string {
   return `${y}-${mo}-${day}`;
 }
 
-export default async function AdminFinancesPage() {
+function FinancesSkeleton() {
+  return (
+    <div className="mt-8 animate-pulse space-y-6">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="h-24 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
+        <div className="h-24 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
+        <div className="h-24 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
+      </div>
+      <div className="space-y-3">
+        <div className="h-5 w-44 rounded-lg bg-[#1A1A1A]/10" />
+        <div className="h-48 rounded-2xl border border-[#C9A84C]/15 bg-white/80" />
+      </div>
+      <div className="space-y-3">
+        <div className="h-5 w-36 rounded-lg bg-[#1A1A1A]/10" />
+        <div className="h-64 rounded-2xl border border-[#C9A84C]/15 bg-white/80" />
+      </div>
+    </div>
+  );
+}
+
+async function FinancesDataSection() {
   const scope = await resolveFinanceScope();
   if (!scope) redirect("/admin/login");
 
@@ -65,12 +86,7 @@ export default async function AdminFinancesPage() {
   });
 
   return (
-    <div className="admin-page-shell max-w-5xl">
-      <h1 className="text-2xl font-semibold tracking-tight text-brand-900 sm:text-3xl">Финанси</h1>
-      <p className="mt-2 text-sm text-brand-800/85 sm:text-base">
-        Оборот от завършени резервации, ABC анализ и разходи.
-      </p>
-
+    <>
       {specialistIdFilter ? (
         <p className="mt-3 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
           Колективен режим: виждате оборота и услугите за вашия профил. Техническият администратор вижда салона
@@ -97,6 +113,21 @@ export default async function AdminFinancesPage() {
 
         <FinancialSettingsForm settings={settings} variant="booking" />
       </div>
+    </>
+  );
+}
+
+export default function AdminFinancesPage() {
+  return (
+    <div className="admin-page-shell max-w-5xl">
+      <h1 className="text-2xl font-semibold tracking-tight text-brand-900 sm:text-3xl">Финанси</h1>
+      <p className="mt-2 text-sm text-brand-800/85 sm:text-base">
+        Оборот от завършени резервации, ABC анализ и разходи.
+      </p>
+
+      <Suspense fallback={<FinancesSkeleton />}>
+        <FinancesDataSection />
+      </Suspense>
     </div>
   );
 }

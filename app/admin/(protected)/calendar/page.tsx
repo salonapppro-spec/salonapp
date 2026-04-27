@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 
 import { BookingStatusSelect } from "@/components/admin/BookingStatusSelect";
@@ -24,11 +25,24 @@ function todayLocalISO(): string {
 
 const dayFmt = new Intl.DateTimeFormat("bg-BG", { weekday: "short", day: "numeric", month: "short" });
 
-export default async function AdminCalendarPage(props: { searchParams: Promise<{ date?: string; view?: string }> }) {
+function CalendarSkeleton() {
+  return (
+    <div className="mt-5 animate-pulse">
+      <div className="h-11 w-full rounded-xl bg-[#1A1A1A]/8 sm:w-80" />
+      <div className="mt-4 h-10 w-full rounded-xl bg-[#1A1A1A]/8 sm:w-72" />
+      <div className="mt-4 h-11 w-full rounded-xl bg-[#C9A84C]/20" />
+      <div className="mt-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="h-48 rounded-2xl border border-[#C9A84C]/15 bg-white/80" />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+async function CalendarDataSection(props: { date: string; view: "day" | "week" }) {
   const salonSlug = await requireAdminTenantSlugForPage();
-  const sp = await props.searchParams;
-  const date = sp.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : todayLocalISO();
-  const view = sp.view === "week" ? "week" : "day";
+  const { date, view } = props;
   const dayOfWeek = new Date(`${date}T12:00:00`).getDay();
 
   const weekDates = view === "week" ? getWeekDateStrings(date) : [];
@@ -59,54 +73,7 @@ export default async function AdminCalendarPage(props: { searchParams: Promise<{
   const nextDate = addCalendarDaysInSofia(date, 1);
 
   return (
-    <div className="admin-page-shell max-w-5xl">
-      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
-        <div>
-          <span
-            className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white"
-            style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
-          >
-            📅 Календар
-          </span>
-          <h1
-            className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A] sm:text-3xl"
-            style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}
-          >
-            {view === "week" ? "Седмица" : "Ден"}
-          </h1>
-          <p className="mt-1 text-sm text-[#1A1A1A]/45">
-            {view === "week" ? "Пон–нед около избраната дата." : "Резервации и блокировки за деня."}
-          </p>
-        </div>
-        <div
-          className="flex shrink-0 items-center gap-1 rounded-2xl p-1"
-          style={{ border: "1px solid rgba(201,168,76,0.2)", background: "rgba(255,255,255,0.8)" }}
-        >
-          <Link
-            href={`/admin/calendar?date=${date}&view=day`}
-            className="rounded-xl px-4 py-2 text-sm font-semibold transition"
-            style={
-              view === "day"
-                ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "white" }
-                : { color: "rgba(26,26,26,0.55)" }
-            }
-          >
-            Ден
-          </Link>
-          <Link
-            href={`/admin/calendar?date=${date}&view=week`}
-            className="rounded-xl px-4 py-2 text-sm font-semibold transition"
-            style={
-              view === "week"
-                ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "white" }
-                : { color: "rgba(26,26,26,0.55)" }
-            }
-          >
-            Седмица
-          </Link>
-        </div>
-      </div>
-
+    <>
       <form className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" method="get">
         <input type="hidden" name="view" value={view} />
         <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end sm:gap-3">
@@ -240,6 +207,67 @@ export default async function AdminCalendarPage(props: { searchParams: Promise<{
           plan={tenant?.plan ?? "standard"}
         />
       )}
+    </>
+  );
+}
+
+export default function AdminCalendarPage(props: { searchParams?: { date?: string; view?: string } }) {
+  const sp = props.searchParams;
+  const date = sp?.date && /^\d{4}-\d{2}-\d{2}$/.test(sp.date) ? sp.date : todayLocalISO();
+  const view = sp?.view === "week" ? "week" : "day";
+
+  return (
+    <div className="admin-page-shell max-w-5xl">
+      <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
+        <div>
+          <span
+            className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white"
+            style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
+          >
+            📅 Календар
+          </span>
+          <h1
+            className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A] sm:text-3xl"
+            style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}
+          >
+            {view === "week" ? "Седмица" : "Ден"}
+          </h1>
+          <p className="mt-1 text-sm text-[#1A1A1A]/45">
+            {view === "week" ? "Пон–нед около избраната дата." : "Резервации и блокировки за деня."}
+          </p>
+        </div>
+        <div
+          className="flex shrink-0 items-center gap-1 rounded-2xl p-1"
+          style={{ border: "1px solid rgba(201,168,76,0.2)", background: "rgba(255,255,255,0.8)" }}
+        >
+          <Link
+            href={`/admin/calendar?date=${date}&view=day`}
+            className="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            style={
+              view === "day"
+                ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "white" }
+                : { color: "rgba(26,26,26,0.55)" }
+            }
+          >
+            Ден
+          </Link>
+          <Link
+            href={`/admin/calendar?date=${date}&view=week`}
+            className="rounded-xl px-4 py-2 text-sm font-semibold transition"
+            style={
+              view === "week"
+                ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "white" }
+                : { color: "rgba(26,26,26,0.55)" }
+            }
+          >
+            Седмица
+          </Link>
+        </div>
+      </div>
+
+      <Suspense fallback={<CalendarSkeleton />}>
+        <CalendarDataSection date={date} view={view} />
+      </Suspense>
     </div>
   );
 }
