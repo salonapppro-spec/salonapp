@@ -428,45 +428,54 @@ export default function Home() {
       </main>
 
       {/* ── FOOTER ── */}
-      <footer className="border-t border-[#1A1A1A]/10 bg-[#EAD5C4]">
-        <div className="mx-auto max-w-6xl px-4 py-10 sm:px-6">
-          <div className="flex flex-col gap-8 sm:flex-row sm:items-start sm:justify-between">
-            <div>
+      <footer className="bg-[#EAD5C4]">
+        <div className="mx-auto max-w-6xl px-6 py-14 sm:px-8">
+
+          {/* Горна секция: лого + навигация */}
+          <div className="flex flex-col items-center gap-10 sm:flex-row sm:items-center sm:justify-between">
+
+            {/* Ляво: лого + слоган */}
+            <div className="flex flex-col items-center sm:items-start">
               <Image
                 src="/logo.png"
                 alt="SalonApp"
-                width={140}
-                height={93}
-                className="h-auto w-[110px] object-contain"
+                width={160}
+                height={107}
+                className="h-auto w-[130px] object-contain"
               />
-              <p className="mt-3 text-[10px] uppercase tracking-[0.3em] text-[#1A1A1A]/35">
+              <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.35em] text-[#1A1A1A]/40">
                 Beauty. Business. Elevated.
               </p>
             </div>
-            <nav className="flex flex-wrap gap-x-8 gap-y-3 text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1A1A]/40">
-              <Link href="/get-started" className="transition hover:text-[#C9A84C]">
-                Безплатен месец
-              </Link>
-              <Link href={demoSalonHref} className="transition hover:text-[#C9A84C]">
-                Демо салон
-              </Link>
-              <Link href="mailto:salonapppro@gmail.com" className="transition hover:text-[#C9A84C]">
-                salonapppro@gmail.com
-              </Link>
-              <Link href="#" className="transition hover:text-[#C9A84C]">
-                Условия
-              </Link>
-              <Link href="#" className="transition hover:text-[#C9A84C]">
-                Поверителност
-              </Link>
+
+            {/* Дясно: навигационни линкове */}
+            <nav className="flex flex-wrap justify-center gap-x-8 gap-y-4 sm:justify-end">
+              {[
+                { label: "Безплатен месец", href: "/get-started" },
+                { label: "Демо салон", href: demoSalonHref },
+                { label: "salonapppro@gmail.com", href: "mailto:salonapppro@gmail.com" },
+                { label: "Условия", href: "#" },
+                { label: "Поверителност", href: "#" },
+              ].map(({ label, href }) => (
+                <Link
+                  key={label}
+                  href={href}
+                  className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1A1A]/45 transition-colors hover:text-[#C9A84C]"
+                >
+                  {label}
+                </Link>
+              ))}
             </nav>
           </div>
-          <div
-            className="mt-8 border-t pt-6 text-[10px] uppercase tracking-[0.3em] text-[#1A1A1A]/25"
-            style={{ borderColor: "rgba(26,26,26,0.08)" }}
-          >
+
+          {/* Разделител */}
+          <div className="my-10 border-t border-[#1A1A1A]/10" />
+
+          {/* Долна секция: copyright центриран */}
+          <p className="text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-[#1A1A1A]/30">
             © 2026 SalonApp.pro — Всички права запазени.
-          </div>
+          </p>
+
         </div>
       </footer>
     </div>
