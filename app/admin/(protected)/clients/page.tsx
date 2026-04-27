@@ -85,7 +85,7 @@ export default function AdminClientsPage(props: { searchParams?: { q?: string } 
       </div>
 
       {/* Search */}
-      <form className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
+      <form className="mt-7 flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
         <div className="min-w-0 flex-1">
           <input
             id="clients-q"
@@ -93,7 +93,7 @@ export default function AdminClientsPage(props: { searchParams?: { q?: string } 
             name="q"
             defaultValue={q}
             placeholder="🔍  Търси по име или телефон…"
-            className="input-admin !mt-0 w-full"
+            className="input-admin !mt-0 h-14 w-full"
           />
         </div>
         <button
