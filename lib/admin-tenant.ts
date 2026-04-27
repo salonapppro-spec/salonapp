@@ -2,6 +2,7 @@ import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
 import { getTenant } from "@/lib/get-tenant";
+import { recoverOwnerTenantSlug } from "@/lib/internal/owner-tenant-recovery";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 /** Slug format: lowercase latin, digits, hyphens (matches public URLs). */
@@ -58,13 +59,24 @@ export async function resolveAdminTenantSlug(): Promise<string | null> {
     // Prevents silent empty admin state when metadata is stale after slug rename.
     const tenant = await getTenant(fromJwt);
     if (tenant) return fromJwt;
-    if (isProductionRuntime()) return null;
+    if (isProductionRuntime() && data.user.app_metadata?.role !== "owner") return null;
   }
 
   if (data.user.app_metadata?.role === "super_admin") {
     const cookieStore = await cookies();
     const raw = cookieStore.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim();
     if (raw && SLUG_RE.test(raw)) return raw;
+  }
+
+  // Owner-only self-heal path: if JWT slug is stale/missing, restore from tenants.owner_email.
+  if (data.user.app_metadata?.role === "owner") {
+    const repairedSlug = await recoverOwnerTenantSlug({
+      userId: data.user.id,
+      email: data.user.email,
+      appMetadata: (data.user.app_metadata ?? null) as Record<string, unknown> | null,
+      userMetadata: (data.user.user_metadata ?? null) as Record<string, unknown> | null,
+    });
+    if (repairedSlug) return repairedSlug;
   }
 
   // Logged in but not provisioned — never guess from env in production
