@@ -123,8 +123,12 @@ export default function TemplatesSection() {
                   className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-                {/* Subtle hover overlay */}
-                <div className="absolute inset-0 bg-black/0 transition-all duration-300 group-hover:bg-black/10" />
+                {/* Топъл overlay — хармонизира цветовете с бежовия сайт */}
+                {/* При hover изчезва и разкрива истинските цветове на шаблона */}
+                <div
+                  className="absolute inset-0 z-10 transition-opacity duration-500 group-hover:opacity-0"
+                  style={{ background: "rgba(210, 175, 135, 0.38)" }}
+                />
               </div>
 
               {/* Card body */}
