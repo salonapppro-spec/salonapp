@@ -1,6 +1,7 @@
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
+import { getTenant } from "@/lib/get-tenant";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 
 /** Slug format: lowercase latin, digits, hyphens (matches public URLs). */
@@ -55,13 +56,8 @@ export async function resolveAdminTenantSlug(): Promise<string | null> {
   if (fromJwt) {
     // Fail closed: JWT slug must resolve to a real tenant.
     // Prevents silent empty admin state when metadata is stale after slug rename.
-    const { data: tenant, error: tenantErr } = await supabase
-      .from("tenants")
-      .select("salon_slug")
-      .eq("salon_slug", fromJwt)
-      .limit(1)
-      .maybeSingle();
-    if (!tenantErr && tenant) return fromJwt;
+    const tenant = await getTenant(fromJwt);
+    if (tenant) return fromJwt;
     if (isProductionRuntime()) return null;
   }
 

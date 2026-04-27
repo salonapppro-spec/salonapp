@@ -2,9 +2,8 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
-import { performSalonSlugRename } from "@/lib/perform-salon-slug-rename";
+import { renameTenantSlugAsSuperAdmin } from "@/lib/internal/super-admin-tenant-slug";
 import { requireSuperAdminForApi } from "@/lib/super-admin-auth";
 
 const SLUG = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -41,8 +40,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Новият адрес съвпада с текущия." }, { status: 400 });
   }
 
-  const admin = createSupabaseServiceRoleClient();
-  const { error } = await performSalonSlugRename(admin, oldSlug, newSlug);
+  const { error } = await renameTenantSlugAsSuperAdmin(oldSlug, newSlug);
   if (error) {
     return NextResponse.json({ error }, { status: statusForRenameError(error) });
   }
