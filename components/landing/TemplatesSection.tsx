@@ -87,18 +87,14 @@ export default function TemplatesSection() {
           </p>
         </div>
 
-        {/* Asymmetric grid — 4 cols: Bloom(2)+Luxe+Luxe2 / Bold+Zen+Groom(2) */}
-        <div className="grid grid-cols-1 gap-[30px] sm:grid-cols-2 lg:grid-cols-4">
+        {/* Clean 3-column equal grid */}
+        <div className="grid grid-cols-1 gap-[30px] sm:grid-cols-2 lg:grid-cols-3">
           {TEMPLATES.map((t) => (
             <Link
               key={t.slug}
               href={t.href}
               target="_blank"
-              className={`group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl${
-                t.featured ? " sm:col-span-2 lg:col-span-2" : ""
-              }${
-                t.slug === "groom" ? " sm:col-span-2 lg:col-span-2" : ""
-              }`}
+              className="group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
             >
               {/* Badge */}
               {t.tag && (
@@ -110,12 +106,8 @@ export default function TemplatesSection() {
                 </span>
               )}
 
-              {/* Preview image — 65% of card height */}
-              <div
-                className={`relative overflow-hidden${
-                  t.featured || t.slug === "groom" ? " h-[280px]" : " h-[200px]"
-                }`}
-              >
+              {/* Preview image */}
+              <div className="relative h-[220px] overflow-hidden">
                 <Image
                   src={`/previews/${t.slug}.jpg`}
                   alt={`${t.name} шаблон превю`}
