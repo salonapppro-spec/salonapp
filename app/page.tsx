@@ -249,133 +249,14 @@ export default function Home() {
         {/* ── MOCKUP СЕКЦИЯ ── */}
         <section className="bg-[#F9F5F0] px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-6xl">
-            <div className="grid gap-12 md:grid-cols-2 md:items-center">
-              {/* Монитор */}
-              <div className="flex flex-col items-center md:items-start">
-                <p className="mb-3 text-[10px] font-black uppercase tracking-[0.4em] text-[#C9A84C]">
-                  Твоят професионален сайт
-                </p>
-                <p className="mb-6 text-sm font-medium text-[#1A1A1A]/55">
-                  Зареден с твоето лого, снимки и услуги.
-                </p>
-                {/* CSS monitor mockup */}
-                <div className="w-full max-w-[440px]">
-                  {/* Monitor frame */}
-                  <div className="relative rounded-t-2xl border-4 border-[#2A2A2A] bg-[#2A2A2A] shadow-2xl">
-                    {/* Top bar */}
-                    <div className="flex items-center gap-1.5 px-3 py-2">
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
-                      <span className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
-                      <div className="ml-2 flex-1 rounded bg-[#3A3A3A] px-3 py-0.5 text-[9px] text-white/40">
-                        studio-elegance.salonapp.pro
-                      </div>
-                    </div>
-                    {/* Screen content */}
-                    <div className="bg-[#F8F2EA] px-4 pb-4 pt-3">
-                      {/* Salon navbar */}
-                      <div className="mb-3 flex items-center justify-between border-b border-[#1A1A1A]/10 pb-2">
-                        <span className="text-sm font-black tracking-wide text-[#1A1A1A]">STUDIO ELEGANCE</span>
-                        <div className="flex gap-3 text-[9px] font-semibold uppercase tracking-wider text-[#1A1A1A]/50">
-                          <span>Услуги</span>
-                          <span>Галерия</span>
-                          <span>За нас</span>
-                        </div>
-                      </div>
-                      {/* Hero image placeholder */}
-                      <div className="relative mb-3 h-28 overflow-hidden rounded bg-gradient-to-br from-[#D4B896] to-[#C09070]">
-                        <div className="absolute inset-0 flex items-center justify-center">
-                          <div className="text-center">
-                            <p className="text-[10px] font-medium text-white/70">✦ Красота с характер ✦</p>
-                          </div>
-                        </div>
-                        {/* CTA button */}
-                        <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
-                          <span className="rounded bg-[#C9A84C] px-4 py-1.5 text-[10px] font-black uppercase tracking-wider text-white shadow">
-                            ЗАПИШИ ЧАС ОНЛАЙН
-                          </span>
-                        </div>
-                      </div>
-                      {/* Services preview */}
-                      <div className="grid grid-cols-3 gap-1.5">
-                        {["Подстригване", "Боядисване", "Маска"].map((s) => (
-                          <div key={s} className="rounded bg-white px-2 py-1.5 text-center text-[9px] font-semibold text-[#1A1A1A]/60 shadow-sm">
-                            {s}
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                  {/* Monitor stand */}
-                  <div className="mx-auto h-4 w-24 rounded-b-sm bg-[#2A2A2A]" />
-                  <div className="mx-auto h-2 w-36 rounded-b-lg bg-[#3A3A3A]" />
-                </div>
-              </div>
-
-              {/* Телефон */}
-              <div className="flex flex-col items-center md:items-end">
-                <p className="mb-3 text-[10px] font-black uppercase tracking-[0.4em] text-[#C9A84C]">
-                  Пълен контрол от джоба ти
-                </p>
-                <p className="mb-6 text-sm font-medium text-[#1A1A1A]/55">
-                  График, наличности и SMS напомняния.
-                </p>
-                {/* CSS phone mockup */}
-                <div className="relative w-48">
-                  {/* Notification badge */}
-                  <div className="absolute -right-4 -top-4 z-10 flex items-center gap-1.5 rounded-full bg-[#C9A84C] px-3 py-1.5 shadow-lg">
-                    <span className="text-[10px] font-black text-white">SMS напомняния: 15</span>
-                  </div>
-                  {/* Phone frame */}
-                  <div className="rounded-[28px] border-4 border-[#1A1A1A] bg-[#1A1A1A] shadow-2xl">
-                    {/* Notch */}
-                    <div className="mx-auto mb-1 mt-2 h-4 w-16 rounded-full bg-[#0A0A0A]" />
-                    {/* Screen */}
-                    <div className="overflow-hidden rounded-[20px] bg-[#111827] pb-3">
-                      {/* App header */}
-                      <div className="flex items-center justify-between bg-[#1F2937] px-3 py-2">
-                        <span className="text-[11px] font-black text-white">SalonApp</span>
-                        <span className="text-[10px] text-white/40">9:41</span>
-                      </div>
-                      {/* Content */}
-                      <div className="px-3 pt-2">
-                        <p className="mb-2 text-[10px] font-bold uppercase tracking-wider text-[#C9A84C]">Днешен График</p>
-                        {[
-                          { time: "10:00", client: "Мария С.", service: "Боядисване" },
-                          { time: "12:00", client: "Елена Д.", service: "Подстригване" },
-                          { time: "14:30", client: "Ивета П.", service: "Маска + сешоар" },
-                        ].map((slot) => (
-                          <div key={slot.time} className="mb-1.5 rounded-lg bg-[#1F2937] px-2.5 py-1.5">
-                            <div className="flex items-center justify-between">
-                              <span className="text-[9px] font-bold text-[#C9A84C]">{slot.time}</span>
-                              <span className="rounded-full bg-green-900/40 px-1.5 py-0.5 text-[8px] text-green-400">✓ Потвърден</span>
-                            </div>
-                            <p className="mt-0.5 text-[10px] font-semibold text-white">{slot.client}</p>
-                            <p className="text-[9px] text-white/40">{slot.service}</p>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                    {/* Home indicator */}
-                    <div className="mx-auto my-2 h-1 w-20 rounded-full bg-white/20" />
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Маркетинг точки */}
-            <div className="mt-14 grid gap-4 sm:grid-cols-3">
-              {[
-                { icon: "✅", text: "Твоят бранд — не профил в каталог" },
-                { icon: "✅", text: "24/7 резервации без комисионна" },
-                { icon: "✅", text: "Пълен контрол на графика" },
-              ].map((item) => (
-                <div key={item.text} className="flex items-center gap-3 rounded-lg bg-white px-5 py-4 shadow-sm">
-                  <span className="text-lg">{item.icon}</span>
-                  <span className="text-sm font-bold text-[#1A1A1A]">{item.text}</span>
-                </div>
-              ))}
-            </div>
+            <Image
+              src="/mockup-hero.png"
+              alt="SalonApp — твоят професионален сайт и пълен контрол на графика"
+              width={1400}
+              height={788}
+              className="w-full h-auto"
+              priority
+            />
           </div>
         </section>
 
