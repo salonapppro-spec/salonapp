@@ -243,7 +243,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
                   <button
                     type="button"
                     onClick={() => setSelectedId(c.id)}
-                    className="w-full px-4 py-3.5 text-left transition"
+                    className="w-full px-6 py-3.5 text-left transition"
                     style={selectedId === c.id ? { background: "rgba(201,168,76,0.08)" } : {}}
                     onMouseEnter={(e) => { if (selectedId !== c.id) (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,0.04)"; }}
                     onMouseLeave={(e) => { if (selectedId !== c.id) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}

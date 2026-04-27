@@ -207,22 +207,32 @@ export function ServicesClient(props: { initialServices: Service[] }) {
         <h2 className="text-lg font-semibold tracking-tight text-brand-900">Активни</h2>
         <ul className="admin-list mt-3">
           {active.map((s) => (
-            <li key={s.id} className="px-4 py-3.5 text-sm">
-              <div className="flex flex-wrap items-start justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <div className="font-medium text-brand-900">{s.name}</div>
-                  <div className="text-brand-800/85">
+            <li key={s.id} className="px-4 py-3.5 text-sm sm:px-6">
+              <div className="flex flex-col gap-2.5 md:flex-row md:items-start md:justify-between md:gap-3">
+                <div className="min-w-0 flex-1 md:pr-3">
+                  <div className="text-[15px] font-semibold leading-snug text-brand-900">
+                    {s.name}
+                  </div>
+                  <div className="mt-0.5 text-[13px] leading-snug text-brand-800/85">
                     {Number(s.price_eur).toFixed(0)} € ·{" "}
                     {s.is_complex
-                      ? `сложна (${s.active_start_min ?? "?"}–${s.active_start_max ?? "?"} / ${s.waiting_min ?? "?"}–${s.waiting_max ?? "?"} / ${s.active_finish_min ?? "?"}–${s.active_finish_max ?? "?"})`
+                      ? `сложна · ${s.active_start_min ?? "?"}–${s.active_start_max ?? "?"} / ${s.waiting_min ?? "?"}–${s.waiting_max ?? "?"} / ${s.active_finish_min ?? "?"}–${s.active_finish_max ?? "?"} мин`
                       : `${s.duration_minutes ?? 0} мин`}
                   </div>
                 </div>
-                <div className="flex flex-wrap gap-2">
-                  <button type="button" className="btn-admin-ghost text-xs" onClick={() => setEditingId(editingId === s.id ? null : s.id)}>
+                <div className="flex w-full gap-2 md:w-auto md:shrink-0">
+                  <button
+                    type="button"
+                    className="btn-admin-ghost flex-1 py-2 text-xs md:flex-none md:px-4"
+                    onClick={() => setEditingId(editingId === s.id ? null : s.id)}
+                  >
                     {editingId === s.id ? "Затвори" : "Редактирай"}
                   </button>
-                  <button type="button" className="btn-admin-ghost" onClick={() => toggle(s.id, s.is_active)}>
+                  <button
+                    type="button"
+                    className="btn-admin-ghost flex-1 py-2 text-xs md:flex-none md:px-4"
+                    onClick={() => toggle(s.id, s.is_active)}
+                  >
                     Деактивирай
                   </button>
                 </div>
@@ -232,7 +242,7 @@ export function ServicesClient(props: { initialServices: Service[] }) {
               ) : null}
             </li>
           ))}
-          {active.length === 0 ? <li className="px-4 py-8 text-center text-brand-700/75">Няма активни.</li> : null}
+          {active.length === 0 ? <li className="px-6 py-8 text-center text-brand-700/75">Няма активни.</li> : null}
         </ul>
       </section>
 
@@ -240,7 +250,7 @@ export function ServicesClient(props: { initialServices: Service[] }) {
         <h2 className="text-lg font-semibold tracking-tight text-brand-900">Неактивни (скрити от сайта)</h2>
         <ul className="admin-list mt-3">
           {inactive.map((s) => (
-            <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-4 py-3.5 text-sm">
+            <li key={s.id} className="flex flex-wrap items-center justify-between gap-3 px-6 py-3.5 text-sm">
               <div className="min-w-0 flex-1">
                 <div className="font-medium text-brand-900">{s.name}</div>
                 <div className="text-brand-800/85">
@@ -267,7 +277,7 @@ export function ServicesClient(props: { initialServices: Service[] }) {
               </div>
             </li>
           ))}
-          {inactive.length === 0 ? <li className="px-4 py-8 text-center text-brand-700/75">Няма.</li> : null}
+          {inactive.length === 0 ? <li className="px-6 py-8 text-center text-brand-700/75">Няма.</li> : null}
         </ul>
       </section>
     </div>

@@ -1,12 +1,70 @@
+import { Suspense } from "react";
+
 import { ClientsAdminClient } from "@/components/admin/ClientsAdminClient";
 import { getClientsAdmin } from "@/lib/data";
 import { requireAdminTenantSlugForPage } from "@/lib/admin-tenant-page";
 
-export default async function AdminClientsPage(props: { searchParams: Promise<{ q?: string }> }) {
+function ClientsListSkeleton() {
+  return (
+    <div className="mt-5 animate-pulse">
+      <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="h-4 w-24 rounded-full bg-[#1A1A1A]/10" />
+        <div className="flex items-center gap-2">
+          <div className="h-8 w-20 rounded-xl bg-[#1A1A1A]/10" />
+          <div className="h-8 w-32 rounded-xl bg-[#C9A84C]/25" />
+        </div>
+      </div>
+
+      <div className="grid gap-5 lg:grid-cols-[1fr_1.3fr]">
+        <div
+          className="overflow-hidden rounded-2xl bg-white"
+          style={{ border: "1px solid rgba(201,168,76,0.15)", boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06)" }}
+        >
+          <div className="space-y-2 p-3">
+            {Array.from({ length: 8 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-3 rounded-xl px-2 py-2.5">
+                <div className="h-8 w-8 rounded-full bg-[#C9A84C]/20" />
+                <div className="min-w-0 flex-1 space-y-1.5">
+                  <div className="h-3.5 w-3/5 rounded-full bg-[#1A1A1A]/10" />
+                  <div className="h-3 w-4/5 rounded-full bg-[#1A1A1A]/8" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div
+          className="rounded-2xl bg-white p-5"
+          style={{ border: "1px solid rgba(201,168,76,0.15)", boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06)", minHeight: "320px" }}
+        >
+          <div className="space-y-3">
+            <div className="h-5 w-40 rounded-lg bg-[#1A1A1A]/10" />
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div key={i} className="h-16 rounded-xl bg-[#1A1A1A]/8" />
+              ))}
+            </div>
+            <div className="h-11 rounded-xl bg-[#1A1A1A]/8" />
+            <div className="h-24 rounded-xl bg-[#1A1A1A]/8" />
+            <div className="h-11 rounded-xl bg-[#C9A84C]/25" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function ClientsListSection(props: { q: string }) {
   const salonSlug = await requireAdminTenantSlugForPage();
-  const sp = await props.searchParams;
-  const q = sp.q ?? "";
-  const clients = await getClientsAdmin(salonSlug, q || undefined);
+  const clients = await getClientsAdmin(salonSlug, props.q || undefined);
+  return <ClientsAdminClient initialClients={clients} searchQ={props.q} />;
+}
+
+type ClientsSearchParams = { q?: string };
+
+export default async function AdminClientsPage(props: { searchParams?: Promise<ClientsSearchParams> }) {
+  const searchParams = await props.searchParams;
+  const q = searchParams?.q ?? "";
 
   return (
     <div className="admin-page-shell max-w-6xl">
@@ -25,34 +83,32 @@ export default async function AdminClientsPage(props: { searchParams: Promise<{ 
           >
             База клиенти
           </h1>
-          <p className="mt-1 text-sm text-[#1A1A1A]/45">
-            {clients.length > 0 ? `${clients.length} клиента` : "Клиентите се добавят автоматично при резервация"}
-          </p>
+          <p className="mt-1 text-sm text-[#1A1A1A]/45">Клиентите се добавят автоматично при резервация или ръчно от бутона в списъка.</p>
         </div>
       </div>
 
       {/* Search */}
-      <form className="mt-5 flex flex-col gap-3 sm:flex-row sm:items-end" method="get">
-        <div className="min-w-0 flex-1">
-          <input
-            id="clients-q"
-            type="search"
-            name="q"
-            defaultValue={q}
-            placeholder="🔍  Търси по име или телефон…"
-            className="input-admin !mt-0 w-full"
-          />
-        </div>
+      <form className="mt-6 flex gap-2" method="get">
+        <input
+          id="clients-q"
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="🔍  Търси по име или телефон…"
+          className="input-admin !mt-0 h-11 min-w-0 flex-1"
+        />
         <button
           type="submit"
-          className="w-full rounded-xl px-6 py-3 text-sm font-black text-white transition hover:opacity-90 sm:w-auto"
-          style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", minHeight: "44px" }}
+          className="shrink-0 rounded-xl px-4 text-sm font-black text-white transition hover:opacity-90"
+          style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", height: "44px" }}
         >
           Търси
         </button>
       </form>
 
-      <ClientsAdminClient initialClients={clients} searchQ={q} />
+      <Suspense fallback={<ClientsListSkeleton />}>
+        <ClientsListSection q={q} />
+      </Suspense>
     </div>
   );
 }

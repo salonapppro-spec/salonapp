@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import Link from "next/link";
 
 import {
@@ -19,7 +20,60 @@ function formatBGDate(iso: string): string {
   return `${Number(d)} ${months[Number(m)]} ${y}`;
 }
 
-export default async function AdminDashboardPage() {
+export default function AdminDashboardPage() {
+  return (
+    <div className="admin-page-shell max-w-5xl">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <div className="flex items-center gap-2">
+            <span
+              className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white"
+              style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
+            >
+              ✦ Днес
+            </span>
+          </div>
+          <h1
+            className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A] sm:text-3xl"
+            style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}
+          >
+            Дневен преглед
+          </h1>
+          <p className="mt-1 text-sm text-[#1A1A1A]/45">Зареждаме данните за деня…</p>
+        </div>
+      </div>
+
+      <Suspense fallback={<DashboardSkeleton />}>
+        <DashboardDataSection />
+      </Suspense>
+    </div>
+  );
+}
+
+function DashboardSkeleton() {
+  return (
+    <div className="mt-5 animate-pulse">
+      <div className="grid gap-3 sm:grid-cols-3">
+        <div className="h-28 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
+        <div className="h-28 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
+        <div className="h-28 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
+      </div>
+      <div className="mt-8 space-y-3">
+        <div className="h-5 w-40 rounded-lg bg-[#1A1A1A]/10" />
+        <div className="h-4 w-72 rounded-full bg-[#1A1A1A]/10" />
+        <div className="rounded-2xl border border-[#C9A84C]/15 bg-white/75 p-4">
+          <div className="space-y-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="h-14 rounded-xl bg-[#1A1A1A]/8" />
+            ))}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+async function DashboardDataSection() {
   const salonSlug = await requireAdminTenantSlugForPage();
   const today = todayDateISOInSofia();
   const tomorrow = tomorrowDateISOInSofia();
@@ -42,26 +96,10 @@ export default async function AdminDashboardPage() {
   const isEmpty = revenue === 0 && countToday === 0;
 
   return (
-    <div className="admin-page-shell max-w-5xl">
-      {/* Header */}
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <div className="flex items-center gap-2">
-            <span
-              className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white"
-              style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
-            >
-              ✦ Днес
-            </span>
-          </div>
-          <h1
-            className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A] sm:text-3xl"
-            style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}
-          >
-            {tenant?.salon_name ?? salonSlug}
-          </h1>
-          <p className="mt-1 text-sm text-[#1A1A1A]/45">{formatBGDate(today)}</p>
-        </div>
+    <>
+      <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-[#C9A84C]/15 bg-white/75 px-4 py-3">
+        <p className="text-sm font-semibold text-[#1A1A1A]/70">{tenant?.salon_name ?? salonSlug}</p>
+        <p className="text-xs text-[#1A1A1A]/45">{formatBGDate(today)}</p>
       </div>
 
       {/* Empty state hero — shown only when 0 bookings and 0 revenue */}
@@ -227,6 +265,6 @@ export default async function AdminDashboardPage() {
         plan={tenant?.plan ?? "standard"}
         showFab
       />
-    </div>
+    </>
   );
 }
