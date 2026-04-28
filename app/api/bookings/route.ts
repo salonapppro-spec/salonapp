@@ -5,6 +5,7 @@ import { logAbuseEvent } from "@/lib/abuse-log";
 import { clientIpFromHeaders } from "@/lib/rate-limit";
 import type { HairDensity, HairLength } from "@/types";
 import { CreateBookingSchema } from "@/schemas/booking";
+import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 import {
   getBlockedSlotsForDate,
   getBookingsForDate,
@@ -57,18 +58,22 @@ export async function GET(req: Request) {
   const magneticEnabled = Boolean(settings?.magnetic_scheduling ?? true);
 
   const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
-  const workingHours = await getWorkingHoursForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, dayOfWeek });
-  if (!workingHours || workingHours.is_day_off) return NextResponse.json({ slots: [] });
+  const workingHoursRow = await getWorkingHoursForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, dayOfWeek });
+  const fallback = DEFAULT_WORKING_HOURS_DAYS[dayOfWeek] ?? { start_time: "09:00", end_time: "18:00", is_day_off: false };
+  const workingHours = workingHoursRow ?? { ...fallback, day_of_week: dayOfWeek, specialist_id: specialist_id ?? null, id: `fallback-${trustedSalonSlug}-${dayOfWeek}`, salon_slug: trustedSalonSlug };
+  if (workingHours.is_day_off) return NextResponse.json({ slots: [] });
 
   const [bookings, blockedSlots] = await Promise.all([
     getBookingsForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, date }),
     getBlockedSlotsForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, date }),
   ]);
 
+  // За complex услуги без избрани hair params — използваме medium/medium за приблизителни часове
   let serviceDuration = service.duration_minutes ?? 0;
   if (service.is_complex) {
-    if (!hair_length || !hair_density) return NextResponse.json({ slots: [] });
-    serviceDuration = calculateDuration(service, hair_length, hair_density).totalMinutes;
+    const hl: HairLength = hair_length ?? "medium";
+    const hd: HairDensity = hair_density ?? "medium";
+    serviceDuration = calculateDuration(service, hl, hd).totalMinutes;
   }
 
   const slots = generateSlots({
