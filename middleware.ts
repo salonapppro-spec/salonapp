@@ -365,6 +365,16 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL("/temporarily-unavailable", request.url));
   }
 
+  // API routes от субдомейн/кастом домейн: НЕ rewrite-ваме — пускаме директно
+  // с x-salon-slug header, за да може requireTenantFromHeaders да работи.
+  if (pathname.startsWith("/api/")) {
+    const apiHeaders = new Headers(request.headers);
+    apiHeaders.set("x-salon-slug", tenant.salon_slug);
+    apiHeaders.set("x-pathname", pathname);
+    if (byDomain) apiHeaders.set("x-tenant-domain", byDomain);
+    return NextResponse.next({ request: { headers: apiHeaders } });
+  }
+
   // Rewrite: salon-bizhu.salonapp.pro/ANYTHING → /salon-bizhu/ANYTHING
   // Необходимо защото Next.js routing не знае за поддомейни —
   // вижда само пътя, затова го remapваме към /(public)/[salon_slug]
