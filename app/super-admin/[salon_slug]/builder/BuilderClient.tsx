@@ -80,6 +80,7 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, initialCont
   const [isPendingDesign, startDesignTransition] = useTransition();
   const [isPendingContent, startContentTransition] = useTransition();
   const iframeRef = useRef<HTMLIFrameElement>(null);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const normalizedPreviewPath = useMemo(() => {
     try {
       const u = new URL(previewUrl, "https://salonapp.pro");
@@ -108,6 +109,14 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, initialCont
   );
 
   useEffect(() => { pushTokens(tokens); }, [tokens, pushTokens]);
+
+  // Reset scroll when switching viewport so desktop view is never offset
+  useEffect(() => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollLeft = 0;
+      scrollContainerRef.current.scrollTop = 0;
+    }
+  }, [viewport]);
 
   function updateToken<K extends keyof DesignTokens>(key: K, value: DesignTokens[K]) {
     setTokens((t) => ({ ...t, [key]: value }));
@@ -248,10 +257,13 @@ export function BuilderClient({ salonSlug, salonName, initialTokens, initialCont
         </div>
 
         {/* iframe area */}
-        <div className="flex flex-1 items-start justify-center overflow-auto bg-neutral-800 p-4">
+        <div
+          ref={scrollContainerRef}
+          className="flex flex-1 items-start justify-center overflow-auto bg-neutral-800 p-4"
+        >
           <div
-            className="overflow-hidden rounded-lg shadow-2xl bg-white transition-all duration-300"
-            style={{ width: vp.width, height: "100%", minHeight: "600px" }}
+            className="overflow-hidden rounded-lg shadow-2xl bg-white transition-all duration-300 shrink-0"
+            style={{ width: vp.width, height: "calc(100vh - 10rem)", minHeight: "700px" }}
           >
             <iframe
               key={iframeKey}
