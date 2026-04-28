@@ -9,7 +9,7 @@ import {
   servicesForSpecialist,
   useSpecialistSectionsOnPublicSite,
 } from "@/components/templates/salon-shared";
-import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
+import { BookingCalendar } from "@/components/templates/BookingCalendar";
 import {
   safeFacebookHref,
   safeGoogleMapsEmbedSrc,
@@ -376,13 +376,68 @@ export function Bloom({ data }: { data: SalonData }) {
         }
         .bloom-gallery-item:hover img { transform: scale(1.07); }
 
-        /* BOOKING */
-        .bloom-booking {
+        /* TEAM / SPECIALISTS */
+        .bloom-team {
           padding: var(--section-padding, 80px) 24px;
           background: var(--color-bg);
         }
+        .bloom-team-inner { max-width: 1060px; margin: 0 auto; }
+        .bloom-team-grid {
+          display: grid; grid-template-columns: 1fr; gap: 28px;
+        }
+        @media (min-width: 560px) {
+          .bloom-team-grid { grid-template-columns: repeat(2, 1fr); }
+        }
+        @media (min-width: 900px) {
+          .bloom-team-grid { grid-template-columns: repeat(3, 1fr); }
+        }
+        .bloom-team-card {
+          background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
+          border: 1px solid color-mix(in srgb, var(--color-primary) 18%, transparent);
+          border-radius: var(--border-radius, 16px);
+          padding: 32px 24px 28px;
+          text-align: center;
+          transition: box-shadow 0.2s;
+        }
+        .bloom-team-card:hover {
+          box-shadow: 0 8px 32px color-mix(in srgb, var(--color-primary) 16%, transparent);
+        }
+        .bloom-team-avatar {
+          width: 96px; height: 96px; border-radius: 50%;
+          object-fit: cover; display: block;
+          margin: 0 auto 16px;
+          border: 3px solid color-mix(in srgb, var(--color-primary) 40%, transparent);
+        }
+        .bloom-team-avatar-placeholder {
+          width: 96px; height: 96px; border-radius: 50%;
+          background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+          display: flex; align-items: center; justify-content: center;
+          margin: 0 auto 16px;
+          font-size: 36px;
+          border: 3px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+        }
+        .bloom-team-name {
+          font-size: 18px; font-family: var(--font-heading); font-weight: 700;
+          color: var(--color-text); margin-bottom: 4px;
+        }
+        .bloom-team-role {
+          font-size: 12px; font-weight: 700; letter-spacing: 0.2em;
+          text-transform: uppercase; color: var(--color-primary);
+          margin-bottom: 14px; font-family: var(--font-nav);
+        }
+        .bloom-team-bio {
+          font-size: 14px; font-family: var(--font-body);
+          color: var(--color-text); opacity: 0.65;
+          line-height: 1.72;
+        }
+
+        /* BOOKING */
+        .bloom-booking {
+          padding: var(--section-padding, 80px) 24px;
+          background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
+        }
         .bloom-booking-inner {
-          max-width: 580px; margin: 0 auto;
+          max-width: 960px; margin: 0 auto;
         }
 
         /* CONTACTS */
@@ -640,6 +695,34 @@ export function Bloom({ data }: { data: SalonData }) {
           </div>
         </section>
 
+        {/* ── TEAM / SPECIALISTS ── */}
+        {specs.length > 0 && (
+          <section id="team" className="bloom-team">
+            <div className="bloom-team-inner">
+              <p className="bloom-section-label">Нашият екип</p>
+              <h2 className="bloom-section-title">Запознайте се с нас</h2>
+              <p className="bloom-section-sub" style={{ marginBottom: "48px" }}>
+                Специалисти, отдадени на вашата красота и уют.
+              </p>
+              <div className="bloom-team-grid">
+                {specs.map((sp) => (
+                  <div key={sp.id} className="bloom-team-card">
+                    {sp.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={sp.avatar_url} alt={sp.name} className="bloom-team-avatar" loading="lazy" />
+                    ) : (
+                      <div className="bloom-team-avatar-placeholder" aria-hidden="true">🌸</div>
+                    )}
+                    <div className="bloom-team-name">{sp.name}</div>
+                    {sp.role && <div className="bloom-team-role">{sp.role}</div>}
+                    {sp.bio && <p className="bloom-team-bio">{sp.bio}</p>}
+                  </div>
+                ))}
+              </div>
+            </div>
+          </section>
+        )}
+
         {/* ── GALLERY ── */}
         {gallery.length > 0 && (
           <section id="gallery" className="bloom-gallery">
@@ -666,12 +749,10 @@ export function Bloom({ data }: { data: SalonData }) {
             <p className="bloom-section-sub">
               Попълнете формата — потвърждение пристига в рамките на минути.
             </p>
-            <InlineBookingForm
+            <BookingCalendar
               salonSlug={tenant.salon_slug}
               services={services}
-              primaryColor="var(--color-primary)"
-              textColor="var(--color-text)"
-              bgColor="var(--color-bg)"
+              workingHours={data.workingHours}
               isDemo={tenant.salon_slug.startsWith("demo/")}
             />
           </div>
