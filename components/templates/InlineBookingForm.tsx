@@ -8,7 +8,6 @@ interface TimeSlot {
   magnetic: boolean;
 }
 
-// Demo slots shown when isDemo=true (no real API call)
 const DEMO_SLOTS: TimeSlot[] = [
   { time: "09:00", magnetic: true },
   { time: "09:30", magnetic: false },
@@ -25,6 +24,7 @@ const DEMO_SLOTS: TimeSlot[] = [
 interface Props {
   salonSlug: string;
   services: Service[];
+  /** Pass a CSS hex value OR a CSS var reference like "var(--color-primary)" */
   primaryColor: string;
   textColor?: string;
   bgColor?: string;
@@ -35,8 +35,8 @@ export function InlineBookingForm({
   salonSlug,
   services,
   primaryColor,
-  textColor = "#1a1a1a",
-  bgColor = "#ffffff",
+  textColor = "var(--color-text, #1a1a1a)",
+  bgColor = "var(--color-bg, #ffffff)",
   isDemo = false,
 }: Props) {
   const [service, setService] = useState("");
@@ -53,17 +53,10 @@ export function InlineBookingForm({
   const activeServices = services.filter((s) => s.is_active);
   const today = new Date().toISOString().split("T")[0];
 
-  // Fetch available time slots whenever service + date change
   useEffect(() => {
     setTime("");
-    if (!service || !date) {
-      setSlots([]);
-      return;
-    }
-    if (isDemo) {
-      setSlots(DEMO_SLOTS);
-      return;
-    }
+    if (!service || !date) { setSlots([]); return; }
+    if (isDemo) { setSlots(DEMO_SLOTS); return; }
     setSlotsLoading(true);
     fetch(`/api/bookings?salon_slug=${encodeURIComponent(salonSlug)}&service_id=${encodeURIComponent(service)}&date=${encodeURIComponent(date)}`)
       .then((r) => r.json())
@@ -75,16 +68,13 @@ export function InlineBookingForm({
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!service || !date || !time || !name || !phone) return;
-
     setStatus("loading");
     setErrorMsg("");
-
     if (isDemo) {
       await new Promise((r) => setTimeout(r, 800));
       setStatus("success");
       return;
     }
-
     try {
       const res = await fetch("/api/bookings", {
         method: "POST",
@@ -99,7 +89,6 @@ export function InlineBookingForm({
           client_email: email || undefined,
         }),
       });
-
       if (res.ok) {
         setStatus("success");
       } else {
@@ -112,28 +101,6 @@ export function InlineBookingForm({
       setStatus("error");
     }
   }
-
-  const input: React.CSSProperties = {
-    width: "100%",
-    padding: "12px 14px",
-    border: `1px solid ${primaryColor}40`,
-    borderRadius: "8px",
-    fontSize: "15px",
-    color: textColor,
-    backgroundColor: bgColor,
-    outline: "none",
-    boxSizing: "border-box",
-  };
-
-  const labelStyle: React.CSSProperties = {
-    display: "block",
-    fontSize: "12px",
-    fontWeight: 700,
-    letterSpacing: "0.1em",
-    textTransform: "uppercase",
-    color: primaryColor,
-    marginBottom: "6px",
-  };
 
   if (status === "success") {
     return (
@@ -152,8 +119,39 @@ export function InlineBookingForm({
 
   const canSubmit = !!(service && date && time && name && phone) && status !== "loading";
 
+  // All colors flow through CSS variables set on the wrapper div.
+  // color-mix() creates transparent variants that update live in the builder.
+  const wrapperVars = {
+    "--ibf-primary": primaryColor,
+    "--ibf-text": textColor,
+    "--ibf-bg": bgColor,
+  } as React.CSSProperties;
+
+  const inputStyle: React.CSSProperties = {
+    width: "100%",
+    padding: "12px 14px",
+    border: "1px solid color-mix(in srgb, var(--ibf-primary) 30%, transparent)",
+    borderRadius: "8px",
+    fontSize: "15px",
+    color: "var(--ibf-text)",
+    backgroundColor: "var(--ibf-bg)",
+    outline: "none",
+    boxSizing: "border-box",
+    fontFamily: "inherit",
+  };
+
+  const labelStyle: React.CSSProperties = {
+    display: "block",
+    fontSize: "12px",
+    fontWeight: 700,
+    letterSpacing: "0.1em",
+    textTransform: "uppercase",
+    color: "var(--ibf-primary)",
+    marginBottom: "6px",
+  };
+
   return (
-    <form onSubmit={handleSubmit} style={{ maxWidth: "520px", margin: "0 auto" }}>
+    <form onSubmit={handleSubmit} style={{ maxWidth: "520px", margin: "0 auto", ...wrapperVars }}>
       <div style={{ display: "grid", gap: "18px" }}>
 
         {/* Service */}
@@ -163,7 +161,7 @@ export function InlineBookingForm({
             value={service}
             onChange={(e) => setService(e.target.value)}
             required
-            style={{ ...input, cursor: "pointer" }}
+            style={{ ...inputStyle, cursor: "pointer" }}
           >
             <option value="">— Изберете услуга —</option>
             {activeServices.map((s) => (
@@ -183,7 +181,7 @@ export function InlineBookingForm({
             min={today}
             onChange={(e) => setDate(e.target.value)}
             required
-            style={input}
+            style={inputStyle}
           />
         </div>
 
@@ -192,11 +190,11 @@ export function InlineBookingForm({
           <div>
             <label style={labelStyle}>Час</label>
             {slotsLoading ? (
-              <p style={{ fontSize: "13px", color: textColor, opacity: 0.5, margin: 0 }}>
+              <p style={{ fontSize: "13px", color: "var(--ibf-text)", opacity: 0.5, margin: 0 }}>
                 Зареждане на свободни часове…
               </p>
             ) : slots.length === 0 ? (
-              <p style={{ fontSize: "13px", color: textColor, opacity: 0.5, margin: 0 }}>
+              <p style={{ fontSize: "13px", color: "var(--ibf-text)", opacity: 0.5, margin: 0 }}>
                 Няма свободни часове за тази дата. Опитайте друга дата.
               </p>
             ) : (
@@ -211,9 +209,11 @@ export function InlineBookingForm({
                       style={{
                         padding: "8px 14px",
                         borderRadius: "6px",
-                        border: `1.5px solid ${selected ? primaryColor : primaryColor + "40"}`,
-                        backgroundColor: selected ? primaryColor : "transparent",
-                        color: selected ? "#fff" : textColor,
+                        border: selected
+                          ? "1.5px solid var(--ibf-primary)"
+                          : "1.5px solid color-mix(in srgb, var(--ibf-primary) 35%, transparent)",
+                        backgroundColor: selected ? "var(--ibf-primary)" : "transparent",
+                        color: selected ? "#fff" : "var(--ibf-text)",
                         fontSize: "14px",
                         fontWeight: slot.magnetic ? 700 : 400,
                         cursor: "pointer",
@@ -240,7 +240,7 @@ export function InlineBookingForm({
               onChange={(e) => setName(e.target.value)}
               required
               placeholder="Мария Иванова"
-              style={input}
+              style={inputStyle}
             />
           </div>
           <div>
@@ -251,7 +251,7 @@ export function InlineBookingForm({
               onChange={(e) => setPhone(e.target.value)}
               required
               placeholder="+359 88 888 8888"
-              style={input}
+              style={inputStyle}
             />
           </div>
         </div>
@@ -264,7 +264,7 @@ export function InlineBookingForm({
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             placeholder="maria@example.com"
-            style={input}
+            style={inputStyle}
           />
         </div>
 
@@ -282,7 +282,7 @@ export function InlineBookingForm({
           style={{
             width: "100%",
             padding: "16px",
-            backgroundColor: primaryColor,
+            backgroundColor: "var(--ibf-primary)",
             color: "#fff",
             border: "none",
             borderRadius: "8px",
@@ -293,12 +293,13 @@ export function InlineBookingForm({
             cursor: canSubmit ? "pointer" : "not-allowed",
             opacity: canSubmit ? 1 : 0.5,
             transition: "opacity 0.2s",
+            fontFamily: "inherit",
           }}
         >
           {status === "loading" ? "Изпращане…" : "Потвърдете резервацията"}
         </button>
 
-        <p style={{ textAlign: "center", fontSize: "12px", color: textColor, opacity: 0.4, margin: 0 }}>
+        <p style={{ textAlign: "center", fontSize: "12px", color: "var(--ibf-text)", opacity: 0.4, margin: 0 }}>
           ✦ Ще получите имейл потвърждение · Напомняне 12 часа преди часа
         </p>
       </div>

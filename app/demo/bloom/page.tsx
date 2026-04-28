@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+import type { CSSProperties } from "react";
 import type { SalonData } from "@/types/database";
 import { Bloom } from "@/components/templates/Bloom";
 
@@ -64,6 +65,27 @@ const mockData: SalonData = {
   specialists: [],
 };
 
+const demoVars: CSSProperties = {
+  "--color-primary":   "#C8826A",
+  "--color-bg":        "#FFFFFF",
+  "--color-text":      "#1A1A1A",
+  "--color-accent":    "#E07A5F",
+  "--font-family":     "Inter, sans-serif",
+  "--font-heading":    "'Playfair Display', serif",
+  "--font-body":       "Inter, sans-serif",
+  "--font-nav":        "Inter, sans-serif",
+  "--font-button":     "Inter, sans-serif",
+  "--heading-size":    "2.5rem",
+  "--body-size":       "1rem",
+  "--border-radius":   "0.75rem",
+  "--button-padding":  "0.75rem 2rem",
+  "--section-padding": "5rem",
+} as CSSProperties;
+
 export default function DemoBloomPage() {
-  return <Bloom data={mockData} />;
+  return (
+    <div id="salon-design-root" style={demoVars}>
+      <Bloom data={mockData} />
+    </div>
+  );
 }
