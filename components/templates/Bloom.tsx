@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
 import type { SalonData, Service } from "@/types/database";
 import {
   activeSpecialists,
@@ -557,9 +556,7 @@ export function Bloom({ data }: { data: SalonData }) {
             {navLinks.map((l) => (
               <a key={l.href} href={l.href} className="bloom-nav-link">{l.label}</a>
             ))}
-            <Link href={`/${tenant.salon_slug}/booking`} className="bloom-nav-cta">
-              Запази час
-            </Link>
+            <a href="#booking" className="bloom-nav-cta">Запази час</a>
           </div>
 
           {/* Hamburger */}
@@ -588,9 +585,7 @@ export function Bloom({ data }: { data: SalonData }) {
               {l.label}
             </a>
           ))}
-          <Link href={`/${tenant.salon_slug}/booking`} className="bloom-mobile-cta" onClick={() => setMobileOpen(false)}>
-            Запази час онлайн
-          </Link>
+          <a href="#booking" className="bloom-mobile-cta" onClick={() => setMobileOpen(false)}>Запази час онлайн</a>
         </div>
 
         {/* ── HERO ── */}
@@ -611,9 +606,7 @@ export function Bloom({ data }: { data: SalonData }) {
               <p className="bloom-hero-desc">{tenant.description}</p>
             )}
             <div className="bloom-hero-btns">
-              <Link href={`/${tenant.salon_slug}/booking`} className="bloom-btn-primary">
-                Запази час онлайн
-              </Link>
+              <a href="#booking" className="bloom-btn-primary">Запази час онлайн</a>
               <a href="#services" className="bloom-btn-outline">
                 Разгледай услугите
               </a>
@@ -655,9 +648,7 @@ export function Bloom({ data }: { data: SalonData }) {
                 <h2>{tenant.salon_name}</h2>
                 {tenant.about_text1 && <p>{tenant.about_text1}</p>}
                 {tenant.about_text2 && <p>{tenant.about_text2}</p>}
-                <a href="#booking" className="bloom-btn-primary" style={{ marginTop: "8px" }}>
-                  Запишете се сега
-                </a>
+                <a href="#booking" className="bloom-btn-primary" style={{ marginTop: "8px" }}>Запишете се сега</a>
               </div>
             </div>
           </section>
