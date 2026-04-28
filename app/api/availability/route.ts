@@ -11,6 +11,7 @@ import {
 import { assertTenantActiveForPublicApi } from "@/lib/public-tenant-guard";
 import { calculateDuration, generateSlots } from "@/lib/scheduling";
 import { requireTenantFromHeaders } from "@/lib/tenant-request";
+import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 import type { HairDensity, HairLength } from "@/types";
 
 const QuerySchema = z.object({
@@ -53,8 +54,10 @@ export async function GET(req: Request) {
   const magneticEnabled = Boolean(settings?.magnetic_scheduling ?? true);
 
   const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
-  const workingHours = await getWorkingHoursForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, dayOfWeek });
-  if (!workingHours || workingHours.is_day_off) return NextResponse.json({ slots: [] });
+  const workingHoursRow = await getWorkingHoursForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, dayOfWeek });
+  const fallback = DEFAULT_WORKING_HOURS_DAYS[dayOfWeek] ?? { start_time: "09:00", end_time: "18:00", is_day_off: false };
+  const workingHours = workingHoursRow ?? { ...fallback, day_of_week: dayOfWeek, specialist_id: specialist_id ?? null, id: `fallback-${trustedSalonSlug}-${dayOfWeek}`, salon_slug: trustedSalonSlug };
+  if (workingHours.is_day_off) return NextResponse.json({ slots: [] });
 
   const [bookings, blockedSlots] = await Promise.all([
     getBookingsForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, date }),
