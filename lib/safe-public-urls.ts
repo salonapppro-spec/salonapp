@@ -1,5 +1,5 @@
 /**
- * Defense-in-depth URL checks for tenant-facing fields (social + Google Maps embed).
+ * Defense-in-depth URL checks for tenant-facing fields (social + Google Maps embed + inline images).
  * Used by Zod schemas on save and by public templates at render time (legacy DB rows).
  */
 
@@ -95,4 +95,23 @@ export function safeGoogleMapsEmbedSrc(url: string | null | undefined): string |
   if (!url || typeof url !== "string") return null;
   const t = url.trim();
   return isSafeGoogleMapsEmbedUrl(t) ? t : null;
+}
+
+function hostAllowedForTenantPublicImage(hostname: string): boolean {
+  const h = hostname.toLowerCase();
+  if (h === "salonapp.pro" || h === "www.salonapp.pro") return true;
+  if (h.endsWith(".salonapp.pro")) return true;
+  if (h.endsWith(".supabase.co")) return true;
+  return false;
+}
+
+/** HTTPS image URLs trusted for embedding (Supabase Storage + SalonApp CDN). */
+export function safeTenantPublicImageUrl(raw: string | null | undefined): string | null {
+  if (!raw || typeof raw !== "string") return null;
+  const t = raw.trim();
+  if (t.length > 2048) return null;
+  const u = isHttpsUrlWithNoCredentials(t);
+  if (!u) return null;
+  if (!hostAllowedForTenantPublicImage(u.hostname)) return null;
+  return t;
 }

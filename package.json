@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "tsx --test tests/settings-clear-behavior.test.ts",
+    "test": "tsx --test tests/settings-clear-behavior.test.ts tests/safe-tenant-public-image.test.ts",
     "test:integration": "node scripts/run-integration-tests.mjs",
     "test:all": "npm run test && npm run test:integration",
     "check:service-role-boundary": "node scripts/check-service-role-boundary.mjs",

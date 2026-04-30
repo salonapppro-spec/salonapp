@@ -7,6 +7,7 @@ import {
   safeFacebookHref,
   safeGoogleMapsEmbedSrc,
   safeInstagramHref,
+  safeTenantPublicImageUrl,
 } from "@/lib/safe-public-urls";
 
 const DAY_BG = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"] as const;
@@ -26,7 +27,25 @@ function useVisible() {
 }
 
 interface Testimonial { quote: string; name: string; }
-interface Product { name: string; subtitle: string; description: string; }
+interface Product { name: string; subtitle: string; description: string; imageUrl: string | null; }
+
+function theSkinProductsFromTokens(tokens: Record<string, unknown>): Product[] {
+  const arr = Array.isArray(tokens.products) ? tokens.products : [];
+  const out: Product[] = [];
+  for (const raw of arr) {
+    if (!raw || typeof raw !== "object") continue;
+    const o = raw as Record<string, unknown>;
+    const name = typeof o.name === "string" ? o.name.trim() : "";
+    const subtitle = typeof o.subtitle === "string" ? o.subtitle.trim() : "";
+    const description = typeof o.description === "string" ? o.description.trim() : "";
+    if (!name && !description) continue;
+    const imgRaw =
+      typeof o.image_url === "string" ? o.image_url : typeof o.image === "string" ? o.image : "";
+    const imageUrl = safeTenantPublicImageUrl(imgRaw);
+    out.push({ name, subtitle, description, imageUrl });
+  }
+  return out;
+}
 
 function ServiceRow({ s, idx }: { s: Service; idx: number }) {
   const [open, setOpen] = useState(false);
@@ -77,7 +96,7 @@ export function TheSkin({ data }: { data: SalonData }) {
   const services = servicesFlatForPublic(data);
   const tokens = (tenant.design_tokens ?? {}) as Record<string, unknown>;
   const testimonials = Array.isArray(tokens.testimonials) ? tokens.testimonials as Testimonial[] : [];
-  const products = Array.isArray(tokens.products) ? tokens.products as Product[] : [];
+  const products = theSkinProductsFromTokens(tokens);
   const productsLink = typeof tokens.products_link === "string" ? tokens.products_link : null;
 
   const igHref = safeInstagramHref(tenant.instagram_url);
@@ -293,6 +312,11 @@ export function TheSkin({ data }: { data: SalonData }) {
         }
         .ts-prod-card:hover { background: var(--white); }
         .ts-prod-card:hover::after { transform: scaleX(1); }
+        .ts-prod-img-wrap {
+          width: 100%; aspect-ratio: 4 / 5; overflow: hidden; border-radius: 2px;
+          background: rgba(237,232,224,0.7); flex-shrink: 0; margin-bottom: 0.75rem;
+        }
+        .ts-prod-img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .ts-prod-num { font-family: var(--serif); font-style: italic; font-size: 3rem; color: var(--border); line-height: 1; }
         .ts-prod-name { font-family: var(--serif); font-size: 1.05rem; color: var(--dark); line-height: 1.3; }
         .ts-prod-sub { font-size: 0.62rem; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); }
@@ -574,6 +598,17 @@ export function TheSkin({ data }: { data: SalonData }) {
             <div className="ts-prod-grid">
               {products.map((p, i) => (
                 <div className="ts-prod-card" key={i}>
+                  {p.imageUrl ? (
+                    <div className="ts-prod-img-wrap">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={p.imageUrl}
+                        alt={p.name ? `${p.name} — снимка` : "Продукт"}
+                        className="ts-prod-img"
+                        loading="lazy"
+                      />
+                    </div>
+                  ) : null}
                   <div className="ts-prod-num">0{i + 1}</div>
                   <div className="ts-prod-name">{p.name}</div>
                   <div className="ts-prod-sub">{p.subtitle}</div>
