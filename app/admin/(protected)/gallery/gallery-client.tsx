@@ -80,7 +80,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ is_visible: !g.is_visible }),
     });
-    const json = await res.json();
+    const json = await res.json().catch(() => ({}));
     if (!res.ok) { setError(json?.error ?? "Грешка"); return; }
     await refresh();
     router.refresh();
@@ -89,7 +89,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
   async function remove(id: string) {
     setError(null);
     const res = await fetch(`/api/admin/gallery/${id}`, { method: "DELETE" });
-    const json = await res.json();
+    const json = await res.json().catch(() => ({}));
     if (!res.ok) { setError(json?.error ?? "Грешка"); return; }
     await refresh();
     router.refresh();
@@ -267,6 +267,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
                       type="checkbox"
                       className="sr-only"
                       checked={g.is_visible}
+                      onClick={(e) => e.stopPropagation()}
                       onChange={() => void toggleVisible(g)}
                     />
                   </div>
@@ -277,7 +278,12 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
                 <button
                   type="button"
                   className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 transition hover:bg-red-50"
-                  onClick={() => remove(g.id)}
+                  onMouseDown={(e) => e.stopPropagation()}
+                  onTouchStart={(e) => e.stopPropagation()}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    void remove(g.id);
+                  }}
                 >
                   Изтрий
                 </button>
