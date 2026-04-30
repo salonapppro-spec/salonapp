@@ -408,30 +408,23 @@ export default function Home() {
 
       {/* ── FOOTER ── */}
       <footer className="bg-[#EAD5C4]">
-        <div className="mx-auto max-w-6xl px-6 py-14 sm:px-8">
+        <div className="mx-auto max-w-6xl px-6 py-12 sm:px-8">
 
           {/* Горна секция: лого + навигация */}
-          <div className="flex flex-col items-center gap-10 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center sm:justify-between">
 
-            {/* Ляво: лого + слоган */}
-            <div className="flex flex-col items-center sm:items-start">
-              <Image
-                src="/logo.png"
-                alt="SalonApp"
-                width={160}
-                height={107}
-                className="h-auto w-[130px] object-contain"
-              />
-              <p className="mt-3 text-[10px] font-semibold uppercase tracking-[0.35em] text-[#1A1A1A]/40">
-                Beauty. Business. Elevated.
-              </p>
-            </div>
+            {/* Ляво: лого */}
+            <Image
+              src="/logo.png"
+              alt="SalonApp"
+              width={200}
+              height={134}
+              className="h-auto w-[160px] object-contain sm:w-[180px]"
+            />
 
-            {/* Дясно: навигационни линкове */}
-            <nav className="flex flex-wrap justify-center gap-x-8 gap-y-4 sm:justify-end">
+            {/* Дясно: линкове */}
+            <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 sm:justify-end">
               {[
-                { label: "Безплатен месец", href: "/get-started" },
-                { label: "Демо салон", href: demoSalonHref },
                 { label: "salonapppro@gmail.com", href: "mailto:salonapppro@gmail.com" },
                 { label: "Условия", href: "/legal/terms" },
                 { label: "Поверителност", href: "/legal/privacy" },
@@ -449,9 +442,9 @@ export default function Home() {
           </div>
 
           {/* Разделител */}
-          <div className="my-10 border-t border-[#1A1A1A]/10" />
+          <div className="my-8 border-t border-[#1A1A1A]/10" />
 
-          {/* Долна секция: copyright центриран */}
+          {/* Copyright */}
           <p className="text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-[#1A1A1A]/30">
             © 2026 SalonApp.pro — Всички права запазени.
           </p>
