@@ -4,6 +4,7 @@ import { ArchiveTenantSubmitButton } from "./archive-tenant-submit-button";
 
 import { archiveTenantAction, enterSalonAdminContextAction, restoreTenantAction } from "@/app/super-admin/actions";
 import { readPublicPlanPriceMonthly } from "@/lib/marketing-pricing-env";
+import { MARKETING_PLANS } from "@/lib/marketing-data";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import type { Tenant } from "@/types";
 
@@ -312,6 +313,18 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                     }
                   />
                 </form>
+                <form method="get" action={`/super-admin/${t.salon_slug}`} className="mt-2 flex gap-2">
+                  <select name="payment_plan" defaultValue={t.plan} className="min-w-0 flex-1 rounded-lg border border-neutral-700 bg-neutral-900 px-2 py-2 text-xs text-neutral-200">
+                    {MARKETING_PLANS.map((p) => (
+                      <option key={p.id} value={p.id}>
+                        {p.id}
+                      </option>
+                    ))}
+                  </select>
+                  <button type="submit" className="rounded-lg border border-emerald-700 bg-emerald-950/50 px-2 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/60">
+                    Stripe линк
+                  </button>
+                </form>
               </div>
             );
           })}
@@ -330,6 +343,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                 <th className="py-2 pr-2">Създаден</th>
                 <th className="py-2 pr-2">Детайли</th>
                 <th className="py-2 pr-2">Архив</th>
+                <th className="py-2 pr-2">Плащане</th>
                 <th className="py-2">Админ</th>
               </tr>
             </thead>
@@ -369,6 +383,20 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                       />
                     </form>
                   </td>
+                  <td className="py-2 pr-2">
+                    <form method="get" action={`/super-admin/${t.salon_slug}`} className="flex items-center gap-2">
+                      <select name="payment_plan" defaultValue={t.plan} className="rounded border border-neutral-700 bg-neutral-900 px-2 py-1 text-xs text-neutral-200">
+                        {MARKETING_PLANS.map((p) => (
+                          <option key={p.id} value={p.id}>
+                            {p.id}
+                          </option>
+                        ))}
+                      </select>
+                      <button type="submit" className="text-xs font-semibold text-emerald-300 hover:text-emerald-200">
+                        Stripe линк
+                      </button>
+                    </form>
+                  </td>
                   <td className="py-2">
                     <form action={enterSalonAdminContextAction}>
                       <input type="hidden" name="salon_slug" value={t.salon_slug} />
@@ -381,7 +409,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
               )})}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={9} className="py-8 text-center text-neutral-400">
+                  <td colSpan={10} className="py-8 text-center text-neutral-400">
                     Няма резултати.
                   </td>
                 </tr>

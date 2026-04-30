@@ -6,7 +6,7 @@ import { ConfirmTenantBasicsSubmitButton } from "./confirm-tenant-basics-submit-
 
 import { SuperAdminSalonSlugForm } from "@/components/super-admin/SuperAdminSalonSlugForm";
 import { activateTenantManually, enterSalonAdminContextAction, updateTenantBasics } from "@/app/super-admin/actions";
-import { MARKETING_PLANS } from "@/lib/marketing-data";
+import { MARKETING_PLANS, parsePlanId } from "@/lib/marketing-data";
 import { stripePaymentLinkForPlan } from "@/lib/marketing-checkout";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import type { Tenant } from "@/types";
@@ -24,9 +24,9 @@ export default async function SuperAdminTenantPage({
   searchParams,
 }: {
   params: Promise<{ salon_slug: string }>;
-  searchParams: Promise<{ saved?: string }>;
+  searchParams: Promise<{ saved?: string; payment_plan?: string }>;
 }) {
-  const { saved } = await searchParams;
+  const { saved, payment_plan } = await searchParams;
   const { salon_slug } = await params;
   const supabase = createSupabaseServiceRoleClient();
   const { data } = await supabase.from("tenants").select("*").eq("salon_slug", salon_slug).maybeSingle();
@@ -36,8 +36,9 @@ export default async function SuperAdminTenantPage({
   const today = new Date().toISOString().slice(0, 10);
   const overdue = Boolean(tenant.expiry_date && tenant.expiry_date < today);
 
-  // Stripe link for their plan + prefilled email
-  const planId = (tenant.plan ?? "standard") as Parameters<typeof stripePaymentLinkForPlan>[0];
+  // Stripe link for selected plan (or tenant plan) + prefilled email
+  const selectedPlan = parsePlanId(payment_plan) ?? tenant.plan ?? "standard";
+  const planId = selectedPlan as Parameters<typeof stripePaymentLinkForPlan>[0];
   const baseStripeLink = stripePaymentLinkForPlan(planId);
   const stripeLink = baseStripeLink && tenant.owner_email
     ? `${baseStripeLink}?prefilled_email=${encodeURIComponent(tenant.owner_email)}`
@@ -140,6 +141,22 @@ export default async function SuperAdminTenantPage({
       {/* Stripe payment link */}
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
         <h2 className="text-base font-semibold text-neutral-100">💳 Stripe линк за плащане</h2>
+        <form method="get" className="mt-3 flex flex-wrap items-end gap-2">
+          <input type="hidden" name="saved" value={saved ?? ""} />
+          <div>
+            <label className="mb-1 block text-xs text-neutral-400">План за линка</label>
+            <select name="payment_plan" defaultValue={planId} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
+              {MARKETING_PLANS.map((p) => (
+                <option key={p.id} value={p.id}>
+                  {p.id} — {p.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          <button type="submit" className="rounded-lg border border-neutral-600 px-3 py-2 text-sm text-neutral-200 hover:bg-neutral-800">
+            Генерирай
+          </button>
+        </form>
         {stripeLink ? (
           <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
             <code className="flex-1 truncate rounded-lg bg-neutral-950 px-3 py-2 text-xs text-emerald-300">{stripeLink}</code>
