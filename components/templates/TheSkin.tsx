@@ -300,7 +300,7 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-svc-cta { text-align: center; margin-top: 1.5rem; }
 
         /* ── PRODUCTS ────────────────────────────────────────── */
-        .ts-products { background: var(--white); padding: 1.75rem 0 4.25rem; }
+        .ts-products { background: var(--white); padding: 1.75rem 0 2.25rem; }
         .ts-prod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin: 1.35rem 0 1.5rem; }
         .ts-prod-card {
           background: var(--cream); padding: 2.5rem 2rem;
@@ -325,27 +325,31 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-prod-cta { text-align: center; }
 
         /* ── TESTIMONIALS ────────────────────────────────────── */
-        .ts-testimonials { background: var(--dark); padding: 3.75rem 0 4rem; position: relative; overflow: hidden; }
+        .ts-testimonials { background: var(--dark); padding: 1.85rem 0 2rem; position: relative; overflow: hidden; }
         .ts-testimonials::before {
           content: '"'; position: absolute; font-family: var(--serif);
-          font-size: min(52vw, 28rem); color: rgba(201,160,106,0.05);
-          top: 42%; left: 50%; transform: translate(-50%,-50%);
+          font-size: min(38vw, 18rem); color: rgba(201,160,106,0.06);
+          top: 48%; left: 50%; transform: translate(-50%,-50%);
           pointer-events: none; line-height: 1;
         }
-        .ts-car { max-width: 640px; margin: 0 auto; padding: 0 1.5rem; text-align: center; position: relative; }
+        .ts-testimonials .ts-car-hdr { margin-bottom: 0.65rem; }
+        .ts-testimonials .ts-rule.ts-rule-c { margin: 0.3rem auto 0.45rem; }
+        .ts-testimonials .ts-car-tag { margin-bottom: 0.35rem; }
+        .ts-car { max-width: 600px; margin: 0 auto; padding: 0 1.25rem; text-align: center; position: relative; }
         .ts-car-hdr { text-align: center; margin-bottom: 1.75rem; }
         .ts-car-tag { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-lt); opacity: 0.6; display: block; margin-bottom: 0.65rem; }
-        .ts-car-title { font-family: var(--serif); font-size: clamp(1.55rem, 2.6vw, 2.2rem); color: var(--cream); }
+        .ts-car-title { font-family: var(--serif); font-size: clamp(1.45rem, 2.4vw, 2rem); color: var(--cream); }
         .ts-car-title em { font-style: italic; color: var(--gold-lt); }
-        .ts-car-q { font-family: var(--serif); font-size: clamp(2.5rem, 6vw, 3.25rem); color: var(--gold); line-height: 0.75; margin-bottom: 0.85rem; opacity: 0.45; }
-        .ts-car-text { font-family: var(--serif); font-style: italic; font-size: clamp(1.02rem, 1.9vw, 1.28rem); color: var(--cream); line-height: 1.65; margin-bottom: 1.1rem; }
-        .ts-car-name { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-lt); opacity: 0.7; margin-bottom: 1.1rem; }
+        .ts-car-q { font-family: var(--serif); font-size: clamp(1.85rem, 4.5vw, 2.65rem); color: var(--gold); line-height: 0.8; margin-bottom: 0.45rem; opacity: 0.4; }
+        .ts-car-text { font-family: var(--serif); font-style: italic; font-size: clamp(0.98rem, 1.75vw, 1.2rem); color: var(--cream); line-height: 1.58; margin-bottom: 0.7rem; }
+        .ts-car-name { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-lt); opacity: 0.7; margin-bottom: 0.55rem; }
         .ts-car-dots { display: flex; justify-content: center; gap: 0.5rem; }
         .ts-car-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); border: none; transition: all 0.3s; padding: 0; }
         .ts-car-dot.on { background: var(--gold); transform: scale(1.4); }
 
         /* ── GALLERY ─────────────────────────────────────────── */
         .ts-gallery { background: var(--cream); padding: 4.25rem 0; }
+        .ts-testimonials + .ts-gallery { padding-top: 2.75rem; }
         .ts-gal-scroll { overflow-x: auto; padding: 0 2rem 1rem; scrollbar-width: none; }
         .ts-gal-scroll::-webkit-scrollbar { display: none; }
         .ts-gal-inner { display: flex; gap: 12px; width: max-content; }
