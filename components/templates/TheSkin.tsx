@@ -174,8 +174,8 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-wrap { max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
 
         /* GOLD LINE */
-        .ts-rule { width: 48px; height: 1px; background: var(--gold); margin: 1.5rem 0; }
-        .ts-rule-c { margin: 1.5rem auto; }
+        .ts-rule { width: 48px; height: 1px; background: var(--gold); margin: 1.1rem 0; }
+        .ts-rule-c { margin: 1.1rem auto; }
 
         /* ── NAV ────────────────────────────────────────────── */
         .ts-nav {
@@ -220,7 +220,7 @@ export function TheSkin({ data }: { data: SalonData }) {
         }
         .ts-hero-left {
           display: flex; flex-direction: column; justify-content: center;
-          padding: 8rem 4rem 5rem 5rem; position: relative; z-index: 2;
+          padding: 7rem 4rem 4rem 5rem; position: relative; z-index: 2;
           background: var(--cream);
         }
         .ts-hero-eyebrow { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.5rem; }
@@ -255,7 +255,7 @@ export function TheSkin({ data }: { data: SalonData }) {
 
         /* ── ABOUT ───────────────────────────────────────────── */
         .ts-about { background: var(--white); }
-        .ts-about-inner { display: grid; grid-template-columns: 480px 1fr; min-height: 600px; }
+        .ts-about-inner { display: grid; grid-template-columns: 480px 1fr; min-height: 480px; }
         .ts-about-img-wrap { position: relative; overflow: hidden; background: #EDE8E0; }
         .ts-about-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
         .ts-about-img-placeholder { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1rem; color: var(--muted); }
@@ -266,15 +266,15 @@ export function TheSkin({ data }: { data: SalonData }) {
           font-size: 0.58rem; letter-spacing: 0.22em; text-transform: uppercase;
           font-weight: 500; padding: 0.5rem 1rem;
         }
-        .ts-about-content { padding: 6rem 5rem; display: flex; flex-direction: column; justify-content: center; }
+        .ts-about-content { padding: 4rem 4.5rem 4rem 5rem; display: flex; flex-direction: column; justify-content: center; }
         .ts-about-tag { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); }
         .ts-about-name { font-family: var(--serif); font-size: clamp(2rem, 3vw, 2.8rem); color: var(--dark); line-height: 1.2; margin: 1rem 0 1.5rem; }
         .ts-about-name em { font-style: italic; }
         .ts-about-text { font-size: 0.92rem; color: var(--mid); line-height: 1.9; margin-bottom: 1rem; }
 
         /* ── SERVICES ────────────────────────────────────────── */
-        .ts-services { background: var(--cream); padding: 7rem 0; }
-        .ts-sec-hdr { text-align: center; margin-bottom: 4rem; }
+        .ts-services { background: var(--cream); padding: 4.25rem 0; }
+        .ts-sec-hdr { text-align: center; margin-bottom: 2.25rem; }
         .ts-sec-tag { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 1rem; }
         .ts-sec-title { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); color: var(--dark); line-height: 1.2; }
         .ts-sec-title em { font-style: italic; color: var(--gold); }
@@ -296,11 +296,11 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-svc-price-row:last-child { border-bottom: none; }
         .ts-svc-price-row span { color: var(--muted); }
         .ts-svc-price-row strong { color: var(--dark); font-weight: 500; }
-        .ts-svc-cta { text-align: center; margin-top: 3rem; }
+        .ts-svc-cta { text-align: center; margin-top: 2rem; }
 
         /* ── PRODUCTS ────────────────────────────────────────── */
-        .ts-products { background: var(--white); padding: 7rem 0; }
-        .ts-prod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin: 3rem 0; }
+        .ts-products { background: var(--white); padding: 4.25rem 0; }
+        .ts-prod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin: 2rem 0 1.75rem; }
         .ts-prod-card {
           background: var(--cream); padding: 2.5rem 2rem;
           display: flex; flex-direction: column; gap: 0.8rem;
@@ -324,27 +324,27 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-prod-cta { text-align: center; }
 
         /* ── TESTIMONIALS ────────────────────────────────────── */
-        .ts-testimonials { background: var(--dark); padding: 8rem 0; position: relative; overflow: hidden; }
+        .ts-testimonials { background: var(--dark); padding: 3.75rem 0 4rem; position: relative; overflow: hidden; }
         .ts-testimonials::before {
           content: '"'; position: absolute; font-family: var(--serif);
-          font-size: 40vw; color: rgba(201,160,106,0.04);
-          top: 50%; left: 50%; transform: translate(-50%,-50%);
+          font-size: min(52vw, 28rem); color: rgba(201,160,106,0.05);
+          top: 42%; left: 50%; transform: translate(-50%,-50%);
           pointer-events: none; line-height: 1;
         }
-        .ts-car { max-width: 700px; margin: 0 auto; padding: 0 2rem; text-align: center; position: relative; }
-        .ts-car-hdr { text-align: center; margin-bottom: 4rem; }
-        .ts-car-tag { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-lt); opacity: 0.6; display: block; margin-bottom: 1rem; }
-        .ts-car-title { font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.6rem); color: var(--cream); }
+        .ts-car { max-width: 640px; margin: 0 auto; padding: 0 1.5rem; text-align: center; position: relative; }
+        .ts-car-hdr { text-align: center; margin-bottom: 1.75rem; }
+        .ts-car-tag { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-lt); opacity: 0.6; display: block; margin-bottom: 0.65rem; }
+        .ts-car-title { font-family: var(--serif); font-size: clamp(1.55rem, 2.6vw, 2.2rem); color: var(--cream); }
         .ts-car-title em { font-style: italic; color: var(--gold-lt); }
-        .ts-car-q { font-family: var(--serif); font-size: 6rem; color: var(--gold); line-height: 0.6; margin-bottom: 2rem; opacity: 0.5; }
-        .ts-car-text { font-family: var(--serif); font-style: italic; font-size: clamp(1.1rem, 2vw, 1.4rem); color: var(--cream); line-height: 1.8; margin-bottom: 2rem; }
-        .ts-car-name { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-lt); opacity: 0.7; margin-bottom: 2.5rem; }
+        .ts-car-q { font-family: var(--serif); font-size: clamp(2.5rem, 6vw, 3.25rem); color: var(--gold); line-height: 0.75; margin-bottom: 0.85rem; opacity: 0.45; }
+        .ts-car-text { font-family: var(--serif); font-style: italic; font-size: clamp(1.02rem, 1.9vw, 1.28rem); color: var(--cream); line-height: 1.65; margin-bottom: 1.1rem; }
+        .ts-car-name { font-size: 0.65rem; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-lt); opacity: 0.7; margin-bottom: 1.1rem; }
         .ts-car-dots { display: flex; justify-content: center; gap: 0.5rem; }
         .ts-car-dot { width: 5px; height: 5px; border-radius: 50%; background: rgba(255,255,255,0.2); border: none; transition: all 0.3s; padding: 0; }
         .ts-car-dot.on { background: var(--gold); transform: scale(1.4); }
 
         /* ── GALLERY ─────────────────────────────────────────── */
-        .ts-gallery { background: var(--cream); padding: 7rem 0; }
+        .ts-gallery { background: var(--cream); padding: 4.25rem 0; }
         .ts-gal-scroll { overflow-x: auto; padding: 0 2rem 1rem; scrollbar-width: none; }
         .ts-gal-scroll::-webkit-scrollbar { display: none; }
         .ts-gal-inner { display: flex; gap: 12px; width: max-content; }
@@ -357,11 +357,11 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-gal-item:hover .ts-gal-overlay { opacity: 1; }
 
         /* ── CTA BLOCK ───────────────────────────────────────── */
-        .ts-cta { background: var(--gold); padding: 7rem 0; text-align: center; }
+        .ts-cta { background: var(--gold); padding: 4.25rem 0; text-align: center; }
         .ts-cta-tag { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: rgba(255,255,255,0.6); display: block; margin-bottom: 1rem; }
         .ts-cta-title { font-family: var(--serif); font-size: clamp(2.2rem, 4vw, 3.5rem); color: var(--white); line-height: 1.2; margin-bottom: 0.5rem; }
         .ts-cta-title em { font-style: italic; }
-        .ts-cta-sub { font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 2.5rem; }
+        .ts-cta-sub { font-size: 0.9rem; color: rgba(255,255,255,0.7); margin-bottom: 1.75rem; }
         .ts-cta-phone {
           display: inline-flex; align-items: center; gap: 0.8rem;
           font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.5rem);
@@ -374,10 +374,10 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-cta-note { font-size: 0.68rem; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(255,255,255,0.5); }
 
         /* ── CONTACT ─────────────────────────────────────────── */
-        .ts-contact { background: var(--white); padding: 7rem 0; }
-        .ts-contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; }
+        .ts-contact { background: var(--white); padding: 4.25rem 0; }
+        .ts-contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; }
         .ts-contact-tag { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); margin-bottom: 1rem; }
-        .ts-contact-title { font-family: var(--serif); font-size: clamp(1.8rem, 2.5vw, 2.5rem); color: var(--dark); margin: 0.5rem 0 2rem; }
+        .ts-contact-title { font-family: var(--serif); font-size: clamp(1.8rem, 2.5vw, 2.5rem); color: var(--dark); margin: 0.5rem 0 1.35rem; }
         .ts-contact-title em { font-style: italic; }
         .ts-info-row { display: flex; align-items: flex-start; gap: 1rem; padding: 1.2rem 0; border-bottom: 1px solid var(--border); }
         .ts-info-row:first-child { border-top: 1px solid var(--border); }
@@ -404,7 +404,7 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-soc-div { width: 1px; height: 16px; background: var(--border); }
 
         /* ── FOOTER ──────────────────────────────────────────── */
-        .ts-footer { background: var(--dark); padding: 4rem 0 2rem; }
+        .ts-footer { background: var(--dark); padding: 3rem 0 1.75rem; }
         .ts-footer-inner { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 1.5rem; }
         .ts-footer-logo { height: 36px; width: auto; object-fit: contain; filter: brightness(0) invert(1); opacity: 0.8; }
         .ts-footer-name { font-family: var(--serif); font-size: 1.5rem; color: var(--cream); opacity: 0.8; }
@@ -436,12 +436,12 @@ export function TheSkin({ data }: { data: SalonData }) {
         /* ── RESPONSIVE ──────────────────────────────────────── */
         @media (max-width: 1024px) {
           .ts-hero { grid-template-columns: 1fr; min-height: auto; }
-          .ts-hero-left { padding: 7rem 2rem 3rem; order: 2; }
+          .ts-hero-left { padding: 6rem 2rem 2.5rem; order: 2; }
           .ts-hero-right { order: 1; min-height: 55svh; }
           .ts-about-inner { grid-template-columns: 1fr; }
           .ts-about-img-wrap { min-height: 400px; }
-          .ts-about-content { padding: 4rem 2rem; }
-          .ts-contact-grid { grid-template-columns: 1fr; gap: 3rem; }
+          .ts-about-content { padding: 3rem 2rem; }
+          .ts-contact-grid { grid-template-columns: 1fr; gap: 2.25rem; }
           .ts-prod-grid { grid-template-columns: 1fr; gap: 2px; }
         }
         @media (max-width: 768px) {
@@ -661,7 +661,7 @@ export function TheSkin({ data }: { data: SalonData }) {
             </div>
           </div>
           {igHref && (
-            <div style={{ textAlign: "center", marginTop: "2.5rem" }}>
+            <div style={{ textAlign: "center", marginTop: "1.5rem" }}>
               <a href={igHref} target="_blank" rel="noopener noreferrer" className="ts-btn-outline">
                 Повече в Instagram →
               </a>
