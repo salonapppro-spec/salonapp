@@ -178,7 +178,13 @@ export function AdminLoginForm() {
             на салона (поддомейн), отвори директно <strong className="text-brand-900">salonapp.pro/admin</strong>.
           </p>
 
-          <p className="mt-4 text-center text-xs leading-relaxed text-brand-800/70">
+          <p className="mt-4 text-center text-xs">
+            <a href="/admin/forgot-password" className="text-brand-600 hover:underline">
+              Забравена парола?
+            </a>
+          </p>
+
+          <p className="mt-2 text-center text-xs leading-relaxed text-brand-800/70">
             Достъпът е само за упълномощени администратори на салона.
           </p>
         </div>
