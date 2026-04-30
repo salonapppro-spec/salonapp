@@ -461,7 +461,12 @@ export function Zen({ data }: { data: SalonData }) {
       {/* NAV */}
       <nav className={`zen-navbar${scrolled ? " scrolled" : ""}`}>
         <div className="nav-logo" onClick={() => goTo("hero")}>
-          {tenant.salon_name}
+          {tenant.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={tenant.logo_url} alt={tenant.salon_name} style={{ height: "38px", width: "auto", objectFit: "contain" }} />
+          ) : (
+            tenant.salon_name
+          )}
         </div>
         <ul className="nav-links">
           {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && <li><a onClick={() => goTo("about")}>За мен</a></li>}
