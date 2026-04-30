@@ -9,7 +9,7 @@ const ROSE = "#C8826A";
 const plans = [
   {
     name: "СТАРТ",
-    price: "14.99",
+    price: "15",
     featured: false,
     features: [
       "Твой собствен сайт",
