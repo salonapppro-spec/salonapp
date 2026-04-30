@@ -21,7 +21,7 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   archived: { label: "Архивиран", cls: "bg-neutral-800 text-neutral-200 border border-neutral-600" },
 };
 
-type SearchParams = { q?: string; plan?: string; status?: string; archived?: string };
+type SearchParams = { q?: string; plan?: string; status?: string; archived?: string; op?: string; salon?: string };
 
 function plusDays(dateISO: string, days: number): string {
   const d = new Date(`${dateISO}T00:00:00`);
@@ -55,7 +55,7 @@ function isOverdue(t: Tenant, today: string): boolean {
 }
 
 export default async function SuperAdminHomePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const { q: rawQ, plan: rawPlan, status: rawStatus, archived: rawArchived } = await searchParams;
+  const { q: rawQ, plan: rawPlan, status: rawStatus, archived: rawArchived, op, salon } = await searchParams;
   const supabase = createSupabaseServiceRoleClient();
   const { data } = await supabase.from("tenants").select("*").order("created_at", { ascending: false });
   const tenants = ((data ?? []) as Tenant[]).filter(Boolean);
@@ -123,6 +123,21 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
 
   return (
     <div className="space-y-10">
+      {op === "grace_extended" ? (
+        <div className="rounded-xl border border-amber-700/60 bg-amber-950/40 px-4 py-3 text-sm font-semibold text-amber-300">
+          ✓ Гратисът е удължен с 7 дни за <span className="text-amber-200">{salon ?? "тенанта"}</span>.
+        </div>
+      ) : null}
+      {op === "marked_active" ? (
+        <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 px-4 py-3 text-sm font-semibold text-emerald-300">
+          ✓ Тенантът <span className="text-emerald-200">{salon ?? ""}</span> е активиран.
+        </div>
+      ) : null}
+      {op === "already_active" ? (
+        <div className="rounded-xl border border-neutral-700/60 bg-neutral-900/80 px-4 py-3 text-sm font-semibold text-neutral-300">
+          Инфо: Тенантът <span className="text-neutral-100">{salon ?? ""}</span> вече е активен.
+        </div>
+      ) : null}
       <section>
         <h1 className="text-2xl font-semibold tracking-tight">Супер админ табло</h1>
         <p className="mt-2 text-sm text-neutral-400">Оперативен панел за обаждания, тенанти, статистика и CTR фуния.</p>
@@ -278,6 +293,9 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
         <div className="space-y-3 sm:hidden">
           {filtered.map((t) => {
             const overdue = isOverdue(t, today);
+            const status = effectiveTenantStatus(t);
+            const canExtendGrace = status !== "archived";
+            const canMarkActive = status !== "active";
             return (
               <div
                 key={t.id}
@@ -332,18 +350,26 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                   </button>
                 </form>
                 <div className="mt-2 grid grid-cols-2 gap-2">
-                  <form action={extendTenantGraceBy7DaysAction}>
-                    <input type="hidden" name="salon_slug" value={t.salon_slug} />
-                    <button type="submit" className="w-full rounded-lg border border-amber-700 bg-amber-950/40 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-900/60">
-                      +7 дни grace
-                    </button>
-                  </form>
-                  <form action={markTenantActiveAction}>
-                    <input type="hidden" name="salon_slug" value={t.salon_slug} />
-                    <button type="submit" className="w-full rounded-lg border border-emerald-700 bg-emerald-950/40 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/60">
-                      Активирай
-                    </button>
-                  </form>
+                  {canExtendGrace ? (
+                    <form action={extendTenantGraceBy7DaysAction}>
+                      <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                      <button type="submit" className="w-full rounded-lg border border-amber-700 bg-amber-950/40 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-900/60">
+                        +7 дни grace
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="w-full rounded-lg border border-neutral-700 bg-neutral-900/60 py-2 text-center text-xs text-neutral-500">—</div>
+                  )}
+                  {canMarkActive ? (
+                    <form action={markTenantActiveAction}>
+                      <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                      <button type="submit" className="w-full rounded-lg border border-emerald-700 bg-emerald-950/40 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/60">
+                        Активирай
+                      </button>
+                    </form>
+                  ) : (
+                    <div className="w-full rounded-lg border border-emerald-800/60 bg-emerald-950/20 py-2 text-center text-xs font-semibold text-emerald-300">Активен</div>
+                  )}
                 </div>
               </div>
             );
@@ -371,6 +397,9 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
             <tbody>
               {filtered.map((t) => {
                 const overdue = isOverdue(t, today);
+                const status = effectiveTenantStatus(t);
+                const canExtendGrace = status !== "archived";
+                const canMarkActive = status !== "active";
                 return (
                 <tr key={t.id} className={overdue ? "border-b border-red-900/70 bg-red-950/20" : "border-b border-neutral-800/80"}>
                   <td className="py-2 pr-2 font-medium">{t.salon_name}</td>
@@ -420,19 +449,27 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                   </td>
                   <td className="py-2 pr-2">
                     <div className="flex items-center gap-2">
-                      <form action={extendTenantGraceBy7DaysAction}>
-                        <input type="hidden" name="salon_slug" value={t.salon_slug} />
-                        <button type="submit" className="text-xs font-semibold text-amber-300 hover:text-amber-200">
-                          +7 grace
-                        </button>
-                      </form>
+                      {canExtendGrace ? (
+                        <form action={extendTenantGraceBy7DaysAction}>
+                          <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                          <button type="submit" className="text-xs font-semibold text-amber-300 hover:text-amber-200">
+                            +7 grace
+                          </button>
+                        </form>
+                      ) : (
+                        <span className="text-xs text-neutral-600">—</span>
+                      )}
                       <span className="text-neutral-600">·</span>
-                      <form action={markTenantActiveAction}>
-                        <input type="hidden" name="salon_slug" value={t.salon_slug} />
-                        <button type="submit" className="text-xs font-semibold text-emerald-300 hover:text-emerald-200">
-                          Активирай
-                        </button>
-                      </form>
+                      {canMarkActive ? (
+                        <form action={markTenantActiveAction}>
+                          <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                          <button type="submit" className="text-xs font-semibold text-emerald-300 hover:text-emerald-200">
+                            Активирай
+                          </button>
+                        </form>
+                      ) : (
+                        <span className="text-xs font-semibold text-emerald-300">Активен</span>
+                      )}
                     </div>
                   </td>
                   <td className="py-2">

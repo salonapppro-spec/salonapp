@@ -250,6 +250,7 @@ export async function extendTenantGraceBy7DaysAction(formData: FormData): Promis
 
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
+  redirect(`/super-admin?op=grace_extended&salon=${encodeURIComponent(salonSlug)}`);
 }
 
 export async function markTenantActiveAction(formData: FormData): Promise<void> {
@@ -258,6 +259,17 @@ export async function markTenantActiveAction(formData: FormData): Promise<void> 
   if (!salonSlug) throw new Error("Missing salon_slug");
 
   const supabase = createSupabaseServiceRoleClient();
+  const { data: current } = await supabase
+    .from("tenants")
+    .select("status,archived_at")
+    .eq("salon_slug", salonSlug)
+    .maybeSingle();
+  const currentStatus = (current as { status?: string; archived_at?: string | null } | null)?.status ?? "inactive";
+  const currentArchivedAt = (current as { status?: string; archived_at?: string | null } | null)?.archived_at ?? null;
+  if (currentStatus === "active" && !currentArchivedAt) {
+    redirect(`/super-admin?op=already_active&salon=${encodeURIComponent(salonSlug)}`);
+  }
+
   const { error } = await supabase
     .from("tenants")
     .update({ status: "active", archived_at: null, archived_by: null })
@@ -272,6 +284,7 @@ export async function markTenantActiveAction(formData: FormData): Promise<void> 
 
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
+  redirect(`/super-admin?op=marked_active&salon=${encodeURIComponent(salonSlug)}`);
 }
 
 function randomPassword(): string {
