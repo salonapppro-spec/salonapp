@@ -42,6 +42,10 @@ const TASK_STATUS_BADGE: Record<string, string> = {
   closed: "bg-neutral-800 text-neutral-300 border border-neutral-600",
 };
 
+function isSystemLeadEmail(value: string | null | undefined): boolean {
+  return Boolean(value && value.toLowerCase().endsWith("@no-email.salonapp.pro"));
+}
+
 function plusDays(dateISO: string, days: number): string {
   const d = new Date(`${dateISO}T00:00:00`);
   d.setDate(d.getDate() + days);
@@ -247,7 +251,7 @@ export default async function SuperAdminLeadsPage({
 
                 {/* Action row */}
                 <div className="mt-3 flex flex-wrap gap-2 border-t border-neutral-800 pt-3">
-                  {lead.email ? (
+                  {lead.email && !isSystemLeadEmail(lead.email) ? (
                     <a
                       href={`mailto:${lead.email}?subject=Покана за SalonApp.pro&body=Здравейте ${lead.contact_name},%0A%0AБлагодаря за интереса към SalonApp.pro.`}
                       className="rounded-lg border border-sky-700/60 bg-sky-950/30 px-3 py-1.5 text-xs font-semibold text-sky-300 hover:bg-sky-900/40"
@@ -272,7 +276,7 @@ export default async function SuperAdminLeadsPage({
                     </Link>
                   ) : (
                     <Link
-                      href={`/super-admin/new?name=${encodeURIComponent(lead.salon_name)}&email=${encodeURIComponent(lead.email ?? "")}&phone=${encodeURIComponent(lead.phone ?? "")}&plan=${encodeURIComponent(lead.plan)}`}
+                      href={`/super-admin/new?name=${encodeURIComponent(lead.salon_name)}&email=${encodeURIComponent(isSystemLeadEmail(lead.email) ? "" : (lead.email ?? ""))}&phone=${encodeURIComponent(lead.phone ?? "")}&plan=${encodeURIComponent(lead.plan)}`}
                       className="rounded-lg border border-amber-700/60 bg-amber-950/30 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-900/40"
                     >
                       ➕ Създай тенант

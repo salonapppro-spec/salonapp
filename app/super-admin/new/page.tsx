@@ -14,6 +14,10 @@ function slugify(raw: string): string {
     .slice(0, 60);
 }
 
+function isSystemLeadEmail(value: string): boolean {
+  return value.toLowerCase().endsWith("@no-email.salonapp.pro");
+}
+
 type CreatedPayload = {
   slug: string;
   ownerEmail?: string | null;
@@ -45,12 +49,13 @@ export default function NewTenantPage() {
     const qEmail = (searchParams.get("email") ?? "").trim();
     const qPhone = (searchParams.get("phone") ?? "").trim();
     const qPlan = (searchParams.get("plan") ?? "").trim();
+    const usableEmail = qEmail && !isSystemLeadEmail(qEmail) ? qEmail : "";
 
     if (qName) {
       setSalonName((prev) => prev || qName);
       setSlug((prev) => prev || slugify(qName));
     }
-    if (qEmail) setOwnerEmail((prev) => prev || qEmail);
+    if (usableEmail) setOwnerEmail((prev) => prev || usableEmail);
     if (qPhone) setOwnerPhone((prev) => prev || qPhone);
     if (qPlan && ["standard", "pro", "premium", "collective"].includes(qPlan)) {
       setPlan((prev) => prev || qPlan);
