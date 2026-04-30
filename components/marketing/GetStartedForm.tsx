@@ -263,7 +263,7 @@ export function GetStartedForm() {
                 />
                 <span style={{ fontSize: "13px", color: MUTED, lineHeight: 1.5 }}>
                   Съгласявам се с{" "}
-                  <Link href="#" style={{ color: GOLD, fontWeight: 700, textDecoration: "none" }}>
+                  <Link href="/legal/terms" target="_blank" rel="noopener noreferrer" style={{ color: GOLD, fontWeight: 700, textDecoration: "none" }}>
                     общите условия
                   </Link>{" "}
                   и обработката на личните ми данни.

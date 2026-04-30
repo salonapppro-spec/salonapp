@@ -454,8 +454,9 @@ export default function Home() {
                 { label: "Безплатен месец", href: "/get-started" },
                 { label: "Демо салон", href: demoSalonHref },
                 { label: "salonapppro@gmail.com", href: "mailto:salonapppro@gmail.com" },
-                { label: "Условия", href: "#" },
-                { label: "Поверителност", href: "#" },
+                { label: "Условия", href: "/legal/terms" },
+                { label: "Поверителност", href: "/legal/privacy" },
+                { label: "Бисквитки", href: "/legal/cookies" },
               ].map(({ label, href }) => (
                 <Link
                   key={label}
