@@ -90,7 +90,7 @@ export function TheSkin({ data }: { data: SalonData }) {
       : null;
   const mapsFallbackEmbed =
     !mapsSrc && addressTrimmed !== ""
-      ? `https://www.google.com/maps?q=${encodeURIComponent(addressTrimmed)}&hl=bg&output=embed`
+      ? `https://maps.google.com/maps?q=${encodeURIComponent(addressTrimmed)}&hl=bg&z=16&output=embed`
       : null;
   const effectiveMapsSrc = mapsSrc ?? mapsFallbackEmbed;
   const phone = tenant.phone ?? "";

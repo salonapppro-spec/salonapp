@@ -34,7 +34,7 @@ const CSP_POLICY = [
   // Supabase Storage за снимки
   "img-src 'self' data: blob: https://*.supabase.co https://*.salonapp.pro https://www.google.com https://www.gstatic.com",
   // Iframe preview в super-admin builder + Google Maps iframe
-  "frame-src 'self' https://www.google.com https://*.salonapp.pro",
+  "frame-src 'self' https://www.google.com https://maps.google.com https://*.salonapp.pro",
   // Supabase realtime + REST, Stripe, Meta CAPI + Sentry ingest
   `connect-src ${connectSrcParts.join(" ")}`,
   "object-src 'none'",

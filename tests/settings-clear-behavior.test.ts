@@ -49,6 +49,12 @@ test("normalization converts empty optional URLs to null", () => {
   assert.equal(patch.google_maps_embed, null);
 });
 
+test("schema accepts legacy maps.google.com embed (q + output=embed)", () => {
+  const legacy = "https://maps.google.com/maps?q=Sofia%20Center&hl=bg&output=embed";
+  const parsed = UpdateTenantPublicFieldsSchema.safeParse({ google_maps_embed: legacy });
+  assert.equal(parsed.success, true);
+});
+
 test("normalization preserves non-empty URLs", () => {
   const maps = "https://www.google.com/maps/embed?pb=abc";
   const patch = normalizeTenantSettingsPatch({

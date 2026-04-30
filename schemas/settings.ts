@@ -54,7 +54,8 @@ const optionalGoogleMapsEmbed = z.preprocess(
     z.undefined(),
     z.null(),
     z.string().max(2000).refine(isSafeGoogleMapsEmbedUrl, {
-      message: "Google Maps: само https://www.google.com/maps/embed?... (embed от Google)",
+      message:
+        "Google Maps: позволени са официалният embed (maps/embed?pb=…) или класическият maps.google.com/maps?…&output=embed",
     }),
   ]),
 );

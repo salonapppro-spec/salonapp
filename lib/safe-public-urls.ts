@@ -38,16 +38,39 @@ export function isSafeTiktokUrl(raw: string): boolean {
   return hostUnderRoot(u.hostname, "tiktok.com");
 }
 
-/** Only official Google Maps HTML embed (query required). */
+/**
+ * Allowed Google Maps iframe sources:
+ * - Share → Embed (`https://www.google.com/maps/embed?pb=…`)
+ * - Legacy framed search (`https://maps.google.com/maps?q=…&output=embed`) — reliably loads in iframe
+ */
 export function isSafeGoogleMapsEmbedUrl(raw: string): boolean {
   const u = isHttpsUrlWithNoCredentials(raw.trim());
   if (!u) return false;
-  if (u.hostname.toLowerCase() !== "www.google.com") return false;
-  const path = u.pathname.replace(/\/$/, "") || "/";
-  if (path.toLowerCase() !== "/maps/embed") return false;
-  if (!u.search || u.search.length < 2) return false;
   if (raw.length > 2000) return false;
-  return true;
+
+  const host = u.hostname.toLowerCase();
+  const path = ((u.pathname.replace(/\/$/, "") || "/").toLowerCase());
+
+  if (host === "www.google.com") {
+    if (path !== "/maps/embed") return false;
+    if (!u.search || u.search.length < 2) return false;
+    return true;
+  }
+
+  if (host === "maps.google.com" && path === "/maps") {
+    const output = u.searchParams.get("output")?.toLowerCase();
+    if (output !== "embed") return false;
+    const hasDestination =
+      u.searchParams.has("q") ||
+      u.searchParams.has("query") ||
+      u.searchParams.has("sll") ||
+      u.searchParams.has("ll") ||
+      u.searchParams.has("cid") ||
+      u.searchParams.has("pb");
+    return hasDestination;
+  }
+
+  return false;
 }
 
 export function safeInstagramHref(url: string | null | undefined): string | null {
