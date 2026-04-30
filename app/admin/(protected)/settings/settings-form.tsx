@@ -150,9 +150,11 @@ function sectionSaveClass(disabled: boolean) {
 
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
-  const sectionInitialRef = useRef<{ logo: string; contacts: string; social: string; maps: string } | null>(null);
+  const sectionInitialRef = useRef<{ logo: string; hero: string; about: string; contacts: string; social: string; maps: string } | null>(null);
 
   const [logo, setLogo] = useState(tenant.logo_url ?? "");
+  const [heroImage, setHeroImage] = useState(tenant.hero_image_url ?? "");
+  const [aboutImage, setAboutImage] = useState(tenant.about_image_url ?? "");
   const [address, setAddress] = useState(tenant.address ?? "");
   const [phone, setPhone] = useState(tenant.phone ?? "");
   const [email, setEmail] = useState(tenant.email ?? "");
@@ -161,7 +163,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const [tiktok, setTiktok] = useState(tenant.tiktok_url ?? "");
   const [mapsEmbed, setMapsEmbed] = useState(tenant.google_maps_embed ?? "");
 
-  const [savingSection, setSavingSection] = useState<"logo" | "contacts" | "social" | "maps" | "all" | null>(null);
+  const [savingSection, setSavingSection] = useState<"logo" | "hero" | "about" | "contacts" | "social" | "maps" | "all" | null>(null);
   const [savingSpecialists, setSavingSpecialists] = useState<string | null>(null);
   const [deletingSpecialist, setDeletingSpecialist] = useState<string | null>(null);
   const [addingSpecialist, setAddingSpecialist] = useState(false);
@@ -185,6 +187,8 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   };
 
   const snapLogo = () => JSON.stringify([logo.trim()]);
+  const snapHero = () => JSON.stringify([heroImage.trim()]);
+  const snapAbout = () => JSON.stringify([aboutImage.trim()]);
   const snapContacts = () => JSON.stringify([address.trim(), phone.trim(), email.trim()]);
   const snapSocial = () => JSON.stringify([instagram.trim(), facebook.trim(), tiktok.trim()]);
   const snapMaps = () => JSON.stringify([mapsEmbed.trim()]);
@@ -193,6 +197,8 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     if (sectionInitialRef.current) return;
     sectionInitialRef.current = {
       logo: JSON.stringify([(tenant.logo_url ?? "").trim()]),
+      hero: JSON.stringify([(tenant.hero_image_url ?? "").trim()]),
+      about: JSON.stringify([(tenant.about_image_url ?? "").trim()]),
       contacts: JSON.stringify([
         (tenant.address ?? "").trim(),
         (tenant.phone ?? "").trim(),
@@ -208,11 +214,12 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   }, [tenant]);
 
   const hasUnsavedLogo = sectionInitialRef.current != null && snapLogo() !== sectionInitialRef.current.logo;
-  const hasUnsavedContacts =
-    sectionInitialRef.current != null && snapContacts() !== sectionInitialRef.current.contacts;
+  const hasUnsavedHero = sectionInitialRef.current != null && snapHero() !== sectionInitialRef.current.hero;
+  const hasUnsavedAbout = sectionInitialRef.current != null && snapAbout() !== sectionInitialRef.current.about;
+  const hasUnsavedContacts = sectionInitialRef.current != null && snapContacts() !== sectionInitialRef.current.contacts;
   const hasUnsavedSocial = sectionInitialRef.current != null && snapSocial() !== sectionInitialRef.current.social;
   const hasUnsavedMaps = sectionInitialRef.current != null && snapMaps() !== sectionInitialRef.current.maps;
-  const hasUnsavedChanges = hasUnsavedLogo || hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
+  const hasUnsavedChanges = hasUnsavedLogo || hasUnsavedHero || hasUnsavedAbout || hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
 
   useEffect(() => {
     if (!hasUnsavedChanges) return;
@@ -242,6 +249,8 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     if (!sectionInitialRef.current) return;
     sectionInitialRef.current = {
       logo: snapLogo(),
+      hero: snapHero(),
+      about: snapAbout(),
       contacts: snapContacts(),
       social: snapSocial(),
       maps: snapMaps(),
@@ -256,6 +265,26 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     });
     const json = await res.json();
     if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
+  }
+
+  async function saveHeroImage() {
+    setSavingSection("hero"); setError(null); setOk(null);
+    try {
+      await postSettingsPartial({ hero_image_url: heroImage.trim() || null });
+      if (sectionInitialRef.current) sectionInitialRef.current = { ...sectionInitialRef.current, hero: snapHero() };
+      setOk("✓ Hero снимката е запазена.");
+    } catch (e) { setError(e instanceof Error ? e.message : "Грешка при запис."); }
+    finally { setSavingSection(null); }
+  }
+
+  async function saveAboutImage() {
+    setSavingSection("about"); setError(null); setOk(null);
+    try {
+      await postSettingsPartial({ about_image_url: aboutImage.trim() || null });
+      if (sectionInitialRef.current) sectionInitialRef.current = { ...sectionInitialRef.current, about: snapAbout() };
+      setOk("✓ Снимката 'За мен' е запазена.");
+    } catch (e) { setError(e instanceof Error ? e.message : "Грешка при запис."); }
+    finally { setSavingSection(null); }
   }
 
   async function saveLogo() {
@@ -559,6 +588,58 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
               disabled={savingSection != null}
             >
               {savingSection === "logo" ? "Запазване…" : "✓ Запази логото"}
+            </button>
+          </div>
+        </div>
+      </FieldCard>
+
+      {/* ── Hero снимка ── */}
+      <FieldCard>
+        <div id="hero-image">
+          <SectionHeader icon="🖼️" title="Hero снимка" desc="Главната снимка в горната секция на публичния сайт" />
+          {hasUnsavedHero && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+          <ImageUpload
+            label="Качи hero снимка (JPG, PNG, WebP)"
+            value={heroImage}
+            onChange={setHeroImage}
+            aspect="wide"
+            hint="Хоризонтална снимка — показва се като фон или главна снимка в hero секцията."
+          />
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              className={sectionSaveClass(!!savingSection)}
+              style={{ background: savingSection === "hero" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+              onClick={() => void saveHeroImage()}
+              disabled={savingSection != null}
+            >
+              {savingSection === "hero" ? "Запазване…" : "✓ Запази hero снимката"}
+            </button>
+          </div>
+        </div>
+      </FieldCard>
+
+      {/* ── За мен снимка ── */}
+      <FieldCard>
+        <div id="about-image">
+          <SectionHeader icon="👤" title='Снимка "За мен"' desc="Снимката в секцията с информация за салона / специалиста" />
+          {hasUnsavedAbout && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+          <ImageUpload
+            label='Качи снимка "За мен" (JPG, PNG, WebP)'
+            value={aboutImage}
+            onChange={setAboutImage}
+            aspect="wide"
+            hint='Вертикална или квадратна снимка — показва се в секцията "За мен".'
+          />
+          <div className="mt-4 flex justify-end">
+            <button
+              type="button"
+              className={sectionSaveClass(!!savingSection)}
+              style={{ background: savingSection === "about" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+              onClick={() => void saveAboutImage()}
+              disabled={savingSection != null}
+            >
+              {savingSection === "about" ? "Запазване…" : 'Запази снимката "За мен"'}
             </button>
           </div>
         </div>
