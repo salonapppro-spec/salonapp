@@ -22,7 +22,7 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SalonApp.pro — Сайт, резервации и бизнес за салони",
   description:
-    "Онлайн резервации по графика, админ панел и публичен сайт за салони. Планове Standard, Pro, Premium и Collective.",
+    "Онлайн резервации по графика, админ панел и публичен сайт за салони. Планове Старт, Standard, Pro и Premium.",
   openGraph: {
     title: "SalonApp.pro — Beauty. Business. Elevated.",
     description: "Сайт и резервации за салони — без хаоса в чатовете.",
