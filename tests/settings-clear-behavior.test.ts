@@ -55,6 +55,19 @@ test("schema accepts legacy maps.google.com embed (q + output=embed)", () => {
   assert.equal(parsed.success, true);
 });
 
+test("schema rejects maps pin with only latitude", () => {
+  const parsed = UpdateTenantPublicFieldsSchema.safeParse({ maps_pin_lat: 42.5 });
+  assert.equal(parsed.success, false);
+});
+
+test("schema accepts valid maps pin pair", () => {
+  const parsed = UpdateTenantPublicFieldsSchema.safeParse({
+    maps_pin_lat: 42.4924703,
+    maps_pin_lng: 27.4625005,
+  });
+  assert.equal(parsed.success, true);
+});
+
 test("normalization preserves non-empty URLs", () => {
   const maps = "https://www.google.com/maps/embed?pb=abc";
   const patch = normalizeTenantSettingsPatch({

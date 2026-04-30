@@ -24,12 +24,7 @@ function mapsGeoTargetForTenant(address: string | null | undefined, salonName: s
   return typeof salonName === "string" ? salonName.trim() : "";
 }
 
-/**
- * Точни lat/lng (напр. от Google Maps → сподели). В `design_tokens`: `"maps_pin": { "lat": 42.49, "lng": 27.46 }`.
- * За салона theskin има канон координати от официалния /maps/place/ линк, ако няма override в tokens.
- */
-const THESKIN_DEFAULT_MAP_PIN: { lat: number; lng: number } = { lat: 42.4924703, lng: 27.4625005 };
-
+/** Точни lat/lng — задават се от салонския админ → `design_tokens.maps_pin`. */
 function readValidatedMapsPin(tokens: Record<string, unknown>): { lat: number; lng: number } | null {
   const raw = tokens.maps_pin;
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
@@ -134,9 +129,7 @@ export function TheSkin({ data }: { data: SalonData }) {
   const officialPbEmbed =
     tenantMapsSrc?.startsWith("https://www.google.com/maps/embed?") ? tenantMapsSrc : null;
   const mapsGeoTarget = mapsGeoTargetForTenant(tenant.address, tenant.salon_name);
-  const mapsPinFromTokens = readValidatedMapsPin(tokens);
-  const mapsPin =
-    mapsPinFromTokens ?? (tenant.salon_slug === "theskin" ? THESKIN_DEFAULT_MAP_PIN : null);
+  const mapsPin = readValidatedMapsPin(tokens);
 
   const mapsDirectionsHref =
     mapsPin !== null

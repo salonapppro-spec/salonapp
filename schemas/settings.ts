@@ -60,7 +60,17 @@ const optionalGoogleMapsEmbed = z.preprocess(
   ]),
 );
 
-export const UpdateTenantPublicFieldsSchema = z.object({
+function parseMapsPinCoord(v: unknown): number | undefined {
+  if (v === undefined || v === null || v === "") return undefined;
+  const n = typeof v === "number" ? v : Number(String(v).trim().replace(",", "."));
+  return Number.isFinite(n) ? n : undefined;
+}
+
+const optionalMapsPinLat = z.preprocess(parseMapsPinCoord, z.number().min(41.2).max(44.35).optional());
+const optionalMapsPinLng = z.preprocess(parseMapsPinCoord, z.number().min(22.25).max(28.85).optional());
+
+export const UpdateTenantPublicFieldsSchema = z
+  .object({
   /** Optional; admin API ignores client value and uses session tenant. */
   salon_slug: z.string().min(1).optional(),
   salon_name: z.string().min(1).max(120).optional(),
@@ -80,6 +90,16 @@ export const UpdateTenantPublicFieldsSchema = z.object({
   facebook_url: optionalFacebook,
   tiktok_url: optionalTiktok,
   google_maps_embed: optionalGoogleMapsEmbed,
+  /** Записват се в `design_tokens.maps_pin` за шаблони като The Skin (точен пин на картата). */
+  maps_pin_lat: optionalMapsPinLat,
+  maps_pin_lng: optionalMapsPinLng,
   primary_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
   background_color: z.string().regex(/^#[0-9A-Fa-f]{6}$/).optional(),
-});
+})
+  .refine(
+    (d) => (d.maps_pin_lat === undefined) === (d.maps_pin_lng === undefined),
+    {
+      message: "Точна локация: попълни и двете координати (lat и lng), или изчисти двете.",
+      path: ["maps_pin_lng"],
+    },
+  );

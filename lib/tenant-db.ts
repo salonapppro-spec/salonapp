@@ -399,6 +399,9 @@ export function tenantDb(rawSlug: string) {
       getSalonName() {
         return q("tenants").select("salon_name").eq("salon_slug", salonSlug).maybeSingle();
       },
+      getDesignTokens() {
+        return q("tenants").select("design_tokens").eq("salon_slug", salonSlug).maybeSingle();
+      },
       updatePublicFields(values: AnyRow) {
         return q("tenants").update(values).eq("salon_slug", salonSlug);
       },

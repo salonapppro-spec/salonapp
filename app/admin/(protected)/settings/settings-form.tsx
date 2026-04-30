@@ -154,6 +154,22 @@ function sectionSaveClass(disabled: boolean) {
   }`;
 }
 
+function readMapsPinStringsFromTenant(tenant: Tenant): { lat: string; lng: string } {
+  const dt = tenant.design_tokens;
+  if (!dt || typeof dt !== "object" || Array.isArray(dt)) return { lat: "", lng: "" };
+  const tok = dt as Record<string, unknown>;
+  const mp = tok.maps_pin;
+  if (!mp || typeof mp !== "object" || Array.isArray(mp)) return { lat: "", lng: "" };
+  const o = mp as Record<string, unknown>;
+  const la = o.lat;
+  const ln = o.lng;
+  const latStr =
+    typeof la === "number" && Number.isFinite(la) ? String(la) : typeof la === "string" ? la.trim() : "";
+  const lngStr =
+    typeof ln === "number" && Number.isFinite(ln) ? String(ln) : typeof ln === "string" ? ln.trim() : "";
+  return { lat: latStr, lng: lngStr };
+}
+
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
   const sectionInitialRef = useRef<{ logo: string; hero: string; about: string; contacts: string; social: string; maps: string } | null>(null);
@@ -168,6 +184,9 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const [facebook, setFacebook] = useState(tenant.facebook_url ?? "");
   const [tiktok, setTiktok] = useState(tenant.tiktok_url ?? "");
   const [mapsEmbed, setMapsEmbed] = useState(tenant.google_maps_embed ?? "");
+  const initialMapsPins = readMapsPinStringsFromTenant(tenant);
+  const [mapsPinLat, setMapsPinLat] = useState(initialMapsPins.lat);
+  const [mapsPinLng, setMapsPinLng] = useState(initialMapsPins.lng);
 
   const [savingSection, setSavingSection] = useState<"logo" | "hero" | "about" | "contacts" | "social" | "maps" | "all" | null>(null);
   const [savingOwnerProfile, setSavingOwnerProfile] = useState(false);
@@ -195,7 +214,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const snapAbout = () => JSON.stringify([aboutImage.trim()]);
   const snapContacts = () => JSON.stringify([address.trim(), phone.trim(), email.trim()]);
   const snapSocial = () => JSON.stringify([instagram.trim(), facebook.trim(), tiktok.trim()]);
-  const snapMaps = () => JSON.stringify([mapsEmbed.trim()]);
+  const snapMaps = () => JSON.stringify([mapsEmbed.trim(), mapsPinLat.trim(), mapsPinLng.trim()]);
 
   useEffect(() => {
     if (sectionInitialRef.current) return;
@@ -213,7 +232,11 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         (tenant.facebook_url ?? "").trim(),
         (tenant.tiktok_url ?? "").trim(),
       ]),
-      maps: JSON.stringify([(tenant.google_maps_embed ?? "").trim()]),
+      maps: JSON.stringify([
+        (tenant.google_maps_embed ?? "").trim(),
+        readMapsPinStringsFromTenant(tenant).lat,
+        readMapsPinStringsFromTenant(tenant).lng,
+      ]),
     };
   }, [tenant]);
 
@@ -245,8 +268,10 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       facebook_url: stringOrNull(facebook),
       tiktok_url: stringOrNull(tiktok),
       google_maps_embed: stringOrNull(mapsEmbed),
+      maps_pin_lat: mapsPinLat.trim() === "" ? "" : mapsPinLat.trim(),
+      maps_pin_lng: mapsPinLng.trim() === "" ? "" : mapsPinLng.trim(),
     }),
-    [address, email, facebook, instagram, logo, mapsEmbed, phone, tiktok]
+    [address, email, facebook, instagram, logo, mapsEmbed, mapsPinLat, mapsPinLng, phone, tiktok]
   );
 
   function markProfileSaved() {
@@ -358,11 +383,13 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     try {
       await postSettingsPartial({
         google_maps_embed: stringOrNull(mapsEmbed),
+        maps_pin_lat: mapsPinLat.trim() === "" ? "" : mapsPinLat.trim(),
+        maps_pin_lng: mapsPinLng.trim() === "" ? "" : mapsPinLng.trim(),
       });
       if (sectionInitialRef.current) {
         sectionInitialRef.current = { ...sectionInitialRef.current, maps: snapMaps() };
       }
-      setOk("✓ Картата е запазена.");
+      setOk("✓ Картата и координатите са запазени.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
@@ -612,10 +639,50 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
 
       {/* ── Google Maps ── */}
       <FieldCard>
-        <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете само embed URL (не iframe код)" />
+        <SectionHeader
+          icon="🗺️"
+          title="Карта на сайта"
+          desc="Embed от Google и по избор точни координати за пин (The Skin и др.)"
+        />
         {hasUnsavedMaps && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
-        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай само `src` URL, напр. `https://www.google.com/maps/embed?...`</p>
+        <p className="mb-3 text-xs text-[#1A1A1A]/40">
+          Google Maps → Сподели → Embed → копирай само <code className="text-[10px]">src</code> URL, напр.{" "}
+          <code className="text-[10px]">https://www.google.com/maps/embed?pb=…</code>
+        </p>
         <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
+        <div className="mt-5 border-t pt-5" style={{ borderColor: "rgba(201,168,76,0.12)" }}>
+          <p className="mb-2 text-xs font-semibold text-[#1A1A1A]/70">Точна локация (latitude / longitude)</p>
+          <p className="mb-3 text-xs text-[#1A1A1A]/40">
+            Отвори мястото в Google Maps → кликни върху пина → координатите са в линка или под адреса. Попълни{" "}
+            <strong>и двете</strong>, или изчисти двете за да се ползва само адресът от контактите.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label>Latitude</Label>
+              <input
+                type="text"
+                inputMode="decimal"
+                className="input-admin mt-2"
+                value={mapsPinLat}
+                onChange={(e) => setMapsPinLat(e.target.value)}
+                placeholder="42.4924703"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <Label>Longitude</Label>
+              <input
+                type="text"
+                inputMode="decimal"
+                className="input-admin mt-2"
+                value={mapsPinLng}
+                onChange={(e) => setMapsPinLng(e.target.value)}
+                placeholder="27.4625005"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+        </div>
         <div className="mt-4 flex justify-end">
           <button
             type="button"
