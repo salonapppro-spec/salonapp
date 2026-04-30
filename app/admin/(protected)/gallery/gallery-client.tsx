@@ -227,7 +227,14 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
             <div
               key={g.id}
               draggable
-              onDragStart={() => setDragId(g.id)}
+              onDragStart={(e) => {
+                const target = e.target as HTMLElement;
+                if (target.closest("button, input, label")) {
+                  e.preventDefault();
+                  return;
+                }
+                setDragId(g.id);
+              }}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => onDrop(g.id)}
               className="group relative cursor-grab overflow-hidden rounded-2xl bg-white active:cursor-grabbing"
@@ -243,6 +250,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
                 src={g.url}
                 alt=""
                 className="aspect-[4/3] w-full object-cover"
+                draggable={false}
               />
 
               {/* Overlay on hover */}
@@ -267,6 +275,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
                       type="checkbox"
                       className="sr-only"
                       checked={g.is_visible}
+                      draggable={false}
                       onClick={(e) => e.stopPropagation()}
                       onChange={() => void toggleVisible(g)}
                     />
@@ -277,8 +286,10 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
                 </label>
                 <button
                   type="button"
+                  draggable={false}
                   className="rounded-lg px-2 py-1 text-xs font-semibold text-red-500 transition hover:bg-red-50"
                   onMouseDown={(e) => e.stopPropagation()}
+                  onPointerDown={(e) => e.stopPropagation()}
                   onTouchStart={(e) => e.stopPropagation()}
                   onClick={(e) => {
                     e.stopPropagation();
