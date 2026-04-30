@@ -150,9 +150,15 @@ function sectionSaveClass(disabled: boolean) {
 
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
-  const sectionInitialRef = useRef<{ logo: string; contacts: string; social: string; maps: string } | null>(null);
+  const sectionInitialRef = useRef<{ logo: string; contacts: string; social: string; maps: string; hero: string; about: string } | null>(null);
 
   const [logo, setLogo] = useState(tenant.logo_url ?? "");
+  const [heroTitle, setHeroTitle] = useState(tenant.hero_title ?? "");
+  const [heroSubtitle, setHeroSubtitle] = useState(tenant.hero_subtitle ?? "");
+  const [heroImageUrl, setHeroImageUrl] = useState(tenant.hero_image_url ?? "");
+  const [aboutText1, setAboutText1] = useState(tenant.about_text1 ?? "");
+  const [aboutText2, setAboutText2] = useState(tenant.about_text2 ?? "");
+  const [aboutImageUrl, setAboutImageUrl] = useState(tenant.about_image_url ?? "");
   const [address, setAddress] = useState(tenant.address ?? "");
   const [phone, setPhone] = useState(tenant.phone ?? "");
   const [email, setEmail] = useState(tenant.email ?? "");
@@ -161,7 +167,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const [tiktok, setTiktok] = useState(tenant.tiktok_url ?? "");
   const [mapsEmbed, setMapsEmbed] = useState(tenant.google_maps_embed ?? "");
 
-  const [savingSection, setSavingSection] = useState<"logo" | "contacts" | "social" | "maps" | "all" | null>(null);
+  const [savingSection, setSavingSection] = useState<"logo" | "contacts" | "social" | "maps" | "hero" | "about" | "all" | null>(null);
   const [savingSpecialists, setSavingSpecialists] = useState<string | null>(null);
   const [deletingSpecialist, setDeletingSpecialist] = useState<string | null>(null);
   const [addingSpecialist, setAddingSpecialist] = useState(false);
@@ -185,6 +191,8 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   };
 
   const snapLogo = () => JSON.stringify([logo.trim()]);
+  const snapHero = () => JSON.stringify([heroTitle.trim(), heroSubtitle.trim(), heroImageUrl.trim()]);
+  const snapAbout = () => JSON.stringify([aboutText1.trim(), aboutText2.trim(), aboutImageUrl.trim()]);
   const snapContacts = () => JSON.stringify([address.trim(), phone.trim(), email.trim()]);
   const snapSocial = () => JSON.stringify([instagram.trim(), facebook.trim(), tiktok.trim()]);
   const snapMaps = () => JSON.stringify([mapsEmbed.trim()]);
@@ -193,6 +201,16 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     if (sectionInitialRef.current) return;
     sectionInitialRef.current = {
       logo: JSON.stringify([(tenant.logo_url ?? "").trim()]),
+      hero: JSON.stringify([
+        (tenant.hero_title ?? "").trim(),
+        (tenant.hero_subtitle ?? "").trim(),
+        (tenant.hero_image_url ?? "").trim(),
+      ]),
+      about: JSON.stringify([
+        (tenant.about_text1 ?? "").trim(),
+        (tenant.about_text2 ?? "").trim(),
+        (tenant.about_image_url ?? "").trim(),
+      ]),
       contacts: JSON.stringify([
         (tenant.address ?? "").trim(),
         (tenant.phone ?? "").trim(),
@@ -208,11 +226,14 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   }, [tenant]);
 
   const hasUnsavedLogo = sectionInitialRef.current != null && snapLogo() !== sectionInitialRef.current.logo;
+  const hasUnsavedHero = sectionInitialRef.current != null && snapHero() !== sectionInitialRef.current.hero;
+  const hasUnsavedAbout = sectionInitialRef.current != null && snapAbout() !== sectionInitialRef.current.about;
   const hasUnsavedContacts =
     sectionInitialRef.current != null && snapContacts() !== sectionInitialRef.current.contacts;
   const hasUnsavedSocial = sectionInitialRef.current != null && snapSocial() !== sectionInitialRef.current.social;
   const hasUnsavedMaps = sectionInitialRef.current != null && snapMaps() !== sectionInitialRef.current.maps;
-  const hasUnsavedChanges = hasUnsavedLogo || hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
+  const hasUnsavedChanges =
+    hasUnsavedLogo || hasUnsavedHero || hasUnsavedAbout || hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
 
   useEffect(() => {
     if (!hasUnsavedChanges) return;
@@ -227,6 +248,12 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const payload = useMemo(
     () => ({
       logo_url: logo.trim() === "" ? "" : logo.trim(),
+      hero_title: heroTitle || undefined,
+      hero_subtitle: heroSubtitle || undefined,
+      hero_image_url: heroImageUrl || undefined,
+      about_text1: aboutText1 || undefined,
+      about_text2: aboutText2 || undefined,
+      about_image_url: aboutImageUrl || undefined,
       address: address || undefined,
       phone: phone || undefined,
       email: email || undefined,
@@ -235,13 +262,15 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       tiktok_url: stringOrNull(tiktok),
       google_maps_embed: stringOrNull(mapsEmbed),
     }),
-    [address, email, facebook, instagram, logo, mapsEmbed, phone, tiktok]
+    [address, aboutText1, aboutText2, aboutImageUrl, email, facebook, heroTitle, heroSubtitle, heroImageUrl, instagram, logo, mapsEmbed, phone, tiktok]
   );
 
   function markProfileSaved() {
     if (!sectionInitialRef.current) return;
     sectionInitialRef.current = {
       logo: snapLogo(),
+      hero: snapHero(),
+      about: snapAbout(),
       contacts: snapContacts(),
       social: snapSocial(),
       maps: snapMaps(),
@@ -269,6 +298,48 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         sectionInitialRef.current = { ...sectionInitialRef.current, logo: snapLogo() };
       }
       setOk("✓ Логото е запазено.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setSavingSection(null);
+    }
+  }
+
+  async function saveHero() {
+    setSavingSection("hero");
+    setError(null);
+    setOk(null);
+    try {
+      await postSettingsPartial({
+        hero_title: heroTitle || undefined,
+        hero_subtitle: heroSubtitle || undefined,
+        hero_image_url: heroImageUrl || undefined,
+      });
+      if (sectionInitialRef.current) {
+        sectionInitialRef.current = { ...sectionInitialRef.current, hero: snapHero() };
+      }
+      setOk("✓ Началната секция е запазена.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setSavingSection(null);
+    }
+  }
+
+  async function saveAbout() {
+    setSavingSection("about");
+    setError(null);
+    setOk(null);
+    try {
+      await postSettingsPartial({
+        about_text1: aboutText1 || undefined,
+        about_text2: aboutText2 || undefined,
+        about_image_url: aboutImageUrl || undefined,
+      });
+      if (sectionInitialRef.current) {
+        sectionInitialRef.current = { ...sectionInitialRef.current, about: snapAbout() };
+      }
+      setOk("✓ Секцията „За нас" е запазена.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
@@ -564,6 +635,104 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         </div>
       </FieldCard>
 
+      {/* ── Начална секция (Hero) ── */}
+      <FieldCard>
+        <SectionHeader icon="🏠" title="Начална секция" desc="Заглавие, подзаглавие и главна снимка на сайта" />
+        {hasUnsavedHero && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <div className="grid gap-4">
+          <div>
+            <Label>Заглавие</Label>
+            <input
+              className="input-admin"
+              placeholder="Красота, която говори за теб"
+              value={heroTitle}
+              onChange={(e) => setHeroTitle(e.target.value)}
+              maxLength={120}
+            />
+            <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{heroTitle.length}/120</p>
+          </div>
+          <div>
+            <Label>Подзаглавие</Label>
+            <input
+              className="input-admin"
+              placeholder="Запази час онлайн, без чакане"
+              value={heroSubtitle}
+              onChange={(e) => setHeroSubtitle(e.target.value)}
+              maxLength={200}
+            />
+            <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{heroSubtitle.length}/200</p>
+          </div>
+          <ImageUpload
+            label="Главна снимка"
+            value={heroImageUrl}
+            onChange={setHeroImageUrl}
+            aspect="wide"
+            hint="Снимка с висока разделителна способност, 16:9 или по-широка."
+          />
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "hero" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveHero()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "hero" ? "Запазване…" : "✓ Запази началната секция"}
+          </button>
+        </div>
+      </FieldCard>
+
+      {/* ── За нас (About) ── */}
+      <FieldCard>
+        <SectionHeader icon="💬" title="За нас" desc="Текст и снимка за секцията „За нас"" />
+        {hasUnsavedAbout && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <div className="grid gap-4">
+          <div>
+            <Label>Параграф 1</Label>
+            <textarea
+              className="textarea-admin min-h-[5rem]"
+              rows={4}
+              placeholder="Нашият салон е място, където…"
+              value={aboutText1}
+              onChange={(e) => setAboutText1(e.target.value)}
+              maxLength={1200}
+            />
+            <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{aboutText1.length}/1200</p>
+          </div>
+          <div>
+            <Label>Параграф 2</Label>
+            <textarea
+              className="textarea-admin min-h-[5rem]"
+              rows={4}
+              placeholder="Нашият опит и ценности…"
+              value={aboutText2}
+              onChange={(e) => setAboutText2(e.target.value)}
+              maxLength={1200}
+            />
+            <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{aboutText2.length}/1200</p>
+          </div>
+          <ImageUpload
+            label="Снимка за „За нас""
+            value={aboutImageUrl}
+            onChange={setAboutImageUrl}
+            aspect="wide"
+            hint="Снимка на екипа или интериора на салона."
+          />
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "about" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveAbout()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "about" ? "Запазване…" : "✓ Запази „За нас""}
+          </button>
+        </div>
+      </FieldCard>
+
       {/* ── Контакти ── */}
       <FieldCard>
         <SectionHeader icon="📍" title="Контакти" desc="Адрес, телефон и имейл за контакт" />
@@ -654,7 +823,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
           onClick={save}
           disabled={savingSection != null}
         >
-          {savingSection === "all" ? "Запазване…" : "✓ Запази наведнъж (лого + контакти + мрежи + карта)"}
+          {savingSection === "all" ? "Запазване…" : "✓ Запази всичко наведнъж"}
         </button>
       </div>
     </div>
