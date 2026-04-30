@@ -226,42 +226,38 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
           {items.map((g) => (
             <div
               key={g.id}
-              draggable
-              onDragStart={(e) => {
-                const target = e.target as HTMLElement;
-                if (target.closest("button, input, label")) {
-                  e.preventDefault();
-                  return;
-                }
-                setDragId(g.id);
-              }}
               onDragOver={(e) => e.preventDefault()}
               onDrop={() => onDrop(g.id)}
-              className="group relative cursor-grab overflow-hidden rounded-2xl bg-white active:cursor-grabbing"
+              className="relative overflow-hidden rounded-2xl bg-white"
               style={{
                 border: dragId === g.id ? `2px solid ${GOLD}` : "1px solid rgba(201,168,76,0.18)",
                 boxShadow: "0 2px 8px rgba(0,0,0,0.06)",
                 opacity: dragId === g.id ? 0.6 : 1,
               }}
             >
-              {/* Image */}
+              {/* Drag + preview only на снимката — без overlay над бутони */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={g.url}
-                alt=""
-                className="aspect-[4/3] w-full object-cover"
-                draggable={false}
-              />
-
-              {/* Overlay on hover */}
-              <div className="absolute inset-0 flex items-end bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
-                <div className="flex w-full items-center justify-between px-3 pb-3">
-                  <span className="text-[10px] font-semibold text-white/70">⠿ Влачи</span>
+              <div
+                className="group relative cursor-grab select-none overflow-hidden bg-[#faf7f2] active:cursor-grabbing"
+                draggable
+                onDragStart={() => setDragId(g.id)}
+              >
+                <img
+                  src={g.url}
+                  alt=""
+                  className="pointer-events-none aspect-[4/3] w-full object-cover"
+                  draggable={false}
+                />
+                {/* Подсказка „Влачи“ само над снимката; не прихваща клика */}
+                <div className="pointer-events-none absolute inset-0 flex items-end bg-gradient-to-t from-black/40 to-transparent opacity-0 transition-opacity group-hover:opacity-100">
+                  <div className="flex w-full px-3 pb-2">
+                    <span className="text-[10px] font-semibold text-white/80">⠿ Влачи по снимката</span>
+                  </div>
                 </div>
               </div>
 
-              {/* Controls */}
-              <div className="flex items-center justify-between px-3 py-2.5">
+              {/* Контроли — извън drag layer, винаги кликаеми */}
+              <div className="relative z-10 flex items-center justify-between border-t px-3 py-2.5" style={{ borderColor: "rgba(201,168,76,0.12)", background: "#fff" }}>
                 <label className="flex cursor-pointer items-center gap-2">
                   <div
                     className="relative h-4 w-7 rounded-full transition-colors"
