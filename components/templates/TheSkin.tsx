@@ -83,6 +83,16 @@ export function TheSkin({ data }: { data: SalonData }) {
   const igHref = safeInstagramHref(tenant.instagram_url);
   const fbHref = safeFacebookHref(tenant.facebook_url);
   const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
+  const addressTrimmed = tenant.address?.trim() ?? "";
+  const mapsDirectionsHref =
+    addressTrimmed !== ""
+      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressTrimmed)}`
+      : null;
+  const mapsFallbackEmbed =
+    !mapsSrc && addressTrimmed !== ""
+      ? `https://www.google.com/maps?q=${encodeURIComponent(addressTrimmed)}&hl=bg&output=embed`
+      : null;
+  const effectiveMapsSrc = mapsSrc ?? mapsFallbackEmbed;
   const phone = tenant.phone ?? "";
   const phoneHref = phone ? `tel:${phone.replace(/\s/g, "")}` : null;
 
@@ -352,8 +362,11 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-hours-day { color: var(--muted); }
         .ts-hours-time { color: var(--dark); }
         .ts-hours-off { color: var(--border); }
-        .ts-map { aspect-ratio: 4/3; background: var(--cream); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .ts-map { position: relative; aspect-ratio: 4/3; background: var(--cream); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .ts-map iframe { width: 100%; height: 100%; border: 0; }
+        .ts-map.has-overlay iframe { pointer-events: none; }
+        .ts-map-overlay { position: absolute; inset: 0; z-index: 1; }
+        .ts-map-overlay:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
 
         /* ── SOCIAL BAR ──────────────────────────────────────── */
         .ts-socbar { background: var(--cream); border-top: 1px solid var(--border); padding: 1.6rem 0; }
@@ -686,9 +699,26 @@ export function TheSkin({ data }: { data: SalonData }) {
               )}
             </div>
             <div>
-              <div className="ts-map">
-                {mapsSrc ? (
-                  <iframe src={mapsSrc} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Карта" />
+              <div className={`ts-map${mapsDirectionsHref ? " has-overlay" : ""}`}>
+                {effectiveMapsSrc ? (
+                  <>
+                    <iframe
+                      src={effectiveMapsSrc}
+                      allowFullScreen
+                      loading="lazy"
+                      referrerPolicy="no-referrer-when-downgrade"
+                      title="Карта"
+                    />
+                    {mapsDirectionsHref && (
+                      <a
+                        href={mapsDirectionsHref}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ts-map-overlay"
+                        aria-label="Отвори маршрут в Google Карти"
+                      />
+                    )}
+                  </>
                 ) : (
                   <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ color: "var(--gold)", opacity: 0.4 }}>
                     <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/>
