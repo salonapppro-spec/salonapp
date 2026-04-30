@@ -92,9 +92,9 @@ function fmtDate(iso: string): string {
 export default async function SuperAdminLeadsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ op?: string }>;
+  searchParams: Promise<{ op?: string; view?: string }>;
 }) {
-  const { op } = await searchParams;
+  const { op, view } = await searchParams;
   const supabase = createSupabaseServiceRoleClient();
   await ensureAutoCallTasks(supabase);
 
@@ -124,6 +124,7 @@ export default async function SuperAdminLeadsPage({
   const overdue = callTasks.filter((t) => t.status !== "closed" && (t.next_call_at ?? t.due_date) < today).length;
   const day15 = callTasks.filter((t) => t.call_type === "expiry_plus_15" && t.status !== "closed").length;
   const day25 = callTasks.filter((t) => t.call_type === "expiry_plus_25" && t.status !== "closed").length;
+  const activeView = view === "leads" ? "leads" : "queue";
 
   return (
     <div className="space-y-6">
@@ -150,84 +151,103 @@ export default async function SuperAdminLeadsPage({
         </Link>
       </div>
 
-      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 sm:p-5">
-        <h2 className="text-lg font-semibold">Call Queue</h2>
-        <p className="mt-1 text-sm text-neutral-400">Проследяване на обажданията (автоматични 15/25 дни + ръчни бележки).</p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-4">
-          <div className="rounded-xl border border-amber-800/60 bg-amber-950/30 p-3">
-            <p className="text-xs uppercase tracking-wide text-amber-300">За обаждане днес</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{dueToday}</p>
-          </div>
-          <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-3">
-            <p className="text-xs uppercase tracking-wide text-red-300">Просрочени</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{overdue}</p>
-          </div>
-          <div className="rounded-xl border border-sky-800/60 bg-sky-950/30 p-3">
-            <p className="text-xs uppercase tracking-wide text-sky-300">15-ти ден</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{day15}</p>
-          </div>
-          <div className="rounded-xl border border-violet-800/60 bg-violet-950/30 p-3">
-            <p className="text-xs uppercase tracking-wide text-violet-300">25-ти ден</p>
-            <p className="mt-1 text-xl font-semibold tabular-nums">{day25}</p>
-          </div>
-        </div>
+      <div className="inline-flex rounded-xl border border-neutral-700 bg-neutral-900/80 p-1 text-xs">
+        <Link
+          href="/super-admin/leads?view=queue"
+          className={activeView === "queue" ? "rounded-lg bg-neutral-100 px-3 py-1.5 font-semibold text-neutral-900" : "rounded-lg px-3 py-1.5 text-neutral-300 hover:bg-neutral-800"}
+        >
+          Call Queue
+        </Link>
+        <Link
+          href="/super-admin/leads?view=leads"
+          className={activeView === "leads" ? "rounded-lg bg-neutral-100 px-3 py-1.5 font-semibold text-neutral-900" : "rounded-lg px-3 py-1.5 text-neutral-300 hover:bg-neutral-800"}
+        >
+          Заявки
+        </Link>
+      </div>
 
-        <div className="mt-4 hidden overflow-x-auto sm:block">
-          <table className="w-full min-w-[1200px] text-left text-sm">
-            <thead className="text-xs uppercase tracking-wide text-neutral-400">
-              <tr className="border-b border-neutral-800">
-                <th className="py-2 pr-2">Салон</th>
-                <th className="py-2 pr-2">План</th>
-                <th className="py-2 pr-2">Телефон</th>
-                <th className="py-2 pr-2">Тип</th>
-                <th className="py-2 pr-2">Следващо</th>
-                <th className="py-2 pr-2">Статус</th>
-                <th className="py-2 pr-2">Бележка</th>
-                <th className="py-2">Действия</th>
-              </tr>
-            </thead>
-            <tbody>
-              {callTasks.map((task) => {
-                const tenant = tenantBySlug.get(task.salon_slug);
-                if (!tenant) return null;
-                const due = task.next_call_at ?? task.due_date;
-                return (
-                  <tr key={task.id} className="border-b border-neutral-800/80">
-                    <td className="py-2 pr-2 font-medium">{tenant.salon_name}</td>
-                    <td className="py-2 pr-2">{tenant.plan}</td>
-                    <td className="py-2 pr-2">{tenant.owner_phone ?? "—"}</td>
-                    <td className="py-2 pr-2">{task.call_type === "expiry_plus_15" ? "15-ти ден" : task.call_type === "expiry_plus_25" ? "25-ти ден" : "Ръчно"}</td>
-                    <td className="py-2 pr-2">{due}</td>
-                    <td className="py-2 pr-2">
-                      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TASK_STATUS_BADGE[task.status] ?? TASK_STATUS_BADGE.pending}`}>{task.status}</span>
-                    </td>
-                    <td className="py-2 pr-2 text-neutral-300">{task.note ?? "—"}</td>
-                    <td className="py-2">
-                      <div className="flex flex-wrap items-center gap-2">
-                        <form action={markCallTaskCalledAction} className="flex items-center gap-2">
-                          <input type="hidden" name="task_id" value={task.id} />
-                          <input name="note" placeholder="бележка" className="w-32 rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs" />
-                          <input name="next_call_at" type="date" className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs" />
-                          <button type="submit" className="text-xs font-semibold text-emerald-300 hover:text-emerald-200">Обадих се</button>
-                        </form>
-                        <form action={snoozeCallTaskAction}>
-                          <input type="hidden" name="task_id" value={task.id} />
-                          <button type="submit" className="text-xs font-semibold text-sky-300 hover:text-sky-200">+2 дни</button>
-                        </form>
-                        <form action={closeCallTaskAction}>
-                          <input type="hidden" name="task_id" value={task.id} />
-                          <button type="submit" className="text-xs font-semibold text-neutral-300 hover:text-neutral-100">Затвори</button>
-                        </form>
-                      </div>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
-      </section>
+      {activeView === "queue" ? (
+        <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 sm:p-5">
+          <h2 className="text-lg font-semibold">Call Queue</h2>
+          <p className="mt-1 text-sm text-neutral-400">Проследяване на обажданията (автоматични 15/25 дни + ръчни бележки).</p>
+          <div className="mt-4 grid gap-3 sm:grid-cols-4">
+            <div className="rounded-xl border border-amber-800/60 bg-amber-950/30 p-3">
+              <p className="text-xs uppercase tracking-wide text-amber-300">За обаждане днес</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{dueToday}</p>
+            </div>
+            <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-3">
+              <p className="text-xs uppercase tracking-wide text-red-300">Просрочени</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{overdue}</p>
+            </div>
+            <div className="rounded-xl border border-sky-800/60 bg-sky-950/30 p-3">
+              <p className="text-xs uppercase tracking-wide text-sky-300">15-ти ден</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{day15}</p>
+            </div>
+            <div className="rounded-xl border border-violet-800/60 bg-violet-950/30 p-3">
+              <p className="text-xs uppercase tracking-wide text-violet-300">25-ти ден</p>
+              <p className="mt-1 text-xl font-semibold tabular-nums">{day25}</p>
+            </div>
+          </div>
 
+          <div className="mt-4 hidden overflow-x-auto sm:block">
+            <table className="w-full min-w-[1200px] text-left text-sm">
+              <thead className="text-xs uppercase tracking-wide text-neutral-400">
+                <tr className="border-b border-neutral-800">
+                  <th className="py-2 pr-2">Салон</th>
+                  <th className="py-2 pr-2">План</th>
+                  <th className="py-2 pr-2">Телефон</th>
+                  <th className="py-2 pr-2">Тип</th>
+                  <th className="py-2 pr-2">Следващо</th>
+                  <th className="py-2 pr-2">Статус</th>
+                  <th className="py-2 pr-2">Бележка</th>
+                  <th className="py-2">Действия</th>
+                </tr>
+              </thead>
+              <tbody>
+                {callTasks.map((task) => {
+                  const tenant = tenantBySlug.get(task.salon_slug);
+                  if (!tenant) return null;
+                  const due = task.next_call_at ?? task.due_date;
+                  return (
+                    <tr key={task.id} className="border-b border-neutral-800/80">
+                      <td className="py-2 pr-2 font-medium">{tenant.salon_name}</td>
+                      <td className="py-2 pr-2">{tenant.plan}</td>
+                      <td className="py-2 pr-2">{tenant.owner_phone ?? "—"}</td>
+                      <td className="py-2 pr-2">{task.call_type === "expiry_plus_15" ? "15-ти ден" : task.call_type === "expiry_plus_25" ? "25-ти ден" : "Ръчно"}</td>
+                      <td className="py-2 pr-2">{due}</td>
+                      <td className="py-2 pr-2">
+                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TASK_STATUS_BADGE[task.status] ?? TASK_STATUS_BADGE.pending}`}>{task.status}</span>
+                      </td>
+                      <td className="py-2 pr-2 text-neutral-300">{task.note ?? "—"}</td>
+                      <td className="py-2">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <form action={markCallTaskCalledAction} className="flex items-center gap-2">
+                            <input type="hidden" name="task_id" value={task.id} />
+                            <input name="note" placeholder="бележка" className="w-32 rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs" />
+                            <input name="next_call_at" type="date" className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs" />
+                            <button type="submit" className="text-xs font-semibold text-emerald-300 hover:text-emerald-200">Обадих се</button>
+                          </form>
+                          <form action={snoozeCallTaskAction}>
+                            <input type="hidden" name="task_id" value={task.id} />
+                            <button type="submit" className="text-xs font-semibold text-sky-300 hover:text-sky-200">+2 дни</button>
+                          </form>
+                          <form action={closeCallTaskAction}>
+                            <input type="hidden" name="task_id" value={task.id} />
+                            <button type="submit" className="text-xs font-semibold text-neutral-300 hover:text-neutral-100">Затвори</button>
+                          </form>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+            </table>
+          </div>
+        </section>
+      ) : null}
+
+      {activeView === "leads" ? (
+      <>
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {(["standard", "pro", "premium", "collective"] as const).map((plan) => {
@@ -329,6 +349,8 @@ export default async function SuperAdminLeadsPage({
           })}
         </div>
       )}
+      </>
+      ) : null}
     </div>
   );
 }
