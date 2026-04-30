@@ -273,8 +273,9 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-about-text { font-size: 0.92rem; color: var(--mid); line-height: 1.9; margin-bottom: 1rem; }
 
         /* ── SERVICES ────────────────────────────────────────── */
-        .ts-services { background: var(--cream); padding: 4.25rem 0; }
+        .ts-services { background: var(--cream); padding: 4.25rem 0 1.75rem; }
         .ts-sec-hdr { text-align: center; margin-bottom: 2.25rem; }
+        .ts-products .ts-sec-hdr { margin-bottom: 1.35rem; }
         .ts-sec-tag { font-size: 0.62rem; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); display: block; margin-bottom: 1rem; }
         .ts-sec-title { font-family: var(--serif); font-size: clamp(2rem, 3.5vw, 3rem); color: var(--dark); line-height: 1.2; }
         .ts-sec-title em { font-style: italic; color: var(--gold); }
@@ -296,11 +297,11 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-svc-price-row:last-child { border-bottom: none; }
         .ts-svc-price-row span { color: var(--muted); }
         .ts-svc-price-row strong { color: var(--dark); font-weight: 500; }
-        .ts-svc-cta { text-align: center; margin-top: 2rem; }
+        .ts-svc-cta { text-align: center; margin-top: 1.5rem; }
 
         /* ── PRODUCTS ────────────────────────────────────────── */
-        .ts-products { background: var(--white); padding: 4.25rem 0; }
-        .ts-prod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin: 2rem 0 1.75rem; }
+        .ts-products { background: var(--white); padding: 1.75rem 0 4.25rem; }
+        .ts-prod-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; margin: 1.35rem 0 1.5rem; }
         .ts-prod-card {
           background: var(--cream); padding: 2.5rem 2rem;
           display: flex; flex-direction: column; gap: 0.8rem;
