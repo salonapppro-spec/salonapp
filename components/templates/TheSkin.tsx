@@ -24,6 +24,23 @@ function mapsGeoTargetForTenant(address: string | null | undefined, salonName: s
   return typeof salonName === "string" ? salonName.trim() : "";
 }
 
+/**
+ * Точни lat/lng (напр. от Google Maps → сподели). В `design_tokens`: `"maps_pin": { "lat": 42.49, "lng": 27.46 }`.
+ * За салона theskin има канон координати от официалния /maps/place/ линк, ако няма override в tokens.
+ */
+const THESKIN_DEFAULT_MAP_PIN: { lat: number; lng: number } = { lat: 42.4924703, lng: 27.4625005 };
+
+function readValidatedMapsPin(tokens: Record<string, unknown>): { lat: number; lng: number } | null {
+  const raw = tokens.maps_pin;
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return null;
+  const o = raw as Record<string, unknown>;
+  const lat = typeof o.lat === "number" ? o.lat : Number(o.lat);
+  const lng = typeof o.lng === "number" ? o.lng : Number(o.lng);
+  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (lat < 41.2 || lat > 44.35 || lng < 22.25 || lng > 28.85) return null;
+  return { lat, lng };
+}
+
 function eur(v: number) { return `${Number(v).toFixed(0)} €`; }
 function bgn(v: number) { return `${(Number(v) * BGN).toFixed(0)} лв`; }
 
@@ -117,15 +134,27 @@ export function TheSkin({ data }: { data: SalonData }) {
   const officialPbEmbed =
     tenantMapsSrc?.startsWith("https://www.google.com/maps/embed?") ? tenantMapsSrc : null;
   const mapsGeoTarget = mapsGeoTargetForTenant(tenant.address, tenant.salon_name);
+  const mapsPinFromTokens = readValidatedMapsPin(tokens);
+  const mapsPin =
+    mapsPinFromTokens ?? (tenant.salon_slug === "theskin" ? THESKIN_DEFAULT_MAP_PIN : null);
+
   const mapsDirectionsHref =
-    mapsGeoTarget !== ""
-      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapsGeoTarget)}`
+    mapsPin !== null
+      ? `https://www.google.com/maps/dir/?api=1&destination=${mapsPin.lat},${mapsPin.lng}`
+      : mapsGeoTarget !== ""
+        ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapsGeoTarget)}`
+        : null;
+
+  const embedFromCoords =
+    mapsPin !== null
+      ? `https://maps.google.com/maps?q=${mapsPin.lat},${mapsPin.lng}&hl=bg&t=m&z=18&output=embed`
       : null;
-  const computedPinEmbed =
+  const embedFromAddress =
     !officialPbEmbed && mapsGeoTarget !== ""
       ? `https://maps.google.com/maps?hl=bg&q=${encodeURIComponent(mapsGeoTarget)}&t=m&z=17&ie=UTF8&iwloc=B&output=embed`
       : null;
-  const effectiveMapsSrc = officialPbEmbed ?? computedPinEmbed ?? tenantMapsSrc;
+
+  const effectiveMapsSrc = officialPbEmbed ?? embedFromCoords ?? embedFromAddress ?? tenantMapsSrc;
   const phone = tenant.phone ?? "";
   const phoneHref = phone ? `tel:${phone.replace(/\s/g, "")}` : null;
 
