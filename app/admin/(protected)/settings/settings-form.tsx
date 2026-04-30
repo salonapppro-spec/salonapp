@@ -418,6 +418,10 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
+      await postSettingsPartial({
+        about_image_url: ownerProfile.avatar_url.trim() || null,
+      });
+      setAboutImage(ownerProfile.avatar_url.trim());
       setOwnerProfile((curr) => ({ ...curr, id: specialistId }));
       setOk("✓ Профилът „За мен“ е запазен.");
     } catch (e) {
@@ -539,32 +543,6 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
               disabled={savingSection != null}
             >
               {savingSection === "hero" ? "Запазване…" : "✓ Запази hero снимката"}
-            </button>
-          </div>
-        </div>
-      </FieldCard>
-
-      {/* ── За мен снимка ── */}
-      <FieldCard>
-        <div id="about-image">
-          <SectionHeader icon="👤" title='Снимка "За мен"' desc="Снимката в секцията с информация за салона / специалиста" />
-          {hasUnsavedAbout && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
-          <ImageUpload
-            label='Качи снимка "За мен" (JPG, PNG, WebP)'
-            value={aboutImage}
-            onChange={setAboutImage}
-            aspect="wide"
-            hint='Вертикална или квадратна снимка — показва се в секцията "За мен".'
-          />
-          <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              className={sectionSaveClass(!!savingSection)}
-              style={{ background: savingSection === "about" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-              onClick={() => void saveAboutImage()}
-              disabled={savingSection != null}
-            >
-              {savingSection === "about" ? "Запазване…" : 'Запази снимката "За мен"'}
             </button>
           </div>
         </div>
