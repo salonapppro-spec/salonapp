@@ -84,13 +84,14 @@ export function TheSkin({ data }: { data: SalonData }) {
   const fbHref = safeFacebookHref(tenant.facebook_url);
   const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
   const addressTrimmed = tenant.address?.trim() ?? "";
+  const mapsQuery = [tenant.salon_name?.trim(), addressTrimmed].filter(Boolean).join(", ");
   const mapsDirectionsHref =
-    addressTrimmed !== ""
-      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(addressTrimmed)}`
+    mapsQuery !== ""
+      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapsQuery)}`
       : null;
   const mapsFallbackEmbed =
-    !mapsSrc && addressTrimmed !== ""
-      ? `https://maps.google.com/maps?q=${encodeURIComponent(addressTrimmed)}&hl=bg&z=16&output=embed`
+    !mapsSrc && mapsQuery !== ""
+      ? `https://maps.google.com/maps?hl=bg&q=${encodeURIComponent(mapsQuery)}&t=&z=17&ie=UTF8&iwloc=B&output=embed`
       : null;
   const effectiveMapsSrc = mapsSrc ?? mapsFallbackEmbed;
   const phone = tenant.phone ?? "";
