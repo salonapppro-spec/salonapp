@@ -16,27 +16,16 @@ type Lead = {
   created_at: string;
 };
 
-type CallTask = {
+type LeadCallTask = {
   id: string;
-  salon_slug: string;
-  call_type: "expiry_plus_15" | "expiry_plus_25" | "manual";
+  lead_id: string;
+  call_day: 15 | 25;
   due_date: string;
   status: "pending" | "called" | "no_answer" | "closed";
   last_called_at: string | null;
   next_call_at: string | null;
   note: string | null;
   created_at: string;
-};
-
-type TenantLite = {
-  salon_slug: string;
-  salon_name: string;
-  owner_phone: string | null;
-  owner_email: string | null;
-  plan: string;
-  expiry_date: string | null;
-  status: string;
-  archived_at?: string | null;
 };
 
 const PLAN_BADGE: Record<string, { cls: string }> = {
@@ -62,23 +51,17 @@ function plusDays(dateISO: string, days: number): string {
   return `${y}-${m}-${da}`;
 }
 
-async function ensureAutoCallTasks(supabase: ReturnType<typeof createSupabaseServiceRoleClient>) {
-  const { data: tenants } = await supabase
-    .from("tenants")
-    .select("salon_slug,expiry_date,status,archived_at")
-    .is("archived_at", null)
-    .in("status", ["active", "trial"]);
-
-  const rows = ((tenants ?? []) as Array<{ salon_slug: string; expiry_date?: string | null }>).flatMap((t) => {
-    if (!t.expiry_date) return [];
+async function ensureAutoCallTasks(supabase: ReturnType<typeof createSupabaseServiceRoleClient>, leads: Lead[]) {
+  const rows = leads.flatMap((lead) => {
+    const base = lead.created_at.slice(0, 10);
     return [
-      { salon_slug: t.salon_slug, call_type: "expiry_plus_15", due_date: plusDays(t.expiry_date, 15) },
-      { salon_slug: t.salon_slug, call_type: "expiry_plus_25", due_date: plusDays(t.expiry_date, 25) },
+      { lead_id: lead.id, call_day: 15, due_date: plusDays(base, 15) },
+      { lead_id: lead.id, call_day: 25, due_date: plusDays(base, 25) },
     ];
   });
   if (rows.length === 0) return;
 
-  await supabase.from("tenant_call_tasks").upsert(rows, { onConflict: "salon_slug,call_type,due_date", ignoreDuplicates: true });
+  await supabase.from("lead_call_tasks").upsert(rows, { onConflict: "lead_id,call_day", ignoreDuplicates: true });
 }
 
 function fmtDate(iso: string): string {
@@ -96,35 +79,33 @@ export default async function SuperAdminLeadsPage({
 }) {
   const { op, view } = await searchParams;
   const supabase = createSupabaseServiceRoleClient();
-  await ensureAutoCallTasks(supabase);
-
-  const today = new Date().toISOString().slice(0, 10);
   const { data, error } = await supabase
     .from("platform_leads")
     .select("*")
     .order("created_at", { ascending: false });
 
   const leads = (data ?? []) as Lead[];
-  const { data: tenantsData } = await supabase
-    .from("tenants")
-    .select("salon_slug,salon_name,owner_phone,owner_email,plan,expiry_date,status,archived_at")
-    .is("archived_at", null)
-    .order("created_at", { ascending: false });
-  const tenants = (tenantsData ?? []) as TenantLite[];
-  const tenantBySlug = new Map(tenants.map((t) => [t.salon_slug, t]));
+  await ensureAutoCallTasks(supabase, leads);
+  const today = new Date().toISOString().slice(0, 10);
 
   const { data: callTaskData } = await supabase
-    .from("tenant_call_tasks")
+    .from("lead_call_tasks")
     .select("*")
-    .order("due_date", { ascending: true })
+    .order("lead_id", { ascending: true })
+    .order("call_day", { ascending: true })
     .order("created_at", { ascending: false });
-  const callTasks = (callTaskData ?? []) as CallTask[];
+  const callTasks = (callTaskData ?? []) as LeadCallTask[];
+  const tasksByLead = new Map<string, LeadCallTask[]>();
+  for (const task of callTasks) {
+    const list = tasksByLead.get(task.lead_id) ?? [];
+    list.push(task);
+    tasksByLead.set(task.lead_id, list);
+  }
 
   const dueToday = callTasks.filter((t) => t.status !== "closed" && (t.next_call_at ?? t.due_date) <= today).length;
   const overdue = callTasks.filter((t) => t.status !== "closed" && (t.next_call_at ?? t.due_date) < today).length;
-  const day15 = callTasks.filter((t) => t.call_type === "expiry_plus_15" && t.status !== "closed").length;
-  const day25 = callTasks.filter((t) => t.call_type === "expiry_plus_25" && t.status !== "closed").length;
-  const activeView = view === "leads" ? "leads" : "queue";
+  const day15 = callTasks.filter((t) => t.call_day === 15 && t.status !== "closed").length;
+  const day25 = callTasks.filter((t) => t.call_day === 25 && t.status !== "closed").length;
 
   return (
     <div className="space-y-6">
@@ -151,103 +132,28 @@ export default async function SuperAdminLeadsPage({
         </Link>
       </div>
 
-      <div className="inline-flex rounded-xl border border-neutral-700 bg-neutral-900/80 p-1 text-xs">
-        <Link
-          href="/super-admin/leads?view=queue"
-          className={activeView === "queue" ? "rounded-lg bg-neutral-100 px-3 py-1.5 font-semibold text-neutral-900" : "rounded-lg px-3 py-1.5 text-neutral-300 hover:bg-neutral-800"}
-        >
-          Call Queue
-        </Link>
-        <Link
-          href="/super-admin/leads?view=leads"
-          className={activeView === "leads" ? "rounded-lg bg-neutral-100 px-3 py-1.5 font-semibold text-neutral-900" : "rounded-lg px-3 py-1.5 text-neutral-300 hover:bg-neutral-800"}
-        >
-          Заявки
-        </Link>
-      </div>
-
-      {activeView === "queue" ? (
-        <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 sm:p-5">
-          <h2 className="text-lg font-semibold">Call Queue</h2>
-          <p className="mt-1 text-sm text-neutral-400">Проследяване на обажданията (автоматични 15/25 дни + ръчни бележки).</p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-4">
-            <div className="rounded-xl border border-amber-800/60 bg-amber-950/30 p-3">
-              <p className="text-xs uppercase tracking-wide text-amber-300">За обаждане днес</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{dueToday}</p>
-            </div>
-            <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-3">
-              <p className="text-xs uppercase tracking-wide text-red-300">Просрочени</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{overdue}</p>
-            </div>
-            <div className="rounded-xl border border-sky-800/60 bg-sky-950/30 p-3">
-              <p className="text-xs uppercase tracking-wide text-sky-300">15-ти ден</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{day15}</p>
-            </div>
-            <div className="rounded-xl border border-violet-800/60 bg-violet-950/30 p-3">
-              <p className="text-xs uppercase tracking-wide text-violet-300">25-ти ден</p>
-              <p className="mt-1 text-xl font-semibold tabular-nums">{day25}</p>
-            </div>
+      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 sm:p-5">
+        <h2 className="text-lg font-semibold">Call статус</h2>
+        <div className="mt-4 grid gap-3 sm:grid-cols-4">
+          <div className="rounded-xl border border-amber-800/60 bg-amber-950/30 p-3">
+            <p className="text-xs uppercase tracking-wide text-amber-300">За обаждане днес</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums">{dueToday}</p>
           </div>
-
-          <div className="mt-4 hidden overflow-x-auto sm:block">
-            <table className="w-full min-w-[1200px] text-left text-sm">
-              <thead className="text-xs uppercase tracking-wide text-neutral-400">
-                <tr className="border-b border-neutral-800">
-                  <th className="py-2 pr-2">Салон</th>
-                  <th className="py-2 pr-2">План</th>
-                  <th className="py-2 pr-2">Телефон</th>
-                  <th className="py-2 pr-2">Тип</th>
-                  <th className="py-2 pr-2">Следващо</th>
-                  <th className="py-2 pr-2">Статус</th>
-                  <th className="py-2 pr-2">Бележка</th>
-                  <th className="py-2">Действия</th>
-                </tr>
-              </thead>
-              <tbody>
-                {callTasks.map((task) => {
-                  const tenant = tenantBySlug.get(task.salon_slug);
-                  if (!tenant) return null;
-                  const due = task.next_call_at ?? task.due_date;
-                  return (
-                    <tr key={task.id} className="border-b border-neutral-800/80">
-                      <td className="py-2 pr-2 font-medium">{tenant.salon_name}</td>
-                      <td className="py-2 pr-2">{tenant.plan}</td>
-                      <td className="py-2 pr-2">{tenant.owner_phone ?? "—"}</td>
-                      <td className="py-2 pr-2">{task.call_type === "expiry_plus_15" ? "15-ти ден" : task.call_type === "expiry_plus_25" ? "25-ти ден" : "Ръчно"}</td>
-                      <td className="py-2 pr-2">{due}</td>
-                      <td className="py-2 pr-2">
-                        <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TASK_STATUS_BADGE[task.status] ?? TASK_STATUS_BADGE.pending}`}>{task.status}</span>
-                      </td>
-                      <td className="py-2 pr-2 text-neutral-300">{task.note ?? "—"}</td>
-                      <td className="py-2">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <form action={markCallTaskCalledAction} className="flex items-center gap-2">
-                            <input type="hidden" name="task_id" value={task.id} />
-                            <input name="note" placeholder="бележка" className="w-32 rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs" />
-                            <input name="next_call_at" type="date" className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-xs" />
-                            <button type="submit" className="text-xs font-semibold text-emerald-300 hover:text-emerald-200">Обадих се</button>
-                          </form>
-                          <form action={snoozeCallTaskAction}>
-                            <input type="hidden" name="task_id" value={task.id} />
-                            <button type="submit" className="text-xs font-semibold text-sky-300 hover:text-sky-200">+2 дни</button>
-                          </form>
-                          <form action={closeCallTaskAction}>
-                            <input type="hidden" name="task_id" value={task.id} />
-                            <button type="submit" className="text-xs font-semibold text-neutral-300 hover:text-neutral-100">Затвори</button>
-                          </form>
-                        </div>
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-3">
+            <p className="text-xs uppercase tracking-wide text-red-300">Просрочени</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums">{overdue}</p>
           </div>
-        </section>
-      ) : null}
+          <div className="rounded-xl border border-sky-800/60 bg-sky-950/30 p-3">
+            <p className="text-xs uppercase tracking-wide text-sky-300">15-ти ден</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums">{day15}</p>
+          </div>
+          <div className="rounded-xl border border-violet-800/60 bg-violet-950/30 p-3">
+            <p className="text-xs uppercase tracking-wide text-violet-300">25-ти ден</p>
+            <p className="mt-1 text-xl font-semibold tabular-nums">{day25}</p>
+          </div>
+        </div>
+      </section>
 
-      {activeView === "leads" ? (
-      <>
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
         {(["standard", "pro", "premium", "collective"] as const).map((plan) => {
@@ -344,13 +250,46 @@ export default async function SuperAdminLeadsPage({
                     ➕ Създай тенант
                   </Link>
                 </div>
+
+                <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-950/40 p-3">
+                  <p className="text-xs font-semibold uppercase tracking-wide text-neutral-400">Обаждания (15-ти / 25-ти ден)</p>
+                  <div className="mt-2 space-y-2">
+                    {(tasksByLead.get(lead.id) ?? []).map((task) => {
+                      const due = task.next_call_at ?? task.due_date;
+                      return (
+                        <div key={task.id} className="grid gap-2 rounded-lg border border-neutral-800/80 bg-neutral-950/70 p-2 sm:grid-cols-[120px_110px_1fr_auto] sm:items-center">
+                          <div className="text-xs text-neutral-300">{task.call_day}-ти ден</div>
+                          <div className="text-xs text-neutral-400">{due}</div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${TASK_STATUS_BADGE[task.status] ?? TASK_STATUS_BADGE.pending}`}>{task.status}</span>
+                            <span className="text-xs text-neutral-500">{task.note ?? "—"}</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2">
+                            <form action={markCallTaskCalledAction} className="flex items-center gap-1">
+                              <input type="hidden" name="task_id" value={task.id} />
+                              <input name="note" placeholder="бележка" className="w-24 rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-[11px]" />
+                              <input name="next_call_at" type="date" className="rounded border border-neutral-700 bg-neutral-950 px-2 py-1 text-[11px]" />
+                              <button type="submit" className="text-[11px] font-semibold text-emerald-300 hover:text-emerald-200">Обадих се</button>
+                            </form>
+                            <form action={snoozeCallTaskAction}>
+                              <input type="hidden" name="task_id" value={task.id} />
+                              <button type="submit" className="text-[11px] font-semibold text-sky-300 hover:text-sky-200">+2 дни</button>
+                            </form>
+                            <form action={closeCallTaskAction}>
+                              <input type="hidden" name="task_id" value={task.id} />
+                              <button type="submit" className="text-[11px] font-semibold text-neutral-300 hover:text-neutral-100">Затвори</button>
+                            </form>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
               </div>
             );
           })}
         </div>
       )}
-      </>
-      ) : null}
     </div>
   );
 }

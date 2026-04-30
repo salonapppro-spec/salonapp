@@ -29,7 +29,7 @@ export async function markCallTaskCalledAction(formData: FormData): Promise<void
 
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase
-    .from("tenant_call_tasks")
+    .from("lead_call_tasks")
     .update({
       status: "called",
       last_called_at: new Date().toISOString(),
@@ -55,7 +55,7 @@ export async function snoozeCallTaskAction(formData: FormData): Promise<void> {
 
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase
-    .from("tenant_call_tasks")
+    .from("lead_call_tasks")
     .update({
       status: "no_answer",
       next_call_at: nextCallAt,
@@ -75,7 +75,7 @@ export async function closeCallTaskAction(formData: FormData): Promise<void> {
 
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase
-    .from("tenant_call_tasks")
+    .from("lead_call_tasks")
     .update({
       status: "closed",
       updated_at: new Date().toISOString(),
