@@ -6,7 +6,7 @@
 export type Plan = "standard" | "pro" | "premium" | "collective";
 export type TenantStatus = "trial" | "active" | "inactive";
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
-export type Template = "bloom" | "luxe" | "luxe2" | "clean" | "zen" | "bold" | "groom";
+export type Template = "bloom" | "luxe" | "luxe2" | "clean" | "zen" | "bold" | "groom" | "theskin";
 export type PaymentType = "stripe" | "bank";
 /** Целева схема (MASTER); БД може да ползва BG низове до миграция. */
 export type HairLength = "short" | "medium" | "long";

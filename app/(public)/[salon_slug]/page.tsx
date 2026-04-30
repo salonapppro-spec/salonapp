@@ -14,6 +14,7 @@ import { Groom } from "@/components/templates/Groom";
 import { Luxe } from "@/components/templates/Luxe";
 import { Luxe2 } from "@/components/templates/Luxe2";
 import { Zen } from "@/components/templates/Zen";
+import { TheSkin } from "@/components/templates/TheSkin";
 
 async function resolveSlug(paramSlug: string): Promise<string> {
   const h = await headers();
@@ -29,6 +30,7 @@ function renderTemplate(template: Template, data: SalonData) {
     case "bold":   return <Bold data={data} />;
     case "luxe2":  return <Luxe2 data={data} />;
     case "groom":  return <Groom data={data} />;
+    case "theskin": return <TheSkin data={data} />;
     default:       return <Bloom data={data} />;
   }
 }
