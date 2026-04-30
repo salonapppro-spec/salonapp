@@ -47,7 +47,7 @@ export default async function AdminSettingsPage() {
       {/* Quick-nav cards */}
       <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
         {[
-          { icon: "👥", label: "Специалисти", href: "#specialists", desc: "Екип и профили" },
+          { icon: "👤", label: "За мен", href: "#owner-profile", desc: "Личен профил" },
           { icon: "🏷️", label: "Лого (сайт)", href: "#salon-logo", desc: "Шапка на сайта" },
           { icon: "🕐", label: "Работно време", href: "/admin/working-hours", desc: "График по дни" },
           { icon: "🖼️", label: "Галерия", href: "/admin/gallery", desc: "Снимки на салона" },
@@ -66,7 +66,7 @@ export default async function AdminSettingsPage() {
         ))}
       </div>
 
-      {/* Salon profile + specialists form */}
+      {/* Salon profile form */}
       <div className="mt-6">
         <SettingsForm tenant={tenant} specialists={specialists} />
       </div>

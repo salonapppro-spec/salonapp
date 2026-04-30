@@ -4,7 +4,13 @@ import { useEffect, useRef, useMemo, useState } from "react";
 
 import type { Specialist, Tenant } from "@/types";
 
-type SpecialistDraft = Pick<Specialist, "id" | "name" | "role" | "bio" | "avatar_url" | "is_active" | "is_technical_admin">;
+type OwnerProfileDraft = {
+  id: string | null;
+  name: string;
+  role: string;
+  bio: string;
+  avatar_url: string;
+};
 
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
@@ -164,22 +170,20 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const [mapsEmbed, setMapsEmbed] = useState(tenant.google_maps_embed ?? "");
 
   const [savingSection, setSavingSection] = useState<"logo" | "hero" | "about" | "contacts" | "social" | "maps" | "all" | null>(null);
-  const [savingSpecialists, setSavingSpecialists] = useState<string | null>(null);
-  const [deletingSpecialist, setDeletingSpecialist] = useState<string | null>(null);
-  const [addingSpecialist, setAddingSpecialist] = useState(false);
+  const [savingOwnerProfile, setSavingOwnerProfile] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
-  const [specialists, setSpecialists] = useState<SpecialistDraft[]>(
-    props.specialists.map((s) => ({
-      id: s.id,
-      name: s.name ?? "",
-      role: s.role ?? "",
-      bio: s.bio ?? "",
-      avatar_url: s.avatar_url ?? "",
-      is_active: s.is_active,
-      is_technical_admin: s.is_technical_admin,
-    }))
-  );
+  const initialOwnerProfile = useMemo(() => {
+    const seeded = props.specialists.find((s) => !s.is_technical_admin) ?? props.specialists[0] ?? null;
+    return {
+      id: seeded?.id ?? null,
+      name: seeded?.name ?? tenant.salon_name ?? "Собственик",
+      role: seeded?.role ?? "Собственик",
+      bio: seeded?.bio ?? "",
+      avatar_url: seeded?.avatar_url ?? "",
+    } satisfies OwnerProfileDraft;
+  }, [props.specialists, tenant.salon_name]);
+  const [ownerProfile, setOwnerProfile] = useState<OwnerProfileDraft>(initialOwnerProfile);
 
   const stringOrNull = (v: string) => {
     const t = v.trim();
@@ -381,76 +385,45 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     }
   }
 
-  function patchSpecialistLocal(id: string, patch: Partial<SpecialistDraft>) {
-    setSpecialists((curr) => curr.map((s) => (s.id === id ? { ...s, ...patch } : s)));
-  }
-
-  async function saveSpecialist(id: string) {
-    const s = specialists.find((x) => x.id === id);
-    if (!s) return;
-    setSavingSpecialists(id); setError(null); setOk(null);
-    try {
-      const res = await fetch(`/api/admin/specialists/${id}`, {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: s.name.trim(), role: s.role || null, bio: s.bio || null, avatar_url: s.avatar_url || null, is_active: s.is_active }),
-      });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
-      setOk("✓ Специалистът е запазен.");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Грешка при запис.");
-    } finally {
-      setSavingSpecialists(null);
-    }
-  }
-
-  async function addSpecialist() {
-    setAddingSpecialist(true); setError(null); setOk(null);
-    try {
-      const res = await fetch("/api/admin/specialists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Нов специалист" }) });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json?.error ?? "Неуспешно добавяне.");
-      const created = json?.specialist as SpecialistDraft | undefined;
-      if (created?.id) {
-        setSpecialists((curr) => [
-          ...curr,
-          {
-            id: created.id,
-            name: created.name ?? "Нов специалист",
-            role: created.role ?? "",
-            bio: created.bio ?? "",
-            avatar_url: created.avatar_url ?? "",
-            is_active: created.is_active ?? true,
-            is_technical_admin: created.is_technical_admin ?? false,
-          },
-        ]);
-      }
-      setOk("✓ Добавен нов специалист.");
-    } catch (e) {
-      setError(e instanceof Error ? e.message : "Грешка при запис.");
-    } finally {
-      setAddingSpecialist(false);
-    }
-  }
-
-  async function deleteSpecialist(id: string) {
-    const s = specialists.find((x) => x.id === id);
-    if (!s || s.is_technical_admin) return;
-    if (!window.confirm("Да се изтрие този специалист? Тази стъпка не може да бъде отменена.")) return;
-    setDeletingSpecialist(id);
+  async function saveOwnerProfile() {
+    setSavingOwnerProfile(true);
     setError(null);
     setOk(null);
     try {
-      const res = await fetch(`/api/admin/specialists/${id}`, { method: "DELETE" });
-      const json = (await res.json()) as { error?: string };
-      if (!res.ok) throw new Error(json?.error ?? "Неуспешно изтриване.");
-      setSpecialists((curr) => curr.filter((x) => x.id !== id));
-      setOk("✓ Специалистът е премахнат.");
+      let specialistId = ownerProfile.id;
+
+      if (!specialistId) {
+        const createRes = await fetch("/api/admin/specialists", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ name: ownerProfile.name.trim() || "Собственик" }),
+        });
+        const createJson = (await createRes.json()) as { error?: string; specialist?: { id?: string } };
+        if (!createRes.ok || !createJson?.specialist?.id) {
+          throw new Error(createJson?.error ?? "Неуспешно създаване на профил.");
+        }
+        specialistId = createJson.specialist.id;
+      }
+
+      const res = await fetch(`/api/admin/specialists/${specialistId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: ownerProfile.name.trim() || "Собственик",
+          role: ownerProfile.role.trim() || null,
+          bio: ownerProfile.bio.trim() || null,
+          avatar_url: ownerProfile.avatar_url.trim() || null,
+          is_active: true,
+        }),
+      });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
+      setOwnerProfile((curr) => ({ ...curr, id: specialistId }));
+      setOk("✓ Профилът „За мен“ е запазен.");
     } catch (e) {
-      setError(e instanceof Error ? e.message : "Грешка при изтриване.");
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
-      setDeletingSpecialist(null);
+      setSavingOwnerProfile(false);
     }
   }
 
@@ -464,105 +437,57 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         </div>
       )}
 
-      {/* ── Специалисти (най-отгоре) ── */}
+      {/* ── За мен (най-отгоре) ── */}
       <FieldCard>
-        <div id="specialists">
-          <div className="mb-4 flex items-center justify-between border-b pb-4" style={{ borderColor: "rgba(201,168,76,0.12)" }}>
-            <div className="flex items-center gap-3">
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.15), rgba(200,130,106,0.15))" }}>
-                👥
-              </div>
-              <div>
-                <h2 className="text-sm font-black text-[#1A1A1A]">Специалисти</h2>
-                <p className="mt-0.5 text-xs text-[#1A1A1A]/45">Екипът на салона с профили и снимки. Всеки ред се запазва отделно.</p>
-              </div>
+        <div id="owner-profile">
+          <SectionHeader icon="👤" title="За мен" desc="Един основен профил на собственика: име, текст и снимка." />
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div>
+              <Label>Име</Label>
+              <input
+                className="input-admin"
+                value={ownerProfile.name}
+                onChange={(e) => setOwnerProfile((curr) => ({ ...curr, name: e.target.value }))}
+              />
             </div>
+            <div>
+              <Label>Роля / заглавие</Label>
+              <input
+                className="input-admin"
+                placeholder="Собственик, стилист, козметик…"
+                value={ownerProfile.role}
+                onChange={(e) => setOwnerProfile((curr) => ({ ...curr, role: e.target.value }))}
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <ImageUpload
+                label="Профилна снимка"
+                value={ownerProfile.avatar_url}
+                onChange={(url) => setOwnerProfile((curr) => ({ ...curr, avatar_url: url }))}
+                aspect="square"
+                hint="Качи снимката, която ще се показва в публичната секция „За мен“."
+              />
+            </div>
+            <div className="sm:col-span-2">
+              <Label>Текст за секция „За мен“</Label>
+              <textarea
+                className="textarea-admin min-h-[5rem]"
+                rows={4}
+                value={ownerProfile.bio}
+                onChange={(e) => setOwnerProfile((curr) => ({ ...curr, bio: e.target.value }))}
+              />
+            </div>
+          </div>
+          <div className="mt-3 flex justify-end">
             <button
               type="button"
-              className="rounded-xl px-3 py-2 text-xs font-black text-white transition hover:opacity-90"
+              className="w-full rounded-xl py-2.5 text-xs font-black text-white transition hover:opacity-90 disabled:opacity-50 sm:w-auto sm:min-w-[12rem]"
               style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-              onClick={addSpecialist}
-              disabled={addingSpecialist || savingSection != null}
+              onClick={() => void saveOwnerProfile()}
+              disabled={savingOwnerProfile || savingSection != null}
             >
-              {addingSpecialist ? "…" : "+ Добави"}
+              {savingOwnerProfile ? "Запазване…" : "✓ Запази секция „За мен“"}
             </button>
-          </div>
-
-          <div className="space-y-3">
-            {specialists.length === 0 ? (
-              <div className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-[#1A1A1A]/35" style={{ borderColor: "rgba(201,168,76,0.25)" }}>
-                Няма специалисти. Добави с бутона горе.
-              </div>
-            ) : (
-              specialists.map((s) => (
-                <div key={s.id} className="rounded-xl p-4" style={{ background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.12)" }}>
-                  <div className="mb-3 flex items-center gap-3">
-                    {s.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={s.avatar_url} alt={s.name} className="h-10 w-10 shrink-0 rounded-xl object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
-                    ) : (
-                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}>
-                        {s.name.slice(0, 1).toUpperCase()}
-                      </div>
-                    )}
-                    <div className="min-w-0 flex-1">
-                      <div className="text-sm font-black text-[#1A1A1A]">{s.name || "Нов специалист"}</div>
-                      <div className="text-xs text-[#1A1A1A]/40">{s.role || "Без роля"}</div>
-                    </div>
-                    <label className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-[#1A1A1A]/55 cursor-pointer">
-                      <input type="checkbox" checked={s.is_active} onChange={(e) => patchSpecialistLocal(s.id, { is_active: e.target.checked })} className="rounded" />
-                      Активен
-                    </label>
-                  </div>
-                  {s.is_technical_admin && (
-                    <p className="mb-2 text-[11px] text-[#1A1A1A]/45">Свързан с администраторския акаунт — изтриване не е възможно от тук.</p>
-                  )}
-
-                  <div className="grid gap-3 sm:grid-cols-2">
-                    <div>
-                      <Label>Име</Label>
-                      <input className="input-admin" value={s.name} onChange={(e) => patchSpecialistLocal(s.id, { name: e.target.value })} />
-                    </div>
-                    <div>
-                      <Label>Роля</Label>
-                      <input className="input-admin" placeholder="Фризьор, козметолог…" value={s.role ?? ""} onChange={(e) => patchSpecialistLocal(s.id, { role: e.target.value })} />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <ImageUpload
-                        label="Снимка на специалиста"
-                        value={s.avatar_url ?? ""}
-                        onChange={(url) => patchSpecialistLocal(s.id, { avatar_url: url })}
-                        aspect="square"
-                        hint="Квадратна снимка на специалиста."
-                      />
-                    </div>
-                    <div className="sm:col-span-2">
-                      <Label>Описание</Label>
-                      <textarea className="textarea-admin min-h-[4rem]" rows={3} value={s.bio ?? ""} onChange={(e) => patchSpecialistLocal(s.id, { bio: e.target.value })} />
-                    </div>
-                  </div>
-                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
-                    <button
-                      type="button"
-                      className="w-full rounded-xl py-2.5 text-xs font-black text-white transition hover:opacity-90 disabled:opacity-50 sm:w-auto sm:min-w-[12rem]"
-                      style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-                      onClick={() => void saveSpecialist(s.id)}
-                      disabled={savingSpecialists === s.id || savingSection != null}
-                    >
-                      {savingSpecialists === s.id ? "Запазване…" : "✓ Запази специалиста"}
-                    </button>
-                    <button
-                      type="button"
-                      className="w-full rounded-xl border border-red-200 bg-white py-2.5 text-xs font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-50 sm:w-auto sm:min-w-[10rem]"
-                      onClick={() => void deleteSpecialist(s.id)}
-                      disabled={s.is_technical_admin || deletingSpecialist != null || savingSection != null}
-                    >
-                      {deletingSpecialist === s.id ? "Премахване…" : "Изтрий специалиста"}
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
           </div>
         </div>
       </FieldCard>
