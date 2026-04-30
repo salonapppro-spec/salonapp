@@ -1,6 +1,8 @@
 import Link from "next/link";
 
-import { enterSalonAdminContextAction } from "@/app/super-admin/actions";
+import { ArchiveTenantSubmitButton } from "./archive-tenant-submit-button";
+
+import { archiveTenantAction, enterSalonAdminContextAction, restoreTenantAction } from "@/app/super-admin/actions";
 import { readPublicPlanPriceMonthly } from "@/lib/marketing-pricing-env";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import type { Tenant } from "@/types";
@@ -11,7 +13,7 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   inactive: { label: "Неактивен", cls: "bg-red-900/60 text-red-300 border border-red-700/60" },
 };
 
-type SearchParams = { q?: string; plan?: string; status?: string };
+type SearchParams = { q?: string; plan?: string; status?: string; archived?: string };
 
 function plusDays(dateISO: string, days: number): string {
   const d = new Date(`${dateISO}T00:00:00`);
@@ -41,7 +43,7 @@ function isOverdue(t: Tenant, today: string): boolean {
 }
 
 export default async function SuperAdminHomePage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const { q: rawQ, plan: rawPlan, status: rawStatus } = await searchParams;
+  const { q: rawQ, plan: rawPlan, status: rawStatus, archived: rawArchived } = await searchParams;
   const supabase = createSupabaseServiceRoleClient();
   const { data } = await supabase.from("tenants").select("*").order("created_at", { ascending: false });
   const tenants = ((data ?? []) as Tenant[]).filter(Boolean);
@@ -49,8 +51,14 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
   const q = (rawQ ?? "").trim().toLowerCase();
   const byPlan = (rawPlan ?? "").trim();
   const byStatus = (rawStatus ?? "").trim();
+  const byArchived = (rawArchived ?? "active").trim();
+
+  const activeTenants = tenants.filter((t) => !t.archived_at);
 
   const filtered = tenants.filter((t) => {
+    const isArchived = Boolean(t.archived_at);
+    if (byArchived === "active" && isArchived) return false;
+    if (byArchived === "archived" && !isArchived) return false;
     if (byPlan && t.plan !== byPlan) return false;
     if (byStatus && t.status !== byStatus) return false;
     if (!q) return true;
@@ -62,7 +70,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
   });
 
   const today = todayISO();
-  const callCards = tenants.filter((t) => {
+  const callCards = activeTenants.filter((t) => {
     const base = t.expiry_date ?? null;
     if (!base) return false;
     const day15 = plusDays(base, 15);
@@ -70,17 +78,27 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
     return day15 === today || day25 === today;
   });
 
-  const activeCount = tenants.filter((t) => t.status === "active").length;
-  const overdueCount = tenants.filter((t) => isOverdue(t, today)).length;
+  const activeCount = activeTenants.filter((t) => t.status === "active").length;
+  const overdueCount = activeTenants.filter((t) => isOverdue(t, today)).length;
+  const archivedCount = tenants.filter((t) => Boolean(t.archived_at)).length;
   const weekAgo = new Date();
   weekAgo.setDate(weekAgo.getDate() - 7);
-  const newThisWeek = tenants.filter((t) => {
+  const newThisWeek = activeTenants.filter((t) => {
     if (!t.created_at) return false;
     return new Date(t.created_at) >= weekAgo;
   }).length;
-  const mrr = tenants
+  const mrr = activeTenants
     .filter((t) => t.status === "active")
     .reduce((sum, t) => sum + readPublicPlanPriceMonthly(t.plan), 0);
+
+  const inSevenDays = plusDays(today, 7);
+  const expiringSoon = activeTenants
+    .filter((t) => Boolean(t.expiry_date) && t.status === "active" && (t.expiry_date as string) >= today && (t.expiry_date as string) <= inSevenDays)
+    .slice(0, 5);
+  const inactiveNeedsArchive = tenants.filter((t) => t.status === "inactive" && !t.archived_at).slice(0, 5);
+  const oldTrials = activeTenants
+    .filter((t) => t.status === "trial" && Boolean(t.created_at) && (t.created_at as string).slice(0, 10) < plusDays(today, -7))
+    .slice(0, 5);
 
   const { data: events } = await supabase
     .from("page_events")
@@ -119,6 +137,55 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
         )}
       </section>
 
+      <section className="rounded-2xl border border-orange-900/70 bg-orange-950/20 p-4 sm:p-5">
+        <h2 className="text-lg font-semibold text-orange-200">Needs Attention</h2>
+        <p className="mt-1 text-sm text-orange-300/80">Салони, които искат действие днес.</p>
+        <div className="mt-4 grid gap-4 lg:grid-cols-3">
+          <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
+            <p className="text-xs uppercase tracking-wide text-orange-300">Изтичат до 7 дни</p>
+            <div className="mt-2 space-y-2">
+              {expiringSoon.length === 0 ? (
+                <p className="text-xs text-neutral-400">Няма.</p>
+              ) : (
+                expiringSoon.map((t) => (
+                  <p key={t.id} className="text-xs text-neutral-200">
+                    <span className="font-semibold">{t.salon_name}</span> · {t.expiry_date}
+                  </p>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
+            <p className="text-xs uppercase tracking-wide text-orange-300">Inactive, но не архивирани</p>
+            <div className="mt-2 space-y-2">
+              {inactiveNeedsArchive.length === 0 ? (
+                <p className="text-xs text-neutral-400">Няма.</p>
+              ) : (
+                inactiveNeedsArchive.map((t) => (
+                  <p key={t.id} className="text-xs text-neutral-200">
+                    <span className="font-semibold">{t.salon_name}</span> · {t.salon_slug}
+                  </p>
+                ))
+              )}
+            </div>
+          </div>
+          <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
+            <p className="text-xs uppercase tracking-wide text-orange-300">Пробни над 7 дни</p>
+            <div className="mt-2 space-y-2">
+              {oldTrials.length === 0 ? (
+                <p className="text-xs text-neutral-400">Няма.</p>
+              ) : (
+                oldTrials.map((t) => (
+                  <p key={t.id} className="text-xs text-neutral-200">
+                    <span className="font-semibold">{t.salon_name}</span> · {t.created_at?.slice(0, 10)}
+                  </p>
+                ))
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-emerald-800/60 bg-emerald-950/30 p-4">
           <p className="text-xs uppercase tracking-wide text-emerald-300">Активни салони</p>
@@ -135,6 +202,10 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
         <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-4 sm:col-span-3">
           <p className="text-xs uppercase tracking-wide text-red-300">Просрочени (изтекъл период)</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{overdueCount}</p>
+        </div>
+        <div className="rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-4 sm:col-span-3">
+          <p className="text-xs uppercase tracking-wide text-neutral-300">Архивирани салони</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">{archivedCount}</p>
         </div>
       </section>
 
@@ -168,7 +239,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
             + Нов тенант
           </Link>
         </div>
-        <form className="mb-4 grid gap-2 sm:grid-cols-4">
+        <form className="mb-4 grid gap-2 sm:grid-cols-5">
           <input name="q" defaultValue={rawQ ?? ""} placeholder="Търси по ime/slug/имейл" className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm" />
           <select name="plan" defaultValue={rawPlan ?? ""} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
             <option value="">Всички планове</option>
@@ -182,6 +253,11 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
             <option value="trial">trial</option>
             <option value="active">active</option>
             <option value="inactive">inactive</option>
+          </select>
+          <select name="archived" defaultValue={rawArchived ?? "active"} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
+            <option value="active">Само активни (неархивирани)</option>
+            <option value="archived">Само архивирани</option>
+            <option value="all">Всички</option>
           </select>
           <button type="submit" className="rounded-lg border border-neutral-600 bg-neutral-800 px-3 py-2 text-sm font-medium">
             Филтрирай
@@ -207,6 +283,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-neutral-300">
                   <p>План: <span className="font-semibold text-amber-200">{t.plan}</span></p>
                   <p><StatusBadge status={t.status} /></p>
+                  {t.archived_at ? <p className="col-span-2 text-[11px] text-neutral-500">Архивиран: {t.archived_at.slice(0, 10)}</p> : null}
                   <p className="col-span-2">Собственик: {t.owner_email ?? "—"}</p>
                   <p className="col-span-2">
                     {t.created_at?.slice(0, 10) ?? "—"} · {overdue ? `Просрочен (${t.expiry_date})` : t.expiry_date ? `До ${t.expiry_date}` : "без срок"}
@@ -217,6 +294,18 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                   <button type="submit" className="w-full rounded-lg bg-emerald-700 py-2 text-sm font-semibold text-white hover:bg-emerald-600">
                     Салонски админ
                   </button>
+                </form>
+                <form action={t.archived_at ? restoreTenantAction : archiveTenantAction} className="mt-2">
+                  <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                  <ArchiveTenantSubmitButton
+                    actionKind={t.archived_at ? "restore" : "archive"}
+                    salonName={t.salon_name}
+                    className={
+                      t.archived_at
+                        ? "w-full rounded-lg border border-sky-700 bg-sky-950/60 py-2 text-sm font-semibold text-sky-300 hover:bg-sky-900/60"
+                        : "w-full rounded-lg border border-neutral-700 bg-neutral-900 py-2 text-sm font-semibold text-neutral-200 hover:bg-neutral-800"
+                    }
+                  />
                 </form>
               </div>
             );
@@ -235,6 +324,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                 <th className="py-2 pr-2">Собственик</th>
                 <th className="py-2 pr-2">Създаден</th>
                 <th className="py-2 pr-2">Детайли</th>
+                <th className="py-2 pr-2">Архив</th>
                 <th className="py-2">Админ</th>
               </tr>
             </thead>
@@ -250,6 +340,11 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                   <td className="py-2 pr-2 text-neutral-300">{t.owner_email ?? "—"}</td>
                   <td className="py-2 pr-2 text-neutral-300">
                     {t.created_at?.slice(0, 10) ?? "—"}
+                    {t.archived_at ? (
+                      <span className="ml-2 rounded bg-neutral-800 px-2 py-0.5 text-[10px] uppercase tracking-wide text-neutral-300">
+                        Архивиран
+                      </span>
+                    ) : null}
                     <span className={overdue ? "ml-2 rounded bg-red-900/70 px-2 py-0.5 text-[10px] uppercase tracking-wide text-red-100" : "ml-2 text-[10px] text-neutral-500"}>
                       {overdue ? `Просрочен (${t.expiry_date})` : t.expiry_date ? `До ${t.expiry_date}` : "без срок"}
                     </span>
@@ -258,6 +353,16 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                     <Link href={`/super-admin/${t.salon_slug}`} className="text-sky-300 hover:text-sky-200">
                       Отвори
                     </Link>
+                  </td>
+                  <td className="py-2 pr-2">
+                    <form action={t.archived_at ? restoreTenantAction : archiveTenantAction}>
+                      <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                      <ArchiveTenantSubmitButton
+                        actionKind={t.archived_at ? "restore" : "archive"}
+                        salonName={t.salon_name}
+                        className={t.archived_at ? "text-xs font-semibold text-sky-300 hover:text-sky-200" : "text-xs font-semibold text-neutral-300 hover:text-neutral-200"}
+                      />
+                    </form>
                   </td>
                   <td className="py-2">
                     <form action={enterSalonAdminContextAction}>
@@ -271,7 +376,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
               )})}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={8} className="py-8 text-center text-neutral-400">
+                  <td colSpan={9} className="py-8 text-center text-neutral-400">
                     Няма резултати.
                   </td>
                 </tr>

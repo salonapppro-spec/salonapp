@@ -61,6 +61,8 @@ export interface Tenant {
   owner_phone: string | null;
   expiry_date?: string | null;
   grace_until_date?: string | null;
+  archived_at?: string | null;
+  archived_by?: string | null;
   created_at: string | null;
   design_tokens?: import("@/types/design-tokens").DesignTokens | Record<string, unknown> | null;
 }

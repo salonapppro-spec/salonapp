@@ -55,6 +55,10 @@ export interface Tenant {
   expiry_date?: string | null;
   /** Гратисен срок след expiry (напр. +3 дни). */
   grace_until_date?: string | null;
+  /** Soft archive timestamp (super-admin only). */
+  archived_at?: string | null;
+  /** Super-admin auth user id who archived. */
+  archived_by?: string | null;
   design_tokens?: import("@/types/design-tokens").DesignTokens | Record<string, unknown> | null;
 }
 

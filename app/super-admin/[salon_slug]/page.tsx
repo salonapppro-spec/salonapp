@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { CopyButton } from "./copy-button";
+import { ConfirmTenantBasicsSubmitButton } from "./confirm-tenant-basics-submit-button";
 
 import { SuperAdminSalonSlugForm } from "@/components/super-admin/SuperAdminSalonSlugForm";
 import { activateTenantManually, enterSalonAdminContextAction, updateTenantBasics } from "@/app/super-admin/actions";
@@ -229,9 +230,11 @@ export default async function SuperAdminTenantPage({
           </div>
 
           <div className="sm:col-span-2">
-            <button type="submit" className="rounded-lg bg-white px-5 py-2 text-sm font-semibold text-neutral-900 hover:bg-neutral-100">
-              ✓ Запази промените
-            </button>
+            <ConfirmTenantBasicsSubmitButton
+              tenantName={tenant.salon_name}
+              currentPlan={tenant.plan}
+              currentStatus={tenant.status}
+            />
           </div>
         </form>
 

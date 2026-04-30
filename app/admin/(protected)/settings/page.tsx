@@ -76,8 +76,8 @@ export default async function AdminSettingsPage() {
         <FinancialSettingsForm settings={financial as FinancialSettings | null} variant="booking" />
       </div>
 
-      {/* SMS (premium) */}
-      {isPremium ? (
+      {/* SMS (premium + feature flag) */}
+      {isPremium && process.env.NEXT_PUBLIC_SMS_ENABLED === "true" ? (
         <div className="mt-6">
           <PremiumSmsSection />
         </div>

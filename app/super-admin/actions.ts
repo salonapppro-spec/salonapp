@@ -110,6 +110,40 @@ export async function activateTenantManually(formData: FormData): Promise<void> 
   revalidatePath(`/super-admin/${salonSlug}`);
 }
 
+export async function archiveTenantAction(formData: FormData): Promise<void> {
+  const user = await requireSuperAdminUser();
+  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
+  if (!salonSlug) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase
+    .from("tenants")
+    .update({ archived_at: new Date().toISOString(), archived_by: user.id, status: "inactive" })
+    .eq("salon_slug", salonSlug)
+    .is("archived_at", null);
+  if (error) throw new Error(`Неуспешно архивиране: ${error.message}`);
+
+  revalidatePath("/super-admin");
+  revalidatePath(`/super-admin/${salonSlug}`);
+}
+
+export async function restoreTenantAction(formData: FormData): Promise<void> {
+  await requireSuperAdminUser();
+  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
+  if (!salonSlug) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase
+    .from("tenants")
+    .update({ archived_at: null, archived_by: null })
+    .eq("salon_slug", salonSlug)
+    .not("archived_at", "is", null);
+  if (error) throw new Error(`Неуспешно възстановяване: ${error.message}`);
+
+  revalidatePath("/super-admin");
+  revalidatePath(`/super-admin/${salonSlug}`);
+}
+
 const VALID_TEMPLATES = new Set(["bloom", "luxe", "luxe2", "clean", "bold", "zen", "groom"]);
 const VALID_STATUSES  = new Set(["trial", "active", "inactive"]);
 const VALID_PLANS     = new Set(["standard", "pro", "premium", "collective"]);
