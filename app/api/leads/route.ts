@@ -21,6 +21,9 @@ export async function POST(req: Request) {
   }
 
   const data = parsed.data;
+  const normalizedPhone = (data.phone ?? "").replace(/\D+/g, "");
+  const fallbackLeadEmail = `${normalizedPhone ? `phone-${normalizedPhone}` : `lead-${Date.now()}`}@no-email.salonapp.pro`;
+  const leadEmail = data.email ?? fallbackLeadEmail;
 
   // Build message combining business_type and any extra notes
   const fullMessage = [
@@ -34,7 +37,7 @@ export async function POST(req: Request) {
       plan: data.plan ?? "standard",
       salon_name: data.salon_name,
       contact_name: data.contact_name,
-      email: data.email ?? null,
+      email: leadEmail,
       phone: data.phone ?? null,
       message: fullMessage,
       source: data.source,
