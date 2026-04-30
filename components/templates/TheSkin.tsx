@@ -13,6 +13,17 @@ import {
 const DAY_BG = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"] as const;
 const BGN = 1.956;
 
+/** Prefer адрес за геокод — името на салона често води до грешен обект в Google (особено на мобилни). */
+function mapsGeoTargetForTenant(address: string | null | undefined, salonName: string | null | undefined): string {
+  const addr = typeof address === "string" ? address.trim() : "";
+  if (addr !== "") {
+    const lower = addr.toLowerCase();
+    if (lower.includes("българия") || lower.includes("bulgaria")) return addr;
+    return `${addr}, Bulgaria`;
+  }
+  return typeof salonName === "string" ? salonName.trim() : "";
+}
+
 function eur(v: number) { return `${Number(v).toFixed(0)} €`; }
 function bgn(v: number) { return `${(Number(v) * BGN).toFixed(0)} лв`; }
 
@@ -105,15 +116,14 @@ export function TheSkin({ data }: { data: SalonData }) {
   const tenantMapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
   const officialPbEmbed =
     tenantMapsSrc?.startsWith("https://www.google.com/maps/embed?") ? tenantMapsSrc : null;
-  const addressTrimmed = tenant.address?.trim() ?? "";
-  const mapsQuery = [tenant.salon_name?.trim(), addressTrimmed].filter(Boolean).join(", ");
+  const mapsGeoTarget = mapsGeoTargetForTenant(tenant.address, tenant.salon_name);
   const mapsDirectionsHref =
-    mapsQuery !== ""
-      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapsQuery)}`
+    mapsGeoTarget !== ""
+      ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapsGeoTarget)}`
       : null;
   const computedPinEmbed =
-    !officialPbEmbed && mapsQuery !== ""
-      ? `https://maps.google.com/maps?hl=bg&q=${encodeURIComponent(mapsQuery)}&t=&z=17&ie=UTF8&iwloc=B&output=embed`
+    !officialPbEmbed && mapsGeoTarget !== ""
+      ? `https://maps.google.com/maps?hl=bg&q=${encodeURIComponent(mapsGeoTarget)}&t=m&z=17&ie=UTF8&iwloc=B&output=embed`
       : null;
   const effectiveMapsSrc = officialPbEmbed ?? computedPinEmbed ?? tenantMapsSrc;
   const phone = tenant.phone ?? "";
@@ -395,11 +405,17 @@ export function TheSkin({ data }: { data: SalonData }) {
         .ts-hours-day { color: var(--muted); }
         .ts-hours-time { color: var(--dark); }
         .ts-hours-off { color: var(--border); }
-        .ts-map { position: relative; aspect-ratio: 4/3; background: var(--cream); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; }
+        .ts-map { position: relative; aspect-ratio: 4/3; min-height: 200px; background: var(--cream); border: 1px solid var(--border); overflow: hidden; display: flex; align-items: center; justify-content: center; }
         .ts-map iframe { width: 100%; height: 100%; border: 0; }
         .ts-map.has-overlay iframe { pointer-events: none; }
         .ts-map-overlay { position: absolute; inset: 0; z-index: 1; }
         .ts-map-overlay:focus-visible { outline: 2px solid var(--gold); outline-offset: -2px; }
+        .ts-map-mobile-link {
+          display: none; margin-top: 0.85rem;
+          font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase;
+          color: var(--gold-dk); font-weight: 500;
+        }
+        .ts-map-mobile-link:hover { color: var(--gold); }
 
         /* ── SOCIAL BAR ──────────────────────────────────────── */
         .ts-socbar { background: var(--cream); border-top: 1px solid var(--border); padding: 1.6rem 0; }
@@ -457,6 +473,9 @@ export function TheSkin({ data }: { data: SalonData }) {
           .ts-svc-btn { grid-template-columns: 2.5rem 1fr 2rem; }
           .ts-svc-dur { display: none; }
           .ts-gal-item:nth-child(odd), .ts-gal-item:nth-child(even) { width: 240px; height: 320px; margin-top: 0; }
+          .ts-map.has-overlay iframe { pointer-events: auto; }
+          .ts-map.has-overlay .ts-map-overlay { display: none; }
+          .ts-map-mobile-link { display: inline-block; }
           .ts-socbar-inner { gap: 1.5rem; flex-wrap: wrap; }
           .ts-hero-badge { bottom: 1rem; right: 1rem; }
           .ts-about-content { padding: 3rem 1.5rem; }
@@ -769,6 +788,16 @@ export function TheSkin({ data }: { data: SalonData }) {
                   </svg>
                 )}
               </div>
+              {mapsDirectionsHref && (
+                <a
+                  href={mapsDirectionsHref}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="ts-map-mobile-link"
+                >
+                  Маршрут в Google Карти →
+                </a>
+              )}
             </div>
           </div>
         </div>
