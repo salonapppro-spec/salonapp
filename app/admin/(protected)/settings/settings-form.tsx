@@ -4,13 +4,7 @@ import { useEffect, useRef, useMemo, useState } from "react";
 
 import type { Specialist, Tenant } from "@/types";
 
-type OwnerProfileDraft = {
-  id: string | null;
-  name: string;
-  role: string;
-  bio: string;
-  avatar_url: string;
-};
+type SpecialistDraft = Pick<Specialist, "id" | "name" | "role" | "bio" | "avatar_url" | "is_active" | "is_technical_admin">;
 
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
@@ -104,14 +98,7 @@ function ImageUpload({
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) {
-            if (f.size > 5 * 1024 * 1024) {
-              setErr("Размерът на файла надминава 5MB, моля качете по-малък");
-              e.target.value = "";
-              return;
-            }
-            void upload(f);
-          }
+          if (f) void upload(f);
           e.target.value = "";
         }}
       />
@@ -161,29 +148,17 @@ function sectionSaveClass(disabled: boolean) {
   }`;
 }
 
-function readMapsPinStringsFromTenant(tenant: Tenant): { lat: string; lng: string } {
-  const dt = tenant.design_tokens;
-  if (!dt || typeof dt !== "object" || Array.isArray(dt)) return { lat: "", lng: "" };
-  const tok = dt as Record<string, unknown>;
-  const mp = tok.maps_pin;
-  if (!mp || typeof mp !== "object" || Array.isArray(mp)) return { lat: "", lng: "" };
-  const o = mp as Record<string, unknown>;
-  const la = o.lat;
-  const ln = o.lng;
-  const latStr =
-    typeof la === "number" && Number.isFinite(la) ? String(la) : typeof la === "string" ? la.trim() : "";
-  const lngStr =
-    typeof ln === "number" && Number.isFinite(ln) ? String(ln) : typeof ln === "string" ? ln.trim() : "";
-  return { lat: latStr, lng: lngStr };
-}
-
 export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] }) {
   const { tenant } = props;
-  const sectionInitialRef = useRef<{ logo: string; hero: string; about: string; contacts: string; social: string; maps: string } | null>(null);
+  const sectionInitialRef = useRef<{ logo: string; contacts: string; social: string; maps: string; hero: string; about: string } | null>(null);
 
   const [logo, setLogo] = useState(tenant.logo_url ?? "");
-  const [heroImage, setHeroImage] = useState(tenant.hero_image_url ?? "");
-  const [aboutImage, setAboutImage] = useState(tenant.about_image_url ?? "");
+  const [heroTitle, setHeroTitle] = useState(tenant.hero_title ?? "");
+  const [heroSubtitle, setHeroSubtitle] = useState(tenant.hero_subtitle ?? "");
+  const [heroImageUrl, setHeroImageUrl] = useState(tenant.hero_image_url ?? "");
+  const [aboutText1, setAboutText1] = useState(tenant.about_text1 ?? "");
+  const [aboutText2, setAboutText2] = useState(tenant.about_text2 ?? "");
+  const [aboutImageUrl, setAboutImageUrl] = useState(tenant.about_image_url ?? "");
   const [address, setAddress] = useState(tenant.address ?? "");
   const [phone, setPhone] = useState(tenant.phone ?? "");
   const [email, setEmail] = useState(tenant.email ?? "");
@@ -191,25 +166,24 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const [facebook, setFacebook] = useState(tenant.facebook_url ?? "");
   const [tiktok, setTiktok] = useState(tenant.tiktok_url ?? "");
   const [mapsEmbed, setMapsEmbed] = useState(tenant.google_maps_embed ?? "");
-  const initialMapsPins = readMapsPinStringsFromTenant(tenant);
-  const [mapsPinLat, setMapsPinLat] = useState(initialMapsPins.lat);
-  const [mapsPinLng, setMapsPinLng] = useState(initialMapsPins.lng);
 
-  const [savingSection, setSavingSection] = useState<"logo" | "hero" | "about" | "contacts" | "social" | "maps" | "all" | null>(null);
-  const [savingOwnerProfile, setSavingOwnerProfile] = useState(false);
+  const [savingSection, setSavingSection] = useState<"logo" | "contacts" | "social" | "maps" | "hero" | "about" | "all" | null>(null);
+  const [savingSpecialists, setSavingSpecialists] = useState<string | null>(null);
+  const [deletingSpecialist, setDeletingSpecialist] = useState<string | null>(null);
+  const [addingSpecialist, setAddingSpecialist] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [ok, setOk] = useState<string | null>(null);
-  const initialOwnerProfile = useMemo(() => {
-    const seeded = props.specialists.find((s) => !s.is_technical_admin) ?? props.specialists[0] ?? null;
-    return {
-      id: seeded?.id ?? null,
-      name: seeded?.name ?? tenant.salon_name ?? "Собственик",
-      role: seeded?.role ?? "Собственик",
-      bio: seeded?.bio ?? "",
-      avatar_url: seeded?.avatar_url ?? "",
-    } satisfies OwnerProfileDraft;
-  }, [props.specialists, tenant.salon_name]);
-  const [ownerProfile, setOwnerProfile] = useState<OwnerProfileDraft>(initialOwnerProfile);
+  const [specialists, setSpecialists] = useState<SpecialistDraft[]>(
+    props.specialists.map((s) => ({
+      id: s.id,
+      name: s.name ?? "",
+      role: s.role ?? "",
+      bio: s.bio ?? "",
+      avatar_url: s.avatar_url ?? "",
+      is_active: s.is_active,
+      is_technical_admin: s.is_technical_admin,
+    }))
+  );
 
   const stringOrNull = (v: string) => {
     const t = v.trim();
@@ -217,18 +191,26 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   };
 
   const snapLogo = () => JSON.stringify([logo.trim()]);
-  const snapHero = () => JSON.stringify([heroImage.trim()]);
-  const snapAbout = () => JSON.stringify([aboutImage.trim()]);
+  const snapHero = () => JSON.stringify([heroTitle.trim(), heroSubtitle.trim(), heroImageUrl.trim()]);
+  const snapAbout = () => JSON.stringify([aboutText1.trim(), aboutText2.trim(), aboutImageUrl.trim()]);
   const snapContacts = () => JSON.stringify([address.trim(), phone.trim(), email.trim()]);
   const snapSocial = () => JSON.stringify([instagram.trim(), facebook.trim(), tiktok.trim()]);
-  const snapMaps = () => JSON.stringify([mapsEmbed.trim(), mapsPinLat.trim(), mapsPinLng.trim()]);
+  const snapMaps = () => JSON.stringify([mapsEmbed.trim()]);
 
   useEffect(() => {
     if (sectionInitialRef.current) return;
     sectionInitialRef.current = {
       logo: JSON.stringify([(tenant.logo_url ?? "").trim()]),
-      hero: JSON.stringify([(tenant.hero_image_url ?? "").trim()]),
-      about: JSON.stringify([(tenant.about_image_url ?? "").trim()]),
+      hero: JSON.stringify([
+        (tenant.hero_title ?? "").trim(),
+        (tenant.hero_subtitle ?? "").trim(),
+        (tenant.hero_image_url ?? "").trim(),
+      ]),
+      about: JSON.stringify([
+        (tenant.about_text1 ?? "").trim(),
+        (tenant.about_text2 ?? "").trim(),
+        (tenant.about_image_url ?? "").trim(),
+      ]),
       contacts: JSON.stringify([
         (tenant.address ?? "").trim(),
         (tenant.phone ?? "").trim(),
@@ -239,21 +221,19 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         (tenant.facebook_url ?? "").trim(),
         (tenant.tiktok_url ?? "").trim(),
       ]),
-      maps: JSON.stringify([
-        (tenant.google_maps_embed ?? "").trim(),
-        readMapsPinStringsFromTenant(tenant).lat,
-        readMapsPinStringsFromTenant(tenant).lng,
-      ]),
+      maps: JSON.stringify([(tenant.google_maps_embed ?? "").trim()]),
     };
   }, [tenant]);
 
   const hasUnsavedLogo = sectionInitialRef.current != null && snapLogo() !== sectionInitialRef.current.logo;
   const hasUnsavedHero = sectionInitialRef.current != null && snapHero() !== sectionInitialRef.current.hero;
   const hasUnsavedAbout = sectionInitialRef.current != null && snapAbout() !== sectionInitialRef.current.about;
-  const hasUnsavedContacts = sectionInitialRef.current != null && snapContacts() !== sectionInitialRef.current.contacts;
+  const hasUnsavedContacts =
+    sectionInitialRef.current != null && snapContacts() !== sectionInitialRef.current.contacts;
   const hasUnsavedSocial = sectionInitialRef.current != null && snapSocial() !== sectionInitialRef.current.social;
   const hasUnsavedMaps = sectionInitialRef.current != null && snapMaps() !== sectionInitialRef.current.maps;
-  const hasUnsavedChanges = hasUnsavedLogo || hasUnsavedHero || hasUnsavedAbout || hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
+  const hasUnsavedChanges =
+    hasUnsavedLogo || hasUnsavedHero || hasUnsavedAbout || hasUnsavedContacts || hasUnsavedSocial || hasUnsavedMaps;
 
   useEffect(() => {
     if (!hasUnsavedChanges) return;
@@ -268,6 +248,12 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const payload = useMemo(
     () => ({
       logo_url: logo.trim() === "" ? "" : logo.trim(),
+      hero_title: heroTitle || undefined,
+      hero_subtitle: heroSubtitle || undefined,
+      hero_image_url: heroImageUrl || undefined,
+      about_text1: aboutText1 || undefined,
+      about_text2: aboutText2 || undefined,
+      about_image_url: aboutImageUrl || undefined,
       address: address || undefined,
       phone: phone || undefined,
       email: email || undefined,
@@ -275,10 +261,8 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       facebook_url: stringOrNull(facebook),
       tiktok_url: stringOrNull(tiktok),
       google_maps_embed: stringOrNull(mapsEmbed),
-      maps_pin_lat: mapsPinLat.trim() === "" ? "" : mapsPinLat.trim(),
-      maps_pin_lng: mapsPinLng.trim() === "" ? "" : mapsPinLng.trim(),
     }),
-    [address, email, facebook, instagram, logo, mapsEmbed, mapsPinLat, mapsPinLng, phone, tiktok]
+    [address, aboutText1, aboutText2, aboutImageUrl, email, facebook, heroTitle, heroSubtitle, heroImageUrl, instagram, logo, mapsEmbed, phone, tiktok]
   );
 
   function markProfileSaved() {
@@ -303,26 +287,6 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
   }
 
-  async function saveHeroImage() {
-    setSavingSection("hero"); setError(null); setOk(null);
-    try {
-      await postSettingsPartial({ hero_image_url: heroImage.trim() || null });
-      if (sectionInitialRef.current) sectionInitialRef.current = { ...sectionInitialRef.current, hero: snapHero() };
-      setOk("✓ Hero снимката е запазена.");
-    } catch (e) { setError(e instanceof Error ? e.message : "Грешка при запис."); }
-    finally { setSavingSection(null); }
-  }
-
-  async function saveAboutImage() {
-    setSavingSection("about"); setError(null); setOk(null);
-    try {
-      await postSettingsPartial({ about_image_url: aboutImage.trim() || null });
-      if (sectionInitialRef.current) sectionInitialRef.current = { ...sectionInitialRef.current, about: snapAbout() };
-      setOk("✓ Снимката 'За мен' е запазена.");
-    } catch (e) { setError(e instanceof Error ? e.message : "Грешка при запис."); }
-    finally { setSavingSection(null); }
-  }
-
   async function saveLogo() {
     setSavingSection("logo");
     setError(null);
@@ -334,6 +298,48 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         sectionInitialRef.current = { ...sectionInitialRef.current, logo: snapLogo() };
       }
       setOk("✓ Логото е запазено.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setSavingSection(null);
+    }
+  }
+
+  async function saveHero() {
+    setSavingSection("hero");
+    setError(null);
+    setOk(null);
+    try {
+      await postSettingsPartial({
+        hero_title: heroTitle || undefined,
+        hero_subtitle: heroSubtitle || undefined,
+        hero_image_url: heroImageUrl || undefined,
+      });
+      if (sectionInitialRef.current) {
+        sectionInitialRef.current = { ...sectionInitialRef.current, hero: snapHero() };
+      }
+      setOk("✓ Началната секция е запазена.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setSavingSection(null);
+    }
+  }
+
+  async function saveAbout() {
+    setSavingSection("about");
+    setError(null);
+    setOk(null);
+    try {
+      await postSettingsPartial({
+        about_text1: aboutText1 || undefined,
+        about_text2: aboutText2 || undefined,
+        about_image_url: aboutImageUrl || undefined,
+      });
+      if (sectionInitialRef.current) {
+        sectionInitialRef.current = { ...sectionInitialRef.current, about: snapAbout() };
+      }
+      setOk("✓ Секцията „За нас" е запазена.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
@@ -390,13 +396,11 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     try {
       await postSettingsPartial({
         google_maps_embed: stringOrNull(mapsEmbed),
-        maps_pin_lat: mapsPinLat.trim() === "" ? "" : mapsPinLat.trim(),
-        maps_pin_lng: mapsPinLng.trim() === "" ? "" : mapsPinLng.trim(),
       });
       if (sectionInitialRef.current) {
         sectionInitialRef.current = { ...sectionInitialRef.current, maps: snapMaps() };
       }
-      setOk("✓ Картата и координатите са запазени.");
+      setOk("✓ Картата е запазена.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
@@ -419,49 +423,76 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     }
   }
 
-  async function saveOwnerProfile() {
-    setSavingOwnerProfile(true);
-    setError(null);
-    setOk(null);
+  function patchSpecialistLocal(id: string, patch: Partial<SpecialistDraft>) {
+    setSpecialists((curr) => curr.map((s) => (s.id === id ? { ...s, ...patch } : s)));
+  }
+
+  async function saveSpecialist(id: string) {
+    const s = specialists.find((x) => x.id === id);
+    if (!s) return;
+    setSavingSpecialists(id); setError(null); setOk(null);
     try {
-      let specialistId = ownerProfile.id;
-
-      if (!specialistId) {
-        const createRes = await fetch("/api/admin/specialists", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ name: ownerProfile.name.trim() || "Собственик" }),
-        });
-        const createJson = (await createRes.json()) as { error?: string; specialist?: { id?: string } };
-        if (!createRes.ok || !createJson?.specialist?.id) {
-          throw new Error(createJson?.error ?? "Неуспешно създаване на профил.");
-        }
-        specialistId = createJson.specialist.id;
-      }
-
-      const res = await fetch(`/api/admin/specialists/${specialistId}`, {
+      const res = await fetch(`/api/admin/specialists/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name: ownerProfile.name.trim() || "Собственик",
-          role: ownerProfile.role.trim() || null,
-          bio: ownerProfile.bio.trim() || null,
-          avatar_url: ownerProfile.avatar_url.trim() || null,
-          is_active: true,
-        }),
+        body: JSON.stringify({ name: s.name.trim(), role: s.role || null, bio: s.bio || null, avatar_url: s.avatar_url || null, is_active: s.is_active }),
       });
       const json = await res.json();
       if (!res.ok) throw new Error(json?.error ?? "Неуспешно записване.");
-      await postSettingsPartial({
-        about_image_url: ownerProfile.avatar_url.trim() || null,
-      });
-      setAboutImage(ownerProfile.avatar_url.trim());
-      setOwnerProfile((curr) => ({ ...curr, id: specialistId }));
-      setOk("✓ Профилът „За мен“ е запазен.");
+      setOk("✓ Специалистът е запазен.");
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
-      setSavingOwnerProfile(false);
+      setSavingSpecialists(null);
+    }
+  }
+
+  async function addSpecialist() {
+    setAddingSpecialist(true); setError(null); setOk(null);
+    try {
+      const res = await fetch("/api/admin/specialists", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ name: "Нов специалист" }) });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json?.error ?? "Неуспешно добавяне.");
+      const created = json?.specialist as SpecialistDraft | undefined;
+      if (created?.id) {
+        setSpecialists((curr) => [
+          ...curr,
+          {
+            id: created.id,
+            name: created.name ?? "Нов специалист",
+            role: created.role ?? "",
+            bio: created.bio ?? "",
+            avatar_url: created.avatar_url ?? "",
+            is_active: created.is_active ?? true,
+            is_technical_admin: created.is_technical_admin ?? false,
+          },
+        ]);
+      }
+      setOk("✓ Добавен нов специалист.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при запис.");
+    } finally {
+      setAddingSpecialist(false);
+    }
+  }
+
+  async function deleteSpecialist(id: string) {
+    const s = specialists.find((x) => x.id === id);
+    if (!s || s.is_technical_admin) return;
+    if (!window.confirm("Да се изтрие този специалист? Тази стъпка не може да бъде отменена.")) return;
+    setDeletingSpecialist(id);
+    setError(null);
+    setOk(null);
+    try {
+      const res = await fetch(`/api/admin/specialists/${id}`, { method: "DELETE" });
+      const json = (await res.json()) as { error?: string };
+      if (!res.ok) throw new Error(json?.error ?? "Неуспешно изтриване.");
+      setSpecialists((curr) => curr.filter((x) => x.id !== id));
+      setOk("✓ Специалистът е премахнат.");
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Грешка при изтриване.");
+    } finally {
+      setDeletingSpecialist(null);
     }
   }
 
@@ -475,57 +506,105 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         </div>
       )}
 
-      {/* ── За мен (най-отгоре) ── */}
+      {/* ── Специалисти (най-отгоре) ── */}
       <FieldCard>
-        <div id="owner-profile">
-          <SectionHeader icon="👤" title="За мен" desc="Един основен профил на собственика: име, текст и снимка." />
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div>
-              <Label>Име</Label>
-              <input
-                className="input-admin"
-                value={ownerProfile.name}
-                onChange={(e) => setOwnerProfile((curr) => ({ ...curr, name: e.target.value }))}
-              />
+        <div id="specialists">
+          <div className="mb-4 flex items-center justify-between border-b pb-4" style={{ borderColor: "rgba(201,168,76,0.12)" }}>
+            <div className="flex items-center gap-3">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl text-lg" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.15), rgba(200,130,106,0.15))" }}>
+                👥
+              </div>
+              <div>
+                <h2 className="text-sm font-black text-[#1A1A1A]">Специалисти</h2>
+                <p className="mt-0.5 text-xs text-[#1A1A1A]/45">Екипът на салона с профили и снимки. Всеки ред се запазва отделно.</p>
+              </div>
             </div>
-            <div>
-              <Label>Роля / заглавие</Label>
-              <input
-                className="input-admin"
-                placeholder="Собственик, стилист, козметик…"
-                value={ownerProfile.role}
-                onChange={(e) => setOwnerProfile((curr) => ({ ...curr, role: e.target.value }))}
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <ImageUpload
-                label="Профилна снимка"
-                value={ownerProfile.avatar_url}
-                onChange={(url) => setOwnerProfile((curr) => ({ ...curr, avatar_url: url }))}
-                aspect="square"
-                hint="Качи снимката, която ще се показва в публичната секция „За мен“."
-              />
-            </div>
-            <div className="sm:col-span-2">
-              <Label>Текст за секция „За мен“</Label>
-              <textarea
-                className="textarea-admin min-h-[5rem]"
-                rows={4}
-                value={ownerProfile.bio}
-                onChange={(e) => setOwnerProfile((curr) => ({ ...curr, bio: e.target.value }))}
-              />
-            </div>
-          </div>
-          <div className="mt-3 flex justify-end">
             <button
               type="button"
-              className="w-full rounded-xl py-2.5 text-xs font-black text-white transition hover:opacity-90 disabled:opacity-50 sm:w-auto sm:min-w-[12rem]"
+              className="rounded-xl px-3 py-2 text-xs font-black text-white transition hover:opacity-90"
               style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-              onClick={() => void saveOwnerProfile()}
-              disabled={savingOwnerProfile || savingSection != null}
+              onClick={addSpecialist}
+              disabled={addingSpecialist || savingSection != null}
             >
-              {savingOwnerProfile ? "Запазване…" : "✓ Запази секция „За мен“"}
+              {addingSpecialist ? "…" : "+ Добави"}
             </button>
+          </div>
+
+          <div className="space-y-3">
+            {specialists.length === 0 ? (
+              <div className="rounded-xl border border-dashed px-4 py-6 text-center text-sm text-[#1A1A1A]/35" style={{ borderColor: "rgba(201,168,76,0.25)" }}>
+                Няма специалисти. Добави с бутона горе.
+              </div>
+            ) : (
+              specialists.map((s) => (
+                <div key={s.id} className="rounded-xl p-4" style={{ background: "rgba(201,168,76,0.05)", border: "1px solid rgba(201,168,76,0.12)" }}>
+                  <div className="mb-3 flex items-center gap-3">
+                    {s.avatar_url ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={s.avatar_url} alt={s.name} className="h-10 w-10 shrink-0 rounded-xl object-cover" onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = "none"; }} />
+                    ) : (
+                      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl text-sm font-black text-white" style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}>
+                        {s.name.slice(0, 1).toUpperCase()}
+                      </div>
+                    )}
+                    <div className="min-w-0 flex-1">
+                      <div className="text-sm font-black text-[#1A1A1A]">{s.name || "Нов специалист"}</div>
+                      <div className="text-xs text-[#1A1A1A]/40">{s.role || "Без роля"}</div>
+                    </div>
+                    <label className="flex shrink-0 items-center gap-1.5 text-xs font-semibold text-[#1A1A1A]/55 cursor-pointer">
+                      <input type="checkbox" checked={s.is_active} onChange={(e) => patchSpecialistLocal(s.id, { is_active: e.target.checked })} className="rounded" />
+                      Активен
+                    </label>
+                  </div>
+                  {s.is_technical_admin && (
+                    <p className="mb-2 text-[11px] text-[#1A1A1A]/45">Свързан с администраторския акаунт — изтриване не е възможно от тук.</p>
+                  )}
+
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <Label>Име</Label>
+                      <input className="input-admin" value={s.name} onChange={(e) => patchSpecialistLocal(s.id, { name: e.target.value })} />
+                    </div>
+                    <div>
+                      <Label>Роля</Label>
+                      <input className="input-admin" placeholder="Фризьор, козметолог…" value={s.role ?? ""} onChange={(e) => patchSpecialistLocal(s.id, { role: e.target.value })} />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <ImageUpload
+                        label="Снимка на специалиста"
+                        value={s.avatar_url ?? ""}
+                        onChange={(url) => patchSpecialistLocal(s.id, { avatar_url: url })}
+                        aspect="square"
+                        hint="Квадратна снимка на специалиста."
+                      />
+                    </div>
+                    <div className="sm:col-span-2">
+                      <Label>Описание</Label>
+                      <textarea className="textarea-admin min-h-[4rem]" rows={3} value={s.bio ?? ""} onChange={(e) => patchSpecialistLocal(s.id, { bio: e.target.value })} />
+                    </div>
+                  </div>
+                  <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:justify-end">
+                    <button
+                      type="button"
+                      className="w-full rounded-xl py-2.5 text-xs font-black text-white transition hover:opacity-90 disabled:opacity-50 sm:w-auto sm:min-w-[12rem]"
+                      style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+                      onClick={() => void saveSpecialist(s.id)}
+                      disabled={savingSpecialists === s.id || savingSection != null}
+                    >
+                      {savingSpecialists === s.id ? "Запазване…" : "✓ Запази специалиста"}
+                    </button>
+                    <button
+                      type="button"
+                      className="w-full rounded-xl border border-red-200 bg-white py-2.5 text-xs font-bold text-red-700 transition hover:bg-red-50 disabled:opacity-50 sm:w-auto sm:min-w-[10rem]"
+                      onClick={() => void deleteSpecialist(s.id)}
+                      disabled={s.is_technical_admin || deletingSpecialist != null || savingSection != null}
+                    >
+                      {deletingSpecialist === s.id ? "Премахване…" : "Изтрий специалиста"}
+                    </button>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </div>
       </FieldCard>
@@ -556,29 +635,101 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         </div>
       </FieldCard>
 
-      {/* ── Hero снимка ── */}
+      {/* ── Начална секция (Hero) ── */}
       <FieldCard>
-        <div id="hero-image">
-          <SectionHeader icon="🖼️" title="Hero снимка" desc="Главната снимка в горната секция на публичния сайт" />
-          {hasUnsavedHero && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
-          <ImageUpload
-            label="Качи hero снимка (JPG, PNG, WebP)"
-            value={heroImage}
-            onChange={setHeroImage}
-            aspect="wide"
-            hint="Хоризонтална снимка — показва се като фон или главна снимка в hero секцията."
-          />
-          <div className="mt-4 flex justify-end">
-            <button
-              type="button"
-              className={sectionSaveClass(!!savingSection)}
-              style={{ background: savingSection === "hero" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
-              onClick={() => void saveHeroImage()}
-              disabled={savingSection != null}
-            >
-              {savingSection === "hero" ? "Запазване…" : "✓ Запази hero снимката"}
-            </button>
+        <SectionHeader icon="🏠" title="Начална секция" desc="Заглавие, подзаглавие и главна снимка на сайта" />
+        {hasUnsavedHero && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <div className="grid gap-4">
+          <div>
+            <Label>Заглавие</Label>
+            <input
+              className="input-admin"
+              placeholder="Красота, която говори за теб"
+              value={heroTitle}
+              onChange={(e) => setHeroTitle(e.target.value)}
+              maxLength={120}
+            />
+            <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{heroTitle.length}/120</p>
           </div>
+          <div>
+            <Label>Подзаглавие</Label>
+            <input
+              className="input-admin"
+              placeholder="Запази час онлайн, без чакане"
+              value={heroSubtitle}
+              onChange={(e) => setHeroSubtitle(e.target.value)}
+              maxLength={200}
+            />
+            <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{heroSubtitle.length}/200</p>
+          </div>
+          <ImageUpload
+            label="Главна снимка"
+            value={heroImageUrl}
+            onChange={setHeroImageUrl}
+            aspect="wide"
+            hint="Снимка с висока разделителна способност, 16:9 или по-широка."
+          />
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "hero" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveHero()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "hero" ? "Запазване…" : "✓ Запази началната секция"}
+          </button>
+        </div>
+      </FieldCard>
+
+      {/* ── За нас (About) ── */}
+      <FieldCard>
+        <SectionHeader icon="💬" title="За нас" desc="Текст и снимка за секцията „За нас"" />
+        {hasUnsavedAbout && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
+        <div className="grid gap-4">
+          <div>
+            <Label>Параграф 1</Label>
+            <textarea
+              className="textarea-admin min-h-[5rem]"
+              rows={4}
+              placeholder="Нашият салон е място, където…"
+              value={aboutText1}
+              onChange={(e) => setAboutText1(e.target.value)}
+              maxLength={1200}
+            />
+            <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{aboutText1.length}/1200</p>
+          </div>
+          <div>
+            <Label>Параграф 2</Label>
+            <textarea
+              className="textarea-admin min-h-[5rem]"
+              rows={4}
+              placeholder="Нашият опит и ценности…"
+              value={aboutText2}
+              onChange={(e) => setAboutText2(e.target.value)}
+              maxLength={1200}
+            />
+            <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{aboutText2.length}/1200</p>
+          </div>
+          <ImageUpload
+            label="Снимка за „За нас""
+            value={aboutImageUrl}
+            onChange={setAboutImageUrl}
+            aspect="wide"
+            hint="Снимка на екипа или интериора на салона."
+          />
+        </div>
+        <div className="mt-4 flex justify-end">
+          <button
+            type="button"
+            className={sectionSaveClass(!!savingSection)}
+            style={{ background: savingSection === "about" ? "rgba(201,168,76,0.5)" : `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+            onClick={() => void saveAbout()}
+            disabled={savingSection != null}
+          >
+            {savingSection === "about" ? "Запазване…" : "✓ Запази „За нас""}
+          </button>
         </div>
       </FieldCard>
 
@@ -646,50 +797,10 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
 
       {/* ── Google Maps ── */}
       <FieldCard>
-        <SectionHeader
-          icon="🗺️"
-          title="Карта на сайта"
-          desc="Embed от Google и по избор точни координати за пин (The Skin и др.)"
-        />
+        <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете само embed URL (не iframe код)" />
         {hasUnsavedMaps && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
-        <p className="mb-3 text-xs text-[#1A1A1A]/40">
-          Google Maps → Сподели → Embed → копирай само <code className="text-[10px]">src</code> URL, напр.{" "}
-          <code className="text-[10px]">https://www.google.com/maps/embed?pb=…</code>
-        </p>
+        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай само `src` URL, напр. `https://www.google.com/maps/embed?...`</p>
         <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
-        <div className="mt-5 border-t pt-5" style={{ borderColor: "rgba(201,168,76,0.12)" }}>
-          <p className="mb-2 text-xs font-semibold text-[#1A1A1A]/70">Точна локация (latitude / longitude)</p>
-          <p className="mb-3 text-xs text-[#1A1A1A]/40">
-            Отвори мястото в Google Maps → кликни върху пина → координатите са в линка или под адреса. Попълни{" "}
-            <strong>и двете</strong>, или изчисти двете за да се ползва само адресът от контактите.
-          </p>
-          <div className="grid gap-4 sm:grid-cols-2">
-            <div>
-              <Label>Latitude</Label>
-              <input
-                type="text"
-                inputMode="decimal"
-                className="input-admin mt-2"
-                value={mapsPinLat}
-                onChange={(e) => setMapsPinLat(e.target.value)}
-                placeholder="42.4924703"
-                autoComplete="off"
-              />
-            </div>
-            <div>
-              <Label>Longitude</Label>
-              <input
-                type="text"
-                inputMode="decimal"
-                className="input-admin mt-2"
-                value={mapsPinLng}
-                onChange={(e) => setMapsPinLng(e.target.value)}
-                placeholder="27.4625005"
-                autoComplete="off"
-              />
-            </div>
-          </div>
-        </div>
         <div className="mt-4 flex justify-end">
           <button
             type="button"
@@ -712,7 +823,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
           onClick={save}
           disabled={savingSection != null}
         >
-          {savingSection === "all" ? "Запазване…" : "✓ Запази наведнъж (лого + контакти + мрежи + карта)"}
+          {savingSection === "all" ? "Запазване…" : "✓ Запази всичко наведнъж"}
         </button>
       </div>
     </div>
