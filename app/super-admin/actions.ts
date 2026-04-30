@@ -8,7 +8,6 @@ import { redirect } from "next/navigation";
 import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
 import { recoveryActionLinkForEmail } from "@/lib/owner-recovery-link";
 import { CreateTenantSchema } from "@/schemas/tenant";
-import { SaveDesignTokensSchema } from "@/schemas/design-tokens";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
@@ -381,75 +380,3 @@ export async function createTenantAction(
   };
 }
 
-export async function saveDesignTokens(
-  salonSlug: string,
-  tokens: import("@/types/design-tokens").DesignTokens,
-): Promise<void> {
-  await requireSuperAdminUser();
-  const parsed = SaveDesignTokensSchema.safeParse({
-    salon_slug: salonSlug,
-    design_tokens: tokens,
-  });
-  if (!parsed.success) {
-    throw new Error(parsed.error.issues[0]?.message ?? "Невалидни дизайн настройки");
-  }
-
-  const safeSalonSlug = parsed.data.salon_slug;
-  const safeTokens = parsed.data.design_tokens;
-
-  const supabase = createSupabaseServiceRoleClient();
-  const { error } = await supabase
-    .from("tenants")
-    .update({
-      design_tokens: safeTokens,
-      primary_color: safeTokens.primaryColor,
-      background_color: safeTokens.backgroundColor,
-    })
-    .eq("salon_slug", safeSalonSlug);
-  if (error) throw new Error(`Неуспешен запис: ${error.message}`);
-
-  revalidateTag(`tenant-${safeSalonSlug}`);
-  revalidatePath(`/super-admin/${safeSalonSlug}/builder`);
-  revalidatePath(`/${safeSalonSlug}`);
-}
-
-export interface BuilderContent {
-  salonName: string;
-  logoUrl: string;
-  heroTitle: string;
-  heroSubtitle: string;
-  heroImageUrl: string;
-  description: string;
-  aboutText1: string;
-  aboutText2: string;
-  aboutImageUrl: string;
-}
-
-export async function saveBuilderContent(
-  salonSlug: string,
-  content: BuilderContent,
-): Promise<void> {
-  await requireSuperAdminUser();
-  if (!salonSlug) throw new Error("Missing salon_slug");
-
-  const supabase = createSupabaseServiceRoleClient();
-  const { error } = await supabase
-    .from("tenants")
-    .update({
-      salon_name:    content.salonName.trim()    || undefined,
-      logo_url:      content.logoUrl.trim()      || null,
-      hero_title:    content.heroTitle.trim()    || null,
-      hero_subtitle: content.heroSubtitle.trim() || null,
-      hero_image_url: content.heroImageUrl.trim() || null,
-      description:   content.description.trim()  || null,
-      about_text1:   content.aboutText1.trim()   || null,
-      about_text2:   content.aboutText2.trim()   || null,
-      about_image_url: content.aboutImageUrl.trim() || null,
-    })
-    .eq("salon_slug", salonSlug);
-  if (error) throw new Error(`Неуспешен запис: ${error.message}`);
-
-  revalidateTag(`tenant-${salonSlug}`);
-  revalidatePath(`/super-admin/${salonSlug}/builder`);
-  revalidatePath(`/${salonSlug}`);
-}

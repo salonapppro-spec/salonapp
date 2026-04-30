@@ -54,9 +54,3 @@ export const DesignTokensSchema = z.object({
   sectionPadding:  cssLength,
 }).strict();
 
-export const SaveDesignTokensSchema = z.object({
-  salon_slug:    z.string().min(1),
-  design_tokens: DesignTokensSchema,
-}).strict();
-
-export type SaveDesignTokensInput = z.infer<typeof SaveDesignTokensSchema>;

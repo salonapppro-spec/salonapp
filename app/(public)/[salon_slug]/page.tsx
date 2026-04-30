@@ -6,7 +6,6 @@ import type { CSSProperties } from "react";
 import type { SalonData } from "@/types/database";
 import type { Template } from "@/types";
 import { loadPublicSalonData } from "@/lib/data";
-import { builderPostMessageParentOrigins } from "@/lib/builder-postmessage";
 import { mergeTokens, tokensToCssVars } from "@/lib/design-tokens";
 import { Bloom } from "@/components/templates/Bloom";
 import { Bold } from "@/components/templates/Bold";
@@ -90,25 +89,10 @@ export async function generateMetadata(props: { params: Promise<{ salon_slug: st
   };
 }
 
-function previewTokenFromSearchParams(
-  sp: Record<string, string | string[] | undefined> | undefined
-): string | null {
-  if (!sp) return null;
-  const flag = sp.builderPreview;
-  if (flag !== "1" && flag !== "true") return null;
-  const raw = sp.pt;
-  const s = Array.isArray(raw) ? raw[0] : raw;
-  if (typeof s !== "string" || !/^[0-9a-f]{32}$/i.test(s)) return null;
-  return s;
-}
-
 export default async function PublicSalonPage(props: {
   params: Promise<{ salon_slug: string }>;
-  searchParams?: Promise<Record<string, string | string[] | undefined>>;
 }) {
   const { salon_slug: paramSlug } = await props.params;
-  const sp = (await props.searchParams) ?? {};
-  const builderPreviewToken = previewTokenFromSearchParams(sp);
   const slug = await resolveSlug(paramSlug);
   const data = await loadPublicSalonData(slug);
   if (!data) notFound();
@@ -130,64 +114,6 @@ export default async function PublicSalonPage(props: {
 
   const designVarStyle = tokensToCssVars(tokens) as CSSProperties;
 
-  const postMessageParentOrigins = builderPostMessageParentOrigins();
-  const ptJson = builderPreviewToken === null ? "null" : JSON.stringify(builderPreviewToken);
-
-  // Inline script — only applies live tokens when ?builderPreview=1&pt=... (see Visual Builder) + allowlisted origin
-  const postMessageScript = `
-(function(){
-  var fonts=["Inter, sans-serif","'Playfair Display', serif","Montserrat, sans-serif","'Cormorant Garamond', serif","Lato, sans-serif","Raleway, sans-serif","Poppins, sans-serif","'DM Sans', sans-serif","Outfit, sans-serif","Nunito, sans-serif","'Josefin Sans', sans-serif","'Bebas Neue', sans-serif","Cinzel, serif","'Dancing Script', cursive","Italiana, serif","'Libre Baskerville', serif"];
-  var radii=["0","0.375rem","0.75rem","1.5rem","9999px"];
-  var hex=/^#[0-9A-Fa-f]{6}$/;
-  var len=/^(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em))$/;
-  var pair=/^(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em))(?:\\s+(?:0|[0-9]+(?:\\.[0-9]+)?(?:px|rem|em)))?$/;
-  var ALLOW=${JSON.stringify(postMessageParentOrigins)};
-  var PT=${ptJson};
-  function allow(v,type){
-    if(typeof v!=="string")return false;
-    if(type==="hex")return hex.test(v);
-    if(type==="font")return fonts.indexOf(v)!==-1;
-    if(type==="radius")return radii.indexOf(v)!==-1;
-    if(type==="length")return len.test(v);
-    if(type==="pair")return pair.test(v);
-    return false;
-  }
-  function set(r,name,value,type){
-    if(allow(value,type))r.setProperty(name,value);
-  }
-  function allowedOrigin(o){
-    return ALLOW.indexOf(o)!==-1;
-  }
-  window.addEventListener("message",function(e){
-    if(!e.data||e.data.type!=="builder-preview")return;
-    if(PT===null||e.data.previewToken!==PT)return;
-    if(!allowedOrigin(e.origin))return;
-    var t=e.data.tokens;
-    if(!t)return;
-    var el=document.getElementById("salon-design-root");
-    var r=document.documentElement.style;
-    var rs=el?el.style:null;
-    function setAll(name,value,type){
-      set(r,name,value,type);
-      if(rs)set(rs,name,value,type);
-    }
-    setAll("--color-primary",t.primaryColor,"hex");
-    setAll("--color-bg",t.backgroundColor,"hex");
-    setAll("--color-text",t.textColor,"hex");
-    setAll("--color-accent",t.accentColor,"hex");
-    setAll("--font-family",t.fontFamily,"font");
-    setAll("--font-heading",t.headingFont,"font");
-    setAll("--font-body",t.bodyFont,"font");
-    setAll("--font-nav",t.navFont,"font");
-    setAll("--font-button",t.buttonFont,"font");
-    setAll("--heading-size",t.headingSize,"length");
-    setAll("--body-size",t.bodySize,"length");
-    setAll("--border-radius",t.borderRadius,"radius");
-    setAll("--button-padding",t.buttonPadding,"pair");
-    setAll("--section-padding",t.sectionPadding,"length");
-  });
-})();`.trim();
-
   const base = (process.env.NEXT_PUBLIC_APP_URL ?? "https://salonapp.pro").replace(/\/$/, "");
   const canonicalUrl = `${base}/${slug}`;
   const jsonLd = beautyBusinessJsonLd(data, canonicalUrl);
@@ -204,8 +130,6 @@ export default async function PublicSalonPage(props: {
         rel="stylesheet"
         href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Cinzel:wght@400;600;700&family=Cormorant+Garamond:wght@400;600;700&family=Dancing+Script:wght@400;600;700&family=DM+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Italiana&family=Josefin+Sans:wght@300;400;600;700&family=Lato:wght@400;700&family=Libre+Baskerville:wght@400;700&family=Montserrat:wght@400;500;600;700&family=Nunito:wght@400;500;600;700&family=Outfit:wght@400;500;600;700&family=Playfair+Display:wght@400;600;700&family=Poppins:wght@400;500;600;700&family=Raleway:wght@400;500;600;700&display=swap"
       />
-      {/* Builder real-time preview listener */}
-      <script dangerouslySetInnerHTML={{ __html: postMessageScript }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       <div id="salon-design-root" style={designVarStyle}>
         {renderTemplate(data.tenant.template, data)}

@@ -113,12 +113,6 @@ export default async function SuperAdminTenantPage({
           >
             Виж сайта ↗
           </a>
-          <Link
-            href={`/super-admin/${tenant.salon_slug}/builder`}
-            className="rounded-lg border border-violet-700 bg-violet-950/40 px-4 py-2 text-sm font-semibold text-violet-300 hover:bg-violet-900/60"
-          >
-            🎨 Visual Builder
-          </Link>
           <Link href="/super-admin" className="rounded-lg border border-neutral-700 px-4 py-2 text-sm text-neutral-400 hover:bg-neutral-800">
             ← Обратно
           </Link>
