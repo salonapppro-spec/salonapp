@@ -40,3 +40,6 @@ next-env.d.ts
 
 # MCP server config (contains API tokens)
 .mcp.json
+
+# Local staging for product photo uploads (see scripts/upload-product-images.mjs)
+/staging-upload-products/
