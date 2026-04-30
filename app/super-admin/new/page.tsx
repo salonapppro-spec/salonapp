@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import { useSearchParams } from "next/navigation";
 
 type Availability = "idle" | "checking" | "ok" | "taken" | "invalid";
 
@@ -24,6 +25,7 @@ type CreatedPayload = {
 };
 
 export default function NewTenantPage() {
+  const searchParams = useSearchParams();
   const [salonName, setSalonName] = useState("");
   const [slug, setSlug] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
@@ -37,6 +39,23 @@ export default function NewTenantPage() {
   const [copied, setCopied] = useState(false);
 
   const slugValid = useMemo(() => /^[a-z0-9]+(?:-[a-z0-9]+)*$/.test(slug), [slug]);
+
+  useEffect(() => {
+    const qName = (searchParams.get("name") ?? "").trim();
+    const qEmail = (searchParams.get("email") ?? "").trim();
+    const qPhone = (searchParams.get("phone") ?? "").trim();
+    const qPlan = (searchParams.get("plan") ?? "").trim();
+
+    if (qName) {
+      setSalonName((prev) => prev || qName);
+      setSlug((prev) => prev || slugify(qName));
+    }
+    if (qEmail) setOwnerEmail((prev) => prev || qEmail);
+    if (qPhone) setOwnerPhone((prev) => prev || qPhone);
+    if (qPlan && ["standard", "pro", "premium", "collective"].includes(qPlan)) {
+      setPlan((prev) => prev || qPlan);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     if (!slug) {
