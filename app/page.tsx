@@ -408,18 +408,18 @@ export default function Home() {
 
       {/* ── FOOTER ── */}
       <footer className="bg-[#EAD5C4]">
-        <div className="mx-auto max-w-6xl px-6 py-12 sm:px-8">
+        <div className="mx-auto max-w-6xl px-6 py-6 sm:px-8">
 
           {/* Горна секция: лого + навигация */}
-          <div className="flex flex-col items-center gap-8 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col items-center gap-5 sm:flex-row sm:items-center sm:justify-between">
 
             {/* Ляво: лого */}
             <Image
               src="/logo.png"
               alt="SalonApp"
-              width={200}
-              height={134}
-              className="h-auto w-[160px] object-contain sm:w-[180px]"
+              width={240}
+              height={161}
+              className="h-auto w-[200px] object-contain sm:w-[230px]"
             />
 
             {/* Дясно: линкове */}
@@ -442,7 +442,7 @@ export default function Home() {
           </div>
 
           {/* Разделител */}
-          <div className="my-8 border-t border-[#1A1A1A]/10" />
+          <div className="my-5 border-t border-[#1A1A1A]/10" />
 
           {/* Copyright */}
           <p className="text-center text-[10px] font-semibold uppercase tracking-[0.3em] text-[#1A1A1A]/30">
