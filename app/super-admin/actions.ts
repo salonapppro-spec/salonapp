@@ -29,6 +29,21 @@ async function requireSuperAdminUser() {
   return user;
 }
 
+async function logTenantActivity(params: {
+  salonSlug: string;
+  eventType: string;
+  actorUserId?: string | null;
+  payload?: Record<string, unknown>;
+}) {
+  const supabase = createSupabaseServiceRoleClient();
+  await supabase.from("tenant_activity_logs").insert({
+    salon_slug: params.salonSlug,
+    event_type: params.eventType,
+    actor_user_id: params.actorUserId ?? null,
+    payload: params.payload ?? {},
+  });
+}
+
 /** Задава httpOnly контекст и отваря салонския админ (данните се четат със service role по slug). */
 export async function enterSalonAdminContextAction(formData: FormData): Promise<void> {
   await requireSuperAdminUser();
@@ -65,7 +80,7 @@ export async function exitSalonAdminContextAction(): Promise<void> {
 }
 
 export async function activateTenantManually(formData: FormData): Promise<void> {
-  await requireSuperAdminUser();
+  const user = await requireSuperAdminUser();
 
   const salonSlug = String(formData.get("salon_slug") ?? "").trim();
   if (!salonSlug) throw new Error("Missing salon_slug");
@@ -82,6 +97,12 @@ export async function activateTenantManually(formData: FormData): Promise<void> 
     .update({ status: "active", payment_type: "bank", expiry_date: iso(expiry), grace_until_date: iso(grace) })
     .eq("salon_slug", salonSlug);
   if (error) throw new Error("Неуспешна активация");
+  await logTenantActivity({
+    salonSlug,
+    eventType: "manual_activation",
+    actorUserId: user.id,
+    payload: { months, expiry_date: iso(expiry), grace_until_date: iso(grace) },
+  });
 
   // Best effort informational email.
   const { data: tenant } = await supabase
@@ -121,13 +142,18 @@ export async function archiveTenantAction(formData: FormData): Promise<void> {
     .update({ archived_at: new Date().toISOString(), archived_by: user.id, status: "inactive" })
     .eq("salon_slug", salonSlug);
   if (error) throw new Error(`Неуспешно архивиране: ${error.message}`);
+  await logTenantActivity({
+    salonSlug,
+    eventType: "tenant_archived",
+    actorUserId: user.id,
+  });
 
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
 }
 
 export async function restoreTenantAction(formData: FormData): Promise<void> {
-  await requireSuperAdminUser();
+  const user = await requireSuperAdminUser();
   const salonSlug = String(formData.get("salon_slug") ?? "").trim();
   if (!salonSlug) throw new Error("Missing salon_slug");
 
@@ -138,6 +164,12 @@ export async function restoreTenantAction(formData: FormData): Promise<void> {
     .eq("salon_slug", salonSlug)
     .not("archived_at", "is", null);
   if (error) throw new Error(`Неуспешно възстановяване: ${error.message}`);
+  await logTenantActivity({
+    salonSlug,
+    eventType: "tenant_restored",
+    actorUserId: user.id,
+    payload: { status: "active" },
+  });
 
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
@@ -148,7 +180,7 @@ const VALID_STATUSES  = new Set(["trial", "active", "inactive"]);
 const VALID_PLANS     = new Set(["standard", "pro", "premium", "collective"]);
 
 export async function updateTenantBasics(formData: FormData): Promise<void> {
-  await requireSuperAdminUser();
+  const user = await requireSuperAdminUser();
   const salonSlug = String(formData.get("salon_slug") ?? "").trim();
   if (!salonSlug) throw new Error("Missing salon_slug");
 
@@ -174,12 +206,72 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase.from("tenants").update(patch).eq("salon_slug", salonSlug);
   if (error) throw new Error(`Неуспешен запис: ${error.message}`);
+  await logTenantActivity({
+    salonSlug,
+    eventType: "tenant_basics_updated",
+    actorUserId: user.id,
+    payload: { status, plan, template },
+  });
 
   revalidateTag(`tenant-${salonSlug}`);
   revalidatePath("/super-admin");
   revalidatePath(`/super-admin/${salonSlug}`);
   revalidatePath(`/${salonSlug}`); // публичен сайт на салона — обновява се веднага
   redirect(`/super-admin/${salonSlug}?saved=1`);
+}
+
+export async function extendTenantGraceBy7DaysAction(formData: FormData): Promise<void> {
+  const user = await requireSuperAdminUser();
+  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
+  if (!salonSlug) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data: tenant, error: loadError } = await supabase
+    .from("tenants")
+    .select("grace_until_date")
+    .eq("salon_slug", salonSlug)
+    .maybeSingle();
+  if (loadError) throw new Error(`Неуспешно зареждане: ${loadError.message}`);
+
+  const base = (tenant as { grace_until_date?: string | null } | null)?.grace_until_date;
+  const fromDate = base ? new Date(`${base}T00:00:00`) : new Date();
+  fromDate.setDate(fromDate.getDate() + 7);
+  const nextGrace = `${fromDate.getFullYear()}-${String(fromDate.getMonth() + 1).padStart(2, "0")}-${String(fromDate.getDate()).padStart(2, "0")}`;
+
+  const { error } = await supabase.from("tenants").update({ grace_until_date: nextGrace }).eq("salon_slug", salonSlug);
+  if (error) throw new Error(`Неуспешно удължаване: ${error.message}`);
+
+  await logTenantActivity({
+    salonSlug,
+    eventType: "grace_extended_7d",
+    actorUserId: user.id,
+    payload: { grace_until_date: nextGrace },
+  });
+
+  revalidatePath("/super-admin");
+  revalidatePath(`/super-admin/${salonSlug}`);
+}
+
+export async function markTenantActiveAction(formData: FormData): Promise<void> {
+  const user = await requireSuperAdminUser();
+  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
+  if (!salonSlug) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase
+    .from("tenants")
+    .update({ status: "active", archived_at: null, archived_by: null })
+    .eq("salon_slug", salonSlug);
+  if (error) throw new Error(`Неуспешна активация: ${error.message}`);
+
+  await logTenantActivity({
+    salonSlug,
+    eventType: "tenant_marked_active",
+    actorUserId: user.id,
+  });
+
+  revalidatePath("/super-admin");
+  revalidatePath(`/super-admin/${salonSlug}`);
 }
 
 function randomPassword(): string {

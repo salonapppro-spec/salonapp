@@ -2,7 +2,13 @@ import Link from "next/link";
 
 import { ArchiveTenantSubmitButton } from "./archive-tenant-submit-button";
 
-import { archiveTenantAction, enterSalonAdminContextAction, restoreTenantAction } from "@/app/super-admin/actions";
+import {
+  archiveTenantAction,
+  enterSalonAdminContextAction,
+  extendTenantGraceBy7DaysAction,
+  markTenantActiveAction,
+  restoreTenantAction,
+} from "@/app/super-admin/actions";
 import { readPublicPlanPriceMonthly } from "@/lib/marketing-pricing-env";
 import { MARKETING_PLANS } from "@/lib/marketing-data";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
@@ -325,6 +331,20 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                     Stripe линк
                   </button>
                 </form>
+                <div className="mt-2 grid grid-cols-2 gap-2">
+                  <form action={extendTenantGraceBy7DaysAction}>
+                    <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                    <button type="submit" className="w-full rounded-lg border border-amber-700 bg-amber-950/40 py-2 text-xs font-semibold text-amber-300 hover:bg-amber-900/60">
+                      +7 дни grace
+                    </button>
+                  </form>
+                  <form action={markTenantActiveAction}>
+                    <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                    <button type="submit" className="w-full rounded-lg border border-emerald-700 bg-emerald-950/40 py-2 text-xs font-semibold text-emerald-300 hover:bg-emerald-900/60">
+                      Активирай
+                    </button>
+                  </form>
+                </div>
               </div>
             );
           })}
@@ -344,6 +364,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                 <th className="py-2 pr-2">Детайли</th>
                 <th className="py-2 pr-2">Архив</th>
                 <th className="py-2 pr-2">Плащане</th>
+                <th className="py-2 pr-2">Quick actions</th>
                 <th className="py-2">Админ</th>
               </tr>
             </thead>
@@ -397,6 +418,23 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                       </button>
                     </form>
                   </td>
+                  <td className="py-2 pr-2">
+                    <div className="flex items-center gap-2">
+                      <form action={extendTenantGraceBy7DaysAction}>
+                        <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                        <button type="submit" className="text-xs font-semibold text-amber-300 hover:text-amber-200">
+                          +7 grace
+                        </button>
+                      </form>
+                      <span className="text-neutral-600">·</span>
+                      <form action={markTenantActiveAction}>
+                        <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                        <button type="submit" className="text-xs font-semibold text-emerald-300 hover:text-emerald-200">
+                          Активирай
+                        </button>
+                      </form>
+                    </div>
+                  </td>
                   <td className="py-2">
                     <form action={enterSalonAdminContextAction}>
                       <input type="hidden" name="salon_slug" value={t.salon_slug} />
@@ -409,7 +447,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
               )})}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={10} className="py-8 text-center text-neutral-400">
+                  <td colSpan={11} className="py-8 text-center text-neutral-400">
                     Няма резултати.
                   </td>
                 </tr>

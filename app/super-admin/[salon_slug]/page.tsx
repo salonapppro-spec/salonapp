@@ -51,6 +51,18 @@ export default async function SuperAdminTenantPage({
   ]);
   const bookingCount = bookingRes.count ?? 0;
   const clientCount = clientRes.count ?? 0;
+  const { data: activityRows } = await supabase
+    .from("tenant_activity_logs")
+    .select("id,event_type,payload,created_at")
+    .eq("salon_slug", tenant.salon_slug)
+    .order("created_at", { ascending: false })
+    .limit(20);
+  const activity = (activityRows ?? []) as Array<{
+    id: string;
+    event_type: string;
+    payload: Record<string, unknown> | null;
+    created_at: string | null;
+  }>;
 
   const sb = STATUS_BADGE[tenant.status] ?? STATUS_BADGE.inactive;
 
@@ -273,6 +285,24 @@ export default async function SuperAdminTenantPage({
               Активирай (bank)
             </button>
           </form>
+        </div>
+      </section>
+
+      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
+        <h2 className="text-base font-semibold text-neutral-100">🕘 Timeline (последни действия)</h2>
+        <div className="mt-3 space-y-2">
+          {activity.length === 0 ? (
+            <p className="text-sm text-neutral-500">Все още няма записани събития.</p>
+          ) : (
+            activity.map((row) => (
+              <div key={row.id} className="rounded-lg border border-neutral-800 bg-neutral-950/60 px-3 py-2">
+                <p className="text-sm text-neutral-200">{row.event_type}</p>
+                <p className="mt-0.5 text-xs text-neutral-500">
+                  {row.created_at ? new Date(row.created_at).toLocaleString("bg-BG") : "—"}
+                </p>
+              </div>
+            ))
+          )}
         </div>
       </section>
     </div>
