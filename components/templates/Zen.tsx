@@ -3,7 +3,6 @@
 import { useEffect, useRef, useState } from "react";
 import type { SalonData } from "@/types/database";
 import type { Service } from "@/types/database";
-import { InlineBookingForm } from "@/components/templates/InlineBookingForm";
 import {
   activeSpecialists,
   servicesFlatForPublic,
@@ -74,13 +73,49 @@ function ServiceAccordion({ service, index }: { service: Service; index: number 
   );
 }
 
+interface Testimonial { quote: string; name: string; }
+interface Product { name: string; subtitle: string; description: string; }
+
+function TestimonialsCarousel({ items }: { items: Testimonial[] }) {
+  const [active, setActive] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => setActive((p) => (p + 1) % items.length), 4500);
+    return () => clearInterval(t);
+  }, [items.length]);
+  return (
+    <div className="tc-wrap">
+      <div className="tc-inner">
+        <div className="tc-quote-icon">"</div>
+        <p className="tc-quote">{items[active].quote}</p>
+        <p className="tc-name">— {items[active].name}</p>
+        <div className="tc-dots">
+          {items.map((_, i) => (
+            <button
+              key={i}
+              className={`tc-dot${i === active ? " tc-dot-on" : ""}`}
+              onClick={() => setActive(i)}
+              aria-label={`Отзив ${i + 1}`}
+              type="button"
+            />
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function Zen({ data }: { data: SalonData }) {
   const { tenant, gallery } = data;
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
 
-  const primary = tenant.primary_color ?? "#4A6741";
-  const bg = tenant.background_color ?? "#F5F0E8";
+  const primary = tenant.primary_color ?? "#C9A06A";
+  const bg = tenant.background_color ?? "#FAF8F4";
+
+  const tokens = (tenant.design_tokens ?? {}) as Record<string, unknown>;
+  const testimonials = Array.isArray(tokens.testimonials) ? (tokens.testimonials as Testimonial[]) : [];
+  const products = Array.isArray(tokens.products) ? (tokens.products as Product[]) : [];
+  const productsLink = typeof tokens.products_link === "string" ? tokens.products_link : null;
 
   const multi = useSpecialistSectionsOnPublicSite(data);
   const specs = activeSpecialists(data);
@@ -90,6 +125,8 @@ export function Zen({ data }: { data: SalonData }) {
   const fbHref = safeFacebookHref(tenant.facebook_url);
   const tkHref = safeTiktokHref(tenant.tiktok_url);
   const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
+
+  const phoneHref = tenant.phone ? `tel:${tenant.phone.replace(/\s/g, "")}` : null;
 
   useEffect(() => {
     const h = () => setScrolled(window.scrollY > 60);
@@ -128,7 +165,6 @@ export function Zen({ data }: { data: SalonData }) {
           --trans:    0.35s ease;
         }
 
-        /* Design token bridge — builder/postMessage updates --color-* and --font-* on #salon-design-root */
         #salon-design-root {
           --green:    var(--color-primary, ${primary});
           --green-lt: color-mix(in srgb, var(--color-primary, ${primary}) 70%, white);
@@ -173,7 +209,7 @@ export function Zen({ data }: { data: SalonData }) {
           transition: all var(--trans);
         }
         .zen-navbar.scrolled {
-          background: rgba(245,240,232,.96);
+          background: rgba(250,248,244,.96);
           backdrop-filter: blur(10px);
           border-bottom: 1px solid var(--beige-bd);
         }
@@ -277,6 +313,61 @@ export function Zen({ data }: { data: SalonData }) {
         .acc-price-row span:first-child { color: var(--muted); }
         .acc-price-row span:last-child { color: var(--green-dk); font-weight: 500; }
 
+        /* PRODUCTS */
+        .products { background: var(--white); }
+        .products-hdr { text-align: center; margin-bottom: 3rem; }
+        .products-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 2rem; margin-bottom: 3rem; }
+        .product-card {
+          border: 1px solid var(--beige-bd); padding: 2.5rem 2rem;
+          display: flex; flex-direction: column; gap: 1rem;
+          transition: transform var(--trans), box-shadow var(--trans);
+          background: var(--beige); position: relative; overflow: hidden;
+        }
+        .product-card::before {
+          content: ''; position: absolute; top: 0; left: 0; right: 0; height: 2px;
+          background: linear-gradient(90deg, transparent, var(--green), transparent);
+          opacity: 0; transition: opacity var(--trans);
+        }
+        .product-card:hover { transform: translateY(-4px); box-shadow: 0 12px 40px rgba(0,0,0,.06); }
+        .product-card:hover::before { opacity: 1; }
+        .product-num { font-family: var(--serif); font-size: 2.5rem; color: var(--beige-bd); font-style: italic; line-height: 1; }
+        .product-name { font-family: var(--serif); font-size: 1.15rem; color: var(--green-dk); line-height: 1.3; }
+        .product-subtitle { font-size: .65rem; letter-spacing: .15em; text-transform: uppercase; color: var(--green); }
+        .product-desc { font-size: .82rem; color: var(--muted); line-height: 1.9; flex: 1; }
+        .products-cta { text-align: center; }
+
+        /* TESTIMONIALS */
+        .testimonials { background: var(--green-dk); padding: 7rem 0; overflow: hidden; position: relative; }
+        .testimonials::before { content: '"'; position: absolute; font-family: var(--serif); font-size: 30vw; color: rgba(255,255,255,.03); top: 50%; left: 50%; transform: translate(-50%,-50%); pointer-events: none; line-height: 1; }
+        .tc-wrap { max-width: 760px; margin: 0 auto; padding: 0 2rem; text-align: center; position: relative; }
+        .tc-inner { position: relative; }
+        .tc-quote-icon { font-family: var(--serif); font-size: 5rem; color: var(--green-lt); line-height: .5; margin-bottom: 1.5rem; opacity: .5; }
+        .tc-quote { font-family: var(--serif); font-size: clamp(1.1rem, 2vw, 1.5rem); font-style: italic; color: var(--beige); line-height: 1.7; margin-bottom: 2rem; }
+        .tc-name { font-size: .65rem; letter-spacing: .25em; text-transform: uppercase; color: var(--green-lt); margin-bottom: 2.5rem; }
+        .tc-dots { display: flex; justify-content: center; gap: .6rem; }
+        .tc-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,.2); border: none; cursor: pointer; transition: background var(--trans), transform var(--trans); padding: 0; }
+        .tc-dot-on { background: var(--green-lt); transform: scale(1.3); }
+        .tc-hdr { text-align: center; margin-bottom: 3rem; }
+        .tc-tag { font-size: .6rem; letter-spacing: .3em; text-transform: uppercase; color: rgba(250,248,244,.4); display: block; margin-bottom: .5rem; }
+        .tc-title { font-family: var(--serif); font-size: clamp(1.8rem, 3vw, 2.8rem); color: var(--beige); }
+        .tc-title em { font-style: italic; color: var(--green-lt); }
+
+        /* PHONE CTA */
+        .phone-cta { background: var(--beige-dk); padding: 7rem 0; text-align: center; border-top: 1px solid var(--beige-bd); }
+        .phone-cta-title { font-family: var(--serif); font-size: clamp(2rem, 4vw, 3.2rem); color: var(--green-dk); margin-bottom: .8rem; }
+        .phone-cta-title em { font-style: italic; color: var(--green); }
+        .phone-cta-sub { font-size: .9rem; color: var(--muted); margin-bottom: 2.5rem; }
+        .phone-cta-number {
+          display: inline-flex; align-items: center; gap: .8rem;
+          font-family: var(--serif); font-size: clamp(1.6rem, 3vw, 2.2rem);
+          color: var(--green-dk); border: 1px solid var(--beige-bd);
+          padding: 1rem 2.5rem; transition: all var(--trans); border-radius: 2px;
+          text-decoration: none; margin-bottom: 1.5rem;
+          background: var(--white);
+        }
+        .phone-cta-number:hover { border-color: var(--green); color: var(--green); box-shadow: 0 8px 24px rgba(0,0,0,.06); transform: translateY(-2px); }
+        .phone-cta-note { font-size: .72rem; letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+
         /* GALLERY */
         .gallery { background: var(--white); }
         .gallery-hdr { text-align: center; margin-bottom: 2.5rem; }
@@ -289,22 +380,6 @@ export function Zen({ data }: { data: SalonData }) {
         .g-item:hover { transform: translateY(-4px); }
         .g-lbl { position: absolute; bottom: 0; left: 0; right: 0; background: linear-gradient(to top, rgba(46,66,40,.7), transparent); color: var(--beige); font-family: var(--sans); font-size: .65rem; letter-spacing: .15em; text-transform: uppercase; padding: 2rem 1rem .8rem; opacity: 0; transition: opacity var(--trans); }
         .g-item:hover .g-lbl { opacity: 1; }
-
-        /* BOOKING CTA */
-        .booking-cta { background: var(--green-dk); text-align: center; padding: 7rem 0; position: relative; overflow: hidden; }
-        .booking-cta::before { content: '🌿'; position: absolute; font-size: 20vw; top: 50%; left: 50%; transform: translate(-50%,-50%); opacity: .04; user-select: none; pointer-events: none; }
-        .cta-title { font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3.5rem); color: var(--beige); margin-bottom: 1rem; position: relative; }
-        .cta-title em { font-style: italic; color: var(--green-lt); }
-        .cta-sub { font-size: .9rem; color: rgba(245,240,232,.55); margin-bottom: 2.5rem; position: relative; }
-        .btn-beige {
-          background: var(--beige); color: var(--green-dk); border: none;
-          padding: .9rem 2.5rem; font-family: var(--sans);
-          font-size: .75rem; font-weight: 500; letter-spacing: .12em;
-          text-transform: uppercase; cursor: pointer;
-          transition: background var(--trans); border-radius: 2px; position: relative;
-          text-decoration: none; display: inline-block;
-        }
-        .btn-beige:hover { background: var(--white); }
 
         /* CONTACT */
         .contact { background: var(--beige-dk); }
@@ -349,6 +424,7 @@ export function Zen({ data }: { data: SalonData }) {
           .about-inner { grid-template-columns: 1fr; }
           .about-img { min-height: 300px; }
           .contact-grid { grid-template-columns: 1fr; }
+          .products-grid { grid-template-columns: 1fr; }
         }
         @media (max-width: 768px) {
           section { padding: 4rem 0; }
@@ -359,22 +435,27 @@ export function Zen({ data }: { data: SalonData }) {
           .about-content { padding: 3rem 1.5rem; }
           .zen-navbar { padding: 1.2rem; }
           .acc-body { padding: 0 1rem 1.5rem 1rem; }
+          .products-grid { grid-template-columns: 1fr; gap: 1rem; }
         }
         @media (max-width: 480px) {
           .hero-btns { flex-direction: column; align-items: center; }
+          .phone-cta-number { font-size: 1.3rem; padding: .9rem 1.5rem; }
         }
       `}</style>
 
       {/* MOBILE MENU */}
       <div className={`mobile-menu${mobileOpen ? " open" : ""}`}>
         <button className="mobile-close" onClick={() => setMobileOpen(false)}>✕</button>
-        {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && <a onClick={() => goTo("about")}>За нас</a>}
+        {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && <a onClick={() => goTo("about")}>За мен</a>}
         <a onClick={() => goTo("services")}>Услуги</a>
+        {products.length > 0 && <a onClick={() => goTo("products")}>Козметика</a>}
         {gallery.length > 0 && <a onClick={() => goTo("gallery")}>Галерия</a>}
         <a onClick={() => goTo("contact")}>Контакти</a>
-        <a className="btn-green" href="#booking" onClick={() => setMobileOpen(false)}>
-          Резервирай
-        </a>
+        {phoneHref && (
+          <a className="btn-green" href={phoneHref}>
+            Запазете час
+          </a>
+        )}
       </div>
 
       {/* NAV */}
@@ -383,12 +464,13 @@ export function Zen({ data }: { data: SalonData }) {
           {tenant.salon_name}
         </div>
         <ul className="nav-links">
-          {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && <li><a onClick={() => goTo("about")}>За нас</a></li>}
+          {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && <li><a onClick={() => goTo("about")}>За мен</a></li>}
           <li><a onClick={() => goTo("services")}>Услуги</a></li>
+          {products.length > 0 && <li><a onClick={() => goTo("products")}>Козметика</a></li>}
           {gallery.length > 0 && <li><a onClick={() => goTo("gallery")}>Галерия</a></li>}
           <li><a onClick={() => goTo("contact")}>Контакти</a></li>
         </ul>
-        <a className="nav-btn" href="#booking">Резервирай</a>
+        {phoneHref && <a className="nav-btn" href={phoneHref}>Запазете час</a>}
         <button className="hamburger" onClick={() => setMobileOpen(true)}>
           <span /><span /><span />
         </button>
@@ -401,20 +483,24 @@ export function Zen({ data }: { data: SalonData }) {
           <div className="hero-circle c2" />
           <div className="hero-circle c3" />
         </div>
-        <p className="hero-eyebrow">🌿 Wellness Studio</p>
+        <p className="hero-eyebrow">✦ Premium Facecare</p>
         <h1 className="hero-title">
           {tenant.hero_title ? (
             <>{tenant.hero_title}<br />{tenant.hero_subtitle && <em>{tenant.hero_subtitle}</em>}</>
           ) : (
-            <>Намери своя<br /><em>вътрешен баланс</em></>
+            <>Кожата помни<br /><em>всяка грижа</em></>
           )}
         </h1>
         {tenant.description && (
           <p className="hero-sub">{tenant.description}</p>
         )}
         <div className="hero-btns">
-          <a className="btn-green" href="#booking">Запазете час</a>
-          <button className="btn-outline" onClick={() => goTo("services")}>Нашите ритуали</button>
+          {phoneHref ? (
+            <a className="btn-green" href={phoneHref}>Запазете час</a>
+          ) : (
+            <a className="btn-green" href="#contact">Запазете час</a>
+          )}
+          <button className="btn-outline" onClick={() => goTo("services")}>Нашите процедури</button>
         </div>
       </section>
 
@@ -425,15 +511,15 @@ export function Zen({ data }: { data: SalonData }) {
             <div className="about-img">
               {tenant.about_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={tenant.about_image_url} alt="За нас" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
+                <img src={tenant.about_image_url} alt="За мен" style={{ position: "absolute", inset: 0, width: "100%", height: "100%", objectFit: "cover" }} />
               ) : (
                 <div className="about-img-char">✦</div>
               )}
-              <div className="about-img-tag">Wellness Studio</div>
+              <div className="about-img-tag">Premium Facecare</div>
             </div>
             <div className="about-content">
-              <p className="tag">За нас</p>
-              <div className="leaf-div"><span>🌿</span></div>
+              <p className="tag">За мен</p>
+              <div className="leaf-div"><span>✦</span></div>
               <h2 className="about-title">
                 <em>{tenant.salon_name}</em>
               </h2>
@@ -448,8 +534,8 @@ export function Zen({ data }: { data: SalonData }) {
       <section className="services" id="services">
         <div className="container">
           <div className="services-hdr">
-            <p className="tag">Ритуали</p>
-            <div className="leaf-div leaf-center"><span>🌿</span></div>
+            <p className="tag">Процедури</p>
+            <div className="leaf-div leaf-center"><span>✦</span></div>
             <h2 className="section-title">Нашите <em>терапии</em></h2>
           </div>
 
@@ -477,19 +563,64 @@ export function Zen({ data }: { data: SalonData }) {
           )}
 
           <div style={{ textAlign: "center", marginTop: "3rem" }}>
-            <a className="btn-green" href="#booking">Запишете час онлайн</a>
+            {phoneHref ? (
+              <a className="btn-green" href={phoneHref}>Запишете се на час</a>
+            ) : (
+              <a className="btn-green" href="#contact">Запишете се на час</a>
+            )}
           </div>
         </div>
       </section>
+
+      {/* PRODUCTS */}
+      {products.length > 0 && (
+        <section className="products" id="products">
+          <div className="container">
+            <div className="products-hdr">
+              <p className="tag">Козметика</p>
+              <div className="leaf-div leaf-center"><span>✦</span></div>
+              <h2 className="section-title">The Skin <em>линия</em></h2>
+            </div>
+            <div className="products-grid">
+              {products.map((p, i) => (
+                <div className="product-card fade-up" key={i}>
+                  <div className="product-num">0{i + 1}</div>
+                  <div className="product-name">{p.name}</div>
+                  <div className="product-subtitle">{p.subtitle}</div>
+                  <p className="product-desc">{p.description}</p>
+                </div>
+              ))}
+            </div>
+            {productsLink && (
+              <div className="products-cta">
+                <a className="btn-outline" href={productsLink} target="_blank" rel="noopener noreferrer">
+                  Виж всички продукти
+                </a>
+              </div>
+            )}
+          </div>
+        </section>
+      )}
+
+      {/* TESTIMONIALS */}
+      {testimonials.length > 0 && (
+        <section className="testimonials" id="testimonials">
+          <div className="tc-hdr">
+            <span className="tc-tag">Отзиви</span>
+            <h2 className="tc-title">Те го <em>казват</em></h2>
+          </div>
+          <TestimonialsCarousel items={testimonials} />
+        </section>
+      )}
 
       {/* GALLERY */}
       {gallery.length > 0 && (
         <section className="gallery" id="gallery">
           <div className="container">
             <div className="gallery-hdr">
-              <p className="tag">Студиото</p>
-              <div className="leaf-div leaf-center"><span>🌿</span></div>
-              <h2 className="section-title">Нашето <em>пространство</em></h2>
+              <p className="tag">Галерия</p>
+              <div className="leaf-div leaf-center"><span>✦</span></div>
+              <h2 className="section-title">Резултати <em>в снимки</em></h2>
             </div>
           </div>
           <div className="gallery-scroll-wrap">
@@ -513,23 +644,24 @@ export function Zen({ data }: { data: SalonData }) {
         </section>
       )}
 
-      {/* BOOKING */}
-      <div className="booking-cta" id="booking">
+      {/* PHONE CTA */}
+      <div className="phone-cta" id="booking">
         <div className="container">
-          <div style={{ textAlign: "center", marginBottom: "2.5rem", position: "relative" }}>
-            <p className="tag" style={{ color: "rgba(245,240,232,.5)", display: "block", textAlign: "center" }}>Онлайн записване</p>
-            <div className="leaf-div leaf-center"><span style={{ color: "rgba(245,240,232,.25)" }}>🌿</span></div>
-            <h2 className="cta-title">Запазете своя <em>час</em></h2>
-            <p className="cta-sub">Попълнете формата и ще получите потвърждение скоро.</p>
-          </div>
-          <InlineBookingForm
-            salonSlug={tenant.salon_slug}
-            services={services}
-            primaryColor={primary}
-            textColor="#F5F0E8"
-            bgColor="rgba(255,255,255,0.08)"
-            isDemo={tenant.salon_slug.startsWith("demo/")}
-          />
+          <p className="tag" style={{ display: "block", textAlign: "center", marginBottom: "1rem" }}>Запазете час</p>
+          <div className="leaf-div leaf-center"><span>✦</span></div>
+          <h2 className="phone-cta-title">Готови ли сте за <em>трансформация?</em></h2>
+          <p className="phone-cta-sub">Обадете се и запазете своя час при Валентина.</p>
+          {phoneHref && tenant.phone && (
+            <div>
+              <a href={phoneHref} className="phone-cta-number">
+                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.19h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/>
+                </svg>
+                {tenant.phone}
+              </a>
+              <p className="phone-cta-note">Всеки ден · 09:00 – 19:00</p>
+            </div>
+          )}
         </div>
       </div>
 
@@ -539,7 +671,7 @@ export function Zen({ data }: { data: SalonData }) {
           <div className="contact-grid">
             <div>
               <p className="tag">Контакти</p>
-              <div className="leaf-div"><span>🌿</span></div>
+              <div className="leaf-div"><span>✦</span></div>
               <h2 className="contact-title">Намерете <em>ни</em></h2>
               <div className="contact-info">
                 {tenant.address && (
@@ -632,10 +764,11 @@ export function Zen({ data }: { data: SalonData }) {
       <footer className="zen-footer">
         <div className="container">
           <div className="footer-logo">{tenant.salon_name}</div>
-          <p className="footer-tag">🌿 Wellness Studio 🌿</p>
+          <p className="footer-tag">✦ Premium Facecare ✦</p>
           <nav className="footer-nav">
-            {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && <a onClick={() => goTo("about")}>За нас</a>}
+            {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && <a onClick={() => goTo("about")}>За мен</a>}
             <a onClick={() => goTo("services")}>Услуги</a>
+            {products.length > 0 && <a onClick={() => goTo("products")}>Козметика</a>}
             {gallery.length > 0 && <a onClick={() => goTo("gallery")}>Галерия</a>}
             <a onClick={() => goTo("contact")}>Контакти</a>
           </nav>
