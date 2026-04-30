@@ -249,12 +249,22 @@ export default function Home() {
         {/* ── MOCKUP СЕКЦИЯ ── */}
         <section className="bg-[#F9F5F0] px-4 py-20 sm:px-6">
           <div className="mx-auto max-w-6xl">
+            {/* Desktop mockup — скрит на мобилни */}
             <Image
-              src="/mockup-hero.png"
+              src="/mockup-desktop.png"
               alt="SalonApp — твоят професионален сайт и пълен контрол на графика"
               width={1400}
               height={788}
-              className="w-full h-auto"
+              className="hidden sm:block w-full h-auto"
+              priority
+            />
+            {/* Mobile mockup — скрит на десктоп */}
+            <Image
+              src="/mockup-mobile.png"
+              alt="SalonApp — твоят професионален сайт и пълен контрол на графика"
+              width={600}
+              height={900}
+              className="block sm:hidden w-full h-auto mx-auto"
               priority
             />
           </div>
