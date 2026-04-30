@@ -11,6 +11,7 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   active:   { label: "Активен",   cls: "bg-emerald-900/60 text-emerald-300 border border-emerald-700/60" },
   trial:    { label: "Пробен",    cls: "bg-amber-900/60 text-amber-300 border border-amber-700/60" },
   inactive: { label: "Неактивен", cls: "bg-red-900/60 text-red-300 border border-red-700/60" },
+  archived: { label: "Архивиран", cls: "bg-neutral-800 text-neutral-200 border border-neutral-600" },
 };
 
 type SearchParams = { q?: string; plan?: string; status?: string; archived?: string };
@@ -37,6 +38,10 @@ function StatusBadge({ status }: { status: string }) {
   return <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-bold ${sb.cls}`}>{sb.label}</span>;
 }
 
+function effectiveTenantStatus(t: Tenant): string {
+  return t.archived_at ? "archived" : t.status;
+}
+
 function isOverdue(t: Tenant, today: string): boolean {
   if (!t.expiry_date) return false;
   return t.expiry_date < today;
@@ -60,7 +65,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
     if (byArchived === "active" && isArchived) return false;
     if (byArchived === "archived" && !isArchived) return false;
     if (byPlan && t.plan !== byPlan) return false;
-    if (byStatus && t.status !== byStatus) return false;
+    if (byStatus && effectiveTenantStatus(t) !== byStatus) return false;
     if (!q) return true;
     return (
       t.salon_name.toLowerCase().includes(q) ||
@@ -282,7 +287,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                 </div>
                 <div className="mt-2 grid grid-cols-2 gap-2 text-xs text-neutral-300">
                   <p>План: <span className="font-semibold text-amber-200">{t.plan}</span></p>
-                  <p><StatusBadge status={t.status} /></p>
+                  <p><StatusBadge status={effectiveTenantStatus(t)} /></p>
                   {t.archived_at ? <p className="col-span-2 text-[11px] text-neutral-500">Архивиран: {t.archived_at.slice(0, 10)}</p> : null}
                   <p className="col-span-2">Собственик: {t.owner_email ?? "—"}</p>
                   <p className="col-span-2">
@@ -336,7 +341,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                   <td className="py-2 pr-2 font-medium">{t.salon_name}</td>
                   <td className="py-2 pr-2 text-neutral-300">{t.salon_slug}</td>
                   <td className="py-2 pr-2 font-semibold text-amber-200">{t.plan}</td>
-                  <td className="py-2 pr-2"><StatusBadge status={t.status} /></td>
+                  <td className="py-2 pr-2"><StatusBadge status={effectiveTenantStatus(t)} /></td>
                   <td className="py-2 pr-2 text-neutral-300">{t.owner_email ?? "—"}</td>
                   <td className="py-2 pr-2 text-neutral-300">
                     {t.created_at?.slice(0, 10) ?? "—"}

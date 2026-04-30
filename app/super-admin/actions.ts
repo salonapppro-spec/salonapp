@@ -119,8 +119,7 @@ export async function archiveTenantAction(formData: FormData): Promise<void> {
   const { error } = await supabase
     .from("tenants")
     .update({ archived_at: new Date().toISOString(), archived_by: user.id, status: "inactive" })
-    .eq("salon_slug", salonSlug)
-    .is("archived_at", null);
+    .eq("salon_slug", salonSlug);
   if (error) throw new Error(`Неуспешно архивиране: ${error.message}`);
 
   revalidatePath("/super-admin");
