@@ -134,7 +134,7 @@ export async function restoreTenantAction(formData: FormData): Promise<void> {
   const supabase = createSupabaseServiceRoleClient();
   const { error } = await supabase
     .from("tenants")
-    .update({ archived_at: null, archived_by: null })
+    .update({ archived_at: null, archived_by: null, status: "active" })
     .eq("salon_slug", salonSlug)
     .not("archived_at", "is", null);
   if (error) throw new Error(`Неуспешно възстановяване: ${error.message}`);
