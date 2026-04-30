@@ -72,6 +72,10 @@ function fmtDate(iso: string): string {
   });
 }
 
+function norm(v: string | null | undefined): string {
+  return (v ?? "").trim().toLowerCase();
+}
+
 export default async function SuperAdminLeadsPage({
   searchParams,
 }: {
@@ -85,6 +89,16 @@ export default async function SuperAdminLeadsPage({
     .order("created_at", { ascending: false });
 
   const leads = (data ?? []) as Lead[];
+  const { data: tenantsData } = await supabase
+    .from("tenants")
+    .select("salon_slug,salon_name,owner_email,owner_phone")
+    .is("archived_at", null);
+  const tenants = (tenantsData ?? []) as Array<{
+    salon_slug: string;
+    salon_name: string;
+    owner_email: string | null;
+    owner_phone: string | null;
+  }>;
   await ensureAutoCallTasks(supabase, leads);
   const today = new Date().toISOString().slice(0, 10);
 
@@ -179,6 +193,12 @@ export default async function SuperAdminLeadsPage({
         <div className="space-y-3">
           {leads.map((lead) => {
             const pb = PLAN_BADGE[lead.plan] ?? PLAN_BADGE.standard;
+            const existingTenant = tenants.find((t) => {
+              const byEmail = norm(lead.email) && norm(lead.email) === norm(t.owner_email);
+              const byPhone = norm(lead.phone) && norm(lead.phone) === norm(t.owner_phone);
+              const byName = norm(lead.salon_name) && norm(lead.salon_name) === norm(t.salon_name);
+              return Boolean(byEmail || byPhone || byName);
+            });
             return (
               <div key={lead.id} className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 sm:p-5">
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
@@ -243,12 +263,21 @@ export default async function SuperAdminLeadsPage({
                       📞 Обади се
                     </a>
                   ) : null}
-                  <Link
-                    href={`/super-admin/new?name=${encodeURIComponent(lead.salon_name)}&email=${encodeURIComponent(lead.email ?? "")}&phone=${encodeURIComponent(lead.phone ?? "")}&plan=${encodeURIComponent(lead.plan)}`}
-                    className="rounded-lg border border-amber-700/60 bg-amber-950/30 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-900/40"
-                  >
-                    ➕ Създай тенант
-                  </Link>
+                  {existingTenant ? (
+                    <Link
+                      href={`/super-admin/${existingTenant.salon_slug}`}
+                      className="rounded-lg border border-violet-700/60 bg-violet-950/30 px-3 py-1.5 text-xs font-semibold text-violet-300 hover:bg-violet-900/40"
+                    >
+                      👁️ Отвори тенант
+                    </Link>
+                  ) : (
+                    <Link
+                      href={`/super-admin/new?name=${encodeURIComponent(lead.salon_name)}&email=${encodeURIComponent(lead.email ?? "")}&phone=${encodeURIComponent(lead.phone ?? "")}&plan=${encodeURIComponent(lead.plan)}`}
+                      className="rounded-lg border border-amber-700/60 bg-amber-950/30 px-3 py-1.5 text-xs font-semibold text-amber-300 hover:bg-amber-900/40"
+                    >
+                      ➕ Създай тенант
+                    </Link>
+                  )}
                 </div>
 
                 <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-950/40 p-3">
