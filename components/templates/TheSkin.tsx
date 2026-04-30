@@ -82,18 +82,21 @@ export function TheSkin({ data }: { data: SalonData }) {
 
   const igHref = safeInstagramHref(tenant.instagram_url);
   const fbHref = safeFacebookHref(tenant.facebook_url);
-  const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
+  /** Official share embed wins; stale maps.google `/maps?q=…` in DB hides our better pin fallback. */
+  const tenantMapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
+  const officialPbEmbed =
+    tenantMapsSrc?.startsWith("https://www.google.com/maps/embed?") ? tenantMapsSrc : null;
   const addressTrimmed = tenant.address?.trim() ?? "";
   const mapsQuery = [tenant.salon_name?.trim(), addressTrimmed].filter(Boolean).join(", ");
   const mapsDirectionsHref =
     mapsQuery !== ""
       ? `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(mapsQuery)}`
       : null;
-  const mapsFallbackEmbed =
-    !mapsSrc && mapsQuery !== ""
+  const computedPinEmbed =
+    !officialPbEmbed && mapsQuery !== ""
       ? `https://maps.google.com/maps?hl=bg&q=${encodeURIComponent(mapsQuery)}&t=&z=17&ie=UTF8&iwloc=B&output=embed`
       : null;
-  const effectiveMapsSrc = mapsSrc ?? mapsFallbackEmbed;
+  const effectiveMapsSrc = officialPbEmbed ?? computedPinEmbed ?? tenantMapsSrc;
   const phone = tenant.phone ?? "";
   const phoneHref = phone ? `tel:${phone.replace(/\s/g, "")}` : null;
 
