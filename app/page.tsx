@@ -247,7 +247,7 @@ export default function Home() {
         </section>
 
         {/* ── MOCKUP СЕКЦИЯ ── */}
-        <section className="bg-[#F9F5F0]">
+        <section className="bg-[#C9A87A]">
           {/* Desktop mockup — full width, скрит на мобилни */}
           <Image
             src="/mockup-desktop.png"
@@ -257,17 +257,15 @@ export default function Home() {
             className="hidden sm:block w-full h-auto"
             priority
           />
-          <div className="px-4 sm:px-6">
-            {/* Mobile mockup — скрит на десктоп */}
-            <Image
-              src="/mockup-mobile.png"
-              alt="SalonApp — твоят професионален сайт и пълен контрол на графика"
-              width={600}
-              height={900}
-              className="block sm:hidden w-full h-auto mx-auto py-10"
-              priority
-            />
-          </div>
+          {/* Mobile mockup — full width, скрит на десктоп */}
+          <Image
+            src="/mockup-mobile.png"
+            alt="SalonApp — твоят професионален сайт и пълен контрол на графика"
+            width={600}
+            height={900}
+            className="block sm:hidden w-full h-auto"
+            priority
+          />
         </section>
 
         {/* ── TEMPLATES — "Избери своя стил" ── */}
@@ -298,52 +296,52 @@ export default function Home() {
             <div className="overflow-hidden rounded-2xl border border-[#1A1A1A]/8 shadow-sm">
               {/* Header row */}
               <div className="grid grid-cols-3 bg-[#1A1A1A]">
-                <div className="px-6 py-4 text-sm font-bold text-white/60">Какво получаваш?</div>
-                <div className="border-l border-white/10 px-6 py-4 text-center text-sm font-bold text-white/60">
-                  В общите платформи (Marketplace)
+                <div className="px-2 py-3 text-xs font-bold text-white/60 sm:px-6 sm:py-4 sm:text-sm">Какво получаваш?</div>
+                <div className="border-l border-white/10 px-2 py-3 text-center text-xs font-bold text-white/60 sm:px-6 sm:py-4 sm:text-sm">
+                  Marketplace
                 </div>
-                <div className="border-l border-white/10 px-6 py-4 text-center text-sm font-bold text-[#C9A84C]">
-                  Със SalonApp
+                <div className="border-l border-white/10 px-2 py-3 text-center text-xs font-bold text-[#C9A84C] sm:px-6 sm:py-4 sm:text-sm">
+                  SalonApp
                 </div>
               </div>
               {/* Rows */}
               {[
                 {
-                  feature: "Твой собствен сайт",
-                  bad: { icon: "❌", text: "Не (само профил при тях)" },
-                  good: { icon: "✅", text: "ДА (модерен собствен сайт)" },
+                  feature: "Твой сайт",
+                  bad: { icon: "❌", text: "Само профил при тях" },
+                  good: { icon: "✅", text: "Модерен собствен сайт" },
                 },
                 {
-                  feature: "Контрол над клиентите",
-                  bad: { icon: "❌", text: "Рекламират конкуренти на тях" },
-                  good: { icon: "✅", text: "Клиентите виждат само теб" },
+                  feature: "Клиенти",
+                  bad: { icon: "❌", text: "Рекламират конкуренти" },
+                  good: { icon: "✅", text: "Виждат само теб" },
                 },
                 {
                   feature: "База данни",
                   bad: { icon: "⚠️", text: "Те притежават данните" },
-                  good: { icon: "✅", text: "Ти притежаваш базата си" },
+                  good: { icon: "✅", text: "Ти притежаваш базата" },
                 },
                 {
                   feature: "Настройка",
                   bad: { icon: "❌", text: "Бориш се сам с часове" },
-                  good: { icon: "✅", text: "Ние правим всичко вместо теб" },
+                  good: { icon: "✅", text: "Ние правим всичко" },
                 },
                 {
                   feature: "Комисионни",
                   bad: { icon: "⚠️", text: "Плащаш за всеки клиент" },
-                  good: { icon: "✅", text: "0% комисионна. Само за теб." },
+                  good: { icon: "✅", text: "0% комисионна" },
                 },
               ].map((row, i) => (
                 <div
                   key={row.feature}
                   className={`grid grid-cols-3 ${i % 2 === 0 ? "bg-[#FAFAFA]" : "bg-white"} border-t border-[#1A1A1A]/6`}
                 >
-                  <div className="px-6 py-5 text-sm font-bold text-[#1A1A1A]">{row.feature}</div>
-                  <div className="border-l border-[#1A1A1A]/6 px-6 py-5 text-center text-sm text-[#1A1A1A]/55">
-                    <span className="mr-1">{row.bad.icon}</span>{row.bad.text}
+                  <div className="px-2 py-4 text-xs font-bold text-[#1A1A1A] sm:px-6 sm:py-5 sm:text-sm">{row.feature}</div>
+                  <div className="border-l border-[#1A1A1A]/6 px-2 py-4 text-center text-xs text-[#1A1A1A]/55 sm:px-6 sm:py-5 sm:text-sm">
+                    <div>{row.bad.icon}</div><div>{row.bad.text}</div>
                   </div>
-                  <div className="border-l border-[#1A1A1A]/6 px-6 py-5 text-center text-sm font-semibold text-[#1A1A1A]">
-                    <span className="mr-1">{row.good.icon}</span>{row.good.text}
+                  <div className="border-l border-[#1A1A1A]/6 px-2 py-4 text-center text-xs font-semibold text-[#1A1A1A] sm:px-6 sm:py-5 sm:text-sm">
+                    <div>{row.good.icon}</div><div>{row.good.text}</div>
                   </div>
                 </div>
               ))}
