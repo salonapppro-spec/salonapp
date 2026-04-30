@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { sendLeadNotification } from "@/lib/lead-notify";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 const ConsultationSchema = z.object({
@@ -33,6 +34,16 @@ export async function POST(req: Request) {
   await supabase.from("page_events").insert({
     event_type: "form_filled",
     source: "landing_consultation",
+  });
+
+  await sendLeadNotification({
+    subject: `Нова tenant заявка (consultation): ${parsed.data.name}`,
+    lines: [
+      `Контакт: ${parsed.data.name}`,
+      `Имейл: ${parsed.data.email}`,
+      `Телефон: ${parsed.data.phone ?? "—"}`,
+      "Източник: landing_consultation",
+    ],
   });
 
   return NextResponse.json({ ok: true });

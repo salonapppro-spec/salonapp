@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { LeadInquirySchema } from "@/schemas/lead-inquiry";
+import { sendLeadNotification } from "@/lib/lead-notify";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 export async function POST(req: Request) {
@@ -53,30 +54,18 @@ export async function POST(req: Request) {
       source: data.source,
     });
 
-    const resendKey = process.env.RESEND_API_KEY;
-    if (resendKey) {
-      await fetch("https://api.resend.com/emails", {
-        method: "POST",
-        headers: {
-          Authorization: `Bearer ${resendKey}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
-          to: ["salonapppro@gmail.com"],
-          subject: `Нова заявка: ${data.salon_name}`,
-          text: [
-            `Салон: ${data.salon_name}`,
-            `Контакт: ${data.contact_name}`,
-            `Телефон: ${data.phone ?? "—"}`,
-            `Имейл: ${data.email ?? "—"}`,
-            `Тип бизнес: ${data.business_type ?? "—"}`,
-            `Съобщение: ${data.message ?? "—"}`,
-            `Источник: ${data.source}`,
-          ].join("\n"),
-        }),
-      }).catch((e) => console.error("[leads] notify email failed", e));
-    }
+    await sendLeadNotification({
+      subject: `Нова заявка: ${data.salon_name}`,
+      lines: [
+        `Салон: ${data.salon_name}`,
+        `Контакт: ${data.contact_name}`,
+        `Телефон: ${data.phone ?? "—"}`,
+        `Имейл: ${data.email ?? "—"}`,
+        `Тип бизнес: ${data.business_type ?? "—"}`,
+        `Съобщение: ${data.message ?? "—"}`,
+        `Източник: ${data.source}`,
+      ],
+    });
   } catch (e) {
     console.error("[leads]", e);
     return NextResponse.json({ error: "Конфигурацията на сървъра не е пълна." }, { status: 503 });
