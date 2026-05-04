@@ -389,6 +389,7 @@ export function Bloom({ data }: { data: SalonData }) {
         }
         @media (min-width: 900px) {
           .bloom-team-grid { grid-template-columns: repeat(3, 1fr); }
+          .bloom-team-grid--single { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
         }
         .bloom-team-card {
           background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
@@ -695,7 +696,7 @@ export function Bloom({ data }: { data: SalonData }) {
               <p className="bloom-section-sub" style={{ marginBottom: "48px" }}>
                 Специалисти, отдадени на вашата красота и уют.
               </p>
-              <div className="bloom-team-grid">
+              <div className={`bloom-team-grid${specs.length === 1 ? " bloom-team-grid--single" : ""}`}>
                 {specs.map((sp) => (
                   <div key={sp.id} className="bloom-team-card">
                     {sp.avatar_url ? (

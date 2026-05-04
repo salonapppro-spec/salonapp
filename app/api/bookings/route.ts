@@ -49,24 +49,25 @@ export async function GET(req: Request) {
   const gate = await assertTenantActiveForPublicApi(trustedSalonSlug);
   if (!gate.ok) return gate.response;
 
-  const services = await getServices(trustedSalonSlug);
-  const service = services.find((s) => s.id === service_id);
-  if (!service) return NextResponse.json({ error: "Service not found" }, { status: 404 });
-
-  const settings = await getFinancialSettings(trustedSalonSlug);
-  const bufferMinutes = Number(settings?.buffer_minutes ?? 10);
-  const magneticEnabled = Boolean(settings?.magnetic_scheduling ?? true);
-
   const dayOfWeek = new Date(`${date}T00:00:00`).getDay();
-  const workingHoursRow = await getWorkingHoursForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, dayOfWeek });
-  const fallback = DEFAULT_WORKING_HOURS_DAYS[dayOfWeek] ?? { start_time: "09:00", end_time: "18:00", is_day_off: false };
-  const workingHours = workingHoursRow ?? { ...fallback, day_of_week: dayOfWeek, specialist_id: specialist_id ?? null, id: `fallback-${trustedSalonSlug}-${dayOfWeek}`, salon_slug: trustedSalonSlug };
-  if (workingHours.is_day_off) return NextResponse.json({ slots: [] });
 
-  const [bookings, blockedSlots] = await Promise.all([
+  const [services, settings, workingHoursRow, bookings, blockedSlots] = await Promise.all([
+    getServices(trustedSalonSlug),
+    getFinancialSettings(trustedSalonSlug),
+    getWorkingHoursForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, dayOfWeek }),
     getBookingsForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, date }),
     getBlockedSlotsForDate({ salonSlug: trustedSalonSlug, specialistId: specialist_id, date }),
   ]);
+
+  const service = services.find((s) => s.id === service_id);
+  if (!service) return NextResponse.json({ error: "Service not found" }, { status: 404 });
+
+  const bufferMinutes = Number(settings?.buffer_minutes ?? 10);
+  const magneticEnabled = Boolean(settings?.magnetic_scheduling ?? true);
+
+  const fallback = DEFAULT_WORKING_HOURS_DAYS[dayOfWeek] ?? { start_time: "09:00", end_time: "18:00", is_day_off: false };
+  const workingHours = workingHoursRow ?? { ...fallback, day_of_week: dayOfWeek, specialist_id: specialist_id ?? null, id: `fallback-${trustedSalonSlug}-${dayOfWeek}`, salon_slug: trustedSalonSlug };
+  if (workingHours.is_day_off) return NextResponse.json({ slots: [] });
 
   // За complex услуги без избрани hair params — използваме medium/medium за приблизителни часове
   let serviceDuration = service.duration_minutes ?? 0;
