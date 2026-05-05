@@ -20,7 +20,7 @@ export const CreateBookingSchema = z.object({
   booking_date: z.string().min(1, "Изберете дата"),
   booking_time: z.string().min(1, "Изберете час"),
   client_name: z.string().min(1, "Въведете име"),
-  client_phone: z.string().min(5, "Въведете телефон"),
+  client_phone: z.string().regex(/^[+0-9()[\]\s\-]{7,20}$/, "Невалиден телефон"),
   client_email: z.string().email("Невалиден имейл").optional(),
   notes: z.string().optional(),
   hair_length: z.preprocess(emptyToUndefined, HairLengthSchema.optional()),

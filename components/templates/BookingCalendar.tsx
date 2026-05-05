@@ -28,6 +28,15 @@ function todayStr() {
   return toDateStr(n.getFullYear(), n.getMonth(), n.getDate());
 }
 
+function isValidPhone(p: string): boolean {
+  return /^[+0-9()[\]\s\-]{7,20}$/.test(p.trim());
+}
+
+function nowMinutes(): number {
+  const n = new Date();
+  return n.getHours() * 60 + n.getMinutes();
+}
+
 interface Props {
   salonSlug: string;
   services: Service[];
@@ -66,13 +75,23 @@ export function BookingCalendar({
     setSlotsLoading(true);
     fetch(`/api/bookings?salon_slug=${encodeURIComponent(salonSlug)}&service_id=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(selectedDate)}`)
       .then((r) => r.json())
-      .then((d: { slots?: TimeSlot[] }) => setSlots(d.slots ?? []))
+      .then((d: { slots?: TimeSlot[] }) => {
+        let fetched = d.slots ?? [];
+        if (selectedDate === today) {
+          const cutoff = nowMinutes() + 30;
+          fetched = fetched.filter((s) => {
+            const parts = s.time.split(":");
+            return (Number(parts[0] ?? 0)) * 60 + Number(parts[1] ?? 0) > cutoff;
+          });
+        }
+        setSlots(fetched);
+      })
       .catch(() => setSlots([]))
       .finally(() => setSlotsLoading(false));
   }, [selectedDate, serviceId, salonSlug, isDemo]);
 
   async function handleSubmit() {
-    if (!selectedDate || !selectedTime || !serviceId || !name.trim() || !phone.trim()) return;
+    if (!selectedDate || !selectedTime || !serviceId || !name.trim() || !isValidPhone(phone) || !email.trim()) return;
     setSubmitStatus("loading");
     setErrorMsg("");
     if (isDemo) {
@@ -91,7 +110,7 @@ export function BookingCalendar({
           booking_time: selectedTime,
           client_name: name.trim(),
           client_phone: phone.trim(),
-          client_email: email.trim() || undefined,
+          client_email: email.trim(),
           specialist_id: initialSpecialistId ?? undefined,
         }),
       });
@@ -132,7 +151,7 @@ export function BookingCalendar({
 
   const canGoPrev = !(curYear === new Date().getFullYear() && curMonth <= new Date().getMonth());
   const cells = buildCells();
-  const canSubmit = !!(selectedDate && selectedTime && serviceId && name.trim() && phone.trim()) && submitStatus !== "loading";
+  const canSubmit = !!(selectedDate && selectedTime && serviceId && name.trim() && isValidPhone(phone) && email.trim()) && submitStatus !== "loading";
 
   if (submitStatus === "success") {
     return (
@@ -537,7 +556,7 @@ export function BookingCalendar({
                       <input
                         className="bcal-input"
                         type="email"
-                        placeholder="Имейл (по желание)"
+                        placeholder="Имейл *"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                       />
