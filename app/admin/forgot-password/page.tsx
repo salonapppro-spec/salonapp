@@ -9,8 +9,7 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
-  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin).replace(/\/+$/, '')
-  const redirectTo = `${appUrl}/admin/reset-password`
+  const redirectTo = 'https://salonapp.pro/admin/reset-password'
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
