@@ -3,6 +3,20 @@
 import { useEffect, useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
 
+function localizeResetError(message: string): string {
+  const normalized = message.toLowerCase()
+  if (normalized.includes('new password should be different from the old password')) {
+    return 'Новата парола трябва да е различна от старата.'
+  }
+  if (normalized.includes('password should be at least')) {
+    return 'Паролата трябва да е поне 8 символа.'
+  }
+  if (normalized.includes('invalid') || normalized.includes('expired')) {
+    return 'Линкът за смяна на парола е невалиден или е изтекъл.'
+  }
+  return 'Възникна грешка при смяна на паролата. Опитай отново.'
+}
+
 export default function ResetPasswordPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
@@ -27,11 +41,37 @@ export default function ResetPasswordPage() {
       const url = new URL(window.location.href)
       const code = url.searchParams.get('code')
       const type = url.searchParams.get('type')
+      const tokenHash = url.searchParams.get('token_hash')
+      const hashParams = new URLSearchParams(window.location.hash.replace(/^#/, ''))
+      const accessToken = hashParams.get('access_token')
+      const refreshToken = hashParams.get('refresh_token')
+      const hashType = hashParams.get('type')
 
       // Some email clients open the recovery link as ?code=...&type=recovery.
       if (code && type === 'recovery') {
         const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
         if (exchangeError) {
+          setError('Линкът за смяна на парола е невалиден или е изтекъл.')
+          return
+        }
+        window.history.replaceState({}, '', '/admin/reset-password')
+      }
+      // Other clients open links as ?token_hash=...&type=recovery.
+      else if (tokenHash && type === 'recovery') {
+        const { error: verifyError } = await supabase.auth.verifyOtp({ type: 'recovery', token_hash: tokenHash })
+        if (verifyError) {
+          setError('Линкът за смяна на парола е невалиден или е изтекъл.')
+          return
+        }
+        window.history.replaceState({}, '', '/admin/reset-password')
+      }
+      // Some providers redirect with hash tokens (#access_token=...).
+      else if (accessToken && refreshToken && hashType === 'recovery') {
+        const { error: sessionError } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        })
+        if (sessionError) {
           setError('Линкът за смяна на парола е невалиден или е изтекъл.')
           return
         }
@@ -75,7 +115,7 @@ export default function ResetPasswordPage() {
     const supabase = createSupabaseBrowserClient()
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) {
-      setError(updateError.message)
+      setError(localizeResetError(updateError.message))
       setLoading(false)
       return
     }
@@ -161,11 +201,13 @@ export default function ResetPasswordPage() {
             </form>
           )}
 
-          <p className="mt-4 text-center text-sm">
-            <a href="/admin/login" className="text-brand-600 hover:underline">
-              Обратно към вход
-            </a>
-          </p>
+          {!done ? (
+            <p className="mt-4 text-center text-sm">
+              <a href="/admin/login" className="text-brand-600 hover:underline">
+                Обратно към вход
+              </a>
+            </p>
+          ) : null}
         </div>
       </div>
     </div>
