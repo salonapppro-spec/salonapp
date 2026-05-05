@@ -111,9 +111,10 @@ export async function runCreateBooking(
   }
 
   const start = timeToMinutes(data.booking_time);
-  const end = start + serviceDuration + bufferMinutes;
+  const serviceEnd = start + serviceDuration;
+  const end = serviceEnd + bufferMinutes;
 
-  if (end > 24 * 60) {
+  if (serviceEnd > 24 * 60) {
     return { ok: false, error: "Часът не може да приключи след полунощ. Моля изберете по-ранен час." };
   }
 
@@ -143,7 +144,7 @@ export async function runCreateBooking(
   }
   const dayStart = timeToMinutes(workingDay.start_time);
   const dayEnd = timeToMinutes(workingDay.end_time);
-  if (start < dayStart || end > dayEnd) {
+  if (start < dayStart || serviceEnd > dayEnd) {
     return { ok: false, error: `Часът е извън работното време (${workingDay.start_time}–${workingDay.end_time}).` };
   }
 
