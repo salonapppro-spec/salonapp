@@ -566,9 +566,9 @@ export function Bloom({ data }: { data: SalonData }) {
 
         /* HERO LOGO BADGE */
         .bloom-hero-logo-img {
-          height: 72px; width: auto; max-width: 240px;
-          display: block; margin: 0 auto 20px;
-          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.18));
+          height: 110px; width: auto; max-width: 280px;
+          display: block; margin: 0 auto 24px;
+          filter: drop-shadow(0 2px 12px rgba(0,0,0,0.22));
         }
 
         /* BOOKING */
@@ -781,8 +781,33 @@ export function Bloom({ data }: { data: SalonData }) {
           ))}
         </div>
 
-        {/* ── ABOUT ── */}
-        {(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) && (
+        {/* ── ABOUT / ЗА МЕН ── */}
+        {specs.length === 1 && specs[0].bio ? (
+          /* Solo specialist — personal "За мен" section */
+          <section id="about" className="bloom-about">
+            <div className="bloom-about-inner">
+              {specs[0].avatar_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={specs[0].avatar_url} alt={specs[0].name} className="bloom-about-img" loading="lazy" />
+              ) : tenant.about_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={tenant.about_image_url} alt="За мен" className="bloom-about-img" loading="lazy" />
+              ) : null}
+              <div>
+                <p className="bloom-about-label">За мен</p>
+                <h2>{specs[0].name}</h2>
+                {specs[0].role && (
+                  <p style={{ fontSize: "13px", fontWeight: 700, letterSpacing: "0.2em", textTransform: "uppercase", color: "var(--color-primary)", marginBottom: "16px", fontFamily: "var(--font-nav)" }}>
+                    {specs[0].role}
+                  </p>
+                )}
+                <p>{specs[0].bio}</p>
+                <a href="#booking" className="bloom-btn-primary" style={{ marginTop: "8px" }}>Запишете се сега</a>
+              </div>
+            </div>
+          </section>
+        ) : (tenant.about_text1 || tenant.about_text2 || tenant.about_image_url) ? (
+          /* Multi-specialist or no bio — standard about section */
           <section id="about" className="bloom-about">
             <div className="bloom-about-inner">
               {tenant.about_image_url && (
@@ -798,7 +823,7 @@ export function Bloom({ data }: { data: SalonData }) {
               </div>
             </div>
           </section>
-        )}
+        ) : null}
 
         {/* ── SERVICES ── */}
         <section id="services" className="bloom-services">
@@ -844,8 +869,8 @@ export function Bloom({ data }: { data: SalonData }) {
           </div>
         )}
 
-        {/* ── TEAM / SPECIALISTS ── */}
-        {specs.length > 0 && (
+        {/* ── TEAM / SPECIALISTS — hidden for solo specialist (shown in About section) ── */}
+        {specs.length > 1 && (
           <section id="team" className="bloom-team">
             <div className="bloom-team-inner">
               <p className="bloom-section-label">{specs.length === 1 ? "Вашият специалист" : "Нашият екип"}</p>
