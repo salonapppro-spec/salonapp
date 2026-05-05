@@ -3,7 +3,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { createAdminBooking } from "@/app/actions/admin-booking";
-import type { HairDensity, HairLength, Plan, Service, Specialist } from "@/types";
+import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
+import type { HairDensity, HairLength, Plan, Service, Specialist, WorkingHours } from "@/types";
 
 const HAIR_LEN: { v: HairLength; l: string }[] = [
   { v: "short", l: "Къса" },
@@ -16,25 +17,24 @@ const HAIR_DEN: { v: HairDensity; l: string }[] = [
   { v: "thick", l: "Гъста" },
 ];
 
-const HOUR_OPTS_24 = Array.from({ length: 24 }, (_, i) => String(i).padStart(2, "0"));
-const MIN_OPTS_15 = ["00", "15", "30", "45"] as const;
-
-/** Нормализира към 24-ч. HH:MM със стъпка 15 мин (както графикът), без нативен 12-ч. UI. */
-function parseTimeTo24Parts15(raw: string): { h: string; m: string } {
-  const t = (raw.length > 5 ? raw.slice(0, 5) : raw).trim();
-  const parts = t.split(":");
-  let h = parseInt(parts[0] || "0", 10);
-  let mi = parseInt((parts[1] || "0").replace(/\D.*/, ""), 10);
+function snapTo15(raw: string): string {
+  const parts = raw.split(":");
+  let h = parseInt(parts[0] ?? "9", 10);
+  let mi = parseInt((parts[1] ?? "0").replace(/\D.*/, ""), 10);
   if (!Number.isFinite(h)) h = 9;
-  h = Math.max(0, Math.min(23, h));
   if (!Number.isFinite(mi)) mi = 0;
-  mi = Math.max(0, Math.min(59, mi));
   let snapped = Math.round(mi / 15) * 15;
-  if (snapped === 60) {
-    h = Math.min(23, h + 1);
-    snapped = 0;
-  }
-  return { h: String(h).padStart(2, "0"), m: String(snapped).padStart(2, "0") };
+  if (snapped === 60) { h = Math.min(23, h + 1); snapped = 0; }
+  return `${String(Math.max(0, Math.min(23, h))).padStart(2, "0")}:${String(snapped).padStart(2, "0")}`;
+}
+
+function buildAllSlots(wh: WorkingHours): string[] {
+  if (wh.is_day_off) return [];
+  const slots: string[] = [];
+  let t = timeToMinutes(wh.start_time);
+  const end = timeToMinutes(wh.end_time);
+  while (t < end) { slots.push(minutesToTime(t)); t += 15; }
+  return slots;
 }
 
 export function QuickBooking(props: {
@@ -44,16 +44,16 @@ export function QuickBooking(props: {
   services: Service[];
   specialists: Specialist[];
   plan: Plan;
+  workingHours: WorkingHours | null;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const { salonSlug, date, time, services, specialists, plan, onClose, onSaved } = props;
+  const { salonSlug, date, time, services, specialists, plan, workingHours, onClose, onSaved } = props;
 
   const activeServices = useMemo(() => services.filter((s) => s.is_active), [services]);
 
   const [bookingDate, setBookingDate] = useState(date);
-  const [timeHour, setTimeHour] = useState(() => parseTimeTo24Parts15(time).h);
-  const [timeMin, setTimeMin] = useState(() => parseTimeTo24Parts15(time).m);
+  const [selectedTime, setSelectedTime] = useState<string | null>(() => snapTo15(time));
   const [clientName, setClientName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -63,10 +63,49 @@ export function QuickBooking(props: {
   const [hairDensity, setHairDensity] = useState<HairDensity>("medium");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [freeSlots, setFreeSlots] = useState<string[]>([]);
+  const [slotsLoading, setSlotsLoading] = useState(false);
 
   const selected = activeServices.find((s) => s.id === serviceId) ?? null;
   const activeSpecs = useMemo(() => specialists.filter((s) => s.is_active), [specialists]);
   const needSpecialist = plan === "collective" && activeSpecs.length > 1;
+
+  const allSlots = useMemo(
+    () => (workingHours ? buildAllSlots(workingHours) : []),
+    [workingHours]
+  );
+
+  useEffect(() => {
+    setBookingDate(date);
+  }, [date]);
+
+  useEffect(() => {
+    setSelectedTime(snapTo15(time));
+  }, [time]);
+
+  useEffect(() => {
+    if (activeServices.length && !activeServices.some((s) => s.id === serviceId)) {
+      setServiceId(activeServices[0]!.id);
+    }
+  }, [activeServices, serviceId]);
+
+  // Fetch free slots whenever date / service / hair options change
+  useEffect(() => {
+    if (!bookingDate || !serviceId) { setFreeSlots([]); return; }
+    setSlotsLoading(true);
+    const qs = new URLSearchParams({ salon_slug: salonSlug, service_id: serviceId, date: bookingDate });
+    if (selected?.is_complex) {
+      qs.set("hair_length", hairLength);
+      qs.set("hair_density", hairDensity);
+    }
+    fetch(`/api/bookings?${qs.toString()}`)
+      .then((r) => r.json())
+      .then((d: { slots?: { time: string }[] }) => {
+        setFreeSlots((d.slots ?? []).map((s) => s.time));
+      })
+      .catch(() => setFreeSlots([]))
+      .finally(() => setSlotsLoading(false));
+  }, [bookingDate, serviceId, salonSlug, selected?.is_complex, hairLength, hairDensity]);
 
   const lookupPhone = useCallback(async () => {
     const p = phone.trim();
@@ -78,48 +117,18 @@ export function QuickBooking(props: {
       if (!res.ok) return;
       if (json.name && !clientName.trim()) setClientName(json.name);
       if (json.email && !email.trim()) setEmail(json.email);
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
   }, [phone, salonSlug, clientName, email]);
 
-  useEffect(() => {
-    if (activeServices.length && !activeServices.some((s) => s.id === serviceId)) {
-      setServiceId(activeServices[0]!.id);
-    }
-  }, [activeServices, serviceId]);
-
-  useEffect(() => {
-    setBookingDate(date);
-  }, [date]);
-
-  useEffect(() => {
-    const p = parseTimeTo24Parts15(time);
-    setTimeHour(p.h);
-    setTimeMin(p.m);
-  }, [time]);
-
   async function save() {
-    if (!selected) {
-      setError("Изберете услуга.");
-      return;
-    }
-    if (!bookingDate) {
-      setError("Изберете дата.");
-      return;
-    }
-    if (!clientName.trim()) {
-      setError("Името на клиента е задължително.");
-      return;
-    }
+    if (!selected) { setError("Изберете услуга."); return; }
+    if (!bookingDate) { setError("Изберете дата."); return; }
+    if (!selectedTime) { setError("Изберете час."); return; }
+    if (!clientName.trim()) { setError("Името на клиента е задължително."); return; }
     if (phone.trim() && phone.trim().length < 5) {
-      setError("Телефонът трябва да е поне 5 символа или да остане празен.");
-      return;
+      setError("Телефонът трябва да е поне 5 символа или да остане празен."); return;
     }
-    if (needSpecialist && !specialistId) {
-      setError("Изберете специалист.");
-      return;
-    }
+    if (needSpecialist && !specialistId) { setError("Изберете специалист."); return; }
 
     const resolvedSpecialistId = needSpecialist
       ? specialistId
@@ -131,25 +140,19 @@ export function QuickBooking(props: {
     setError(null);
     try {
       const normalizedPhone = phone.trim().length >= 5 ? phone.trim() : "00000";
-      const payload = {
+      const result = await createAdminBooking({
         salon_slug: salonSlug,
         specialist_id: resolvedSpecialistId,
         service_id: selected.id,
         booking_date: bookingDate,
-        booking_time: `${timeHour}:${timeMin}`,
+        booking_time: selectedTime,
         client_name: clientName.trim(),
         client_phone: normalizedPhone,
         client_email: email.trim() || undefined,
         hair_length: selected.is_complex ? hairLength : undefined,
         hair_density: selected.is_complex ? hairDensity : undefined,
-      };
-
-      const result = await createAdminBooking(payload);
-      if ("error" in result) {
-        setError(result.error);
-        return;
-      }
-      // Parent `onSaved` closes the modal and refreshes — avoid racing onClose + refresh here.
+      });
+      if ("error" in result) { setError(result.error); return; }
       onSaved();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка");
@@ -159,7 +162,11 @@ export function QuickBooking(props: {
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center" role="dialog" aria-modal>
+    <div
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center"
+      role="dialog"
+      aria-modal
+    >
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Затвори" onClick={() => { if (!saving) onClose(); }} />
       <div
         className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl bg-white p-0 shadow-2xl"
@@ -177,137 +184,152 @@ export function QuickBooking(props: {
           </div>
         </div>
 
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            void save();
-          }}
-        >
-          <div className="max-h-[min(70vh,520px)] overflow-y-auto overflow-x-hidden p-5 pb-3">
-          {error ? <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</div> : null}
+        <form onSubmit={(e) => { e.preventDefault(); void save(); }}>
+          <div className="max-h-[min(70vh,560px)] overflow-y-auto overflow-x-hidden p-5 pb-3">
+            {error ? (
+              <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</div>
+            ) : null}
 
-          <div className="space-y-3">
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Дата *</label>
-              <input
-                type="date"
-                className="input-admin"
-                value={bookingDate}
-                onChange={(e) => setBookingDate(e.target.value)}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Час * (24 ч.)</label>
-              <div className="grid grid-cols-2 gap-2">
-                <select
-                  className="input-admin text-xl font-black tabular-nums"
-                  style={{ color: "#C9A84C", fontFamily: "inherit" }}
-                  value={timeHour}
-                  onChange={(e) => setTimeHour(e.target.value)}
-                  required
-                  aria-label="Час (24-часов)"
-                >
-                  {HOUR_OPTS_24.map((h) => (
-                    <option key={h} value={h}>
-                      {h} ч
-                    </option>
-                  ))}
-                </select>
-                <select
-                  className="input-admin text-xl font-black tabular-nums"
-                  style={{ color: "#C9A84C", fontFamily: "inherit" }}
-                  value={timeMin}
-                  onChange={(e) => setTimeMin(e.target.value)}
-                  required
-                  aria-label="Минути"
-                >
-                  {MIN_OPTS_15.map((m) => (
-                    <option key={m} value={m}>
-                      {m} мин
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <p className="mt-1 text-xs text-[#1A1A1A]/40">Степка 15 мин, както в графика.</p>
-            </div>
-
-            <div className="my-1 border-t" style={{ borderColor: "rgba(201,168,76,0.12)" }} />
-
-            <div>
-              <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Клиент *</label>
-              <input className="input-admin" placeholder="Име на клиента" value={clientName} onChange={(e) => setClientName(e.target.value)} autoComplete="name" />
-            </div>
-            <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-4">
+              {/* Date */}
               <div>
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Телефон</label>
+                <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Дата *</label>
                 <input
+                  type="date"
                   className="input-admin"
-                  placeholder="+359 88..."
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  onBlur={() => void lookupPhone()}
-                  inputMode="tel"
+                  value={bookingDate}
+                  onChange={(e) => { setBookingDate(e.target.value); setSelectedTime(null); }}
+                  required
                 />
               </div>
+
+              {/* Service — shown before slots so slot fetch uses the right duration */}
               <div>
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Имейл</label>
-                <input className="input-admin" type="email" placeholder="mail@..." value={email} onChange={(e) => setEmail(e.target.value)} />
-              </div>
-            </div>
-          {needSpecialist ? (
-            <div>
-              <label className="text-sm font-medium text-brand-900">Специалист *</label>
-              <select
-                className="input-admin"
-                value={specialistId}
-                onChange={(e) => setSpecialistId(e.target.value)}
-              >
-                <option value="">—</option>
-                {activeSpecs.map((s) => (
+                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Услуга</label>
+                <select
+                  className="input-admin"
+                  value={serviceId}
+                  onChange={(e) => { setServiceId(e.target.value); setSelectedTime(null); }}
+                >
+                  {activeServices.map((s) => (
                     <option key={s.id} value={s.id}>
-                      {s.name}
-                    </option>
-                  ))}
-              </select>
-            </div>
-          ) : null}
-          <div>
-            <label className="text-sm font-medium text-brand-900">Услуга</label>
-            <select className="input-admin" value={serviceId} onChange={(e) => setServiceId(e.target.value)}>
-              {activeServices.map((s) => (
-                <option key={s.id} value={s.id}>
-                  {s.name} — {Number(s.price_eur).toFixed(0)} €
-                </option>
-              ))}
-            </select>
-          </div>
-          {selected?.is_complex ? (
-            <div className="grid gap-3 sm:grid-cols-2">
-              <div>
-                <label className="text-sm font-medium text-brand-900">Дължина</label>
-                <select className="input-admin" value={hairLength} onChange={(e) => setHairLength(e.target.value as HairLength)}>
-                  {HAIR_LEN.map((x) => (
-                    <option key={x.v} value={x.v}>
-                      {x.l}
+                      {s.name} — {Number(s.price_eur).toFixed(0)} €
                     </option>
                   ))}
                 </select>
               </div>
+
+              {/* Hair options for complex services */}
+              {selected?.is_complex ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Дължина</label>
+                    <select className="input-admin" value={hairLength} onChange={(e) => setHairLength(e.target.value as HairLength)}>
+                      {HAIR_LEN.map((x) => <option key={x.v} value={x.v}>{x.l}</option>)}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Гъстота</label>
+                    <select className="input-admin" value={hairDensity} onChange={(e) => setHairDensity(e.target.value as HairDensity)}>
+                      {HAIR_DEN.map((x) => <option key={x.v} value={x.v}>{x.l}</option>)}
+                    </select>
+                  </div>
+                </div>
+              ) : null}
+
+              {/* Time slot grid */}
               <div>
-                <label className="text-sm font-medium text-brand-900">Гъстота</label>
-                <select className="input-admin" value={hairDensity} onChange={(e) => setHairDensity(e.target.value as HairDensity)}>
-                  {HAIR_DEN.map((x) => (
-                    <option key={x.v} value={x.v}>
-                      {x.l}
-                    </option>
-                  ))}
-                </select>
+                <div className="mb-2 flex items-center justify-between">
+                  <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Час *</label>
+                  {selectedTime && (
+                    <span className="text-xs font-black tabular-nums" style={{ color: "#C9A84C" }}>{selectedTime}</span>
+                  )}
+                </div>
+
+                {!workingHours || workingHours.is_day_off ? (
+                  <p className="rounded-xl border px-3 py-4 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
+                    Почивен ден — няма работно време.
+                  </p>
+                ) : slotsLoading ? (
+                  <div className="flex items-center justify-center gap-2 rounded-xl border px-3 py-5 text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
+                    <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
+                    Зареждане…
+                  </div>
+                ) : allSlots.length === 0 ? (
+                  <p className="rounded-xl border px-3 py-4 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
+                    Няма зададено работно време.
+                  </p>
+                ) : (
+                  <div
+                    className="rounded-xl border p-2"
+                    style={{ borderColor: "rgba(201,168,76,0.2)", background: "rgba(201,168,76,0.02)" }}
+                  >
+                    <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5">
+                      {allSlots.map((slot) => {
+                        const isFree = freeSlots.includes(slot);
+                        const isSelected = slot === selectedTime;
+                        return (
+                          <button
+                            key={slot}
+                            type="button"
+                            disabled={!isFree}
+                            onClick={() => setSelectedTime(slot)}
+                            className="rounded-lg py-2 text-xs font-semibold tabular-nums transition"
+                            style={
+                              isSelected
+                                ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "#fff", border: "1.5px solid transparent" }
+                                : isFree
+                                  ? { background: "transparent", color: "#1A1A1A", border: "1.5px solid rgba(201,168,76,0.35)", cursor: "pointer" }
+                                  : { background: "transparent", color: "rgba(26,26,26,0.2)", border: "1.5px solid rgba(26,26,26,0.07)", cursor: "not-allowed", textDecoration: "line-through" }
+                            }
+                          >
+                            {slot}
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <p className="mt-2 text-center text-[10px] text-[#1A1A1A]/30">
+                      {workingHours.start_time} – {workingHours.end_time} · зачеркнатите са заети
+                    </p>
+                  </div>
+                )}
               </div>
+
+              <div className="border-t" style={{ borderColor: "rgba(201,168,76,0.12)" }} />
+
+              {/* Client info */}
+              <div>
+                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Клиент *</label>
+                <input className="input-admin" placeholder="Име на клиента" value={clientName} onChange={(e) => setClientName(e.target.value)} autoComplete="name" />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Телефон</label>
+                  <input
+                    className="input-admin"
+                    placeholder="+359 88..."
+                    value={phone}
+                    onChange={(e) => setPhone(e.target.value)}
+                    onBlur={() => void lookupPhone()}
+                    inputMode="tel"
+                  />
+                </div>
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Имейл</label>
+                  <input className="input-admin" type="email" placeholder="mail@..." value={email} onChange={(e) => setEmail(e.target.value)} />
+                </div>
+              </div>
+
+              {needSpecialist ? (
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Специалист *</label>
+                  <select className="input-admin" value={specialistId} onChange={(e) => setSpecialistId(e.target.value)}>
+                    <option value="">—</option>
+                    {activeSpecs.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  </select>
+                </div>
+              ) : null}
             </div>
-          ) : null}
-        </div>
           </div>
 
           <div
@@ -315,17 +337,23 @@ export function QuickBooking(props: {
             style={{ borderColor: "rgba(201,168,76,0.2)", boxShadow: "0 -4px 18px rgba(0,0,0,0.06)" }}
           >
             <div className="flex gap-2">
-            <button type="button" className="flex-1 rounded-xl border py-3 text-sm font-semibold text-[#1A1A1A]/55 transition hover:bg-black/5 disabled:opacity-50" style={{ borderColor: "rgba(201,168,76,0.2)" }} onClick={onClose} disabled={saving}>
-              Отказ
-            </button>
-            <button
-              type="submit"
-              className="flex-1 rounded-xl py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
-              style={{ background: saving ? "rgba(201,168,76,0.5)" : "linear-gradient(135deg, #C9A84C, #C8826A)" }}
-              disabled={saving}
-            >
-              {saving ? "Запазване…" : "✓ Запази"}
-            </button>
+              <button
+                type="button"
+                className="flex-1 rounded-xl border py-3 text-sm font-semibold text-[#1A1A1A]/55 transition hover:bg-black/5 disabled:opacity-50"
+                style={{ borderColor: "rgba(201,168,76,0.2)" }}
+                onClick={onClose}
+                disabled={saving}
+              >
+                Отказ
+              </button>
+              <button
+                type="submit"
+                className="flex-1 rounded-xl py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90 disabled:opacity-50"
+                style={{ background: saving ? "rgba(201,168,76,0.5)" : "linear-gradient(135deg, #C9A84C, #C8826A)" }}
+                disabled={saving || !selectedTime}
+              >
+                {saving ? "Запазване…" : "✓ Запази"}
+              </button>
             </div>
           </div>
         </form>

@@ -123,6 +123,7 @@ export function ScheduleBoard(props: {
             services={services}
             specialists={specialists}
             plan={plan}
+            workingHours={workingHours}
             onClose={() => setQuickOpen(false)}
             onSaved={() => {
               setQuickOpen(false);
@@ -290,6 +291,7 @@ export function ScheduleBoard(props: {
           services={services}
           specialists={specialists}
           plan={plan}
+          workingHours={workingHours}
           onClose={() => setQuickOpen(false)}
           onSaved={() => {
             setQuickOpen(false);
