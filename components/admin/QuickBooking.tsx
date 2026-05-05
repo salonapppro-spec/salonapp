@@ -93,12 +93,12 @@ export function QuickBooking(props: {
   useEffect(() => {
     if (!bookingDate || !serviceId) { setFreeSlots([]); return; }
     setSlotsLoading(true);
-    const qs = new URLSearchParams({ salon_slug: salonSlug, service_id: serviceId, date: bookingDate });
+    const qs = new URLSearchParams({ service_id: serviceId, date: bookingDate });
     if (selected?.is_complex) {
       qs.set("hair_length", hairLength);
       qs.set("hair_density", hairDensity);
     }
-    fetch(`/api/bookings?${qs.toString()}`)
+    fetch(`/api/admin/slots?${qs.toString()}`)
       .then((r) => r.json())
       .then((d: { slots?: { time: string }[] }) => {
         setFreeSlots((d.slots ?? []).map((s) => s.time));
