@@ -44,6 +44,11 @@ function ServiceCard({ s }: { s: Service }) {
 export function Bloom({ data }: { data: SalonData }) {
   const { tenant, gallery } = data;
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [lightboxIdx, setLightboxIdx] = useState<number | null>(null);
+
+  const rawTokens = (tenant.design_tokens ?? {}) as Record<string, unknown>;
+  const bloomStats = (rawTokens.bloom_stats as Array<{ value: string; label: string }> | undefined) ?? [];
+  const bloomPartnerLogos = (rawTokens.bloom_partner_logos as string[] | undefined) ?? [];
 
   const igHref = safeInstagramHref(tenant.instagram_url);
   const fbHref = safeFacebookHref(tenant.facebook_url);
@@ -389,7 +394,6 @@ export function Bloom({ data }: { data: SalonData }) {
         }
         @media (min-width: 900px) {
           .bloom-team-grid { grid-template-columns: repeat(3, 1fr); }
-          .bloom-team-grid--single { grid-template-columns: 1fr; max-width: 440px; margin: 0 auto; }
         }
         .bloom-team-card {
           background: color-mix(in srgb, var(--color-primary) 5%, var(--color-bg));
@@ -429,6 +433,142 @@ export function Bloom({ data }: { data: SalonData }) {
           font-size: 14px; font-family: var(--font-body);
           color: var(--color-text); opacity: 0.65;
           line-height: 1.72;
+        }
+
+        /* TEAM SINGLE — featured specialist layout */
+        .bloom-team-single {
+          display: flex; flex-direction: column-reverse;
+          gap: 36px; align-items: center;
+        }
+        @media (min-width: 768px) {
+          .bloom-team-single {
+            flex-direction: row; align-items: flex-start; gap: 56px;
+          }
+        }
+        .bloom-team-single-info { flex: 1; text-align: left; }
+        .bloom-team-single-photo { width: 100%; max-width: 400px; flex-shrink: 0; }
+        @media (min-width: 768px) {
+          .bloom-team-single-photo { width: 380px; }
+        }
+        .bloom-team-single-img {
+          width: 100%; height: 480px; object-fit: cover; object-position: top center;
+          border-radius: var(--border-radius, 20px); display: block;
+          border: 3px solid color-mix(in srgb, var(--color-primary) 28%, transparent);
+          box-shadow: 0 12px 40px color-mix(in srgb, var(--color-primary) 12%, transparent);
+        }
+        .bloom-team-single-placeholder {
+          width: 100%; height: 480px; border-radius: var(--border-radius, 20px);
+          background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+          display: flex; align-items: center; justify-content: center;
+          font-size: 80px;
+        }
+        .bloom-team-single-name {
+          font-size: clamp(26px, 4vw, 38px); font-family: var(--font-heading); font-weight: 700;
+          color: var(--color-text); margin-bottom: 6px; line-height: 1.15;
+        }
+        .bloom-team-single-role {
+          font-size: 12px; font-weight: 700; letter-spacing: 0.25em;
+          text-transform: uppercase; color: var(--color-primary);
+          margin-bottom: 22px; font-family: var(--font-nav);
+        }
+        .bloom-team-single-bio {
+          font-size: 15px; font-family: var(--font-body);
+          color: var(--color-text); opacity: 0.72;
+          line-height: 1.84; margin-bottom: 28px;
+        }
+
+        /* STATS STRIP */
+        .bloom-stats-strip {
+          display: grid; grid-template-columns: repeat(3, 1fr);
+          border-top: 1px solid color-mix(in srgb, var(--color-primary) 14%, transparent);
+          border-bottom: 1px solid color-mix(in srgb, var(--color-primary) 14%, transparent);
+          background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg));
+          gap: 1px;
+        }
+        .bloom-stat-item {
+          padding: 32px 16px; background: var(--color-bg); text-align: center;
+        }
+        .bloom-stat-value {
+          display: block; font-size: clamp(32px, 5vw, 48px);
+          font-family: var(--font-heading); font-weight: 700;
+          color: var(--color-primary); line-height: 1;
+          margin-bottom: 6px;
+        }
+        .bloom-stat-label {
+          font-size: 13px; font-family: var(--font-body);
+          color: var(--color-text); opacity: 0.55;
+          text-transform: uppercase; letter-spacing: 0.1em;
+        }
+
+        /* PARTNER LOGOS */
+        .bloom-partners {
+          padding: var(--section-padding, 80px) 24px;
+          background: color-mix(in srgb, var(--color-primary) 4%, var(--color-bg));
+        }
+        .bloom-partners-inner { max-width: 860px; margin: 0 auto; text-align: center; }
+        .bloom-partners-title {
+          font-size: 16px; font-family: var(--font-body);
+          color: var(--color-text); opacity: 0.68; line-height: 1.7;
+          margin-bottom: 36px; max-width: 560px; margin-left: auto; margin-right: auto;
+        }
+        .bloom-partners-logos {
+          display: flex; align-items: center; justify-content: center;
+          gap: 48px; flex-wrap: wrap;
+        }
+        .bloom-partner-logo {
+          height: 52px; width: auto; max-width: 160px;
+          object-fit: contain; display: block;
+          filter: grayscale(1); opacity: 0.65;
+          transition: filter 0.2s, opacity 0.2s;
+        }
+        .bloom-partner-logo:hover { filter: grayscale(0); opacity: 1; }
+        @media (max-width: 480px) {
+          .bloom-partners-logos { gap: 32px; }
+          .bloom-partner-logo { height: 40px; }
+        }
+
+        /* GALLERY LIGHTBOX */
+        .bloom-lightbox {
+          position: fixed; inset: 0; z-index: 999;
+          background: rgba(0,0,0,0.92);
+          display: flex; align-items: center; justify-content: center;
+          padding: 20px;
+        }
+        .bloom-lightbox-img {
+          max-width: 90vw; max-height: 88vh;
+          object-fit: contain; border-radius: 6px;
+          display: block;
+        }
+        .bloom-lightbox-close {
+          position: absolute; top: 16px; right: 20px;
+          background: rgba(255,255,255,0.12); border: none; cursor: pointer;
+          color: #fff; font-size: 22px; line-height: 1;
+          width: 44px; height: 44px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 0.15s;
+        }
+        .bloom-lightbox-close:hover { background: rgba(255,255,255,0.22); }
+        .bloom-lightbox-arrow {
+          position: absolute; top: 50%; transform: translateY(-50%);
+          background: rgba(255,255,255,0.12); border: none; cursor: pointer;
+          color: #fff; font-size: 22px;
+          width: 48px; height: 48px; border-radius: 50%;
+          display: flex; align-items: center; justify-content: center;
+          transition: background 0.15s;
+        }
+        .bloom-lightbox-arrow:hover { background: rgba(255,255,255,0.22); }
+        .bloom-lightbox-arrow.prev { left: 16px; }
+        .bloom-lightbox-arrow.next { right: 16px; }
+        @media (max-width: 600px) {
+          .bloom-lightbox-arrow.prev { left: 8px; }
+          .bloom-lightbox-arrow.next { right: 8px; }
+        }
+
+        /* HERO LOGO BADGE */
+        .bloom-hero-logo-img {
+          height: 72px; width: auto; max-width: 240px;
+          display: block; margin: 0 auto 20px;
+          filter: drop-shadow(0 2px 8px rgba(0,0,0,0.18));
         }
 
         /* BOOKING */
@@ -600,7 +740,12 @@ export function Bloom({ data }: { data: SalonData }) {
           )}
           <div className="bloom-hero-overlay" />
           <div className="bloom-hero-content">
-            <div className="bloom-hero-badge">{tenant.salon_name}</div>
+            {tenant.logo_url ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={tenant.logo_url} alt={tenant.salon_name} className="bloom-hero-logo-img" />
+            ) : (
+              <div className="bloom-hero-badge">{tenant.salon_name}</div>
+            )}
             <h1>{heroTitle}</h1>
             {heroSubtitle && <h2>{heroSubtitle}</h2>}
             {tenant.description && (
@@ -626,7 +771,7 @@ export function Bloom({ data }: { data: SalonData }) {
           {[
             { icon: "📅", title: "Онлайн записване", text: "Запазете час 24/7 от телефона" },
             { icon: "✨", title: "Персонализирани услуги", text: "Съобразени с вашите нужди" },
-            { icon: "🌸", title: "Опитни специалисти", text: "Грижа, умение и вниманние" },
+            { icon: "🌸", title: specs.length === 1 ? "Опитен специалист" : "Опитни специалисти", text: "Грижа, умение и внимание" },
           ].map(({ icon, title, text }) => (
             <div key={title} className="bloom-feature-item">
               <div className="bloom-feature-icon">{icon}</div>
@@ -687,30 +832,71 @@ export function Bloom({ data }: { data: SalonData }) {
           </div>
         </section>
 
+        {/* ── STATS STRIP ── */}
+        {bloomStats.length > 0 && (
+          <div className="bloom-stats-strip">
+            {bloomStats.map((s) => (
+              <div key={s.label} className="bloom-stat-item">
+                <span className="bloom-stat-value">{s.value}</span>
+                <span className="bloom-stat-label">{s.label}</span>
+              </div>
+            ))}
+          </div>
+        )}
+
         {/* ── TEAM / SPECIALISTS ── */}
         {specs.length > 0 && (
           <section id="team" className="bloom-team">
             <div className="bloom-team-inner">
-              <p className="bloom-section-label">Нашият екип</p>
-              <h2 className="bloom-section-title">Запознайте се с нас</h2>
+              <p className="bloom-section-label">{specs.length === 1 ? "Вашият специалист" : "Нашият екип"}</p>
+              <h2 className="bloom-section-title">{specs.length === 1 ? "Запознайте се с мен" : "Запознайте се с нас"}</h2>
               <p className="bloom-section-sub" style={{ marginBottom: "48px" }}>
-                Специалисти, отдадени на вашата красота и уют.
+                {specs.length === 1 ? "Отдадена на вашата красота и уют." : "Специалисти, отдадени на вашата красота и уют."}
               </p>
-              <div className={`bloom-team-grid${specs.length === 1 ? " bloom-team-grid--single" : ""}`}>
-                {specs.map((sp) => (
-                  <div key={sp.id} className="bloom-team-card">
-                    {sp.avatar_url ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img src={sp.avatar_url} alt={sp.name} className="bloom-team-avatar" loading="lazy" />
-                    ) : (
-                      <div className="bloom-team-avatar-placeholder" aria-hidden="true">🌸</div>
-                    )}
-                    <div className="bloom-team-name">{sp.name}</div>
-                    {sp.role && <div className="bloom-team-role">{sp.role}</div>}
-                    {sp.bio && <p className="bloom-team-bio">{sp.bio}</p>}
-                  </div>
-                ))}
-              </div>
+
+              {specs.length === 1 ? (
+                /* Featured single-specialist layout */
+                (() => {
+                  const sp = specs[0];
+                  return (
+                    <div className="bloom-team-single">
+                      {/* Info — left on desktop, bottom on mobile */}
+                      <div className="bloom-team-single-info">
+                        <div className="bloom-team-single-name">{sp.name}</div>
+                        {sp.role && <div className="bloom-team-single-role">{sp.role}</div>}
+                        {sp.bio && <p className="bloom-team-single-bio">{sp.bio}</p>}
+                        <a href="#booking" className="bloom-btn-primary">Запази час</a>
+                      </div>
+                      {/* Photo — right on desktop, top on mobile */}
+                      <div className="bloom-team-single-photo">
+                        {sp.avatar_url ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={sp.avatar_url} alt={sp.name} className="bloom-team-single-img" loading="lazy" />
+                        ) : (
+                          <div className="bloom-team-single-placeholder" aria-hidden="true">🌸</div>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })()
+              ) : (
+                /* Multi-specialist grid */
+                <div className="bloom-team-grid">
+                  {specs.map((sp) => (
+                    <div key={sp.id} className="bloom-team-card">
+                      {sp.avatar_url ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={sp.avatar_url} alt={sp.name} className="bloom-team-avatar" loading="lazy" />
+                      ) : (
+                        <div className="bloom-team-avatar-placeholder" aria-hidden="true">🌸</div>
+                      )}
+                      <div className="bloom-team-name">{sp.name}</div>
+                      {sp.role && <div className="bloom-team-role">{sp.role}</div>}
+                      {sp.bio && <p className="bloom-team-bio">{sp.bio}</p>}
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </section>
         )}
@@ -722,8 +908,13 @@ export function Bloom({ data }: { data: SalonData }) {
               <p className="bloom-section-label">Нашата работа</p>
               <h2 className="bloom-section-title" style={{ marginBottom: "40px" }}>Галерия</h2>
               <div className="bloom-gallery-grid">
-                {gallery.map((g) => (
-                  <div key={g.id} className="bloom-gallery-item">
+                {gallery.map((g, idx) => (
+                  <div
+                    key={g.id}
+                    className="bloom-gallery-item"
+                    onClick={() => setLightboxIdx(idx)}
+                    style={{ cursor: "pointer" }}
+                  >
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src={g.url} alt="" loading="lazy" />
                   </div>
@@ -731,6 +922,38 @@ export function Bloom({ data }: { data: SalonData }) {
               </div>
             </div>
           </section>
+        )}
+
+        {/* ── LIGHTBOX ── */}
+        {lightboxIdx !== null && gallery.length > 0 && (
+          <div className="bloom-lightbox" onClick={() => setLightboxIdx(null)}>
+            <button
+              className="bloom-lightbox-close"
+              onClick={(e) => { e.stopPropagation(); setLightboxIdx(null); }}
+              aria-label="Затвори"
+            >✕</button>
+            <button
+              className="bloom-lightbox-arrow prev"
+              onClick={(e) => { e.stopPropagation(); setLightboxIdx((lightboxIdx - 1 + gallery.length) % gallery.length); }}
+              aria-label="Предишна"
+            >
+              <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="9,1 1,9 9,17"/></svg>
+            </button>
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={gallery[lightboxIdx].url}
+              alt=""
+              className="bloom-lightbox-img"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button
+              className="bloom-lightbox-arrow next"
+              onClick={(e) => { e.stopPropagation(); setLightboxIdx((lightboxIdx + 1) % gallery.length); }}
+              aria-label="Следваща"
+            >
+              <svg width="10" height="18" viewBox="0 0 10 18" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><polyline points="1,1 9,9 1,17"/></svg>
+            </button>
+          </div>
         )}
 
         {/* ── BOOKING ── */}
@@ -749,6 +972,24 @@ export function Bloom({ data }: { data: SalonData }) {
             />
           </div>
         </section>
+
+        {/* ── PARTNER LOGOS ── */}
+        {bloomPartnerLogos.length > 0 && (
+          <div className="bloom-partners">
+            <div className="bloom-partners-inner">
+              <p className="bloom-section-label">Работим с</p>
+              <p className="bloom-partners-title">
+                Професионална грижа с най-добрите продукти от професионалните серии на:
+              </p>
+              <div className="bloom-partners-logos">
+                {bloomPartnerLogos.map((url, i) => (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img key={i} src={url} alt="partner brand" className="bloom-partner-logo" loading="lazy" />
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ── CONTACTS + HOURS ── */}
         <section id="contacts" className="bloom-contacts">
