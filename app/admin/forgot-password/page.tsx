@@ -9,6 +9,9 @@ export default function ForgotPasswordPage() {
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const appUrl = (process.env.NEXT_PUBLIC_APP_URL ?? window.location.origin).replace(/\/+$/, '')
+  const redirectTo = `${appUrl}/admin/reset-password`
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     const emailTrimmed = email.trim()
@@ -19,9 +22,7 @@ export default function ForgotPasswordPage() {
     setError(null)
     setLoading(true)
     const supabase = createSupabaseBrowserClient()
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(emailTrimmed, {
-      redirectTo: `${window.location.origin}/admin/reset-password`,
-    })
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(emailTrimmed, { redirectTo })
     if (resetError) {
       setError(resetError.message)
       setLoading(false)
