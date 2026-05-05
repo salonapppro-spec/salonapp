@@ -104,6 +104,13 @@ export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const hostHeader = request.headers.get("host") ?? "";
   const hostname = normalizeHostname(hostHeader);
+  const isAdminAuthPage =
+    pathname === "/admin/login" ||
+    pathname.startsWith("/admin/login/") ||
+    pathname === "/admin/forgot-password" ||
+    pathname.startsWith("/admin/forgot-password/") ||
+    pathname === "/admin/reset-password" ||
+    pathname.startsWith("/admin/reset-password/");
 
   // ── Rate limiting (Upstash when UPSTASH_* env is set, else in-memory) ────
   const ip = clientIpFromHeaders(request.headers);
@@ -220,6 +227,12 @@ export async function middleware(request: NextRequest) {
 
   // Base response — may have Supabase cookies refreshed below
   let response = NextResponse.next({ request: { headers: requestHeaders } });
+  if (isAdminAuthPage) {
+    // Prevent stale auth pages from browser/proxy cache during password recovery.
+    response.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+    response.headers.set("Pragma", "no-cache");
+    response.headers.set("Expires", "0");
+  }
 
   // ── Supabase auth + session refresh ─────────────────────────────────────
   // Runs for ALL domains — keeps cookies fresh on salonapp.pro too
