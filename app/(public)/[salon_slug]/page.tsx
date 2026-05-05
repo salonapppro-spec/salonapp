@@ -16,9 +16,15 @@ import { Luxe2 } from "@/components/templates/Luxe2";
 import { Zen } from "@/components/templates/Zen";
 import { TheSkin } from "@/components/templates/TheSkin";
 
+const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+
 async function resolveSlug(paramSlug: string): Promise<string> {
   const h = await headers();
   return h.get("x-salon-slug") ?? paramSlug;
+}
+
+function isValidSlug(slug: string): boolean {
+  return slug.length <= 80 && SLUG_RE.test(slug);
 }
 
 function renderTemplate(template: Template, data: SalonData) {
@@ -55,6 +61,7 @@ function beautyBusinessJsonLd(data: SalonData, canonicalUrl: string) {
 export async function generateMetadata(props: { params: Promise<{ salon_slug: string }> }): Promise<Metadata> {
   const { salon_slug: paramSlug } = await props.params;
   const slug = await resolveSlug(paramSlug);
+  if (!isValidSlug(slug)) return { title: "Салон" };
   const data = await loadPublicSalonData(slug);
   if (!data) return { title: "Салон" };
 
@@ -96,6 +103,7 @@ export default async function PublicSalonPage(props: {
 }) {
   const { salon_slug: paramSlug } = await props.params;
   const slug = await resolveSlug(paramSlug);
+  if (!isValidSlug(slug)) notFound();
   const data = await loadPublicSalonData(slug);
   if (!data) notFound();
 
