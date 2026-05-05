@@ -283,6 +283,7 @@ export function Bloom({ data }: { data: SalonData }) {
         }
         .bloom-about-img {
           width: 100%; height: 420px; object-fit: cover;
+          object-position: top center;
           border-radius: var(--border-radius, 16px);
           display: block;
         }
