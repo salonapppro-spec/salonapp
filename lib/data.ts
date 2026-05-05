@@ -1,3 +1,5 @@
+import { unstable_cache } from "next/cache";
+
 import type { Client, GalleryItem, Service, Specialist, Tenant, WorkingHours, BlockedSlot, Booking } from "@/types";
 import type { FinancialSettings, SalonData } from "@/types/database";
 import { getTenant } from "@/lib/get-tenant";
@@ -14,10 +16,16 @@ export async function getServices(salonSlug: string): Promise<Service[]> {
   return (data as Service[]) ?? [];
 }
 
-export async function getAllServicesAdmin(salonSlug: string): Promise<Service[]> {
-  const { data, error } = await tenantDb(salonSlug).services.listAll();
-  if (error) throw error;
-  return (data as Service[]) ?? [];
+export function getAllServicesAdmin(salonSlug: string): Promise<Service[]> {
+  return unstable_cache(
+    async () => {
+      const { data, error } = await tenantDb(salonSlug).services.listAll();
+      if (error) throw error;
+      return (data as Service[]) ?? [];
+    },
+    [`services-admin-${salonSlug}`],
+    { revalidate: 60, tags: [`services-${salonSlug}`] }
+  )();
 }
 
 export async function getClientsAdmin(salonSlug: string, search?: string): Promise<Client[]> {
@@ -127,15 +135,22 @@ export async function getExpensesBetween(
   return (data ?? []) as Array<{ id: string; date: string; amount: number; description: string; supplier: string | null }>;
 }
 
-export async function getWorkingHoursForDate(params: {
+export function getWorkingHoursForDate(params: {
   salonSlug: string;
   specialistId?: string;
   dayOfWeek: number; // 0-6
 }): Promise<WorkingHours | null> {
   const { salonSlug, specialistId, dayOfWeek } = params;
-  const { data, error } = await tenantDb(salonSlug).workingHours.getForDay(dayOfWeek, specialistId);
-  if (error) throw error;
-  return (data as WorkingHours | null) ?? null;
+  const key = specialistId ?? "salon";
+  return unstable_cache(
+    async () => {
+      const { data, error } = await tenantDb(salonSlug).workingHours.getForDay(dayOfWeek, specialistId);
+      if (error) throw error;
+      return (data as WorkingHours | null) ?? null;
+    },
+    [`working-hours-${salonSlug}-${key}-${dayOfWeek}`],
+    { revalidate: 300, tags: [`working-hours-${salonSlug}`] }
+  )();
 }
 
 export async function getBookingsForDate(params: {
@@ -236,14 +251,19 @@ export async function replaceWorkingHoursSalonDefault(
 }
 
 /** Активни специалисти за публични страници. */
-export async function getSpecialistsPublic(salonSlug: string): Promise<Specialist[]> {
-  const { data, error } = await tenantDb(salonSlug).specialists.listActive();
-  if (error) {
-    // Някои среди са инициализирани без таблица specialists.
-    if ((error as { code?: string }).code === "PGRST205") return [];
-    throw error;
-  }
-  return (data as Specialist[]) ?? [];
+export function getSpecialistsPublic(salonSlug: string): Promise<Specialist[]> {
+  return unstable_cache(
+    async () => {
+      const { data, error } = await tenantDb(salonSlug).specialists.listActive();
+      if (error) {
+        if ((error as { code?: string }).code === "PGRST205") return [];
+        throw error;
+      }
+      return (data as Specialist[]) ?? [];
+    },
+    [`specialists-public-${salonSlug}`],
+    { revalidate: 60, tags: [`specialists-${salonSlug}`] }
+  )();
 }
 
 /** Специалисти за админ панела (всички, включително неактивни). */

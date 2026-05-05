@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
@@ -23,5 +24,6 @@ export async function POST(req: Request) {
 
   const { data, error } = await tenantDb(salonSlug).services.create(parsed.data as Record<string, unknown>);
   if (error) return NextResponse.json({ error: "DB insert failed" }, { status: 500 });
+  revalidateTag(`services-${salonSlug}`);
   return NextResponse.json({ service: data });
 }

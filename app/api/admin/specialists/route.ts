@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -31,5 +32,6 @@ export async function POST(req: Request) {
   });
 
   if (error) return NextResponse.json({ error: "DB create failed" }, { status: 500 });
+  revalidateTag(`specialists-${a.slug}`);
   return NextResponse.json({ ok: true, specialist: data });
 }

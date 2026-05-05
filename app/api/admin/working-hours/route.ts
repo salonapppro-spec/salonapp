@@ -1,3 +1,4 @@
+import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
@@ -26,5 +27,6 @@ export async function PUT(req: Request) {
   } catch {
     return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
   }
+  revalidateTag(`working-hours-${salonSlug}`);
   return NextResponse.json({ ok: true });
 }
