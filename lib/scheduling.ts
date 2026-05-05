@@ -178,7 +178,10 @@ export function generateSlots(params: {
   const mergedBusy = mergeIntervals(busyRaw);
 
   const occupancyEnd = serviceDuration + bufferMinutes;
-  const minNeed = serviceDuration + bufferMinutes;
+  // Prevent leaving a gap too small to start even one more slot interval,
+  // but do NOT use serviceDuration here — that incorrectly hides all valid
+  // start times for long services that fill most of the day.
+  const minFragment = slotInterval;
 
   const touchAfter = magneticTouchStarts(activeBookings, bufferMinutes);
   const touchAlignEnd = magneticTouchEnds(activeBookings, bufferMinutes, serviceDuration);
@@ -203,7 +206,7 @@ export function generateSlots(params: {
     if (hit) continue;
 
     const freeAfterOcc = nextBusyStartFrom(mergedBusy, tEndOcc, dayEnd) - tEndOcc;
-    if (freeAfterOcc > 0 && freeAfterOcc < minNeed) continue;
+    if (freeAfterOcc > 0 && freeAfterOcc < minFragment) continue;
 
     const time = minutesToTime(t);
     let mag = false;
