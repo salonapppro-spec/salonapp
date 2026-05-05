@@ -24,6 +24,7 @@ export default function ResetPasswordPage() {
   const [ready, setReady] = useState(false)
   const [done, setDone] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pendingTokenHash, setPendingTokenHash] = useState<string | null>(null)
 
   useEffect(() => {
     const supabase = createSupabaseBrowserClient()
@@ -58,12 +59,13 @@ export default function ResetPasswordPage() {
       }
       // Other clients open links as ?token_hash=...&type=recovery.
       else if (tokenHash && type === 'recovery') {
-        const { error: verifyError } = await supabase.auth.verifyOtp({ type: 'recovery', token_hash: tokenHash })
-        if (verifyError) {
-          setError('Линкът за смяна на парола е невалиден или е изтекъл.')
-          return
-        }
+        // Delay token verification until submit to reduce accidental token consumption
+        // by email previews / crawlers that open links automatically.
+        setPendingTokenHash(tokenHash)
+        setReady(true)
+        setError(null)
         window.history.replaceState({}, '', '/admin/reset-password')
+        return
       }
       // Some providers redirect with hash tokens (#access_token=...).
       else if (accessToken && refreshToken && hashType === 'recovery') {
@@ -113,6 +115,18 @@ export default function ResetPasswordPage() {
     setLoading(true)
     setError(null)
     const supabase = createSupabaseBrowserClient()
+    if (pendingTokenHash) {
+      const { error: verifyError } = await supabase.auth.verifyOtp({
+        type: 'recovery',
+        token_hash: pendingTokenHash,
+      })
+      if (verifyError) {
+        setError(localizeResetError(verifyError.message))
+        setLoading(false)
+        return
+      }
+    }
+
     const { error: updateError } = await supabase.auth.updateUser({ password })
     if (updateError) {
       setError(localizeResetError(updateError.message))
