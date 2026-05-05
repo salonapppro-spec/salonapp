@@ -23,7 +23,22 @@ export default function ResetPasswordPage() {
       }
     })
 
-    void supabase.auth.getSession().then(({ data, error: sessionError }) => {
+    const initializeRecoverySession = async () => {
+      const url = new URL(window.location.href)
+      const code = url.searchParams.get('code')
+      const type = url.searchParams.get('type')
+
+      // Some email clients open the recovery link as ?code=...&type=recovery.
+      if (code && type === 'recovery') {
+        const { error: exchangeError } = await supabase.auth.exchangeCodeForSession(code)
+        if (exchangeError) {
+          setError('Линкът за смяна на парола е невалиден или е изтекъл.')
+          return
+        }
+        window.history.replaceState({}, '', '/admin/reset-password')
+      }
+
+      const { data, error: sessionError } = await supabase.auth.getSession()
       if (sessionError) {
         setError('Линкът за смяна на парола е невалиден или е изтекъл.')
         return
@@ -35,7 +50,9 @@ export default function ResetPasswordPage() {
       }
 
       setError('Отвори страницата през линка от имейла за смяна на парола.')
-    })
+    }
+
+    void initializeRecoverySession()
 
     return () => {
       subscription.unsubscribe()
