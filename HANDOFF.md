@@ -15,6 +15,13 @@
 - `app/(public)/[salon_slug]/page.tsx`: removed token-driven `<style dangerouslySetInnerHTML>` and now renders CSS variables via a React `style` object; builder preview updates also validate token values before applying them.
 - Verification: `npx tsc --noEmit` and `npm run build` passed.
 
+### 2026-05-05 — Fix: BookingCalendar hair length/density for complex services
+
+- `components/templates/BookingCalendar.tsx`: added `hairLength` and `hairDensity` state; when selected service has `is_complex=true`, a 2-column selector (Дължина / Гъстота) appears in the booking form.
+- Submit button is disabled until both fields are filled for complex services.
+- `hair_length` and `hair_density` are sent in the POST payload; API no longer returns validation error.
+- Applies to all templates using `BookingCalendar` (Bloom, Luxe, Luxe2, Zen, Bold, Groom).
+
 ### 2026-04-22 — Security fix: booking service integrity
 
 - `schemas/booking.ts`: public/admin booking payload now requires only `service_id` and no longer trusts client-sent `service_name`, `service_price_eur`, or `service_duration`.

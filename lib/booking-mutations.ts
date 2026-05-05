@@ -90,16 +90,14 @@ export async function runCreateBooking(
   if (service.is_complex) {
     const hl = typeof data.hair_length === "string" ? data.hair_length.trim() : "";
     const hd = typeof data.hair_density === "string" ? data.hair_density.trim() : "";
-    if (!hairLenAllowed.has(hl)) {
-      return { ok: false, error: "Изберете дължина на косата (къса / средна / дълга)." };
+    if (hairLenAllowed.has(hl) && hairDenAllowed.has(hd)) {
+      hairLength = hl;
+      hairDensity = hd;
+      const calc = calculateDuration(service, hl as HairLength, hd as HairDensity);
+      serviceDuration = calc.totalMinutes;
     }
-    if (!hairDenAllowed.has(hd)) {
-      return { ok: false, error: "Изберете гъстота (тънка / средна / гъста)." };
-    }
-    hairLength = hl;
-    hairDensity = hd;
-    const calc = calculateDuration(service, hl as HairLength, hd as HairDensity);
-    serviceDuration = calc.totalMinutes;
+    // When hair fields are absent the admin has encoded the variation in the
+    // service name itself (e.g. "Балеаж дълга коса"). Use duration_minutes as-is.
   }
 
   if (serviceDuration <= 0) {
