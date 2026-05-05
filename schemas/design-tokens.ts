@@ -52,5 +52,12 @@ export const DesignTokensSchema = z.object({
   borderRadius,
   buttonPadding:   cssLengthPair,
   sectionPadding:  cssLength,
+  bloom_stats: z.array(z.object({
+    value: z.string().max(10),
+    label: z.string().max(60),
+  })).max(6).optional(),
+  bloom_partner_logos: z.array(
+    z.string().regex(/^\/[\w./\-]+$/, "Само локален path").max(200)
+  ).max(10).optional(),
 }).strict();
 

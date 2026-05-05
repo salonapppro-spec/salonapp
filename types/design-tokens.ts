@@ -1,6 +1,10 @@
 export interface DesignTokens {
   /** Brand color — hex, e.g. "#F2A58E" */
   primaryColor: string;
+  /** Bloom template: stats strip items, e.g. [{value:"12+", label:"години опит"}] */
+  bloom_stats?: { value: string; label: string }[];
+  /** Bloom template: partner brand logo paths, e.g. ["/brands/loreal.png"] */
+  bloom_partner_logos?: string[];
   /** Page / section background */
   backgroundColor: string;
   /** Main body text color */
