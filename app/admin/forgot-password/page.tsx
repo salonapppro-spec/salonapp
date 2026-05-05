@@ -7,14 +7,26 @@ export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [error, setError] = useState<string | null>(null)
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    const emailTrimmed = email.trim()
+    if (!emailTrimmed) {
+      setError('Въведи валиден имейл адрес.')
+      return
+    }
+    setError(null)
     setLoading(true)
     const supabase = createSupabaseBrowserClient()
-    await supabase.auth.resetPasswordForEmail(email, {
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(emailTrimmed, {
       redirectTo: `${window.location.origin}/admin/reset-password`,
     })
+    if (resetError) {
+      setError(resetError.message)
+      setLoading(false)
+      return
+    }
     setSent(true)
     setLoading(false)
   }
@@ -63,6 +75,11 @@ export default function ForgotPasswordPage() {
         </div>
 
         <div className="rounded-3xl border border-brand-200/70 bg-white/95 p-6 shadow-card-lg backdrop-blur-md sm:p-8">
+          {error ? (
+            <div role="alert" className="mb-4 rounded-2xl border border-red-200 bg-red-50/90 px-4 py-3 text-sm text-red-900">
+              {error}
+            </div>
+          ) : null}
           <form className="space-y-5" onSubmit={handleSubmit}>
             <div>
               <label htmlFor="forgot-email" className="text-sm font-medium text-brand-900">

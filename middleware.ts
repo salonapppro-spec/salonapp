@@ -258,11 +258,16 @@ export async function middleware(request: NextRequest) {
     // ── Auth guards ────────────────────────────────────────────────────
     // Only apply on root domain and Vercel URL; subdomains are public sites
     if (isRootDomain(hostname) || isVercelDeploymentHost(hostname) || isDevHost(hostname)) {
-      const isLoginPath =
-        pathname === "/admin/login" || pathname.startsWith("/admin/login/");
+      const isAdminPublicAuthPath =
+        pathname === "/admin/login" ||
+        pathname.startsWith("/admin/login/") ||
+        pathname === "/admin/forgot-password" ||
+        pathname.startsWith("/admin/forgot-password/") ||
+        pathname === "/admin/reset-password" ||
+        pathname.startsWith("/admin/reset-password/");
 
       // Redirect already-logged-in users away from login
-      if (isLoginPath && user) {
+      if ((pathname === "/admin/login" || pathname.startsWith("/admin/login/")) && user) {
         const superOnly = request.nextUrl.searchParams.get("super_admin_only") === "1";
         const tenantRequired = request.nextUrl.searchParams.get("tenant_required") === "1";
         const nextParam = request.nextUrl.searchParams.get("next");
@@ -289,8 +294,8 @@ export async function middleware(request: NextRequest) {
         }
       }
 
-      // Protect /admin/* (not login)
-      if (pathname.startsWith("/admin") && !pathname.startsWith("/admin/login")) {
+      // Protect /admin/* except auth entry points used by password recovery
+      if (pathname.startsWith("/admin") && !isAdminPublicAuthPath) {
         if (!user) {
           const login = new URL("/admin/login", request.url);
           login.searchParams.set("next", pathname + request.nextUrl.search);
