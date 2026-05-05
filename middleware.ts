@@ -112,6 +112,24 @@ export async function middleware(request: NextRequest) {
     pathname === "/admin/reset-password" ||
     pathname.startsWith("/admin/reset-password/");
 
+  // Supabase dashboard "Reset password" emails may redirect to Site URL (root).
+  // If recovery params arrive on "/", forward users to the dedicated reset screen.
+  if (
+    pathname === "/" &&
+    (isRootDomain(hostname) || isVercelDeploymentHost(hostname) || isDevHost(hostname))
+  ) {
+    const qp = request.nextUrl.searchParams;
+    const type = qp.get("type");
+    const hasRecoveryToken = qp.has("code") || qp.has("token_hash");
+    if (type === "recovery" && hasRecoveryToken) {
+      const redirectUrl = new URL("/admin/reset-password", request.url);
+      qp.forEach((value, key) => {
+        redirectUrl.searchParams.set(key, value);
+      });
+      return NextResponse.redirect(redirectUrl, 307);
+    }
+  }
+
   // ── Rate limiting (Upstash when UPSTASH_* env is set, else in-memory) ────
   const ip = clientIpFromHeaders(request.headers);
   const m = request.method;
