@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -51,6 +51,7 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   const { error } = await tenantDb(a.slug).specialists.deleteById(id);
   if (error) return NextResponse.json({ error: "DB delete failed" }, { status: 500 });
 
+  revalidateTag(`tenant-${a.slug}`);
   revalidatePath(`/${a.slug}`);
 
   return NextResponse.json({ ok: true });

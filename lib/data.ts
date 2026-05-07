@@ -1,3 +1,4 @@
+import { unstable_cache } from "next/cache";
 import type { Client, GalleryItem, Service, Specialist, Tenant, WorkingHours, BlockedSlot, Booking } from "@/types";
 import type { FinancialSettings, SalonData } from "@/types/database";
 import { getTenant } from "@/lib/get-tenant";
@@ -284,7 +285,7 @@ export async function getSalonWorkingHoursPublic(salonSlug: string): Promise<Wor
 }
 
 /** Пълен пакет за публична страница на салон. */
-export async function loadPublicSalonData(salonSlug: string): Promise<SalonData | null> {
+async function _loadPublicSalonData(salonSlug: string): Promise<SalonData | null> {
   const tenant = await getTenant(salonSlug);
   if (!tenant) return null;
   const [services, gallery, workingHours, specialists] = await Promise.all([
@@ -300,6 +301,18 @@ export async function loadPublicSalonData(salonSlug: string): Promise<SalonData 
     workingHours,
     specialists,
   } as SalonData;
+}
+
+/**
+ * Публичните данни на салона — кешират се 5 минути (300 s).
+ * Анулират се с revalidateTag(`tenant-${salonSlug}`) при запазване от админ.
+ */
+export function loadPublicSalonData(salonSlug: string): Promise<SalonData | null> {
+  return unstable_cache(
+    () => _loadPublicSalonData(salonSlug),
+    [`public-salon-data-${salonSlug}`],
+    { revalidate: 300, tags: [`tenant-${salonSlug}`] },
+  )();
 }
 
 /** Търсене на клиент по телефон (service role). */

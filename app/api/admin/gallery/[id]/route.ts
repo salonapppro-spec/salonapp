@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -24,6 +24,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (error) return NextResponse.json({ error: "DB update failed" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Not found" }, { status: 404 });
 
+  revalidateTag(`tenant-${salonSlug}`);
   revalidatePath(`/${salonSlug}`);
   return NextResponse.json({ item: data });
 }
@@ -36,6 +37,7 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   const { error } = await tenantDb(salonSlug).gallery.deleteById(id);
   if (error) return NextResponse.json({ error: error.message || "DB delete failed" }, { status: 500 });
 
+  revalidateTag(`tenant-${salonSlug}`);
   revalidatePath(`/${salonSlug}`);
   return NextResponse.json({ ok: true });
 }
