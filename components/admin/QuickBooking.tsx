@@ -64,7 +64,7 @@ export function QuickBooking(props: {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [freeSlots, setFreeSlots] = useState<string[]>([]);
-  const [slotsLoading, setSlotsLoading] = useState(false);
+  const [slotsLoading, setSlotsLoading] = useState(true);
 
   const selected = activeServices.find((s) => s.id === serviceId) ?? null;
   const activeSpecs = useMemo(() => specialists.filter((s) => s.is_active), [specialists]);
@@ -91,7 +91,7 @@ export function QuickBooking(props: {
 
   // Fetch free slots whenever date / service / hair options change
   useEffect(() => {
-    if (!bookingDate || !serviceId) { setFreeSlots([]); return; }
+    if (!bookingDate || !serviceId) { setFreeSlots([]); setSlotsLoading(false); return; }
     setSlotsLoading(true);
     const qs = new URLSearchParams({ service_id: serviceId, date: bookingDate });
     if (selected?.is_complex) {
