@@ -250,11 +250,6 @@ export function QuickBooking(props: {
                   <p className="rounded-xl border px-3 py-4 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
                     Почивен ден — няма работно време.
                   </p>
-                ) : slotsLoading ? (
-                  <div className="flex items-center justify-center gap-2 rounded-xl border px-3 py-5 text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
-                    <svg className="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4"/></svg>
-                    Зареждане…
-                  </div>
                 ) : allSlots.length === 0 ? (
                   <p className="rounded-xl border px-3 py-4 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
                     Няма зададено работно време.
@@ -262,25 +257,27 @@ export function QuickBooking(props: {
                 ) : (
                   <div
                     className="rounded-xl border p-2"
-                    style={{ borderColor: "rgba(201,168,76,0.2)", background: "rgba(201,168,76,0.02)" }}
+                    style={{ borderColor: "rgba(201,168,76,0.2)", background: "rgba(201,168,76,0.02)", opacity: slotsLoading ? 0.5 : 1, transition: "opacity 0.15s" }}
                   >
                     <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5">
                       {allSlots.map((slot) => {
-                        const isFree = freeSlots.includes(slot);
+                        const isFree = !slotsLoading && freeSlots.includes(slot);
                         const isSelected = slot === selectedTime;
                         return (
                           <button
                             key={slot}
                             type="button"
-                            disabled={!isFree}
+                            disabled={slotsLoading || !isFree}
                             onClick={() => setSelectedTime(slot)}
                             className="rounded-lg py-2 text-xs font-semibold tabular-nums transition"
                             style={
                               isSelected
                                 ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "#fff", border: "1.5px solid transparent" }
-                                : isFree
-                                  ? { background: "transparent", color: "#1A1A1A", border: "1.5px solid rgba(201,168,76,0.35)", cursor: "pointer" }
-                                  : { background: "transparent", color: "rgba(26,26,26,0.2)", border: "1.5px solid rgba(26,26,26,0.07)", cursor: "not-allowed", textDecoration: "line-through" }
+                                : slotsLoading
+                                  ? { background: "transparent", color: "rgba(26,26,26,0.35)", border: "1.5px solid rgba(26,26,26,0.1)", cursor: "default" }
+                                  : isFree
+                                    ? { background: "transparent", color: "#1A1A1A", border: "1.5px solid rgba(201,168,76,0.35)", cursor: "pointer" }
+                                    : { background: "transparent", color: "rgba(26,26,26,0.2)", border: "1.5px solid rgba(26,26,26,0.07)", cursor: "not-allowed", textDecoration: "line-through" }
                             }
                           >
                             {slot}
@@ -289,7 +286,9 @@ export function QuickBooking(props: {
                       })}
                     </div>
                     <p className="mt-2 text-center text-[10px] text-[#1A1A1A]/30">
-                      {workingHours.start_time} – {workingHours.end_time} · зачеркнатите са заети
+                      {slotsLoading
+                        ? "Проверяване на свободните часове…"
+                        : `${workingHours.start_time} – ${workingHours.end_time} · зачеркнатите са заети`}
                     </p>
                   </div>
                 )}
