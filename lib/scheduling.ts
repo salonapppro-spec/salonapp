@@ -148,6 +148,8 @@ export function generateSlots(params: {
   bufferMinutes: number;
   slotInterval: number;
   magneticEnabled: boolean;
+  /** Skip slots that start before this minute-of-day (used to hide past slots for today). */
+  minStartMinutes?: number;
 }): TimeSlot[] {
   const {
     workStart,
@@ -158,6 +160,7 @@ export function generateSlots(params: {
     bufferMinutes,
     slotInterval,
     magneticEnabled,
+    minStartMinutes,
   } = params;
 
   const dayStart = timeToMinutes(workStart);
@@ -195,6 +198,7 @@ export function generateSlots(params: {
   const candidates: Cand[] = [];
 
   for (let t = dayStart; t + serviceDuration <= dayEnd; t += slotInterval) {
+    if (minStartMinutes !== undefined && t < minStartMinutes) continue;
     const tEndOcc = t + occupancyEnd;
     let hit = false;
     for (const iv of mergedBusy) {

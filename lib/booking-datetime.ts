@@ -30,6 +30,12 @@ export function bookingStartUtc(bookingDate: string, bookingTime: string): Date 
   ).toJSDate();
 }
 
+/** Current time in Europe/Sofia as minutes since midnight. */
+export function nowMinutesInSofia(): number {
+  const dt = DateTime.now().setZone("Europe/Sofia");
+  return dt.hour * 60 + dt.minute;
+}
+
 /** Hours until booking start; can be negative after the booking starts. */
 export function hoursUntilBooking(bookingDate: string, bookingTime: string): number {
   const start = bookingStartUtc(bookingDate, bookingTime);

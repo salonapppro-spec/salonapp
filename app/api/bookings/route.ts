@@ -17,6 +17,7 @@ import { assertTenantActiveForPublicApi } from "@/lib/public-tenant-guard";
 import { calculateDuration, generateSlots } from "@/lib/scheduling";
 import { requireTenantFromHeaders } from "@/lib/tenant-request";
 import { loadCreateBookingContext, runCreateBooking } from "@/lib/booking-mutations";
+import { todayDateISOInSofia, nowMinutesInSofia } from "@/lib/booking-datetime";
 
 const GetSchema = z.object({
   salon_slug: z.string().min(1),
@@ -77,6 +78,8 @@ export async function GET(req: Request) {
     serviceDuration = calculateDuration(service, hl, hd).totalMinutes;
   }
 
+  const minStartMinutes = date === todayDateISOInSofia() ? nowMinutesInSofia() + 30 : undefined;
+
   const slots = generateSlots({
     workStart: workingHours.start_time,
     workEnd: workingHours.end_time,
@@ -86,6 +89,7 @@ export async function GET(req: Request) {
     bufferMinutes,
     slotInterval: 15,
     magneticEnabled,
+    minStartMinutes,
   });
 
   return NextResponse.json({ slots });
