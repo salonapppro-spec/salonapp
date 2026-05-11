@@ -1,4 +1,18 @@
-# HANDOFF — последна актуализация: 2026-05-11
+# HANDOFF — последна актуализация: 2026-05-11 (вечерта)
+
+---
+
+## 2026-05-11 — Поли: Имейл нотификация до салона при нова резервация
+
+**Проблем:** Собственикът на салона не получаваше имейл когато клиент запази час от публичния сайт.
+
+**Решено:**
+- `lib/email.tsx` — нова функция `sendSalonBookingNotification(booking, tenant)`: изпраща HTML имейл на `owner_email` на салона (fallback на `email`). Съдържа: клиент, телефон, имейл (ако има), услуга, дата/час, бележки.
+- `lib/booking-mutations.ts` — извиква `sendSalonBookingNotification` веднага след `sendConfirmationEmail` в `runCreateBooking()`.
+
+**Деплой:** PR #11 merge-нат → `main` → Vercel деплоя автоматично.
+
+**Важно:** Работи само ако `owner_email` е попълнен за тенанта в Supabase. Всички текущи салони (The Skin, Lindy, Еуфория) имат попълнен `owner_email` → работи веднага.
 
 ---
 
@@ -93,7 +107,7 @@
 - Цветова палитра — 6 preset + custom hex → записва и показва на сайта
 - Супер-админ: всички тенанти, leads, детайл, ръчно активиране
 - Stripe webhook: автоматично активиране при плащане
-- Имейли чрез Resend: нов тенант, активиране, Stripe, анулация от Google
+- Имейли чрез Resend: нов тенант, активиране, Stripe, анулация от Google, нотификация до салона при резервация ✅ (ново)
 - Rate limiting: bookings (40/min), leads (15/min)
 - Google Calendar интеграция (OAuth + FreeBusy + sync + webhook) — за `theskin`
 
