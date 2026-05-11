@@ -6,7 +6,7 @@ import { tenantDb } from "@/lib/tenant-db";
 import { normalizePhone } from "@/lib/phone";
 import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 import { calculateDuration, timeToMinutes } from "@/lib/scheduling";
-import { sendConfirmationEmail } from "@/lib/email";
+import { sendConfirmationEmail, sendSalonBookingNotification } from "@/lib/email";
 import { todayDateISOInSofia, nowMinutesInSofia } from "@/lib/booking-datetime";
 
 function isMissingBookingEndTimeColumnError(error: unknown): boolean {
@@ -299,6 +299,7 @@ export async function runCreateBooking(
     const tenant = await getTenant(data.salon_slug);
     if (tenant) {
       await sendConfirmationEmail(created as Booking, tenant);
+      await sendSalonBookingNotification(created as Booking, tenant);
     }
   } catch (e) {
     console.error("[runCreateBooking] sendConfirmationEmail failed (booking already saved)", e);
