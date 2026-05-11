@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "tsx --test tests/settings-clear-behavior.test.ts tests/safe-tenant-public-image.test.ts",
+    "test": "tsx --test tests/settings-clear-behavior.test.ts tests/safe-tenant-public-image.test.ts tests/scheduling.test.ts tests/finance-abc.test.ts tests/phone.test.ts",
     "test:integration": "node scripts/run-integration-tests.mjs",
     "test:all": "npm run test && npm run test:integration",
     "upload:product-images": "node scripts/upload-product-images.mjs",

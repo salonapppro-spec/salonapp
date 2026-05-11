@@ -1,4 +1,30 @@
-# HANDOFF — последна актуализация: 2026-05-11 (вечерта)
+# HANDOFF — последна актуализация: 2026-05-11 (нощта)
+
+---
+
+## 2026-05-11 — Поли: Пълен одит на кодовата база + тестове
+
+**Направено:**
+- Пълен статичен анализ на 40+ lib модула, 25 миграции, 12 шаблона, 8 admin страници
+- Идентифицирани критични пропуски преди launch за 100 салона
+- Добавени 74 нови unit теста за критичната бизнес логика:
+
+| Файл | Тестове | Тества |
+|------|---------|--------|
+| `tests/scheduling.test.ts` | 22 | Slot generation, complex duration 3×3 matrix, magnetic slots, buffer minutes |
+| `tests/finance-abc.test.ts` | 32 | ABC analysis, VAT, cost/minute, margin bands, buildAbcRows |
+| `tests/phone.test.ts` | 20 | normalizePhone — всички варианти и edge cases |
+
+- `package.json` → `npm test` актуализиран да включва новите тестове (84 total, 0 failing)
+- `AUDIT_AND_TODO.md` — пълна документация на одита в корена на проекта
+
+**Резултати от тестовете:** `npx tsc --noEmit` → 0 грешки | `npm test` → 84/84 ✔
+
+**Нови критични открития (документирани в AUDIT_AND_TODO.md):**
+- ❌ Unsubscribe endpoint липсва — `lib/email.tsx` генерира URL но няма handler
+- ❌ Dunning email при failed payment — само `console.warn()` в webhook, без нотификация
+- ❌ Analytics pixels (`facebook_pixel_id`, `gtm_id`, `clarity_id`) не се инжектират в шаблоните
+- ⚠️ In-memory rate limiter не е cluster-safe при Vercel serverless без Upstash Redis
 
 ---
 
@@ -29,7 +55,7 @@
 - `app/api/admin/clients/route.ts` + `[id]/route.ts` — нормализира при ръчно добавяне/редактиране
 - `supabase/migrations/024_normalize_phone_numbers.sql` — почиства стари данни и слива дублирани клиенти (вече приложена в production)
 
-**Резултат:** Автофил на Име + Имейл при въвеждане на телефон (публичен сайт + Бърз час). Фризьорът не пише пак данните на редовните клиенти. Никакви нови дублажи занапред.
+**Резултат:** Автофил на Име + Имейл при въвеждане на телефон (публичен сайт + Бърз час). Никакви нови дублажи занапред.
 
 ---
 
@@ -87,28 +113,30 @@
 
 ---
 
-## Състояние на проекта — 2026-05-11
+## Състояние на проекта — 2026-05-11 (нощта)
 
 | | |
 |---|---|
 | **Branch** | `main` |
 | **Vercel deploy** | `salonapp-ten.vercel.app` — деплоява при push |
 | **TypeScript грешки** | Няма |
-| **DB миграции** | 024 normalize phones — приложена в production |
+| **Unit тестове** | 84/84 ✔ (10 стари + 74 нови) |
+| **DB миграции** | 025 приложени в production |
 
 ### Работи ✅
 
-- Публичен сайт — 6 шаблона (bloom, luxe, luxe2, bold, zen, groom)
+- Публичен сайт — 8 шаблона (bloom, luxe, luxe2, bold, zen, groom, clean, theskin)
 - Routing: `salonapp-ten.vercel.app/salon-bizhu` ✅ | `salon-bizhu.salonapp.pro` ⚠️ (чака DNS)
 - Резервации: публична форма + Бърз час в админа
-- Автофил на клиентски данни при въвеждане на телефон ✅ (ново)
-- Чиста клиентска база без дублажи ✅ (ново)
-- Салонски админ: dashboard, резервации, клиенти, услуги, галерия, настройки
+- Автофил на клиентски данни при въвеждане на телефон ✅
+- Чиста клиентска база без дублажи ✅
+- Салонски админ: dashboard, резервации, клиенти, услуги, галерия, настройки, работни часове, финанси
 - Цветова палитра — 6 preset + custom hex → записва и показва на сайта
-- Супер-админ: всички тенанти, leads, детайл, ръчно активиране
-- Stripe webhook: автоматично активиране при плащане
-- Имейли чрез Resend: нов тенант, активиране, Stripe, анулация от Google, нотификация до салона при резервация ✅ (ново)
-- Rate limiting: bookings (40/min), leads (15/min)
+- Финансов панел: приходи, разходи, ABC анализ, принт
+- Супер-админ: всички тенанти, leads, детайл, ръчно активиране, архивиране
+- Stripe webhook: автоматично активиране при плащане (код ✅, env vars ⚠️)
+- Имейли: нов тенант, активиране, Stripe, анулация от Google, нотификация до салона при резервация ✅
+- Rate limiting: Upstash Redis (ако е конфигурирано) + in-memory fallback
 - Google Calendar интеграция (OAuth + FreeBusy + sync + webhook) — за `theskin`
 
 ### Счупено / Чака ❌
@@ -116,11 +144,14 @@
 | Проблем | Кой трябва | Бележка |
 |---------|-----------|---------|
 | `salonapp.pro` DNS не е свързан с Vercel | Лина | A `@` → `76.76.21.21`, CNAME `*` → `cname.vercel-dns.com` |
+| Stripe ENV не са в Vercel | Лина | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, payment links |
+| Stripe webhook не е регистриран | Лина | в Stripe Dashboard |
+| Upstash Redis не е конфигуриран | Лина | без него rate limiting е in-memory (не работи при 100 салона) |
 | `clean` шаблон игнорира `primary_color` | Поли | `templates/Clean.tsx` ред ~19 — хардкодиран `#0066CC` |
-| Stripe ENV не са в Vercel | Лина | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, payment link URLs |
-| Stripe webhook не е регистриран | Лина | `https://salonapp.pro/api/webhooks/stripe` в Stripe Dashboard |
-| Няма автоматична деактивация при изтекъл план | Поли | Cron job или pg_cron |
 | Банер при super-admin impersonation | Поли | `app/admin/(protected)/layout.tsx` |
+| Автоматична деактивация при изтекъл план | Поли | Vercel Cron Job |
+| Unsubscribe endpoint | Поли | URL се генерира, handler липсва |
+| Dunning email при failed payment | Поли | само console.warn() в момента |
 
 ---
 
@@ -133,3 +164,4 @@
 - Supabase RLS — service role заобикаля RLS; внимавай при UPDATE
 - `groom` шаблон — за мъжки бръснарници, не смесвай с дамска логика
 - `lib/phone.ts` `normalizePhone()` — ако правиш промени тук, пусни и миграция за DB
+- `lib/scheduling.ts` `generateSlots()` — covered с 22 unit теста; промени → пусни `npm test` първо
