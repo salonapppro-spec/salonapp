@@ -3,6 +3,7 @@ import { z } from "zod";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { tenantDb } from "@/lib/tenant-db";
+import { normalizePhone } from "@/lib/phone";
 
 const CreateSchema = z.object({
   name: z.string().min(1, "Името е задължително"),
@@ -23,9 +24,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: first?.message ?? "Невалидни данни" }, { status: 400 });
   }
 
+  const rawPhone = parsed.data.phone.trim();
   const { data, error } = await tenantDb(salonSlug).clients.create({
     name: parsed.data.name.trim(),
-    phone: parsed.data.phone.trim(),
+    phone: normalizePhone(rawPhone) || rawPhone,
     email: parsed.data.email || null,
     notes: parsed.data.notes || null,
   });

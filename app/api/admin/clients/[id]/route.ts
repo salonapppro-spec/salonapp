@@ -4,6 +4,7 @@ import { z } from "zod";
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { getBookingsForClientPhoneAdmin, getClientByIdAdmin } from "@/lib/data";
 import { tenantDb } from "@/lib/tenant-db";
+import { normalizePhone } from "@/lib/phone";
 
 const PatchSchema = z.object({
   name: z.string().min(1).optional(),
@@ -59,6 +60,9 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   const patch = { ...parsed.data };
   if (patch.email === "") patch.email = null;
+  if (patch.phone) {
+    patch.phone = normalizePhone(patch.phone) || patch.phone;
+  }
 
   const { data, error } = await tenantDb(salonSlug).clients.updateById(id, patch);
   if (error) return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });

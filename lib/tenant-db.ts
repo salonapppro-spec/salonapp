@@ -1,4 +1,5 @@
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { normalizePhone } from "@/lib/phone";
 
 const TENANT_SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -101,7 +102,7 @@ export function tenantDb(rawSlug: string) {
         return q("clients")
           .select("name,email")
           .eq("salon_slug", salonSlug)
-          .eq("phone", phone)
+          .eq("phone", normalizePhone(phone) || phone.trim())
           .maybeSingle();
       },
       /**
@@ -110,7 +111,8 @@ export function tenantDb(rawSlug: string) {
        * защото при някои инсталации composite upsert не се прилага надеждно и грешката остава скрита.
        */
       upsertByPhone(values: AnyRow) {
-        const phoneRaw = String((values as { phone?: unknown }).phone ?? "").trim();
+        const phoneRaw = normalizePhone(String((values as { phone?: unknown }).phone ?? "")) ||
+          String((values as { phone?: unknown }).phone ?? "").trim();
         const phone = phoneRaw.length > 0 ? phoneRaw : "00000";
         const row = withTenantSlug(
           {

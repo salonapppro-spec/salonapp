@@ -3,6 +3,7 @@ import type { CreateBookingInput } from "@/schemas/booking";
 import { getBlockedSlotsForDate, getFinancialSettings, getWorkingHoursForDate } from "@/lib/data";
 import { getTenant } from "@/lib/get-tenant";
 import { tenantDb } from "@/lib/tenant-db";
+import { normalizePhone } from "@/lib/phone";
 import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 import { calculateDuration, timeToMinutes } from "@/lib/scheduling";
 import { sendConfirmationEmail } from "@/lib/email";
@@ -63,6 +64,10 @@ export async function runCreateBooking(
 ): Promise<CreateBookingResult> {
   const db = tenantDb(data.salon_slug);
   const bufferMinutes = opts.bufferMinutes;
+
+  // Normalize phone once at entry so bookings and clients share the same key
+  const rawPhone = data.client_phone ?? "00000";
+  data = { ...data, client_phone: normalizePhone(rawPhone) || rawPhone };
 
   const { data: serviceRow, error: serviceErr } = await db.services.getActiveById(data.service_id);
 
