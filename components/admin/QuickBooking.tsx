@@ -111,14 +111,14 @@ export function QuickBooking(props: {
     const p = phone.trim();
     if (p.length < 5) return;
     try {
-      const qs = new URLSearchParams({ salon_slug: salonSlug, phone: p });
-      const res = await fetch(`/api/clients/lookup?${qs.toString()}`);
+      const qs = new URLSearchParams({ phone: p });
+      const res = await fetch(`/api/admin/clients/lookup?${qs.toString()}`);
       const json = (await res.json()) as { name?: string | null; email?: string | null };
       if (!res.ok) return;
       if (json.name && !clientName.trim()) setClientName(json.name);
       if (json.email && !email.trim()) setEmail(json.email);
     } catch { /* ignore */ }
-  }, [phone, salonSlug, clientName, email]);
+  }, [phone, clientName, email]);
 
   async function save() {
     if (!selected) { setError("Изберете услуга."); return; }
