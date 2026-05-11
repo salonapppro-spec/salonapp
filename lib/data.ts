@@ -4,6 +4,7 @@ import type { Client, GalleryItem, Service, Specialist, Tenant, WorkingHours, Bl
 import type { FinancialSettings, SalonData } from "@/types/database";
 import { getTenant } from "@/lib/get-tenant";
 import { tenantDb } from "@/lib/tenant-db";
+import { normalizePhone } from "@/lib/phone";
 import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 
 export async function getTenantBySalonSlug(salonSlug: string): Promise<Tenant | null> {
@@ -330,7 +331,7 @@ export async function getClientByIdAdmin(salonSlug: string, id: string): Promise
 }
 
 export async function getBookingsForClientPhoneAdmin(salonSlug: string, phone: string): Promise<Booking[]> {
-  const normalized = phone.trim();
+  const normalized = normalizePhone(phone) || phone.trim();
   if (!normalized) return [];
   const { data, error } = await tenantDb(salonSlug).bookings.listByClientPhone(normalized);
   if (error) throw error;
@@ -338,7 +339,7 @@ export async function getBookingsForClientPhoneAdmin(salonSlug: string, phone: s
 }
 
 export async function lookupClientByPhone(salonSlug: string, phone: string): Promise<{ name: string | null; email: string | null }> {
-  const normalized = phone.trim();
+  const normalized = normalizePhone(phone) || phone.trim();
   if (!normalized) return { name: null, email: null };
   const { data, error } = await tenantDb(salonSlug).clients.lookupByPhone(normalized);
   if (error || !data) return { name: null, email: null };
