@@ -12,6 +12,7 @@ import { assertTenantActiveForPublicApi } from "@/lib/public-tenant-guard";
 import { calculateDuration, generateSlots } from "@/lib/scheduling";
 import { requireTenantFromHeaders } from "@/lib/tenant-request";
 import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
+import { todayDateISOInSofia, nowMinutesInSofia } from "@/lib/booking-datetime";
 import type { HairDensity, HairLength } from "@/types";
 
 const QuerySchema = z.object({
@@ -70,6 +71,9 @@ export async function GET(req: Request) {
     serviceDuration = calculateDuration(service, hair_length, hair_density).totalMinutes;
   }
 
+  // For today: clients need at least 30 min advance booking time
+  const minStartMinutes = date === todayDateISOInSofia() ? nowMinutesInSofia() + 30 : undefined;
+
   const slots = generateSlots({
     workStart: workingHours.start_time,
     workEnd: workingHours.end_time,
@@ -79,6 +83,7 @@ export async function GET(req: Request) {
     bufferMinutes,
     slotInterval: 15,
     magneticEnabled,
+    minStartMinutes,
   });
 
   return NextResponse.json({ slots });

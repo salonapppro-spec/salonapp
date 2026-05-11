@@ -6,6 +6,7 @@ import { tenantDb } from "@/lib/tenant-db";
 import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 import { calculateDuration, timeToMinutes } from "@/lib/scheduling";
 import { sendConfirmationEmail } from "@/lib/email";
+import { todayDateISOInSofia, nowMinutesInSofia } from "@/lib/booking-datetime";
 
 function isMissingBookingEndTimeColumnError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -116,6 +117,15 @@ export async function runCreateBooking(
 
   if (serviceEnd > 24 * 60) {
     return { ok: false, error: "Часът не може да приключи след полунощ. Моля изберете по-ранен час." };
+  }
+
+  // Reject past bookings
+  const todayStr = todayDateISOInSofia();
+  if (data.booking_date < todayStr) {
+    return { ok: false, error: "Не може да се запази час за минала дата." };
+  }
+  if (data.booking_date === todayStr && start < nowMinutesInSofia()) {
+    return { ok: false, error: "Не може да се запази час за вече минал час." };
   }
 
   const [yy, mm, dd] = data.booking_date.split("-").map(Number);

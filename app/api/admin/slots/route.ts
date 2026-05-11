@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { todayDateISOInSofia, nowMinutesInSofia } from "@/lib/booking-datetime";
 import {
   getBlockedSlotsForDate,
   getBookingsForDateAdmin,
@@ -66,6 +67,9 @@ export async function GET(req: Request) {
     serviceDuration = calculateDuration(service, hl, hd).totalMinutes;
   }
 
+  // For today: admins can book from current minute (no advance window needed)
+  const minStartMinutes = date === todayDateISOInSofia() ? nowMinutesInSofia() : undefined;
+
   const slots = generateSlots({
     workStart: wh.start_time,
     workEnd: wh.end_time,
@@ -75,6 +79,7 @@ export async function GET(req: Request) {
     bufferMinutes,
     slotInterval: 15,
     magneticEnabled,
+    minStartMinutes,
   });
 
   return NextResponse.json({ slots });
