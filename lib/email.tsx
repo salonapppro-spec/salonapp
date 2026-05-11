@@ -130,6 +130,36 @@ export async function sendConfirmationEmail(booking: Booking, tenant: Tenant): P
   });
 }
 
+export async function sendSalonBookingNotification(booking: Booking, tenant: Tenant): Promise<void> {
+  const to = (tenant.owner_email ?? tenant.email)?.trim();
+  if (!to) return;
+
+  const date = DateTime.fromISO(booking.booking_date, { zone: "Europe/Sofia" })
+    .setLocale("bg")
+    .toFormat("d MMMM yyyy");
+  const time = formatTime(booking.booking_time);
+
+  const html = `
+<!DOCTYPE html>
+<html lang="bg">
+<body style="font-family:Arial,sans-serif;color:#222;max-width:520px;margin:0 auto;padding:24px">
+  <h2 style="color:#1a1a1a;margin-bottom:4px">📅 Нова резервация</h2>
+  <p style="color:#555;margin-top:0">${tenant.salon_name}</p>
+  <table style="width:100%;border-collapse:collapse;margin:16px 0">
+    <tr><td style="padding:8px 0;color:#666;width:130px">Клиент</td><td style="padding:8px 0;font-weight:600">${booking.client_name}</td></tr>
+    <tr><td style="padding:8px 0;color:#666">Телефон</td><td style="padding:8px 0">${booking.client_phone}</td></tr>
+    ${booking.client_email ? `<tr><td style="padding:8px 0;color:#666">Имейл</td><td style="padding:8px 0">${booking.client_email}</td></tr>` : ""}
+    <tr><td style="padding:8px 0;color:#666">Услуга</td><td style="padding:8px 0">${booking.service_name}</td></tr>
+    <tr><td style="padding:8px 0;color:#666">Дата и час</td><td style="padding:8px 0;font-weight:600">${date} в ${time}</td></tr>
+    ${booking.notes ? `<tr><td style="padding:8px 0;color:#666">Бележки</td><td style="padding:8px 0">${booking.notes}</td></tr>` : ""}
+  </table>
+  <p style="font-size:12px;color:#999;margin-top:32px">SalonApp.pro — автоматично известие</p>
+</body>
+</html>`;
+
+  await sendResendHtml(to, `Нова резервация: ${booking.client_name} — ${date} ${time}`, html);
+}
+
 export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promise<void> {
   const baseUrl = getPublicAppUrl();
   const token = booking.confirmation_token ?? "";
