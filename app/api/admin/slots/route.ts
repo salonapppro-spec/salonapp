@@ -4,7 +4,7 @@ import { z } from "zod";
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import {
   getBlockedSlotsForDate,
-  getBookingsForDate,
+  getBookingsForDateAdmin,
   getFinancialSettings,
   getAllServicesAdmin,
   getWorkingHoursForDate,
@@ -44,14 +44,15 @@ export async function GET(req: Request) {
     getAllServicesAdmin(salonSlug),
     getFinancialSettings(salonSlug),
     getWorkingHoursForDate({ salonSlug, specialistId: specialist_id, dayOfWeek }),
-    getBookingsForDate({ salonSlug, specialistId: specialist_id, date }),
+    getBookingsForDateAdmin({ salonSlug, specialistId: specialist_id, date }),
     getBlockedSlotsForDate({ salonSlug, specialistId: specialist_id, date }),
   ]);
 
   const service = services.find((s) => s.id === service_id);
   if (!service) return NextResponse.json({ error: "Service not found" }, { status: 404 });
 
-  const bufferMinutes = Number(settings?.buffer_minutes ?? 10);
+  // Admin endpoint — no buffer so admins see all truly free slots without artificial gaps
+  const bufferMinutes = 0;
   const magneticEnabled = Boolean(settings?.magnetic_scheduling ?? true);
 
   const fallback = DEFAULT_WORKING_HOURS_DAYS[dayOfWeek] ?? { start_time: "09:00", end_time: "18:00", is_day_off: false };
