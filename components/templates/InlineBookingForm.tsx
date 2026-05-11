@@ -21,8 +21,58 @@ const DEMO_SLOTS: TimeSlot[] = [
   { time: "16:00", magnetic: false },
 ];
 
+interface BookingResult {
+  serviceName: string;
+  date: string;
+  time: string;
+  durationMin: number;
+}
+
+function toICalDateTime(dateStr: string, timeStr: string): string {
+  return dateStr.replace(/-/g, "") + "T" + timeStr.replace(":", "") + "00";
+}
+
+function addMinutes(dateStr: string, timeStr: string, mins: number): string {
+  const [h, m] = timeStr.split(":").map(Number);
+  const total = (h ?? 0) * 60 + (m ?? 0) + mins;
+  const eh = Math.floor(total / 60) % 24;
+  const em = total % 60;
+  return toICalDateTime(dateStr, `${String(eh).padStart(2, "0")}:${String(em).padStart(2, "0")}`);
+}
+
+function googleCalUrl(result: BookingResult, salonName: string, address: string): string {
+  const start = toICalDateTime(result.date, result.time);
+  const end = addMinutes(result.date, result.time, result.durationMin);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `${result.serviceName} @ ${salonName}`,
+    dates: `${start}/${end}`,
+    location: address,
+    details: `Резервация в ${salonName}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function appleCalUrl(result: BookingResult, salonName: string, address: string): string {
+  const start = toICalDateTime(result.date, result.time);
+  const end = addMinutes(result.date, result.time, result.durationMin);
+  const lines = [
+    "BEGIN:VCALENDAR", "VERSION:2.0", "BEGIN:VEVENT",
+    `DTSTART:${start}`, `DTEND:${end}`,
+    `SUMMARY:${result.serviceName} @ ${salonName}`,
+    `LOCATION:${address}`,
+    `DESCRIPTION:Резервация в ${salonName}`,
+    "END:VEVENT", "END:VCALENDAR",
+  ];
+  return "data:text/calendar;charset=utf8," + encodeURIComponent(lines.join("\r\n"));
+}
+
 interface Props {
   salonSlug: string;
+  salonName: string;
+  salonPhone?: string | null;
+  salonAddress?: string | null;
+  salonGoogleMapsEmbed?: string | null;
   services: Service[];
   /** Pass a CSS hex value OR a CSS var reference like "var(--color-primary)" */
   primaryColor: string;
@@ -33,6 +83,10 @@ interface Props {
 
 export function InlineBookingForm({
   salonSlug,
+  salonName,
+  salonPhone,
+  salonAddress,
+  salonGoogleMapsEmbed,
   services,
   primaryColor,
   textColor = "var(--color-text, #1a1a1a)",
@@ -49,6 +103,7 @@ export function InlineBookingForm({
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [bookingResult, setBookingResult] = useState<BookingResult | null>(null);
 
   const activeServices = services.filter((s) => s.is_active);
   const today = new Date().toISOString().split("T")[0];
@@ -70,8 +125,16 @@ export function InlineBookingForm({
     if (!service || !date || !time || !name || !phone) return;
     setStatus("loading");
     setErrorMsg("");
+    const svc = activeServices.find((s) => s.id === service);
+    const result: BookingResult = {
+      serviceName: svc?.name ?? service,
+      date,
+      time,
+      durationMin: svc?.duration_minutes ?? 60,
+    };
     if (isDemo) {
       await new Promise((r) => setTimeout(r, 800));
+      setBookingResult(result);
       setStatus("success");
       return;
     }
@@ -90,6 +153,7 @@ export function InlineBookingForm({
         }),
       });
       if (res.ok) {
+        setBookingResult(result);
         setStatus("success");
       } else {
         const json = (await res.json().catch(() => ({}))) as { error?: string };
@@ -102,17 +166,130 @@ export function InlineBookingForm({
     }
   }
 
-  if (status === "success") {
+  if (status === "success" && bookingResult) {
+    const address = salonAddress ?? "";
+    const googleUrl = googleCalUrl(bookingResult, salonName, address);
+    const appleUrl = appleCalUrl(bookingResult, salonName, address);
+    const mapsUrl = address ? `https://maps.google.com/?q=${encodeURIComponent(address)}` : null;
+    const formattedDate = new Date(`${bookingResult.date}T12:00:00`).toLocaleDateString("bg-BG", {
+      weekday: "long", day: "numeric", month: "long",
+    });
+
+    const card: React.CSSProperties = {
+      background: `color-mix(in srgb, ${primaryColor} 8%, ${bgColor})`,
+      border: `1px solid color-mix(in srgb, ${primaryColor} 22%, transparent)`,
+      borderRadius: "12px",
+      padding: "18px 20px",
+      marginBottom: "12px",
+      color: textColor,
+    };
+    const label: React.CSSProperties = {
+      fontSize: "10px", fontWeight: 700, letterSpacing: "0.2em",
+      textTransform: "uppercase", color: primaryColor, marginBottom: "12px",
+      fontFamily: "inherit",
+    };
+    const row: React.CSSProperties = {
+      display: "flex", alignItems: "flex-start", gap: "10px",
+      marginBottom: "8px", color: textColor,
+    };
+    const calBtn: React.CSSProperties = {
+      display: "flex", alignItems: "center", justifyContent: "center", gap: "7px",
+      padding: "11px 10px",
+      border: `1.5px solid color-mix(in srgb, ${primaryColor} 30%, transparent)`,
+      borderRadius: "10px", background: "transparent", color: textColor,
+      fontSize: "13px", fontWeight: 600, cursor: "pointer",
+      textDecoration: "none", fontFamily: "inherit", flex: 1,
+    };
+
     return (
-      <div style={{ textAlign: "center", padding: "40px 24px" }}>
-        <div style={{ fontSize: "48px", marginBottom: "16px" }}>✓</div>
-        <h3 style={{ fontSize: "22px", fontWeight: 700, color: textColor, marginBottom: "8px" }}>
-          Заявката е изпратена!
-        </h3>
-        <p style={{ color: textColor, opacity: 0.6, fontSize: "15px", lineHeight: 1.6 }}>
-          Ще получите потвърждение скоро.<br />
-          Напомняне ще бъде изпратено преди часа.
-        </p>
+      <div style={{ maxWidth: "520px", margin: "0 auto", padding: "8px 0 24px" }}>
+        {/* Check icon */}
+        <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div style={{
+            width: "60px", height: "60px", borderRadius: "50%",
+            background: `color-mix(in srgb, ${primaryColor} 15%, transparent)`,
+            display: "flex", alignItems: "center", justifyContent: "center",
+            margin: "0 auto 16px",
+          }}>
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke={primaryColor} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <h3 style={{ fontSize: "24px", fontWeight: 700, color: textColor, marginBottom: "6px", fontFamily: "inherit" }}>
+            Часът е запазен!
+          </h3>
+          <p style={{ fontSize: "14px", color: textColor, opacity: 0.55, lineHeight: 1.6, fontFamily: "inherit" }}>
+            Потвърждение ще получите на имейл.<br />Напомняне ще бъде изпратено преди часа.
+          </p>
+        </div>
+
+        {/* Booking summary */}
+        <div style={card}>
+          <p style={label}>Вашата резервация</p>
+          <div style={row}>
+            <svg style={{ opacity: 0.45, flexShrink: 0, marginTop: 1 }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+            <div>
+              <div style={{ fontSize: "15px", fontWeight: 600 }}>{bookingResult.serviceName}</div>
+              <div style={{ fontSize: "13px", opacity: 0.55, marginTop: "2px" }}>{bookingResult.durationMin} минути</div>
+            </div>
+          </div>
+          <div style={{ ...row, marginBottom: 0 }}>
+            <svg style={{ opacity: 0.45, flexShrink: 0, marginTop: 1 }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            <div>
+              <div style={{ fontSize: "15px", fontWeight: 600, textTransform: "capitalize" }}>{formattedDate}</div>
+              <div style={{ fontSize: "13px", opacity: 0.55, marginTop: "2px" }}>в {bookingResult.time} ч.</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Calendar buttons */}
+        <div style={{ display: "flex", gap: "10px", marginBottom: "12px" }}>
+          <a href={googleUrl} target="_blank" rel="noopener noreferrer" style={calBtn}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Google Calendar
+          </a>
+          <a href={appleUrl} download="rezervacia.ics" style={calBtn}>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+            Apple Calendar
+          </a>
+        </div>
+
+        {/* Salon contact */}
+        {(salonPhone ?? salonAddress ?? salonGoogleMapsEmbed) && (
+          <div style={card}>
+            <p style={label}>Как да ни намерите</p>
+            {salonPhone && (
+              <div style={row}>
+                <svg style={{ opacity: 0.45, flexShrink: 0, marginTop: 1 }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.08 6.08l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                <a href={`tel:${salonPhone.replace(/\s/g, "")}`} style={{ color: textColor, textDecoration: "none", fontWeight: 600, fontSize: "15px" }}>{salonPhone}</a>
+              </div>
+            )}
+            {salonAddress && (
+              <div style={{ ...row, marginBottom: 0 }}>
+                <svg style={{ opacity: 0.45, flexShrink: 0, marginTop: 1 }} width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <div>
+                  <div style={{ fontSize: "15px", fontWeight: 600 }}>{salonAddress}</div>
+                  {mapsUrl && (
+                    <a href={mapsUrl} target="_blank" rel="noopener noreferrer" style={{ display: "inline-flex", alignItems: "center", gap: "5px", fontSize: "13px", fontWeight: 600, color: primaryColor, textDecoration: "none", marginTop: "4px" }}>
+                      Виж в Google Карти
+                      <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                    </a>
+                  )}
+                </div>
+              </div>
+            )}
+            {salonGoogleMapsEmbed && (
+              <iframe
+                src={salonGoogleMapsEmbed}
+                style={{ width: "100%", height: "170px", border: "none", borderRadius: "10px", marginTop: "14px", display: "block" }}
+                allowFullScreen
+                loading="lazy"
+                referrerPolicy="no-referrer-when-downgrade"
+                title="Карта на салона"
+              />
+            )}
+          </div>
+        )}
       </div>
     );
   }

@@ -922,6 +922,10 @@ export function Luxe({ data }: { data: SalonData }) {
           </p>
           <InlineBookingForm
             salonSlug={tenant.salon_slug}
+            salonName={tenant.salon_name}
+            salonPhone={tenant.phone}
+            salonAddress={tenant.address}
+            salonGoogleMapsEmbed={tenant.google_maps_embed}
             services={services}
             primaryColor="var(--gold)"
             textColor="#f5f0e8"

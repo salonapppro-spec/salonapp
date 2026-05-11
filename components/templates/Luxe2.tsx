@@ -403,6 +403,10 @@ export function Luxe2({ data }: { data: SalonData }) {
             </div>
             <InlineBookingForm
               salonSlug={tenant.salon_slug}
+              salonName={tenant.salon_name}
+              salonPhone={tenant.phone}
+              salonAddress={tenant.address}
+              salonGoogleMapsEmbed={tenant.google_maps_embed}
               services={flatServices}
               primaryColor={gold}
               textColor="var(--dark)"

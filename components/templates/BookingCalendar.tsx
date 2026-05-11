@@ -37,16 +37,72 @@ function nowMinutes(): number {
   return n.getHours() * 60 + n.getMinutes();
 }
 
+interface BookingResult {
+  serviceName: string;
+  date: string;
+  time: string;
+  durationMin: number;
+}
+
 interface Props {
   salonSlug: string;
+  salonName: string;
+  salonPhone?: string | null;
+  salonAddress?: string | null;
+  salonGoogleMapsEmbed?: string | null;
   services: Service[];
   workingHours: WorkingHours[];
   initialSpecialistId?: string | null;
   isDemo?: boolean;
 }
 
+function toICalDateTime(dateStr: string, timeStr: string): string {
+  return dateStr.replace(/-/g, "") + "T" + timeStr.replace(":", "") + "00";
+}
+
+function addMinutes(dateStr: string, timeStr: string, mins: number): string {
+  const [h, m] = timeStr.split(":").map(Number);
+  const total = (h ?? 0) * 60 + (m ?? 0) + mins;
+  const eh = Math.floor(total / 60) % 24;
+  const em = total % 60;
+  const endTime = `${String(eh).padStart(2, "0")}:${String(em).padStart(2, "0")}`;
+  return toICalDateTime(dateStr, endTime);
+}
+
+function googleCalUrl(result: BookingResult, salonName: string, address: string): string {
+  const start = toICalDateTime(result.date, result.time);
+  const end = addMinutes(result.date, result.time, result.durationMin);
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `${result.serviceName} @ ${salonName}`,
+    dates: `${start}/${end}`,
+    location: address,
+    details: `Резервация в ${salonName}`,
+  });
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
+function appleCalUrl(result: BookingResult, salonName: string, address: string): string {
+  const start = toICalDateTime(result.date, result.time);
+  const end = addMinutes(result.date, result.time, result.durationMin);
+  const lines = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "BEGIN:VEVENT",
+    `DTSTART:${start}`,
+    `DTEND:${end}`,
+    `SUMMARY:${result.serviceName} @ ${salonName}`,
+    `LOCATION:${address}`,
+    `DESCRIPTION:Резервация в ${salonName}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ];
+  return "data:text/calendar;charset=utf8," + encodeURIComponent(lines.join("\r\n"));
+}
+
 export function BookingCalendar({
-  salonSlug, services, workingHours, initialSpecialistId, isDemo = false,
+  salonSlug, salonName, salonPhone, salonAddress, salonGoogleMapsEmbed,
+  services, workingHours, initialSpecialistId, isDemo = false,
 }: Props) {
   const active = services.filter((s) => s.is_active);
   const [serviceId, setServiceId] = useState(active[0]?.id ?? "");
@@ -61,6 +117,7 @@ export function BookingCalendar({
   const [email, setEmail] = useState("");
   const [submitStatus, setSubmitStatus] = useState<"idle"|"loading"|"success"|"error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
+  const [bookingResult, setBookingResult] = useState<BookingResult | null>(null);
 
   // Map day_of_week → is_day_off (0=Sun … 6=Sat)
   const workingDays = new Set(workingHours.filter((wh) => !wh.is_day_off).map((wh) => wh.day_of_week));
@@ -94,8 +151,16 @@ export function BookingCalendar({
     if (!selectedDate || !selectedTime || !serviceId || !name.trim() || !isValidPhone(phone) || !email.trim()) return;
     setSubmitStatus("loading");
     setErrorMsg("");
+    const svc = active.find((s) => s.id === serviceId);
+    const result: BookingResult = {
+      serviceName: svc?.name ?? selectedServiceName,
+      date: selectedDate,
+      time: selectedTime,
+      durationMin: svc?.duration_minutes ?? 60,
+    };
     if (isDemo) {
       await new Promise((r) => setTimeout(r, 900));
+      setBookingResult(result);
       setSubmitStatus("success");
       return;
     }
@@ -114,7 +179,7 @@ export function BookingCalendar({
           specialist_id: initialSpecialistId ?? undefined,
         }),
       });
-      if (res.ok) { setSubmitStatus("success"); }
+      if (res.ok) { setBookingResult(result); setSubmitStatus("success"); }
       else {
         const j = (await res.json().catch(() => ({}))) as { error?: string };
         setErrorMsg(j.error ?? "Грешка. Опитайте пак.");
@@ -153,18 +218,176 @@ export function BookingCalendar({
   const cells = buildCells();
   const canSubmit = !!(selectedDate && selectedTime && serviceId && name.trim() && isValidPhone(phone) && email.trim()) && submitStatus !== "loading";
 
-  if (submitStatus === "success") {
+  if (submitStatus === "success" && bookingResult) {
+    const address = salonAddress ?? "";
+    const googleUrl = googleCalUrl(bookingResult, salonName, address);
+    const appleUrl = appleCalUrl(bookingResult, salonName, address);
+    const mapsUrl = address
+      ? `https://maps.google.com/?q=${encodeURIComponent(address)}`
+      : null;
+    const formattedDate = new Date(`${bookingResult.date}T12:00:00`).toLocaleDateString("bg-BG", {
+      weekday: "long", day: "numeric", month: "long",
+    });
     return (
-      <div style={{ textAlign: "center", padding: "60px 24px" }}>
-        <div style={{ fontSize: "56px", marginBottom: "16px" }}>✓</div>
-        <h3 style={{ fontSize: "24px", fontWeight: 700, color: "var(--color-text)", marginBottom: "10px", fontFamily: "var(--font-heading)" }}>
-          Часът е запазен!
-        </h3>
-        <p style={{ fontSize: "16px", color: "var(--color-text)", opacity: 0.62, lineHeight: 1.7, fontFamily: "var(--font-body)" }}>
-          Ще получите потвърждение на имейл или SMS.<br />
-          Напомняне ще бъде изпратено преди часа.
-        </p>
-      </div>
+      <>
+        <style>{`
+          .bcal-confirm { max-width: 520px; margin: 0 auto; padding: 8px 0 32px; }
+          .bcal-confirm-check {
+            width: 64px; height: 64px; border-radius: 50%;
+            background: color-mix(in srgb, var(--color-primary) 15%, transparent);
+            display: flex; align-items: center; justify-content: center;
+            margin: 0 auto 20px;
+          }
+          .bcal-confirm-check svg { color: var(--color-primary); }
+          .bcal-confirm-title {
+            font-size: 26px; font-weight: 700; text-align: center;
+            color: var(--color-text); font-family: var(--font-heading);
+            margin-bottom: 6px;
+          }
+          .bcal-confirm-sub {
+            text-align: center; font-size: 15px;
+            color: var(--color-text); opacity: 0.55;
+            font-family: var(--font-body); line-height: 1.6;
+            margin-bottom: 28px;
+          }
+          .bcal-confirm-card {
+            background: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg));
+            border: 1px solid color-mix(in srgb, var(--color-primary) 20%, transparent);
+            border-radius: var(--border-radius, 14px);
+            padding: 20px 22px; margin-bottom: 16px;
+          }
+          .bcal-confirm-card-label {
+            font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
+            text-transform: uppercase; color: var(--color-primary);
+            font-family: var(--font-nav); margin-bottom: 12px;
+          }
+          .bcal-confirm-row {
+            display: flex; align-items: flex-start; gap: 10px;
+            font-family: var(--font-body); color: var(--color-text);
+            margin-bottom: 8px;
+          }
+          .bcal-confirm-row:last-child { margin-bottom: 0; }
+          .bcal-confirm-row-icon { opacity: 0.5; flex-shrink: 0; margin-top: 1px; }
+          .bcal-confirm-row-main { font-size: 15px; font-weight: 600; }
+          .bcal-confirm-row-sub { font-size: 13px; opacity: 0.6; margin-top: 1px; }
+          .bcal-confirm-cal-btns {
+            display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+            margin-bottom: 16px;
+          }
+          .bcal-confirm-cal-btn {
+            display: flex; align-items: center; justify-content: center; gap: 7px;
+            padding: 12px 14px;
+            border: 1.5px solid color-mix(in srgb, var(--color-primary) 30%, transparent);
+            border-radius: var(--border-radius, 10px);
+            background: transparent; color: var(--color-text);
+            font-size: 13px; font-weight: 600; font-family: var(--font-body);
+            cursor: pointer; text-decoration: none;
+            transition: background 0.15s, border-color 0.15s;
+          }
+          .bcal-confirm-cal-btn:hover {
+            background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+            border-color: var(--color-primary);
+          }
+          .bcal-confirm-map-link {
+            display: inline-flex; align-items: center; gap: 6px;
+            font-size: 13px; font-weight: 600; color: var(--color-primary);
+            font-family: var(--font-body); text-decoration: none;
+            margin-top: 4px;
+          }
+          .bcal-confirm-map-link:hover { text-decoration: underline; }
+          .bcal-confirm-tel {
+            color: var(--color-text); text-decoration: none; font-weight: 600;
+            font-size: 15px;
+          }
+          .bcal-confirm-tel:hover { color: var(--color-primary); }
+          .bcal-confirm-embed {
+            width: 100%; height: 180px; border: none;
+            border-radius: var(--border-radius, 10px);
+            margin-top: 14px; display: block;
+          }
+        `}</style>
+        <div className="bcal-confirm">
+          <div className="bcal-confirm-check">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+          <h3 className="bcal-confirm-title">Часът е запазен!</h3>
+          <p className="bcal-confirm-sub">
+            Потвърждение ще получите на имейл.<br />Напомняне ще бъде изпратено преди часа.
+          </p>
+
+          {/* Booking summary */}
+          <div className="bcal-confirm-card">
+            <p className="bcal-confirm-card-label">Вашата резервация</p>
+            <div className="bcal-confirm-row">
+              <svg className="bcal-confirm-row-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M12 2a10 10 0 1 0 0 20A10 10 0 0 0 12 2z"/><path d="M12 6v6l4 2"/></svg>
+              <div>
+                <div className="bcal-confirm-row-main">{bookingResult.serviceName}</div>
+                <div className="bcal-confirm-row-sub">{bookingResult.durationMin} минути</div>
+              </div>
+            </div>
+            <div className="bcal-confirm-row">
+              <svg className="bcal-confirm-row-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              <div>
+                <div className="bcal-confirm-row-main" style={{ textTransform: "capitalize" }}>{formattedDate}</div>
+                <div className="bcal-confirm-row-sub">в {bookingResult.time} ч.</div>
+              </div>
+            </div>
+          </div>
+
+          {/* Add to calendar */}
+          <div className="bcal-confirm-cal-btns">
+            <a href={googleUrl} target="_blank" rel="noopener noreferrer" className="bcal-confirm-cal-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Google Calendar
+            </a>
+            <a href={appleUrl} download="rezervacia.ics" className="bcal-confirm-cal-btn">
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+              Apple Calendar
+            </a>
+          </div>
+
+          {/* Salon contact info */}
+          {(salonPhone ?? salonAddress ?? salonGoogleMapsEmbed) && (
+            <div className="bcal-confirm-card">
+              <p className="bcal-confirm-card-label">Как да ни намерите</p>
+              {salonPhone && (
+                <div className="bcal-confirm-row">
+                  <svg className="bcal-confirm-row-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 13a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 2.18h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 9.91a16 16 0 0 0 6.08 6.08l.9-.9a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
+                  <div>
+                    <a href={`tel:${salonPhone.replace(/\s/g, "")}`} className="bcal-confirm-tel">{salonPhone}</a>
+                  </div>
+                </div>
+              )}
+              {salonAddress && (
+                <div className="bcal-confirm-row">
+                  <svg className="bcal-confirm-row-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                  <div>
+                    <div className="bcal-confirm-row-main">{salonAddress}</div>
+                    {mapsUrl && (
+                      <a href={mapsUrl} target="_blank" rel="noopener noreferrer" className="bcal-confirm-map-link">
+                        Виж в Google Карти
+                        <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              )}
+              {salonGoogleMapsEmbed && (
+                <iframe
+                  src={salonGoogleMapsEmbed}
+                  className="bcal-confirm-embed"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                  title="Карта на салона"
+                />
+              )}
+            </div>
+          )}
+        </div>
+      </>
     );
   }
 

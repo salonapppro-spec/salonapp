@@ -992,6 +992,10 @@ export function Bloom({ data }: { data: SalonData }) {
             </p>
             <BookingCalendar
               salonSlug={tenant.salon_slug}
+              salonName={tenant.salon_name}
+              salonPhone={tenant.phone}
+              salonAddress={tenant.address}
+              salonGoogleMapsEmbed={tenant.google_maps_embed}
               services={services}
               workingHours={data.workingHours}
               isDemo={tenant.salon_slug.startsWith("demo/")}
