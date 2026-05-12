@@ -286,7 +286,35 @@ export async function POST(req: Request) {
       case "invoice.payment_failed": {
         const invoice = event.data.object as Stripe.Invoice;
         const email = (invoice as unknown as { customer_email?: string }).customer_email ?? "";
+        const customerId = typeof invoice.customer === "string" ? invoice.customer : null;
+        const subscriptionId =
+          typeof (invoice as unknown as { subscription?: unknown }).subscription === "string"
+            ? ((invoice as unknown as { subscription?: string }).subscription ?? null)
+            : null;
         console.warn(`[stripe-webhook] ⚠️ Неуспешно плащане за ${email}`);
+        const found = await findTenant(customerId, subscriptionId, email);
+        const notifyEmail = found.tenant?.owner_email ?? (email || null);
+        if (notifyEmail && process.env.RESEND_API_KEY) {
+          const salonName = found.tenant?.salon_name ?? found.tenant?.salon_slug ?? email;
+          await fetch("https://api.resend.com/emails", {
+            method: "POST",
+            headers: {
+              Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
+              to: [notifyEmail],
+              subject: "SalonApp — плащането не беше успешно",
+              html: `
+                <p>Здравейте,</p>
+                <p>Плащането за абонамента на <strong>${salonName}</strong> не беше успешно.</p>
+                <p>Моля, обновете начина на плащане, за да запазите достъпа до SalonApp.</p>
+                <p>Ако имате въпроси, пишете ни на <a href="mailto:support@salonapp.pro">support@salonapp.pro</a>.</p>
+              `,
+            }),
+          }).catch((e) => console.error("[stripe-webhook] dunning email error:", e));
+        }
         break;
       }
 
