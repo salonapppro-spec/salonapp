@@ -2,6 +2,21 @@
 
 ---
 
+## 2026-05-12 — Поли: Redis, GDPR export, Sentry config
+
+**PR #21–23 мержнати.**
+
+- **Upstash Redis** — DB `salonapp-ratelimit` (Frankfurt) създадена от Лина, ENV vars добавени в Vercel → rate limiting вече работи реално при 100 салона
+- **GDPR export** (`POST /api/gdpr/export`) — клиентът подава имейл/телефон, получава данните на имейла си; данните не се връщат директно в response
+- **Sentry config files** — добавени `sentry.client/server/edge.config.ts` (Sentry работеше и преди от Apr 22)
+- **TODO и HANDOFF** актуализирани
+
+### Текущо състояние
+- Единственото, което блокира реалните плащания: **Stripe** (Payment Links + Webhook + ENV vars)
+- Всичко останало е production-ready
+
+---
+
 ## 2026-05-12 — Поли: Планове, super-admin UI, GDPR, analytics, dunning email
 
 **PR #13–19 мержнати и деплойнати.**
