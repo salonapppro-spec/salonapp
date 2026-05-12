@@ -190,6 +190,14 @@ export async function middleware(request: NextRequest) {
     const r = await rl(`gdpr-delete:${ip}`, RATE.gdprDeletePost, "gdpr_delete");
     if (r) return r;
   }
+  if (pathname === "/api/gdpr/export" && m === "POST") {
+    const r = await rl(`gdpr-export:${ip}`, RATE.gdprExportPost, "gdpr_export");
+    if (r) return r;
+  }
+  if (pathname === "/api/gdpr/export/confirm" && m === "GET") {
+    const r = await rl(`gdpr-export-confirm:${ip}`, RATE.gdprExportConfirm, "gdpr_export_confirm");
+    if (r) return r;
+  }
   if (pathname === "/api/track" && m === "POST") {
     const r = await rl(`track-post:${ip}`, RATE.trackPost, "track_post");
     if (r) return r;
