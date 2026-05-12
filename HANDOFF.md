@@ -1,3 +1,74 @@
+# HANDOFF — последна актуализация: 2026-05-12
+
+---
+
+## 2026-05-12 — Поли: Планове, super-admin UI, GDPR, analytics, dunning email
+
+**PR #13–19 мержнати и деплойнати.**
+
+### Rename на плановете
+- Стари: `standard(19€) | pro(29€) | premium(49€) | collective(49€)`
+- Нови: `starter(15€) | standard(19€) | pro(29€) | premium(49€)`
+- Migration 026 приложена в production Supabase
+- 19 файла обновени (types, schemas, components, pages)
+- Super-admin dropdowns показват само **Име — Цена** (без ID)
+- `lib/marketing-data.ts` имена: Стартер / Стандарт / Про / Премиум
+
+### Super-admin UI
+- Премахнати **Шаблон** и **Цвят** от tenant edit форма (ненужни там)
+- CI fix: `app/super-admin/leads/actions.ts` добавен в service-role allowlist
+
+### Unsubscribe endpoint (GDPR)
+- `app/api/unsubscribe/route.ts` — GET `?booking=<id>&token=<confirmation_token>`
+- Верифицира token, записва `email_unsubscribed=true` в bookings
+- Migration 027 (`email_unsubscribed boolean DEFAULT false`) — **приложена от Лина**
+- `lib/email.tsx` → URL е `/api/unsubscribe` (беше `/unsubscribe`)
+- Reminder cron пропуска bookings с `email_unsubscribed=true`
+
+### Dunning email
+- `app/api/webhooks/stripe/route.ts` — `invoice.payment_failed`:
+  вече изпраща имейл до `owner_email` с инструкции за обновяване на плащане
+
+### Analytics pixels
+- `components/AnalyticsPixels.tsx` — server component, инжектира FB Pixel, GTM, Clarity
+- Активира се от super-admin → tenant detail → Facebook Pixel / GTM ID полета
+- IDs се санитизират (само `[A-Za-z0-9_-]`) за защита от XSS
+
+### Вече беше готово (одитирано и маркирано):
+- Impersonation banner → `app/admin/(protected)/layout.tsx` ред 49-57 ✅
+- Clean шаблон primary_color → `Clean.tsx` ред 24 ✅
+- Lead нотификация → `lib/lead-notify.ts` ✅
+- Auto-деактивация → `billing-expiry` route + `vercel.json` cron ✅
+
+---
+
+## Текущо състояние — 2026-05-12
+
+| | |
+|---|---|
+| **Branch** | `main` |
+| **Vercel deploy** | автоматично при push |
+| **TypeScript грешки** | Няма |
+| **Unit тестове** | 84/84 ✔ |
+| **DB миграции** | 026 + 027 приложени в production |
+
+### Работи ✅
+- Всичко от предишния handoff +
+- Unsubscribe от имейли (GDPR) ✅
+- Dunning email при failed payment ✅
+- FB Pixel / GTM / Clarity per tenant ✅
+- Планове с правилни имена и цени навсякъде ✅
+
+### Чака ❌ (само Лина)
+
+| Задача | Бележка |
+|--------|---------|
+| Stripe ENV в Vercel | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, 4x Payment Links |
+| Stripe Webhook регистрация | в Stripe Dashboard → `https://salonapp.pro/api/webhooks/stripe` |
+| Upstash Redis | без него rate limiting е in-memory (не работи при 100 салона) |
+
+---
+
 # HANDOFF — последна актуализация: 2026-05-11 (нощта)
 
 ---
