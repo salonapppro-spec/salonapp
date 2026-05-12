@@ -270,10 +270,10 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
           <input name="q" defaultValue={rawQ ?? ""} placeholder="Търси по ime/slug/имейл" className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm" />
           <select name="plan" defaultValue={rawPlan ?? ""} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
             <option value="">Всички планове</option>
-            <option value="starter">standard</option>
-            <option value="standard">pro</option>
-            <option value="pro">premium</option>
-            <option value="premium">collective</option>
+            <option value="starter">starter</option>
+            <option value="standard">standard</option>
+            <option value="pro">pro</option>
+            <option value="premium">premium</option>
           </select>
           <select name="status" defaultValue={rawStatus ?? ""} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
             <option value="">Всички статуси</option>

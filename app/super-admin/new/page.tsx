@@ -245,10 +245,10 @@ export default function NewTenantPage() {
           <div>
             <label className="text-xs text-neutral-400">План</label>
             <select value={plan} onChange={(e) => setPlan(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
-              <option value="starter">standard</option>
-              <option value="standard">pro</option>
-              <option value="pro">premium</option>
-              <option value="premium">collective</option>
+              <option value="starter">starter</option>
+              <option value="standard">standard</option>
+              <option value="pro">pro</option>
+              <option value="premium">premium</option>
             </select>
           </div>
           <div>
