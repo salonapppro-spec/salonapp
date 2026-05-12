@@ -17,7 +17,6 @@ const STATUS_BADGE: Record<string, { label: string; cls: string }> = {
   inactive: { label: "Неактивен",  cls: "bg-red-900/60 text-red-300 border-red-700/60" },
 };
 
-const TEMPLATES = ["bloom", "luxe", "luxe2", "clean", "bold", "zen", "groom"];
 
 export default async function SuperAdminTenantPage({
   params,
@@ -210,27 +209,6 @@ export default async function SuperAdminTenantPage({
                 <option key={p.id} value={p.id}>{p.id} — {p.name} ({p.priceMonthly} {p.priceCurrency})</option>
               ))}
             </select>
-          </div>
-
-          <div>
-            <label className="text-xs text-neutral-400">Шаблон</label>
-            <select name="template" defaultValue={tenant.template} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
-              {TEMPLATES.map((t) => (
-                <option key={t} value={t}>{t}</option>
-              ))}
-            </select>
-          </div>
-
-          <div>
-            <label className="text-xs text-neutral-400">Цвят на сайта</label>
-            <div className="mt-1 flex items-center gap-2">
-              <span
-                className="h-8 w-8 rounded-lg border border-neutral-700 shrink-0"
-                style={{ background: tenant.primary_color ?? "#F2A58E" }}
-              />
-              <span className="font-mono text-sm text-neutral-400">{tenant.primary_color ?? "#F2A58E"}</span>
-              <span className="text-xs text-neutral-600">— управлява се от салона в техния админ панел</span>
-            </div>
           </div>
 
           <div>

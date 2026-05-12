@@ -11,7 +11,7 @@ export function parsePlanId(raw: string | undefined | null): PlanId | undefined 
   return PLAN_IDS.includes(raw as PlanId) ? (raw as PlanId) : undefined;
 }
 
-/** true = вкл., false = изкл., string = пояснение (напр. „+5.99€/спец.“) */
+/** true = вкл., false = изкл., string = пояснение (напр. „+5.99€/спец.") */
 export type PlanCompareCell = boolean | string;
 
 export type PlanComparisonRow = {
@@ -31,50 +31,50 @@ export type MarketingPlan = {
   cardBullets: string[];
 };
 
-const PLAN_BASE: Array<Omit<MarketingPlan, “priceMonthly” | “priceCurrency”>> = [
+const PLAN_BASE: Array<Omit<MarketingPlan, "priceMonthly" | "priceCurrency">> = [
   {
-    id: “starter”,
-    name: “Стартер”,
-    tagline: “Един специалист, пълен старт”,
-    periodLabel: “на месец”,
+    id: "starter",
+    name: "Стартер",
+    tagline: "Един специалист, пълен старт",
+    periodLabel: "на месец",
     cardBullets: [
-      “1 специалист, сайт на субдомейн (*.salonapp.pro)”,
-      “Резервации, имейл 24ч, финанси + ABC, клиенти + CSV, магнитен график”,
-      “Без паралелни услуги, без разширени отчети и SMS”,
+      "1 специалист, сайт на субдомейн (*.salonapp.pro)",
+      "Резервации, имейл 24ч, финанси + ABC, клиенти + CSV, магнитен график",
+      "Без паралелни услуги, без разширени отчети и SMS",
     ],
   },
   {
-    id: “standard”,
-    name: “Стандарт”,
-    tagline: “Най-популярният избор”,
-    periodLabel: “на месец”,
+    id: "standard",
+    name: "Стандарт",
+    tagline: "Най-популярният избор",
+    periodLabel: "на месец",
     highlighted: true,
     cardBullets: [
-      “Всичко от Стартер + паралелни услуги и прозорец за втори клиент”,
-      “Разширен финансов тракер, месечни и годишни отчети”,
-      “„Момичетата с Бизнес” · приоритет при поддръжка”,
+      "Всичко от Стартер + паралелни услуги и прозорец за втори клиент",
+      "Разширен финансов тракер, месечни и годишни отчети",
+      "«Момичетата с Бизнес» · приоритет при поддръжка",
     ],
   },
   {
-    id: “pro”,
-    name: “Про”,
-    tagline: “Бранд и канали”,
-    periodLabel: “на месец”,
+    id: "pro",
+    name: "Про",
+    tagline: "Бранд и канали",
+    periodLabel: "на месец",
     cardBullets: [
-      “Собствен домейн при годишно плащане (екипът купува и управлява)”,
-      “SMS/Viber напомняния 24ч включени”,
-      “Google SEO + физически обект, всички възможности на Стандарт”,
+      "Собствен домейн при годишно плащане (екипът купува и управлява)",
+      "SMS/Viber напомняния 24ч включени",
+      "Google SEO + физически обект, всички възможности на Стандарт",
     ],
   },
   {
-    id: “premium”,
-    name: “Премиум”,
-    tagline: “Екип без централен собственик”,
-    periodLabel: “на месец”,
+    id: "premium",
+    name: "Премиум",
+    tagline: "Екип без централен собственик",
+    periodLabel: "на месец",
     cardBullets: [
-      “Неограничено специалисти; всеки вижда само своите данни”,
-      “Технически админ само за плащане — без достъп до чужди резервации”,
-      “SMS/Viber: +5.99€ на специалист; субдомейн на платформата”,
+      "Неограничено специалисти; всеки вижда само своите данни",
+      "Технически админ само за плащане — без достъп до чужди резервации",
+      "SMS/Viber: +5.99€ на специалист; субдомейн на платформата",
     ],
   },
 ];
@@ -90,7 +90,7 @@ function buildMarketingPlans(): MarketingPlan[] {
 
 export const MARKETING_PLANS: MarketingPlan[] = buildMarketingPlans();
 
-/** Редове 1:1 с MASTER таблицата „Четирите абонаментни плана“. Цените в първия ред идват от `MARKETING_PLANS` при рендер. */
+/** Редове 1:1 с MASTER таблицата „Четирите абонаментни плана". Цените в първия ред идват от `MARKETING_PLANS` при рендер. */
 export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
   {
     label: "Специалисти",
