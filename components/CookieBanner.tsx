@@ -87,9 +87,7 @@ export function CookieBanner() {
               Задължителните бисквитки не могат да бъдат изключени — те са
               необходими за работата на платформата.{" "}
               <a
-                href="https://salonapp.pro/gdpr"
-                target="_blank"
-                rel="noopener noreferrer"
+                href="/legal/privacy"
                 className="underline underline-offset-2 hover:text-[#1A1A1A] transition-colors"
               >
                 Политика за поверителност

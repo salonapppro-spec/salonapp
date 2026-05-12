@@ -149,3 +149,10 @@ NEXT_PUBLIC_STRIPE_PAYMENT_LINK_COLLECTIVE=
 - `SUPER_ADMIN_SALON_COOKIE` — механизмът за impersonation
 - Supabase RLS policies — промяна може да expose данни между тенанти
 - `revalidatePath` в server actions — ако го махнеш, сайтът показва стар кеш
+
+---
+
+## Правило 5: Google Calendar — НИКОГА без изрично разрешение от Лина
+
+- **НЕ** commit-вай, **НЕ** променяй и **НЕ** докосвай Google Calendar файловете освен ако Лина изрично не каже "пипни Google Calendar".
+- Засегнати файлове: `lib/google-calendar.ts`, `lib/google-calendar-sync.ts`, `app/api/admin/integrations/google/**`, `app/api/cron/google-watch-renew/**`, `components/admin/GoogleCalendarIntegrationCard.tsx`

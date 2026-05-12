@@ -44,6 +44,11 @@
 4. "Бърз час": На началния екран задължително има плаващ бутон (FAB) долу вдясно "+" за моментално записване на клиент по телефона.
 5. Индивидуални сайтове на салоните: Зареждат дизайн според избрания шаблон в базата (bloom, luxe, clean, zen, bold).
 
+# ЗАБРАНЕНИ ДЕЙСТВИЯ БЕЗ ИЗРИЧНО РАЗРЕШЕНИЕ ОТ ЛИНА
+
+- **Google Calendar** — НИКОГА не commit-вай, не променяй и не докосвай файловете, свързани с Google Calendar интеграцията, освен ако Лина изрично не каже "пипни Google Calendar".
+  - Засегнати файлове: `lib/google-calendar.ts`, `lib/google-calendar-sync.ts`, `app/api/admin/integrations/google/**`, `app/api/cron/google-watch-renew/**`, `components/admin/GoogleCalendarIntegrationCard.tsx`
+
 # НАЧИН НА РАБОТА С НАС
 
 - **Деплой:** production идва от оригиналния repo (`origin`), вързан за Vercel. **Тест:** след deploy — срещу реалния домейн (не само localhost), освен ако не е казано друго.
