@@ -14,6 +14,7 @@ const ALLOWED_EXACT = new Set([
   "app/api/super-admin/tenants/route.ts",
   "app/super-admin/actions.ts",
   "app/super-admin/page.tsx",
+  "app/super-admin/leads/actions.ts",
   "app/super-admin/leads/page.tsx",
   "app/super-admin/[salon_slug]/page.tsx",
   "app/super-admin/[salon_slug]/builder/page.tsx",
