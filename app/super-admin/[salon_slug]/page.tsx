@@ -153,7 +153,7 @@ export default async function SuperAdminTenantPage({
             <select name="payment_plan" defaultValue={planId} className="rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
               {MARKETING_PLANS.map((p) => (
                 <option key={p.id} value={p.id}>
-                  {p.id} — {p.name}
+                  {p.name} — {p.priceMonthly} {p.priceCurrency}
                 </option>
               ))}
             </select>
@@ -206,7 +206,7 @@ export default async function SuperAdminTenantPage({
             <label className="text-xs text-neutral-400">План</label>
             <select name="plan" defaultValue={tenant.plan} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
               {MARKETING_PLANS.map((p) => (
-                <option key={p.id} value={p.id}>{p.id} — {p.name} ({p.priceMonthly} {p.priceCurrency})</option>
+                <option key={p.id} value={p.id}>{p.name} — {p.priceMonthly} {p.priceCurrency}</option>
               ))}
             </select>
           </div>
