@@ -38,19 +38,17 @@ export async function GET(req: Request) {
     .update({ used_at: new Date().toISOString() })
     .eq("id", tokenRow.id);
 
-  const { email, phone } = tokenRow;
+  const { email } = tokenRow;
 
-  let query = supabase
+  // Query by verified email only. Phone is NOT verified (the token was sent to the email,
+  // not the phone), so using OR client_phone would allow an attacker to supply a victim's
+  // phone number and receive the victim's bookings after verifying their own email.
+  const query = supabase
     .from("bookings")
     .select(
       "id, salon_slug, booking_date, booking_time, service_name, service_price_eur, status, client_name, client_email, client_phone, notes, created_at"
-    );
-
-  if (email && phone) {
-    query = query.or(`client_email.eq.${email},client_phone.eq.${phone}`);
-  } else {
-    query = query.eq("client_email", email);
-  }
+    )
+    .eq("client_email", email);
 
   const { data: bookings, error: dbError } = await query.order("booking_date", { ascending: false });
 
