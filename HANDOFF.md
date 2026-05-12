@@ -1,4 +1,24 @@
-# HANDOFF — последна актуализация: 2026-05-12
+# HANDOFF — последна актуализация: 2026-05-12 (вечер)
+
+---
+
+## 2026-05-12 (вечер) — Поли: Cookie consent, bug fixes
+
+**PR #25–28 мержнати.**
+
+- **Cookie consent banner** — заменен стария прост banner с GDPR-compliant версия:
+  - 3 категории с toggle: Задължителни / Аналитични (GTM+Clarity) / Маркетинг (FB Pixel)
+  - Бутони: "Само задължителни" / "Настройки" / "Приемам всички"
+  - Consent в `localStorage` като `salonapp_cookie_consent` с версия + timestamp
+  - FB Pixel, GTM, Clarity се зареждат само след дадено съгласие (`ConsentAnalytics` client компонент)
+- **Fix: невидими карти на landing** — `ProblemsSection` и `PlansSection` използваха `framer-motion whileInView` с `initial opacity:0`; в framer-motion v12 + Next.js 15 `IntersectionObserver` не тригерваше → заменено с plain divs
+- **Fix: Sentry JS crash** — `sentry.client/server/edge.config.ts` инициализираха Sentry втори път → "Multiple Sentry Session Replay instances not supported" срина React hydration → файловете изтрити
+- **Fix: линк "Политика за поверителност"** в cookie banner-а сочеше към `/gdpr` (404) → оправено на `/legal/privacy`
+- **CLAUDE.md + .cursorrules** — добавено Правило 5: Google Calendar не се пипа без изрично разрешение от Лина
+
+### Текущо състояние
+- Единственото, което блокира реалните плащания: **Stripe** (Payment Links + Webhook + ENV vars)
+- Всичко останало е production-ready
 
 ---
 
