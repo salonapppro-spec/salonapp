@@ -1,7 +1,5 @@
 "use client";
 
-import { motion } from "framer-motion";
-
 const GOLD = "#C9A84C";
 
 const MoonIcon = () => (
@@ -56,27 +54,12 @@ const cards = [
   },
 ];
 
-const fadeUp = {
-  hidden: { y: 40, opacity: 0 },
-  visible: (i: number) => ({
-    y: 0,
-    opacity: 1,
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    transition: { duration: 0.6, ease: "easeOut" as any, delay: i * 0.1 },
-  }),
-};
-
 export default function ProblemsSection() {
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
       {cards.map(({ Icon, title, body }, i) => (
-        <motion.div
+        <div
           key={i}
-          custom={i}
-          initial="hidden"
-          whileInView="visible"
-          viewport={{ once: true, margin: "-60px" }}
-          variants={fadeUp}
           className="flex flex-col gap-4 rounded-2xl border border-[#1A1A1A]/8 bg-white p-7 shadow-sm"
         >
           <div
@@ -91,7 +74,7 @@ export default function ProblemsSection() {
           <p className="text-sm leading-relaxed text-[#1A1A1A]/60">
             {body}
           </p>
-        </motion.div>
+        </div>
       ))}
     </div>
   );
