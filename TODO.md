@@ -32,8 +32,7 @@
 - [ ] **GDPR data export endpoint**
   → `/api/gdpr/delete-request` съществува; `/api/gdpr/export` липсва
 
-- [ ] **Sentry конфигурация и alerts**
-  → `@sentry/nextjs` е инсталиран — провери дали DSN е добавен в Vercel
+- [x] **Sentry конфигурация и alerts** — работи, ENV vars са в Vercel от Apr 22
 
 - [ ] **Статистика в салонския админ**
   → Графика на резервации по месец, най-популярни услуги, revenue tracking
@@ -47,8 +46,7 @@
 - [ ] **Оправи финансовия панел (формули/метрики)**
   → `components/admin/finances/FinanceSummarySection.tsx`, `FinanceAbcSection.tsx`
 
-- [ ] **Профилна снимка / аватар — директен upload**
-  → Вместо URL за логото
+- [x] **Профилна снимка / аватар — директен upload** — вече работи чрез `ImageUpload` + `/api/admin/upload`
 
 ---
 
