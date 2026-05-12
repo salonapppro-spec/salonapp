@@ -2,9 +2,9 @@ import { readPublicPlanPriceCurrency, readPublicPlanPriceMonthly } from "@/lib/m
 
 /** Планове — синхрон с `tenants.plan`, Stripe и MASTER таблицата. */
 
-export type PlanId = "standard" | "pro" | "premium" | "collective";
+export type PlanId = "starter" | "standard" | "pro" | "premium";
 
-export const PLAN_IDS: PlanId[] = ["standard", "pro", "premium", "collective"];
+export const PLAN_IDS: PlanId[] = ["starter", "standard", "pro", "premium"];
 
 export function parsePlanId(raw: string | undefined | null): PlanId | undefined {
   if (!raw) return undefined;
@@ -33,7 +33,7 @@ export type MarketingPlan = {
 
 const PLAN_BASE: Array<Omit<MarketingPlan, "priceMonthly" | "priceCurrency">> = [
   {
-    id: "standard",
+    id: "starter",
     name: "Стандарт",
     tagline: "Един специалист, пълен старт",
     periodLabel: "на месец",
@@ -44,7 +44,7 @@ const PLAN_BASE: Array<Omit<MarketingPlan, "priceMonthly" | "priceCurrency">> = 
     ],
   },
   {
-    id: "pro",
+    id: "standard",
     name: "Про",
     tagline: "Най-популярният избор",
     periodLabel: "на месец",
@@ -56,7 +56,7 @@ const PLAN_BASE: Array<Omit<MarketingPlan, "priceMonthly" | "priceCurrency">> = 
     ],
   },
   {
-    id: "premium",
+    id: "pro",
     name: "Премиум",
     tagline: "Бранд и канали",
     periodLabel: "на месец",
@@ -67,7 +67,7 @@ const PLAN_BASE: Array<Omit<MarketingPlan, "priceMonthly" | "priceCurrency">> = 
     ],
   },
   {
-    id: "collective",
+    id: "premium",
     name: "Колектив",
     tagline: "Екип без централен собственик",
     periodLabel: "на месец",
@@ -95,69 +95,69 @@ export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
   {
     label: "Специалисти",
     values: {
+      starter: "1",
       standard: "1",
       pro: "1",
-      premium: "1",
-      collective: "Неограничено",
+      premium: "Неограничено",
     },
   },
   {
     label: "Домейн",
     values: {
+      starter: "Субдомейн",
       standard: "Субдомейн",
-      pro: "Субдомейн",
-      premium: "Собствен (годишно)",
-      collective: "Субдомейн",
+      pro: "Собствен (годишно)",
+      premium: "Субдомейн",
     },
   },
   {
     label: "Онлайн резервации",
-    values: { standard: true, pro: true, premium: true, collective: true },
+    values: { starter: true, standard: true, pro: true, premium: true },
   },
   {
     label: "Имейл напомняния 24ч",
-    values: { standard: true, pro: true, premium: true, collective: true },
+    values: { starter: true, standard: true, pro: true, premium: true },
   },
   {
     label: "Финансов панел + ABC",
-    values: { standard: true, pro: true, premium: true, collective: true },
+    values: { starter: true, standard: true, pro: true, premium: true },
   },
   {
     label: "Клиентска база + CSV",
-    values: { standard: true, pro: true, premium: true, collective: true },
+    values: { starter: true, standard: true, pro: true, premium: true },
   },
   {
     label: "Магнитен график",
-    values: { standard: true, pro: true, premium: true, collective: true },
+    values: { starter: true, standard: true, pro: true, premium: true },
   },
   {
     label: "Паралелни услуги",
-    values: { standard: false, pro: true, premium: true, collective: true },
+    values: { starter: false, standard: true, pro: true, premium: true },
   },
   {
     label: "Разширен финансов тракер",
-    values: { standard: false, pro: true, premium: true, collective: true },
+    values: { starter: false, standard: true, pro: true, premium: true },
   },
   {
     label: "Месечни и годишни отчети",
-    values: { standard: false, pro: true, premium: true, collective: true },
+    values: { starter: false, standard: true, pro: true, premium: true },
   },
   {
     label: "Момичетата с Бизнес",
-    values: { standard: false, pro: true, premium: true, collective: false },
+    values: { starter: false, standard: true, pro: true, premium: false },
   },
   {
     label: "SMS / Viber (24ч)",
     values: {
+      starter: false,
       standard: false,
-      pro: false,
-      premium: true,
-      collective: "+5.99€ / специалист",
+      pro: true,
+      premium: "+5.99€ / специалист",
     },
   },
   {
     label: "Google SEO + физически обект",
-    values: { standard: false, pro: false, premium: true, collective: false },
+    values: { starter: false, standard: false, pro: true, premium: false },
   },
 ];
 

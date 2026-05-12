@@ -14,8 +14,8 @@ function normalizeBgPhone(phone: string): string | null {
 }
 
 function shouldSendSmsForPlan(tenant: Tenant, specialist: Specialist | null): boolean {
-  if (tenant.plan === "premium") return true;
-  if (tenant.plan === "collective" && specialist?.sms_reminders_enabled) return true;
+  if (tenant.plan === "pro") return true;
+  if (tenant.plan === "premium" && specialist?.sms_reminders_enabled) return true;
   return false;
 }
 

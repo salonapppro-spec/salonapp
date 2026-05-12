@@ -29,10 +29,10 @@ type LeadCallTask = {
 };
 
 const PLAN_BADGE: Record<string, { cls: string }> = {
-  standard: { cls: "bg-neutral-800 text-neutral-300 border border-neutral-600" },
-  pro:      { cls: "bg-sky-900/60 text-sky-300 border border-sky-700/60" },
-  premium:  { cls: "bg-amber-900/60 text-amber-300 border border-amber-700/60" },
-  collective: { cls: "bg-violet-900/60 text-violet-300 border border-violet-700/60" },
+  starter: { cls: "bg-neutral-800 text-neutral-300 border border-neutral-600" },
+  standard:      { cls: "bg-sky-900/60 text-sky-300 border border-sky-700/60" },
+  pro:  { cls: "bg-amber-900/60 text-amber-300 border border-amber-700/60" },
+  premium: { cls: "bg-violet-900/60 text-violet-300 border border-violet-700/60" },
 };
 
 const TASK_STATUS_BADGE: Record<string, string> = {
@@ -174,7 +174,7 @@ export default async function SuperAdminLeadsPage({
 
       {/* Summary cards */}
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        {(["standard", "pro", "premium", "collective"] as const).map((plan) => {
+        {(["starter", "standard", "pro", "premium"] as const).map((plan) => {
           const count = leads.filter((l) => l.plan === plan).length;
           const pb = PLAN_BADGE[plan];
           return (

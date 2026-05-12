@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 export const LeadInquirySchema = z.object({
-  plan: z.enum(["standard", "pro", "premium", "collective"]).optional().default("standard"),
+  plan: z.enum(["starter", "standard", "pro", "premium"]).optional().default("starter"),
   salon_name: z.string().trim().min(1, "Въведете име на салона").max(200),
   contact_name: z.string().trim().min(1, "Въведете ime").max(120),
   email: z.string().trim().email("Невалиден имейл").optional(),

@@ -68,7 +68,7 @@ export function QuickBooking(props: {
 
   const selected = activeServices.find((s) => s.id === serviceId) ?? null;
   const activeSpecs = useMemo(() => specialists.filter((s) => s.is_active), [specialists]);
-  const needSpecialist = plan === "collective" && activeSpecs.length > 1;
+  const needSpecialist = plan === "premium" && activeSpecs.length > 1;
 
   const allSlots = useMemo(
     () => (workingHours ? buildAllSlots(workingHours) : []),
@@ -132,7 +132,7 @@ export function QuickBooking(props: {
 
     const resolvedSpecialistId = needSpecialist
       ? specialistId
-      : plan === "collective" && activeSpecs.length === 1
+      : plan === "premium" && activeSpecs.length === 1
         ? activeSpecs[0]!.id
         : undefined;
 

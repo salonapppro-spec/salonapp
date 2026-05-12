@@ -35,7 +35,7 @@ export async function POST(req: Request) {
   try {
     const supabase = createSupabaseServiceRoleClient();
     const { error } = await supabase.from("platform_leads").insert({
-      plan: data.plan ?? "standard",
+      plan: data.plan ?? "starter",
       salon_name: data.salon_name,
       contact_name: data.contact_name,
       email: leadEmail,

@@ -3,7 +3,7 @@
  * Забележка: в Postgres `bookings.hair_*` в момента са с BG стойности — виж `types/index.ts` до миграция към EN.
  */
 
-export type Plan = "standard" | "pro" | "premium" | "collective";
+export type Plan = "starter" | "standard" | "pro" | "premium";
 export type TenantStatus = "trial" | "active" | "inactive";
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
 export type Template = "bloom" | "luxe" | "luxe2" | "clean" | "zen" | "bold" | "groom" | "theskin";

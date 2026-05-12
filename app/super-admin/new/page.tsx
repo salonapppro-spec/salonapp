@@ -34,7 +34,7 @@ export default function NewTenantPage() {
   const [slug, setSlug] = useState("");
   const [ownerEmail, setOwnerEmail] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
-  const [plan, setPlan] = useState("standard");
+  const [plan, setPlan] = useState("starter");
   const [template, setTemplate] = useState("bloom");
   const [availability, setAvailability] = useState<Availability>("idle");
   const [loading, setLoading] = useState(false);
@@ -57,7 +57,7 @@ export default function NewTenantPage() {
     }
     if (usableEmail) setOwnerEmail((prev) => prev || usableEmail);
     if (qPhone) setOwnerPhone((prev) => prev || qPhone);
-    if (qPlan && ["standard", "pro", "premium", "collective"].includes(qPlan)) {
+    if (qPlan && ["starter", "standard", "pro", "premium"].includes(qPlan)) {
       setPlan((prev) => prev || qPlan);
     }
   }, [searchParams]);
@@ -245,10 +245,10 @@ export default function NewTenantPage() {
           <div>
             <label className="text-xs text-neutral-400">План</label>
             <select value={plan} onChange={(e) => setPlan(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
-              <option value="standard">standard</option>
-              <option value="pro">pro</option>
-              <option value="premium">premium</option>
-              <option value="collective">collective</option>
+              <option value="starter">standard</option>
+              <option value="standard">pro</option>
+              <option value="pro">premium</option>
+              <option value="premium">collective</option>
             </select>
           </div>
           <div>
