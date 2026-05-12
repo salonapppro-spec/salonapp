@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import { motion } from "framer-motion";
 
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
@@ -58,18 +57,11 @@ const plans = [
 export default function PlansSection() {
   return (
     <div className="mt-10 grid gap-6 md:grid-cols-2 xl:grid-cols-4">
-      {plans.map((plan, i) => (
-        <motion.div
+      {plans.map((plan) => (
+        <div
           key={plan.name}
-          className="relative flex flex-col border border-[#1A1A1A]/10 bg-white p-7 shadow-sm"
-          initial={{ y: 40, opacity: 0 }}
-          whileInView={{ y: 0, opacity: 1 }}
-          viewport={{ once: true }}
-          transition={{ duration: 0.5, delay: i * 0.1, ease: [0.22, 1, 0.36, 1] }}
-          whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(0,0,0,0.10)" }}
-          style={
-            plan.featured ? { borderTop: `3px solid ${GOLD}` } : {}
-          }
+          className="relative flex flex-col border border-[#1A1A1A]/10 bg-white p-7 shadow-sm transition-shadow hover:shadow-lg"
+          style={plan.featured ? { borderTop: `3px solid ${GOLD}` } : {}}
         >
           {plan.tag && (
             <div
@@ -126,7 +118,7 @@ export default function PlansSection() {
           >
             Започни Безплатно
           </Link>
-        </motion.div>
+        </div>
       ))}
     </div>
   );
