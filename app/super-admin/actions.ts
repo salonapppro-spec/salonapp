@@ -176,7 +176,7 @@ export async function restoreTenantAction(formData: FormData): Promise<void> {
 
 const VALID_TEMPLATES = new Set(["bloom", "luxe", "luxe2", "clean", "bold", "zen", "groom"]);
 const VALID_STATUSES  = new Set(["trial", "active", "inactive"]);
-const VALID_PLANS     = new Set(["standard", "pro", "premium", "collective"]);
+const VALID_PLANS     = new Set(["starter", "standard", "pro", "premium"]);
 
 export async function updateTenantBasics(formData: FormData): Promise<void> {
   const user = await requireSuperAdminUser();
@@ -185,7 +185,7 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
 
   const template = String(formData.get("template") ?? "bloom");
   const status   = String(formData.get("status") ?? "active");
-  const plan     = String(formData.get("plan") ?? "standard");
+  const plan     = String(formData.get("plan") ?? "starter");
 
   // Guard against invalid values that would break DB CHECK constraints
   if (!VALID_TEMPLATES.has(template)) throw new Error(`Невалиден шаблон: ${template}`);
@@ -298,7 +298,7 @@ export async function createTenantAction(
   const parsed = CreateTenantSchema.safeParse({
     salon_slug: String(formData.get("salon_slug") ?? "").trim(),
     salon_name: String(formData.get("salon_name") ?? "").trim(),
-    plan: String(formData.get("plan") ?? "standard"),
+    plan: String(formData.get("plan") ?? "starter"),
     template: String(formData.get("template") ?? "bloom"),
     owner_email: String(formData.get("owner_email") ?? "").trim() || undefined,
     owner_phone: String(formData.get("owner_phone") ?? "").trim() || undefined,

@@ -37,7 +37,7 @@ export default async function SuperAdminTenantPage({
   const overdue = Boolean(tenant.expiry_date && tenant.expiry_date < today);
 
   // Stripe link for selected plan (or tenant plan) + prefilled email
-  const selectedPlan = parsePlanId(payment_plan) ?? tenant.plan ?? "standard";
+  const selectedPlan = parsePlanId(payment_plan) ?? tenant.plan ?? "starter";
   const planId = selectedPlan as Parameters<typeof stripePaymentLinkForPlan>[0];
   const baseStripeLink = stripePaymentLinkForPlan(planId);
   const stripeLink = baseStripeLink && tenant.owner_email

@@ -34,15 +34,15 @@ export function BookingFlow(props: { salonData: SalonData }) {
     () => (salonData.specialists ?? []).filter((s: Specialist) => s.is_active),
     [salonData.specialists]
   );
-  const needSpecialistStep = tenant.plan === "collective" && activeSpecs.length > 1;
+  const needSpecialistStep = tenant.plan === "premium" && activeSpecs.length > 1;
 
   const [specialistId, setSpecialistId] = useState<string>(() => {
-    if (tenant.plan === "collective" && activeSpecs.length === 1) return activeSpecs[0].id;
+    if (tenant.plan === "premium" && activeSpecs.length === 1) return activeSpecs[0].id;
     return "";
   });
 
   const filteredServices = useMemo(() => {
-    if (tenant.plan !== "collective") return allServices;
+    if (tenant.plan !== "premium") return allServices;
     if (!specialistId) return [];
     return allServices.filter((s) => !s.specialist_id || s.specialist_id === specialistId);
   }, [allServices, tenant.plan, specialistId]);
@@ -99,7 +99,7 @@ export function BookingFlow(props: { salonData: SalonData }) {
 
   const loadSlots = useCallback(async () => {
     if (!selectedService) return;
-    if (tenant.plan === "collective" && !specialistId) return;
+    if (tenant.plan === "premium" && !specialistId) return;
     if (selectedService.is_complex && (!hairLength || !hairDensity)) {
       setError("Изберете дължина и гъстота за тази услуга.");
       return;

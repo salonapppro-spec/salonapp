@@ -6,7 +6,7 @@ export const CreateTenantSchema = z.object({
     .min(2, "Минимум 2 знака")
     .regex(/^[a-z0-9]+(?:-[a-z0-9]+)*$/, "Само малки латински букви, цифри и тире"),
   salon_name: z.string().min(1, "Въведете име на салона"),
-  plan: z.enum(["standard", "pro", "premium", "collective"], {
+  plan: z.enum(["starter", "standard", "pro", "premium"], {
     error: () => ({ message: "Изберете план" }),
   }),
   template: z.enum(["bloom", "luxe", "clean", "zen", "bold"], {

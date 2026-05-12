@@ -9,7 +9,7 @@ export function activeSpecialists(data: SalonData): Specialist[] {
 
 /** Колектив с повече от един активен специалист → секции по човек на публичната страница. */
 export function useSpecialistSectionsOnPublicSite(data: SalonData): boolean {
-  return data.tenant.plan === "collective" && activeSpecialists(data).length > 1;
+  return data.tenant.plan === "premium" && activeSpecialists(data).length > 1;
 }
 
 export function servicesForSpecialist(data: SalonData, specialistId: string): Service[] {

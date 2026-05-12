@@ -20,11 +20,11 @@ export async function resolveFinanceScope(): Promise<FinanceScope | null> {
   const tenant = await getTenantBySalonSlug(salonSlug);
   if (!tenant) return null;
 
-  const canSeeReports = tenant.plan === "pro" || tenant.plan === "premium" || tenant.plan === "collective";
+  const canSeeReports = tenant.plan === "standard" || tenant.plan === "pro" || tenant.plan === "premium";
 
   let specialistIdFilter: string | null = null;
 
-  if (tenant.plan === "collective") {
+  if (tenant.plan === "premium") {
     const supabase = await createSupabaseServerClient();
     if (!supabase) return { salonSlug, specialistIdFilter: null, canSeeReports };
     const { data: { user } } = await supabase.auth.getUser();

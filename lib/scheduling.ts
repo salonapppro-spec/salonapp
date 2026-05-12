@@ -260,7 +260,7 @@ export function generateParallelSlots(params: {
   services: ParallelServiceInput[];
 }): { windowStartMin: number; windowEndMin: number; eligibleServiceIds: string[] } | null {
   const { plan, workEndMin, waitingStartMin, waitingEndMin, nextBookingStartMin, bufferMinutes, services } = params;
-  if (plan !== "pro" && plan !== "premium" && plan !== "collective") return null;
+  if (plan !== "standard" && plan !== "pro" && plan !== "premium") return null;
 
   const windowStart = waitingStartMin;
   let windowEnd = waitingEndMin;
