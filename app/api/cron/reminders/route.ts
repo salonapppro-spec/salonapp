@@ -20,6 +20,7 @@ export async function GET(req: Request) {
     .from("bookings")
     .select("*")
     .eq("booking_date", tomorrow)
+    .eq("email_unsubscribed", false)
     .in("status", ["pending", "confirmed"]);
 
   if (error) {

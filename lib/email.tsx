@@ -104,7 +104,7 @@ export async function sendConfirmationEmail(booking: Booking, tenant: Tenant): P
   const isComplex = await loadServiceIsComplex(booking.service_id ?? null, booking.salon_slug);
   const hairDetails = hairDetailsText(booking, isComplex);
   const token = booking.confirmation_token ?? "";
-  const unsubscribeUrl = `${baseUrl}/unsubscribe?booking=${encodeURIComponent(booking.id)}&token=${encodeURIComponent(token)}`;
+  const unsubscribeUrl = `${baseUrl}/api/unsubscribe?booking=${encodeURIComponent(booking.id)}&token=${encodeURIComponent(token)}`;
 
   const html = await render(
     <BookingConfirmationEmail
