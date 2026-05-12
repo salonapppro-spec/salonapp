@@ -12,6 +12,10 @@ export const RATE = {
   servicesGet: { limit: 30, windowMs: 60_000 },
   clientsLookupGet: { limit: 10, windowMs: 60_000 },
   gdprDeletePost: { limit: 3, windowMs: 60_000 },
+  /** POST /api/gdpr/export — изпраща verification email; строго ограничен */
+  gdprExportPost: { limit: 3, windowMs: 600_000 },
+  /** GET /api/gdpr/export/confirm — потвърждаване на токен */
+  gdprExportConfirm: { limit: 10, windowMs: 600_000 },
   trackPost: { limit: 60, windowMs: 60_000 },
   /** Per IP for confirm/cancel token links (email clients + accidental refreshes) */
   tokenAction: { limit: 40, windowMs: 60_000 },

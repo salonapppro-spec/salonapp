@@ -1,4 +1,20 @@
-# HANDOFF — последна актуализация: 2026-05-12 (вечер)
+# HANDOFF — последна актуализация: 2026-05-12 (нощ)
+
+---
+
+## 2026-05-12 (нощ) — Поли: Security fix GDPR export
+
+**PR #30 мержнат.**
+
+- **КРИТИЧНА security корекция** — `POST /api/gdpr/export` беше напълно отворен (без auth, без rate limit, cross-tenant достъп). Поправено с двустъпков flow:
+  - **Стъпка 1** (`POST /api/gdpr/export`): приема само email, генерира UUID токен (1h TTL), изпраща **само verification email** с линк. Не изпраща данни. Oracle response (не казва дали email съществува).
+  - **Стъпка 2** (`GET /api/gdpr/export/confirm?token=`): валидира токена (еднократен, с TTL), маркира като използван, тогава изпраща реалния export на email.
+  - **Rate limiting**: 3 заявки/10min per IP за Step 1; 10/10min за Step 2
+  - **Migration 028**: таблица `gdpr_export_tokens` с RLS enabled
+
+### Текущо състояние
+- Единственото, което блокира реалните плащания: **Stripe** (Payment Links + Webhook + ENV vars)
+- Всичко останало е production-ready
 
 ---
 

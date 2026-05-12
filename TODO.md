@@ -27,6 +27,7 @@
 
 ## ✅ ЗАВЪРШЕНО
 
+- [x] **GDPR export security fix** (2026-05-12) → PR #30 — двустъпков email verification flow + rate limiting
 - [x] **Cookie consent banner** (2026-05-12) → PR #25–27 — GDPR-compliant, 3 категории
 - [x] **GDPR export endpoint** (2026-05-12) → PR #23
 - [x] **Upstash Redis** (2026-05-12) — DB създадена, ENV vars в Vercel
