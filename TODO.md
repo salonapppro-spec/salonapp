@@ -1,17 +1,7 @@
 # SalonApp.pro — TODO
 
-> Актуализирай след всяка задача. Последна промяна: 2026-05-12 (вечер)
+> Актуализирай след всяка задача. Последна промяна: 2026-05-13
 > Цел: пускане на 100 платени салона
-
----
-
-## 🔴 КРИТИЧНО — само Лина (инфраструктура)
-
-- [ ] **Stripe Payment Links** — създай 4 линка в Stripe Dashboard (15/19/29/49€), добави ENV в Vercel:
-  `NEXT_PUBLIC_STRIPE_PAYMENT_LINK_STARTER/STANDARD/PRO/PREMIUM`
-- [ ] **Stripe Webhook** — регистрирай `https://salonapp.pro/api/webhooks/stripe` в Stripe Dashboard
-  → Events: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`
-  → Добави `STRIPE_SECRET_KEY` и `STRIPE_WEBHOOK_SECRET` в Vercel
 
 ---
 
@@ -27,6 +17,7 @@
 
 ## ✅ ЗАВЪРШЕНО
 
+- [x] **Stripe Payment Links + Webhook + ENV vars** (2026-05-13) — 4 линка (15/19/29/49€), webhook на `salonapp.pro/api/webhooks/stripe`, всички ENV в Vercel, редеплой — системата е live
 - [x] **GDPR export security fix** (2026-05-12) → PR #30 — двустъпков email verification flow + rate limiting
 - [x] **Cookie consent banner** (2026-05-12) → PR #25–27 — GDPR-compliant, 3 категории
 - [x] **GDPR export endpoint** (2026-05-12) → PR #23

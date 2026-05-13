@@ -1,3 +1,24 @@
+# HANDOFF — последна актуализация: 2026-05-13
+
+---
+
+## 2026-05-13 — Лина: Stripe production setup
+
+**Stripe е напълно конфигуриран и live.**
+
+- **4 Payment Links** създадени в Stripe Dashboard (Стартер 15€ / Стандарт 19€ / Про 29€ / Премиум 49€) — Recurring, Monthly
+- **Webhook** регистриран: `https://salonapp.pro/api/webhooks/stripe`
+  → Events: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`
+- **ENV vars** добавени в Vercel Production: `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, 4x `NEXT_PUBLIC_STRIPE_PAYMENT_LINK_*`
+- **Редеплой** направен — build успешен, `salonapp.pro` е обновен
+- **Тест**: Payment Link отваря реален Stripe checkout на български с префилнат имейл на собственика; тестова карта правилно отхвърлена (live mode потвърден)
+
+### Текущо състояние
+- **Проектът е production-ready за реални платени клиенти** — няма блокери
+- Workflow за нови салони: изтегляне на assets от админа + изграждане на сайт по задание (като The Skin)
+
+---
+
 # HANDOFF — последна актуализация: 2026-05-12 (нощ)
 
 ---
