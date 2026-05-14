@@ -26,82 +26,41 @@
 
 ---
 
-## 🟡 ВАЖНО (следва — за Поли)
+## 🟢 ПО-КЪСНО (след launch, при растеж)
 
-- [ ] **Интеграция: Свържи Google Calendar (MVP за The Skin)** — Поли
-  → Добави бутон **„Свържи Google Calendar“** в админ панела (Settings/Integrations)
-  → OAuth flow: start + callback + secure `state` (anti-CSRF)
-  → Таблица `tenant_google_integrations` (calendar_id, encrypted refresh token, sync_enabled)
-  → Проверка на свободни слотове през Google FreeBusy + буфери
-  → Създаване на Google event при резервация + запис на `google_event_id` локално
-  → Feature flag първо само за `theskin`
-  → Progress (2026-05-05): Phase 1+2+watch done — migration, OAuth routes, Settings UI card, FreeBusy в слотове, booking push sync (create/update/delete), inbound webhook apply (move/cancel + cancel email), cron renew route for watches
-
-- [ ] **Оправи финансовия панел (формули/метрики не са коректни)** — Поли
-  → Преглед и корекция на изчисленията в `app/admin/(protected)/finances/page.tsx`
-  → Валидирай логиката в `components/admin/finances/FinanceSummarySection.tsx` и `components/admin/finances/FinanceAbcSection.tsx`
-  → Провери helper-ите за периоди/дати в `lib/finance-dates.ts`
-  → Сверка с реални примерни стойности (очакван резултат срещу показан)
-  → Добави/обнови тестове за ключовите финансови формули
-
-- [ ] **Оправи `clean` шаблон — цвят** — Поли  
-  → Файл: `templates/Clean.tsx` (или `app/(public)/templates/Clean.tsx`)  
-  → `const ACCENT = "#0066CC"` → `const ACCENT = tenant.primary_color ?? "#0066CC"`
-
-- [ ] **Банер при super-admin impersonation** — Поли  
-  → Когато супер-админ влезе в чужд акаунт, показвай: `"⚠️ Гледаш като: Салон X — Излез"`  
-  → Файл: `app/admin/(protected)/layout.tsx`  
-  → Чети cookie `SUPER_ADMIN_SALON_COOKIE` от `lib/admin-tenant.ts`  
-  → Бутон "Излез" → server action изтрива cookie → redirect `/super-admin`
-
-- [ ] **Автоматична деактивация при изтекъл grace период** — Поли  
-  → Салони с `grace_until_date < today` и `status = 'active'` трябва да станат `inactive`  
-  → Вариант 1: Vercel Cron Job (`vercel.json` + API route)  
-  → Вариант 2: Supabase pg_cron (SQL)  
-  → SQL: `UPDATE tenants SET status='inactive' WHERE grace_until_date < CURRENT_DATE AND status='active'`
-
-- [ ] **Нотификация до супер-админ при нова заявка (lead)** — Поли  
-  → При попълване на `/get-started` форма → изпрати имейл до `admin@salonapp.pro`  
-  → Файл: `app/api/leads/route.ts`  
-  → Добави Resend fetch след успешен insert в `platform_leads`
+- [ ] **Google Calendar** — НЕ СЕ ПИПА без изрично разрешение от Лина (кодът е готов, тест при нужда)
+- [ ] **Статистика в салонския админ** — графики по месец, топ услуги
+- [ ] **Клиентски портал** — клиентът да вижда/отменя резервациите си
+- [ ] **SMS (Twilio)** — `lib/sms.ts` е stub, нужен реален акаунт
+- [ ] **Финансов панел** — верификация на формули и метрики
 
 ---
 
-## 🟢 ПО-КЪСНО
+## ✅ ЗАВЪРШЕНО
 
-- [ ] **Онбординг wizard за нови салони** — 4 стъпки след регистрация  
-  Стъпки: качи лого → добави услуги → задай работно време → виж сайта
-
-- [ ] **Статистика в салонския админ**  
-  → Графика на резервации по месец  
-  → Най-популярни услуги  
-  → Revenue tracking
-
-- [ ] **Клиентски портал**  
-  → Клиентът да може да вижда и отменя своите резервации
-
-- [ ] **SMS нотификации**  
-  → При нова резервация — SMS до собственика и/или клиента  
-  → Интеграция с Twilio или локален SMS провайдър
-
-- [ ] **Профилна снимка / аватар за салоните**  
-  → Директен upload вместо URL за логото
-
-- [ ] **Потвърдителен имейл до клиента при резервация**  
-  → При успешна резервация → изпрати Resend имейл до клиента
-
----
-
-## ✅ ЗАВЪРШЕНО (последни 10)
-
-- [x] **Middleware: path-based routing за Vercel** — `salonapp-ten.vercel.app/salon-bizhu` работи
-- [x] **`primary_color` pipeline оправен** — схемата вече включва полето, цветът се записва
-- [x] **Template cache revalidation** — смяна от супер-админ → веднага на сайта
-- [x] **Success feedback при запазване** — зелен банер + redirect `?saved=1`
-- [x] **Stripe webhook** — автоматично активиране при `invoice.paid` / `checkout.session.completed`
-- [x] **Галерия redesign** — drag-and-drop зона, toggle видимост, нова визия
-- [x] **Цветова палитра в настройките** — 6 preset + custom hex picker
-- [x] **Супер-админ: leads inbox** — страница `/super-admin/leads`
-- [x] **Супер-админ: status badges** — визуален статус на тенантите
-- [x] **Fix: template save не работеше** — махнати non-form полета от patch
-- [ ] **Booking + Google sync stabilization plan** â€” Ð²Ð¸Ð¶ `BOOKING_GOOGLE_SYNC_PLAN_BG.md`
+- [x] **Fix: регистрация на нов тенант — задаване на парола** (2026-05-14) — recovery link redirectTo сочеше към `/admin/login` вместо `/admin/reset-password`
+- [x] **Stripe Payment Links + Webhook + ENV vars** (2026-05-13) — 4 линка (15/19/29/49€), webhook на `salonapp.pro/api/webhooks/stripe`, всички ENV в Vercel, редеплой — системата е live
+- [x] **GDPR export security fix** (2026-05-12) → PR #30 — двустъпков email verification flow + rate limiting
+- [x] **Cookie consent banner** (2026-05-12) → PR #25–27 — GDPR-compliant, 3 категории
+- [x] **GDPR export endpoint** (2026-05-12) → PR #23
+- [x] **Upstash Redis** (2026-05-12) — DB създадена, ENV vars в Vercel
+- [x] **Sentry** — работи от Apr 22, config файлове добавени PR #21
+- [x] **Лого upload** — `ImageUpload` + `/api/admin/upload` вече работят
+- [x] **Analytics pixels** (2026-05-12) → PR #19 — FB Pixel, GTM, Clarity
+- [x] **Unsubscribe endpoint** (2026-05-12) → PR #18 — GDPR-compliant
+- [x] **Dunning email при failed payment** (2026-05-12) → PR #18
+- [x] **Rename планове** (2026-05-12) → PR #13–17 — starter/standard/pro/premium
+- [x] **Пълен одит на кодовата база** (2026-05-11) — 84 unit теста
+- [x] **Имейл нотификация до салона при резервация** (2026-05-11) → PR #11
+- [x] **Нормализиране на телефони** (2026-05-11) — migration 024
+- [x] **Банер при super-admin impersonation** — в `layout.tsx`
+- [x] **Clean шаблон primary_color** — оправено
+- [x] **Lead нотификация до супер-админ** — `lib/lead-notify.ts`
+- [x] **Автоматична деактивация cron** — `billing-expiry` + `vercel.json`
+- [x] **Google Calendar интеграция Phase 1+2+3** (2026-05-05)
+- [x] **Security fixes** (2026-04-22) — cron auth, XSS, booking integrity
+- [x] **Rate limiting** — Upstash Redis (production) + in-memory fallback
+- [x] **Stripe webhook** — автоматично активиране при `invoice.paid`
+- [x] **Галерия** — drag-and-drop, toggle видимост
+- [x] **Цветова палитра** — 6 preset + custom hex
+- [x] **Потвърдителен имейл до клиента при резервация**
