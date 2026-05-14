@@ -31,7 +31,8 @@ export async function GET() {
 }
 
 function csvEscape(s: string): string {
-  const t = String(s).replace(/"/g, '""');
+  let t = String(s).replace(/"/g, '""');
+  if (/^[=+\-@\t\r]/.test(t)) t = `'${t}`; // prevent formula injection in Excel/Sheets
   if (/[",\n]/.test(t)) return `"${t}"`;
   return t;
 }
