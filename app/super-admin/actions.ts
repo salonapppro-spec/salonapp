@@ -371,6 +371,30 @@ export async function createTenantAction(
     }
   }
 
+  const notifyEmail = process.env.SUPER_ADMIN_EMAIL;
+  if (notifyEmail && process.env.RESEND_API_KEY) {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
+        to: [notifyEmail],
+        subject: `Нов тенант: ${parsed.data.salon_name}`,
+        html: `<p>Създаден е нов тенант в SalonApp.</p>
+<table style="border-collapse:collapse;font-family:Arial,sans-serif">
+  <tr><td style="padding:6px 12px 6px 0;color:#666">Салон</td><td style="padding:6px 0;font-weight:600">${parsed.data.salon_name}</td></tr>
+  <tr><td style="padding:6px 12px 6px 0;color:#666">Slug</td><td style="padding:6px 0">${parsed.data.salon_slug}</td></tr>
+  <tr><td style="padding:6px 12px 6px 0;color:#666">План</td><td style="padding:6px 0">${parsed.data.plan}</td></tr>
+  <tr><td style="padding:6px 12px 6px 0;color:#666">Имейл</td><td style="padding:6px 0">${parsed.data.owner_email ?? "—"}</td></tr>
+  <tr><td style="padding:6px 12px 6px 0;color:#666">Телефон</td><td style="padding:6px 0">${parsed.data.owner_phone ?? "—"}</td></tr>
+</table>`,
+      }),
+    }).catch(() => undefined);
+  }
+
   revalidatePath("/super-admin");
   return {
     ok: true,
