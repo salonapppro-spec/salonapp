@@ -104,7 +104,14 @@ function ImageUpload({
         className="hidden"
         onChange={(e) => {
           const f = e.target.files?.[0];
-          if (f) void upload(f);
+          if (f) {
+            if (f.size > 5 * 1024 * 1024) {
+              setErr("Размерът на файла надминава 5MB, моля качете по-малък");
+              e.target.value = "";
+              return;
+            }
+            void upload(f);
+          }
           e.target.value = "";
         }}
       />
