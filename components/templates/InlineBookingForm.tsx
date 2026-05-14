@@ -315,6 +315,7 @@ export function InlineBookingForm({
     outline: "none",
     boxSizing: "border-box",
     fontFamily: "inherit",
+    colorScheme: "dark",
   };
 
   const labelStyle: React.CSSProperties = {
@@ -408,7 +409,7 @@ export function InlineBookingForm({
         )}
 
         {/* Name + Phone */}
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "14px" }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "14px" }}>
           <div>
             <label style={labelStyle}>Вашето име</label>
             <input
