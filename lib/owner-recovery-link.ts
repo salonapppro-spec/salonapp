@@ -7,7 +7,7 @@ export async function recoveryActionLinkForEmail(email: string): Promise<string 
   if (!trimmed) return null;
 
   const supabase = createSupabaseServiceRoleClient();
-  const redirectTo = `${getPublicAppUrl()}/admin/login`;
+  const redirectTo = `${getPublicAppUrl()}/admin/reset-password`;
   const { data, error } = await supabase.auth.admin.generateLink({
     type: "recovery",
     email: trimmed,
