@@ -22,8 +22,7 @@ const connectSrcParts = [
   ...(sentryOrigin ? [sentryOrigin] : []),
 ];
 
-// CSP в report-only режим — не блокира, само логва нарушения в DevTools.
-// Когато провериш, че нищо не се чупи, смени на Content-Security-Policy.
+// CSP е активен (enforcement режим) — блокира нарушения и ги логва в DevTools.
 const CSP_POLICY = [
   "default-src 'self'",
   // Next.js изисква unsafe-inline за hydration; GTM/Pixel/Clarity са external скриптове

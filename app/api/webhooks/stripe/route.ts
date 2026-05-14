@@ -46,7 +46,7 @@ type TenantLookupResult =
 
 function allowOwnerEmailFallback(): boolean {
   const raw = process.env.STRIPE_ALLOW_OWNER_EMAIL_FALLBACK?.trim().toLowerCase();
-  if (!raw) return true; // default safe migration path
+  if (!raw) return false; // secure by default — enable explicitly via env var if needed
   return raw === "1" || raw === "true" || raw === "yes" || raw === "on";
 }
 
