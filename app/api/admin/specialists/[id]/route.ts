@@ -8,8 +8,8 @@ import { tenantDb } from "@/lib/tenant-db";
 const PatchSpecialistSchema = z.object({
   name: z.string().min(1).max(120).optional(),
   role: z.string().max(120).nullable().optional(),
-  bio: z.string().max(1200).nullable().optional(),
-  avatar_url: z.string().url().nullable().optional(),
+  bio: z.string().max(3000).nullable().optional(),
+  avatar_url: z.string().max(2048).nullable().optional(),
   is_active: z.boolean().optional(),
 });
 
@@ -22,7 +22,10 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   const body = (await req.json().catch(() => null)) as unknown;
   const parsed = PatchSpecialistSchema.safeParse(body);
-  if (!parsed.success) return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  if (!parsed.success) {
+    console.error("[specialists PATCH] validation failed:", JSON.stringify(parsed.error.issues));
+    return NextResponse.json({ error: "Invalid payload" }, { status: 400 });
+  }
 
   const patch: Record<string, unknown> = { ...parsed.data };
   if (typeof patch.name === "string") patch.name = patch.name.trim();

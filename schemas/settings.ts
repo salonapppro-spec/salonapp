@@ -82,7 +82,7 @@ export const UpdateTenantPublicFieldsSchema = z
   description: z.string().max(800).optional(),
   about_text1: z.string().max(1200).optional(),
   about_text2: z.string().max(1200).optional(),
-  about_image_url: z.string().url().optional(),
+  about_image_url: z.union([z.string().url(), z.null()]).optional(),
   address: z.string().max(200).optional(),
   phone: z.string().max(50).optional(),
   email: z.string().email().optional(),
