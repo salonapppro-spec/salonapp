@@ -218,32 +218,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
     };
   }, [mobileOpen]);
 
-  useEffect(() => {
-    const link = document.createElement("link");
-    link.rel = "stylesheet";
-    link.href = "https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css";
-    document.head.appendChild(link);
-    const script = document.createElement("script");
-    script.src = "https://cdn.jsdelivr.net/npm/flatpickr";
-    script.onload = () => {
-      const el = document.querySelector<HTMLInputElement>('.pe-booking input[type="date"]');
-      const fp = (window as unknown as Record<string, unknown>).flatpickr as ((el: HTMLElement, opts: object) => void) | undefined;
-      if (el && fp) {
-        fp(el, {
-          minDate: "today",
-          dateFormat: "Y-m-d",
-          disableMobile: true,
-          onChange: (_: unknown[], dateStr: string) => {
-            const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
-            if (setter) setter.call(el, dateStr);
-            el.dispatchEvent(new Event("input", { bubbles: true }));
-          },
-        });
-      }
-    };
-    document.body.appendChild(script);
-    return () => { script.remove(); link.remove(); };
-  }, []);
 
   const multi = useSpecialistSectionsOnPublicSite(data);
   const specs = activeSpecialists(data);
@@ -333,7 +307,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
       {/* ── HERO ───────────────────────────────────────────────────── */}
       <section className="pe-hero" id="hero">
         <div className="pe-hero-radial" />
-        <div className="pe-hero-grid" />
         <BlobShape size={480} opacity={0.04} style={{top:"-10%",right:"-8%"}} />
         <PawPrint size={160} opacity={0.32} style={{top:"12%",left:"5%",transform:"rotate(-20deg)"}} />
         <PawPrint size={90} opacity={0.22} style={{top:"65%",left:"2%",transform:"rotate(15deg)"}} />
@@ -494,15 +467,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
             <div className="pe-divider">
               <div className="pe-divider-line" style={{background:"linear-gradient(to right,transparent,rgba(201,168,76,.35),transparent)"}} />
             </div>
-            <h2 className="pe-section-title">
-              Преди и <em>след</em>
-            </h2>
-            <p className="pe-gallery-note">
-              <span className="pe-gallery-dot" />
-              {isDemo
-                ? "Снимките се зареждат динамично от Галерия в Админ панела"
-                : `${gallery.length} снимки от Галерия в Админ панела`}
-            </p>
           </div>
           <div className="pe-gallery-grid">
             {galleryUrls.slice(0, 6).map((url, i) => (
