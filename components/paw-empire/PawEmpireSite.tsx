@@ -82,7 +82,7 @@ function PawPrint({
       width={size}
       height={size}
       viewBox="0 0 24 24"
-      fill="#3D2B20"
+      fill="#6B4C35"
       aria-hidden="true"
       style={{
         position: "absolute",
@@ -92,11 +92,11 @@ function PawPrint({
         ...style,
       }}
     >
-      <ellipse cx="12" cy="16" rx="5.5" ry="4" />
-      <ellipse cx="5.5" cy="10" rx="2.5" ry="2" transform="rotate(-15 5.5 10)" />
-      <ellipse cx="9" cy="7.5" rx="2.5" ry="2" transform="rotate(-5 9 7.5)" />
-      <ellipse cx="13" cy="7" rx="2.5" ry="2" transform="rotate(5 13 7)" />
-      <ellipse cx="16.5" cy="9" rx="2.5" ry="2" transform="rotate(15 16.5 9)" />
+      <ellipse cx="12" cy="16" rx="5.5" ry="4" fill="inherit"/>
+      <ellipse cx="5.5" cy="10" rx="2.5" ry="2" transform="rotate(-15 5.5 10)" fill="inherit"/>
+      <ellipse cx="9" cy="7.5" rx="2.5" ry="2" transform="rotate(-5 9 7.5)" fill="inherit"/>
+      <ellipse cx="13" cy="7" rx="2.5" ry="2" transform="rotate(5 13 7)" fill="inherit"/>
+      <ellipse cx="16.5" cy="9" rx="2.5" ry="2" transform="rotate(15 16.5 9)" fill="inherit"/>
     </svg>
   );
 }
@@ -314,8 +314,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
         .pe-hero-radial{
           position:absolute;inset:0;pointer-events:none;
           background:
-            radial-gradient(ellipse 60% 60% at 20% 50%,rgba(107,31,51,.5) 0%,transparent 70%),
-            radial-gradient(ellipse 40% 40% at 85% 15%,rgba(201,168,76,.07) 0%,transparent 60%)
+            radial-gradient(ellipse 55% 65% at 15% 55%,rgba(42,27,20,.9) 0%,transparent 70%),
+            radial-gradient(ellipse 35% 40% at 85% 15%,rgba(201,168,76,.04) 0%,transparent 60%)
         }
         .pe-hero-grid{
           position:absolute;inset:0;pointer-events:none;
@@ -869,8 +869,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
         <div className="pe-hero-radial" />
         <div className="pe-hero-grid" />
         {/* Pale paw prints */}
-        <PawPrint size={160} opacity={0.15} style={{top:"12%",left:"5%",transform:"rotate(-20deg)"}} />
-        <PawPrint size={90} opacity={0.12} style={{top:"65%",left:"2%",transform:"rotate(15deg)"}} />
+        <PawPrint size={160} opacity={0.32} style={{top:"12%",left:"5%",transform:"rotate(-20deg)"}} />
+        <PawPrint size={90} opacity={0.22} style={{top:"65%",left:"2%",transform:"rotate(15deg)"}} />
         <div className="pe-hero-inner">
           <div>
             {tenant.logo_url?.trim() ? (
@@ -881,12 +881,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
                 {tenant.hero_title ?? "Твоят любимец"}
                 <strong>{tenant.hero_subtitle ?? "заслужава лукс"}</strong>
               </h1>
-            )}
-            {tenant.logo_url?.trim() && (
-              <h2 className="pe-hero-title">
-                {tenant.hero_title ?? "Твоят любимец"}
-                <strong>{tenant.hero_subtitle ?? "заслужава лукс"}</strong>
-              </h2>
             )}
             <p className="pe-hero-desc">
               {tenant.description ??
@@ -918,8 +912,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
       {/* ── ABOUT ──────────────────────────────────────────────────── */}
       <section className="pe-about" id="about">
         {/* Pale paw prints */}
-        <PawPrint size={200} opacity={0.13} style={{top:"-2rem",right:"2%",transform:"rotate(30deg)"}} />
-        <PawPrint size={100} opacity={0.11} style={{bottom:"1rem",left:"1%",transform:"rotate(-10deg)"}} />
+        <PawPrint size={200} opacity={0.28} style={{top:"-2rem",right:"2%",transform:"rotate(30deg)"}} />
+        <PawPrint size={100} opacity={0.22} style={{bottom:"1rem",left:"1%",transform:"rotate(-10deg)"}} />
         <div className="pe-wrap">
           <div className="pe-about-grid">
             {/* Text on the LEFT */}
@@ -992,8 +986,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
       {/* ── SERVICES ───────────────────────────────────────────────── */}
       <section className="pe-services" id="services">
         {/* Pale paw prints */}
-        <PawPrint size={150} opacity={0.12} style={{top:"5%",right:"1%",transform:"rotate(25deg)"}} />
-        <PawPrint size={80} opacity={0.1} style={{bottom:"5%",left:"3%",transform:"rotate(-30deg)"}} />
+        <PawPrint size={150} opacity={0.26} style={{top:"5%",right:"1%",transform:"rotate(25deg)"}} />
+        <PawPrint size={80} opacity={0.22} style={{bottom:"5%",left:"3%",transform:"rotate(-30deg)"}} />
         <div className="pe-wrap">
           <div className="pe-services-hdr pe-fade-up">
             <p className="pe-tag">Какво предлагаме</p>
@@ -1077,8 +1071,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
       {/* ── BOOKING ────────────────────────────────────────────────── */}
       <div className="pe-booking" id="booking">
         {/* Pale paw prints */}
-        <PawPrint size={120} opacity={0.1} style={{top:"10%",left:"2%",transform:"rotate(10deg)"}} />
-        <PawPrint size={170} opacity={0.09} style={{bottom:"5%",right:"1%",transform:"rotate(-25deg)"}} />
+        <PawPrint size={120} opacity={0.25} style={{top:"10%",left:"2%",transform:"rotate(10deg)"}} />
+        <PawPrint size={170} opacity={0.22} style={{bottom:"5%",right:"1%",transform:"rotate(-25deg)"}} />
         <div className="pe-wrap" style={{ position: "relative", zIndex: 1 }}>
           <div className="pe-booking-hdr">
             <p className="pe-tag" style={{ opacity: 0.65 }}>Онлайн резервация</p>
@@ -1110,7 +1104,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
       {/* ── CONTACT ────────────────────────────────────────────────── */}
       <section className="pe-contact" id="contact">
         {/* Pale paw prints */}
-        <PawPrint size={130} opacity={0.11} style={{top:"8%",right:"2%",transform:"rotate(20deg)"}} />
+        <PawPrint size={130} opacity={0.26} style={{top:"8%",right:"2%",transform:"rotate(20deg)"}} />
         <div className="pe-wrap">
           <div className="pe-contact-grid">
             <div>
@@ -1262,7 +1256,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
       {/* ── FOOTER ─────────────────────────────────────────────────── */}
       <footer className="pe-footer">
         {/* Pale paw prints */}
-        <PawPrint size={100} opacity={0.1} style={{top:"1rem",right:"5%",transform:"rotate(15deg)"}} />
+        <PawPrint size={100} opacity={0.22} style={{top:"1rem",right:"5%",transform:"rotate(15deg)"}} />
         <div className="pe-wrap">
           {tenant.logo_url?.trim() ? (
             <div style={{display:"flex",justifyContent:"center",marginBottom:".5rem"}}>
