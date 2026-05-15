@@ -21,7 +21,6 @@ import {
 const DAY_LABELS = ["Неделя", "Понеделник", "Вторник", "Сряда", "Четвъртък", "Петък", "Събота"] as const;
 const BGN_RATE = 1.956;
 
-// Placeholder Unsplash images shown when admin gallery is empty (for demo/preview)
 const DEMO_GALLERY = [
   "https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=700&h=900&fit=crop&q=80",
   "https://images.unsplash.com/photo-1552053831-71594a27632d?w=700&h=450&fit=crop&q=80",
@@ -69,6 +68,39 @@ function useFadeUp() {
   return ref;
 }
 
+function PawPrint({
+  size = 120,
+  opacity = 0.18,
+  style,
+}: {
+  size?: number;
+  opacity?: number;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="#3D2B20"
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        pointerEvents: "none",
+        userSelect: "none",
+        opacity,
+        ...style,
+      }}
+    >
+      <ellipse cx="12" cy="16" rx="5.5" ry="4" />
+      <ellipse cx="5.5" cy="10" rx="2.5" ry="2" transform="rotate(-15 5.5 10)" />
+      <ellipse cx="9" cy="7.5" rx="2.5" ry="2" transform="rotate(-5 9 7.5)" />
+      <ellipse cx="13" cy="7" rx="2.5" ry="2" transform="rotate(5 13 7)" />
+      <ellipse cx="16.5" cy="9" rx="2.5" ry="2" transform="rotate(15 16.5 9)" />
+    </svg>
+  );
+}
+
 function ServiceCard({ service, index }: { service: Service; index: number }) {
   const ref = useFadeUp();
   const delay = `${index * 0.08}s`;
@@ -96,7 +128,6 @@ function ServiceCard({ service, index }: { service: Service; index: number }) {
           </span>
         </div>
       </div>
-      <span className="pe-service-gem">✦</span>
     </div>
   );
 }
@@ -146,10 +177,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
   const tkHref = safeTiktokHref(tenant.tiktok_url);
   const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
   const hasSocial = Boolean(igHref || fbHref || tkHref);
-  const hasAbout = Boolean(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url);
   const [lightboxImg, setLightboxImg] = useState<string | null>(null);
 
-  // Real gallery from admin panel, or placeholder images for demo/preview
   const isDemo = gallery.length === 0;
   const galleryUrls = isDemo ? DEMO_GALLERY : gallery.map((g) => g.url);
 
@@ -165,15 +194,15 @@ export function PawEmpire({ data }: { data: SalonData }) {
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
         html{scroll-behavior:smooth}
         body{
-          background:#FAF8F5;
-          color:#2A1B14;
+          background:#2A1B14;
+          color:#FAF8F5;
           font-family:'Montserrat',sans-serif;
           font-weight:300;
           line-height:1.7;
           overflow-x:hidden
         }
         ::-webkit-scrollbar{width:5px}
-        ::-webkit-scrollbar-track{background:#2A1B14}
+        ::-webkit-scrollbar-track{background:#1C110D}
         ::-webkit-scrollbar-thumb{background:#C5A059;border-radius:3px}
         a{color:inherit;text-decoration:none}
         img{display:block;max-width:100%}
@@ -188,9 +217,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
           color:#C5A059;
           font-weight:500
         }
-        .pe-divider{display:flex;align-items:center;gap:1rem;margin:.9rem 0 1.6rem}
+        .pe-divider{display:flex;align-items:center;gap:1rem;margin:.9rem 0 1.4rem}
         .pe-divider-line{flex:1;height:1px;background:linear-gradient(to right,transparent,rgba(201,168,76,.35),transparent)}
-        .pe-divider-gem{color:#C5A059;font-size:.7rem;opacity:.7}
         .pe-fade-up{
           opacity:0;
           transform:translateY(26px);
@@ -217,7 +245,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
         /* ─── NAVBAR ───────────────────────────────────────────────── */
         .pe-nav{
           position:fixed;top:0;left:0;right:0;z-index:100;
-          padding:1.5rem 2.5rem;
+          padding:1.2rem 2.5rem;
           display:flex;align-items:center;justify-content:space-between;
           transition:all .3s ease
         }
@@ -226,7 +254,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
           backdrop-filter:blur(14px);
           border-bottom:1px solid rgba(201,168,76,.12);
           box-shadow:0 4px 32px rgba(0,0,0,.35);
-          padding:1rem 2.5rem
+          padding:.85rem 2.5rem
         }
         .pe-nav-brand{
           display:flex;flex-direction:column;
@@ -255,7 +283,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
         .pe-mobile{
           display:none;
           position:fixed;inset:0;z-index:99;
-          background:#2A1B14;
+          background:#1C110D;
           flex-direction:column;align-items:center;justify-content:center;gap:2.5rem
         }
         .pe-mobile.open{display:flex}
@@ -300,20 +328,19 @@ export function PawEmpire({ data }: { data: SalonData }) {
           position:relative;z-index:1;
           display:grid;grid-template-columns:1fr 1fr;
           gap:5rem;align-items:center;
-          padding:9rem 2rem 5rem;
+          padding:8rem 2rem 4rem;
           max-width:1160px;margin:0 auto;width:100%
         }
-        .pe-hero-eyebrow{
-          font-size:.58rem;letter-spacing:.35em;text-transform:uppercase;
-          color:#C5A059;margin-bottom:1.5rem;
-          display:flex;align-items:center;gap:1rem
+        .pe-hero-logo-big{
+          height:180px;width:auto;
+          object-fit:contain;display:block;
+          margin-bottom:2rem
         }
-        .pe-hero-eyebrow::after{content:'';width:60px;height:1px;background:#C5A059;opacity:.3}
         .pe-hero-title{
           font-family:'Cormorant Garamond',Georgia,serif;
-          font-size:clamp(3rem,5.5vw,5.8rem);
-          font-weight:300;line-height:1.08;
-          color:#FAF8F5;margin-bottom:1.6rem;letter-spacing:-.01em
+          font-size:clamp(2.4rem,4.5vw,4.8rem);
+          font-weight:300;line-height:1.1;
+          color:#FAF8F5;margin-bottom:1.2rem;letter-spacing:-.01em
         }
         .pe-hero-title strong{
           display:block;font-weight:600;font-style:italic;
@@ -322,14 +349,13 @@ export function PawEmpire({ data }: { data: SalonData }) {
         .pe-hero-desc{
           font-size:.82rem;
           color:rgba(245,237,232,.45);
-          max-width:420px;margin-bottom:2.8rem;line-height:2;font-weight:300
+          max-width:420px;margin-bottom:2.2rem;line-height:2;font-weight:300
         }
         .pe-hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
-        /* right column */
         .pe-hero-right{position:relative}
         .pe-hero-frame{position:relative}
         .pe-hero-img{
-          width:100%;height:580px;
+          width:100%;height:560px;
           object-fit:cover;object-position:center top;
           border-radius:8px;display:block
         }
@@ -392,57 +418,43 @@ export function PawEmpire({ data }: { data: SalonData }) {
         .pe-lb-close:hover{color:#C5A059}
 
         /* ─── ABOUT ────────────────────────────────────────────────── */
-        .pe-about{background:#FAF8F5;padding:5.5rem 0}
-        .pe-about-grid{display:grid;grid-template-columns:1fr 1fr;gap:6rem;align-items:center}
+        .pe-about{background:#2A1B14;padding:3.5rem 0;position:relative;overflow:hidden}
+        .pe-about-grid{display:grid;grid-template-columns:1fr 1fr;gap:4rem;align-items:center}
         .pe-about-img-wrap{position:relative}
         .pe-about-img{
-          width:100%;height:560px;
+          width:100%;height:520px;
           object-fit:cover;object-position:center;
-          border-radius:16px;display:block
-        }
-        .pe-about-gold-corner{
-          position:absolute;top:-1rem;right:-1rem;
-          width:100px;height:100px;
-          background:#C5A059;border-radius:50%;
-          display:flex;align-items:center;justify-content:center;
-          font-family:'Cormorant Garamond',Georgia,serif;
-          font-size:2.8rem;font-style:italic;font-weight:600;color:#2A1B14
+          border-radius:16px;display:block;
+          border:1px solid rgba(201,168,76,.15)
         }
         .pe-about-title{
           font-family:'Cormorant Garamond',Georgia,serif;
           font-size:clamp(2rem,3.5vw,3.2rem);
-          font-weight:400;line-height:1.2;color:#2A1B14;
-          margin-bottom:1.5rem
+          font-weight:400;line-height:1.2;color:#FAF8F5;
+          margin-bottom:1.2rem
         }
-        .pe-about-title em{font-style:italic;color:#3D2B1F}
-        .pe-about-txt{font-size:.83rem;color:#7A6B5A;line-height:2.1;margin-bottom:1rem;font-weight:300}
+        .pe-about-title em{font-style:italic;color:#C5A059}
+        .pe-about-txt{font-size:.83rem;color:rgba(245,237,232,.6);line-height:2.1;margin-bottom:1rem;font-weight:300}
         .pe-about-stats{
           display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;
-          margin-top:2.5rem;padding-top:2.5rem;
-          border-top:1px solid rgba(107,31,51,.1)
+          margin-top:2rem;padding-top:2rem;
+          border-top:1px solid rgba(201,168,76,.15)
         }
         .pe-about-stat{text-align:center;padding:.5rem 0}
         .pe-stat-num{
           font-family:'Cormorant Garamond',Georgia,serif;
-          font-size:2.8rem;font-weight:600;color:#3D2B1F;
+          font-size:2.8rem;font-weight:600;color:#C5A059;
           display:block;line-height:1
         }
         .pe-stat-lbl{
           font-size:.55rem;letter-spacing:.18em;text-transform:uppercase;
-          color:#9B8B7B;margin-top:.4rem;display:block
+          color:rgba(245,237,232,.4);margin-top:.4rem;display:block
         }
 
         /* ─── HYGIENE BANNER ───────────────────────────────────────── */
         .pe-hygiene{
-          background:#2A1B14;padding:4.5rem 0;
+          background:#1C110D;padding:3rem 0;
           position:relative;overflow:hidden
-        }
-        .pe-hygiene::before{
-          content:'✦';
-          position:absolute;top:-3rem;right:8%;
-          font-size:18rem;color:rgba(201,168,76,.025);
-          font-family:'Cormorant Garamond',Georgia,serif;
-          pointer-events:none;user-select:none
         }
         .pe-hygiene-inner{
           display:flex;align-items:flex-start;gap:3rem;
@@ -472,26 +484,26 @@ export function PawEmpire({ data }: { data: SalonData }) {
         }
 
         /* ─── SERVICES ─────────────────────────────────────────────── */
-        .pe-services{background:#F0EBE3;padding:5.5rem 0}
-        .pe-services-hdr{text-align:center;margin-bottom:4rem}
+        .pe-services{background:#2A1B14;padding:3.5rem 0;position:relative;overflow:hidden}
+        .pe-services-hdr{text-align:center;margin-bottom:2.5rem}
         .pe-section-title{
           font-family:'Cormorant Garamond',Georgia,serif;
           font-size:clamp(2rem,3.5vw,3.3rem);
-          font-weight:400;color:#2A1B14
+          font-weight:400;color:#FAF8F5
         }
-        .pe-section-title em{font-style:italic;color:#3D2B1F}
-        .pe-services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.5rem}
+        .pe-section-title em{font-style:italic;color:#C5A059}
+        .pe-services-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1.2rem}
         .pe-spec-title{
           font-family:'Cormorant Garamond',Georgia,serif;
-          font-size:1rem;font-style:italic;color:#9B8B7B;
+          font-size:1rem;font-style:italic;color:rgba(245,237,232,.35);
           grid-column:1/-1;margin-top:1.2rem;padding-bottom:.6rem;
-          border-bottom:1px solid rgba(107,31,51,.1)
+          border-bottom:1px solid rgba(201,168,76,.1)
         }
         .pe-service-card{
-          background:#FAF8F5;
-          border:1px solid rgba(107,31,51,.1);
+          background:rgba(255,255,255,0.04);
+          border:1px solid rgba(201,168,76,.12);
           border-radius:10px;
-          padding:2rem 1.8rem;
+          padding:1.8rem 1.6rem;
           position:relative;overflow:hidden;
           transition:all .3s ease;
           cursor:default
@@ -506,17 +518,17 @@ export function PawEmpire({ data }: { data: SalonData }) {
         .pe-service-card:hover{
           border-color:rgba(201,168,76,.3);
           transform:translateY(-5px);
-          box-shadow:0 18px 44px rgba(107,31,51,.12)
+          box-shadow:0 18px 44px rgba(0,0,0,.4)
         }
         .pe-service-card:hover::after{transform:scaleX(1)}
         .pe-service-number{
           font-family:'Cormorant Garamond',Georgia,serif;
           font-size:3.5rem;font-weight:300;
-          color:rgba(107,31,51,.07);line-height:1;margin-bottom:.3rem
+          color:rgba(201,168,76,.1);line-height:1;margin-bottom:.3rem
         }
         .pe-service-name{
           font-family:'Cormorant Garamond',Georgia,serif;
-          font-size:1.25rem;font-weight:400;color:#2A1B14;
+          font-size:1.25rem;font-weight:400;color:#FAF8F5;
           margin-bottom:1rem;line-height:1.3
         }
         .pe-service-sep{
@@ -529,17 +541,13 @@ export function PawEmpire({ data }: { data: SalonData }) {
           display:flex;justify-content:space-between;
           align-items:baseline;padding:.35rem 0
         }
-        .pe-service-label{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:#9B8B7B}
-        .pe-service-value{font-size:.82rem;color:#3D2B1F;font-weight:500}
-        .pe-service-gem{
-          position:absolute;top:1.5rem;right:1.5rem;
-          color:#C5A059;font-size:.8rem;opacity:.4
-        }
-        .pe-services-cta{text-align:center;margin-top:3.5rem}
+        .pe-service-label{font-size:.6rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(245,237,232,.35)}
+        .pe-service-value{font-size:.82rem;color:rgba(245,237,232,.85);font-weight:500}
+        .pe-services-cta{text-align:center;margin-top:3rem}
 
         /* ─── GALLERY ──────────────────────────────────────────────── */
-        .pe-gallery{background:#2A1B14;padding:5.5rem 0}
-        .pe-gallery-hdr{text-align:center;margin-bottom:3.5rem}
+        .pe-gallery{background:#1C110D;padding:3.5rem 0}
+        .pe-gallery-hdr{text-align:center;margin-bottom:2rem}
         .pe-gallery-hdr .pe-section-title{color:#FAF8F5}
         .pe-gallery-hdr .pe-section-title em{color:#C5A059}
         .pe-gallery-hdr .pe-tag{opacity:.65}
@@ -554,7 +562,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
           animation:peBlink 2s ease-in-out infinite
         }
         @keyframes peBlink{0%,100%{opacity:.25}50%{opacity:1}}
-        /* asymmetric 12-col grid */
         .pe-gallery-grid{
           display:grid;
           grid-template-columns:repeat(12,1fr);
@@ -598,17 +605,17 @@ export function PawEmpire({ data }: { data: SalonData }) {
 
         /* ─── BOOKING ──────────────────────────────────────────────── */
         .pe-booking{
-          background:#3D2B1F;padding:7rem 0;
+          background:#2A1B14;padding:4.5rem 0;
           position:relative;overflow:hidden
         }
         .pe-booking::before{
           content:'';position:absolute;
           top:-40%;right:-15%;
           width:700px;height:700px;
-          background:radial-gradient(circle,rgba(201,168,76,.09) 0%,transparent 70%);
+          background:radial-gradient(circle,rgba(201,168,76,.07) 0%,transparent 70%);
           pointer-events:none
         }
-        .pe-booking-hdr{text-align:center;margin-bottom:3rem;position:relative;z-index:1}
+        .pe-booking-hdr{text-align:center;margin-bottom:2rem;position:relative;z-index:1}
         .pe-booking-title{
           font-family:'Cormorant Garamond',Georgia,serif;
           font-size:clamp(2rem,4vw,3.6rem);
@@ -620,54 +627,54 @@ export function PawEmpire({ data }: { data: SalonData }) {
         }
 
         /* ─── CONTACT ──────────────────────────────────────────────── */
-        .pe-contact{background:#FAF8F5;padding:5.5rem 0}
-        .pe-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:5rem;align-items:start}
+        .pe-contact{background:#2A1B14;padding:3.5rem 0;position:relative;overflow:hidden}
+        .pe-contact-grid{display:grid;grid-template-columns:1fr 1fr;gap:3.5rem;align-items:start}
         .pe-contact-title{
           font-family:'Cormorant Garamond',Georgia,serif;
           font-size:clamp(1.8rem,3vw,2.8rem);
-          font-weight:400;color:#2A1B14;margin-bottom:.4rem
+          font-weight:400;color:#FAF8F5;margin-bottom:.4rem
         }
-        .pe-contact-title em{font-style:italic;color:#3D2B1F}
-        .pe-contact-rows{margin-top:2.5rem}
+        .pe-contact-title em{font-style:italic;color:#C5A059}
+        .pe-contact-rows{margin-top:2rem}
         .pe-contact-row{
           display:flex;gap:1rem;align-items:flex-start;
-          padding:1.2rem 0;
-          border-bottom:1px solid rgba(107,31,51,.07)
+          padding:1rem 0;
+          border-bottom:1px solid rgba(245,237,232,.07)
         }
         .pe-contact-ico{
           width:36px;height:36px;flex-shrink:0;
-          border:1px solid rgba(107,31,51,.15);border-radius:50%;
+          border:1px solid rgba(245,237,232,.12);border-radius:50%;
           display:flex;align-items:center;justify-content:center;
-          color:#3D2B1F
+          color:rgba(245,237,232,.5)
         }
         .pe-contact-lbl{
           font-size:.53rem;letter-spacing:.2em;text-transform:uppercase;
-          color:#9B8B7B;margin-bottom:.3rem
+          color:rgba(245,237,232,.35);margin-bottom:.3rem
         }
-        .pe-contact-val{font-size:.85rem;color:#2A1B14;line-height:1.8}
-        .pe-contact-val a:hover{color:#3D2B1F}
+        .pe-contact-val{font-size:.85rem;color:rgba(245,237,232,.85);line-height:1.8}
+        .pe-contact-val a:hover{color:#C5A059}
         .pe-hours-list{display:flex;flex-direction:column;gap:.3rem}
         .pe-hours-row{display:flex;justify-content:space-between;font-size:.8rem}
-        .pe-hours-day{color:#9B8B7B}
-        .pe-hours-time{color:#2A1B14;font-weight:400}
-        .pe-hours-off{color:rgba(107,31,51,.3);font-style:italic}
+        .pe-hours-day{color:rgba(245,237,232,.4)}
+        .pe-hours-time{color:rgba(245,237,232,.85);font-weight:400}
+        .pe-hours-off{color:rgba(245,237,232,.2);font-style:italic}
         .pe-map-wrap{
           border-radius:12px;overflow:hidden;
-          border:1px solid rgba(107,31,51,.1);
+          border:1px solid rgba(201,168,76,.15);
           aspect-ratio:1
         }
         .pe-map-wrap iframe{width:100%;height:100%;border:none;display:block}
         .pe-map-empty{
           width:100%;height:100%;
-          background:#F0EBE3;
+          background:rgba(255,255,255,0.04);
           display:flex;flex-direction:column;
           align-items:center;justify-content:center;
           gap:.8rem;
-          color:#9B8B7B;font-size:.6rem;letter-spacing:.15em;text-transform:uppercase
+          color:rgba(245,237,232,.25);font-size:.6rem;letter-spacing:.15em;text-transform:uppercase
         }
 
         /* ─── SOCIAL BAR ───────────────────────────────────────────── */
-        .pe-social{background:#2A1B14;padding:1.5rem 0}
+        .pe-social{background:#1C110D;padding:1.5rem 0}
         .pe-social-inner{display:flex;align-items:center;justify-content:center;gap:3rem}
         .pe-social-link{
           display:flex;align-items:center;gap:.5rem;
@@ -679,7 +686,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
         .pe-social-sep{width:1px;height:14px;background:rgba(245,237,232,.1)}
 
         /* ─── FOOTER ───────────────────────────────────────────────── */
-        .pe-footer{background:#2A1B14;padding:4.5rem 0 2.5rem}
+        .pe-footer{background:#1C110D;padding:3.5rem 0 2rem}
         .pe-footer-logo{
           font-family:'Cormorant Garamond',Georgia,serif;
           font-size:2.2rem;font-weight:600;color:#C5A059;
@@ -687,11 +694,11 @@ export function PawEmpire({ data }: { data: SalonData }) {
         }
         .pe-footer-tagline{
           font-size:.52rem;letter-spacing:.3em;text-transform:uppercase;
-          color:rgba(245,237,232,.18);text-align:center;margin-bottom:2.8rem
+          color:rgba(245,237,232,.18);text-align:center;margin-bottom:2.2rem
         }
         .pe-footer-nav{
           display:flex;justify-content:center;gap:2.5rem;
-          flex-wrap:wrap;margin-bottom:2.5rem
+          flex-wrap:wrap;margin-bottom:2rem
         }
         .pe-footer-nav a{
           font-size:.58rem;letter-spacing:.16em;text-transform:uppercase;
@@ -700,16 +707,16 @@ export function PawEmpire({ data }: { data: SalonData }) {
         .pe-footer-nav a:hover{color:#C5A059}
         .pe-footer-bottom{
           border-top:1px solid rgba(245,237,232,.05);
-          padding-top:1.8rem;text-align:center;
+          padding-top:1.5rem;text-align:center;
           font-size:.58rem;color:rgba(245,237,232,.14);
           display:flex;justify-content:center;align-items:center;gap:.6rem;flex-wrap:wrap
         }
 
         /* ─── RESPONSIVE ───────────────────────────────────────────── */
         @media(max-width:1080px){
-          .pe-hero-inner{grid-template-columns:1fr;gap:0}
+          .pe-hero-inner{grid-template-columns:1fr;gap:0;padding:7rem 2rem 3rem}
           .pe-hero-right{display:none}
-          .pe-about-grid{grid-template-columns:1fr;gap:3.5rem}
+          .pe-about-grid{grid-template-columns:1fr;gap:2.5rem}
           .pe-contact-grid{grid-template-columns:1fr}
           .pe-gallery-grid{
             grid-template-columns:repeat(2,1fr);
@@ -726,7 +733,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
           .pe-nav-links,.pe-btn.pe-nav-cta{display:none}
           .pe-hamburger{display:flex}
           .pe-services-grid{grid-template-columns:1fr}
-          .pe-about-img{height:300px}
+          .pe-about-img{height:280px}
           .pe-hygiene-inner{flex-direction:column;text-align:center;gap:1.5rem}
           .pe-hygiene-icon{margin:0 auto}
           .pe-social-inner{gap:1.4rem;flex-wrap:wrap}
@@ -741,13 +748,24 @@ export function PawEmpire({ data }: { data: SalonData }) {
           .pe-g-item:nth-child(4){grid-column:1;grid-row:3}
           .pe-g-item:nth-child(5){grid-column:2;grid-row:3}
           .pe-g-item:nth-child(6){display:none}
+          .pe-hero-logo-big{height:130px}
+          .pe-about{padding:2.5rem 0}
+          .pe-services{padding:2.5rem 0}
+          .pe-contact{padding:2.5rem 0}
+          .pe-booking{padding:3rem 0}
+          .pe-gallery{padding:2.5rem 0}
         }
         @media(max-width:480px){
-          .pe-hero-actions{flex-direction:column}
-          .pe-nav{padding:1rem 1.5rem}
-          .pe-wrap{padding:0 1.5rem}
+          .pe-hero-actions{flex-direction:column;align-items:flex-start}
+          .pe-nav{padding:1rem 1.2rem}
+          .pe-wrap{padding:0 1.2rem}
           .pe-about-stats{grid-template-columns:1fr 1fr}
           .pe-booking form{padding:0 .5rem}
+          .pe-hero-logo-big{height:110px}
+          .pe-services-grid{gap:.8rem}
+          .pe-contact-grid{gap:2rem}
+          .pe-footer{padding:2.5rem 0 1.5rem}
+          .pe-social-inner{gap:.9rem}
         }
 
         /* ─── SELECT OPTION FIX ────────────────────────────────────── */
@@ -808,24 +826,12 @@ export function PawEmpire({ data }: { data: SalonData }) {
         <button className="pe-mobile-close" onClick={() => setMobileOpen(false)}>
           ✕ &nbsp;ЗАТВОРИ
         </button>
-        <a href="#about" onClick={() => setMobileOpen(false)}>
-          За нас
-        </a>
-        <a href="#services" onClick={() => setMobileOpen(false)}>
-          Услуги
-        </a>
-        <a href="#gallery" onClick={() => setMobileOpen(false)}>
-          Галерия
-        </a>
-        <a href="#contact" onClick={() => setMobileOpen(false)}>
-          Контакти
-        </a>
-        <a
-          href="#booking"
-          className="pe-btn pe-btn-gold"
-          onClick={() => setMobileOpen(false)}
-        >
-          ✦ Запиши час
+        <a href="#about" onClick={() => setMobileOpen(false)}>За нас</a>
+        <a href="#services" onClick={() => setMobileOpen(false)}>Услуги</a>
+        <a href="#gallery" onClick={() => setMobileOpen(false)}>Галерия</a>
+        <a href="#contact" onClick={() => setMobileOpen(false)}>Контакти</a>
+        <a href="#booking" className="pe-btn pe-btn-gold" onClick={() => setMobileOpen(false)}>
+          Запиши час
         </a>
       </div>
 
@@ -834,7 +840,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
         <a href="#hero" className="pe-nav-brand">
           {tenant.logo_url?.trim() ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={tenant.logo_url} alt={tenant.salon_name} style={{height:"42px",width:"auto",objectFit:"contain"}} />
+            <img src={tenant.logo_url} alt={tenant.salon_name} style={{height:"40px",width:"auto",objectFit:"contain"}} />
           ) : (
             <>
               <span className="pe-nav-name">{tenant.salon_name}</span>
@@ -843,27 +849,15 @@ export function PawEmpire({ data }: { data: SalonData }) {
           )}
         </a>
         <ul className="pe-nav-links">
-          <li>
-            <a href="#about">За нас</a>
-          </li>
-          <li>
-            <a href="#services">Услуги</a>
-          </li>
-          <li>
-            <a href="#gallery">Галерия</a>
-          </li>
-          <li>
-            <a href="#contact">Контакти</a>
-          </li>
+          <li><a href="#about">За нас</a></li>
+          <li><a href="#services">Услуги</a></li>
+          <li><a href="#gallery">Галерия</a></li>
+          <li><a href="#contact">Контакти</a></li>
         </ul>
         <a href="#booking" className="pe-btn pe-btn-gold pe-nav-cta">
-          ✦ Запиши час
+          Запиши час
         </a>
-        <button
-          className="pe-hamburger"
-          onClick={() => setMobileOpen(true)}
-          aria-label="Меню"
-        >
+        <button className="pe-hamburger" onClick={() => setMobileOpen(true)} aria-label="Меню">
           <span />
           <span />
           <span />
@@ -874,24 +868,33 @@ export function PawEmpire({ data }: { data: SalonData }) {
       <section className="pe-hero" id="hero">
         <div className="pe-hero-radial" />
         <div className="pe-hero-grid" />
+        {/* Pale paw prints */}
+        <PawPrint size={160} opacity={0.15} style={{top:"12%",left:"5%",transform:"rotate(-20deg)"}} />
+        <PawPrint size={90} opacity={0.12} style={{top:"65%",left:"2%",transform:"rotate(15deg)"}} />
         <div className="pe-hero-inner">
           <div>
-            <p className="pe-hero-eyebrow">✦ &nbsp;{tenant.salon_name}&nbsp; ✦</p>
-            <h1 className="pe-hero-title">
-              {tenant.hero_title ?? "Твоят любимец"}
-              <strong>{tenant.hero_subtitle ?? "заслужава лукс"}</strong>
-            </h1>
+            {tenant.logo_url?.trim() ? (
+              /* eslint-disable-next-line @next/next/no-img-element */
+              <img src={tenant.logo_url} alt={tenant.salon_name} className="pe-hero-logo-big" />
+            ) : (
+              <h1 className="pe-hero-title" style={{marginBottom:"1.6rem"}}>
+                {tenant.hero_title ?? "Твоят любимец"}
+                <strong>{tenant.hero_subtitle ?? "заслужава лукс"}</strong>
+              </h1>
+            )}
+            {tenant.logo_url?.trim() && (
+              <h2 className="pe-hero-title">
+                {tenant.hero_title ?? "Твоят любимец"}
+                <strong>{tenant.hero_subtitle ?? "заслужава лукс"}</strong>
+              </h2>
+            )}
             <p className="pe-hero-desc">
               {tenant.description ??
                 "Професионален груминг салон с нежна грижа и любов. Записвайте часове онлайн — бързо, лесно, удобно."}
             </p>
             <div className="pe-hero-actions">
-              <a href="#booking" className="pe-btn pe-btn-gold">
-                ✦ Запиши час
-              </a>
-              <a href="#services" className="pe-btn pe-btn-outline-light">
-                Вижте услугите
-              </a>
+              <a href="#booking" className="pe-btn pe-btn-gold">Запиши час</a>
+              <a href="#services" className="pe-btn pe-btn-outline-light">Вижте услугите</a>
             </div>
           </div>
           <div className="pe-hero-right">
@@ -914,21 +917,18 @@ export function PawEmpire({ data }: { data: SalonData }) {
 
       {/* ── ABOUT ──────────────────────────────────────────────────── */}
       <section className="pe-about" id="about">
+        {/* Pale paw prints */}
+        <PawPrint size={200} opacity={0.13} style={{top:"-2rem",right:"2%",transform:"rotate(30deg)"}} />
+        <PawPrint size={100} opacity={0.11} style={{bottom:"1rem",left:"1%",transform:"rotate(-10deg)"}} />
         <div className="pe-wrap">
           <div className="pe-about-grid">
-            <div className="pe-about-img-wrap pe-fade-up">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={aboutImg} alt={tenant.salon_name} className="pe-about-img" />
-              <div className="pe-about-gold-corner">✦</div>
-            </div>
+            {/* Text on the LEFT */}
             <div
               className="pe-fade-up"
-              style={{ "--pe-delay": "0.15s" } as React.CSSProperties}
+              style={{ "--pe-delay": "0s" } as React.CSSProperties}
             >
               <p className="pe-tag">За нас</p>
               <div className="pe-divider">
-                <div className="pe-divider-line" />
-                <span className="pe-divider-gem">✦</span>
                 <div className="pe-divider-line" />
               </div>
               <h2 className="pe-about-title">
@@ -937,9 +937,14 @@ export function PawEmpire({ data }: { data: SalonData }) {
               <p className="pe-about-txt">
                 {tenant.about_text1 || "Добре дошли в нашия груминг салон — място, където вашият любимец получава грижа с любов и професионализъм. Всяка среща с нас е изживяване, изпълнено с нежност, внимание и безупречна хигиена."}
               </p>
-              <p className="pe-about-txt">
-                {tenant.about_text2 || "Използваме само висококачествени продукти, безопасни за вашия домашен любимец. Нашият екип от опитни грумери се грижи всеки клиент да напусне салона сияещ и щастлив."}
-              </p>
+              {(tenant.about_text2) && (
+                <p className="pe-about-txt">{tenant.about_text2}</p>
+              )}
+              {!tenant.about_text2 && (
+                <p className="pe-about-txt">
+                  {"Използваме само висококачествени продукти, безопасни за вашия домашен любимец. Нашият екип от опитни грумери се грижи всеки клиент да напусне салона сияещ и щастлив."}
+                </p>
+              )}
               <div className="pe-about-stats">
                 <div className="pe-about-stat">
                   <span className="pe-stat-num">500+</span>
@@ -951,6 +956,14 @@ export function PawEmpire({ data }: { data: SalonData }) {
                 </div>
               </div>
             </div>
+            {/* Image on the RIGHT */}
+            <div
+              className="pe-about-img-wrap pe-fade-up"
+              style={{ "--pe-delay": "0.15s" } as React.CSSProperties}
+            >
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={aboutImg} alt={tenant.salon_name} className="pe-about-img" />
+            </div>
           </div>
         </div>
       </section>
@@ -960,19 +973,12 @@ export function PawEmpire({ data }: { data: SalonData }) {
         <div className="pe-wrap">
           <div className="pe-hygiene-inner">
             <div className="pe-hygiene-icon">
-              <svg
-                width="26"
-                height="26"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="1.2"
-              >
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.2">
                 <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
               </svg>
             </div>
             <div className="pe-hygiene-content">
-              <span className="pe-hygiene-label">✦ Включено в цялостна хигиенна подстрижка</span>
+              <span className="pe-hygiene-label">Включено в цялостна хигиенна подстрижка</span>
               <p className="pe-hygiene-text">
                 <strong>Цялостна хигиенна подстрижка включва:</strong>{" "}
                 къпане, изсушаване, разресване и оформяне на козината, почистване на интим, уши и
@@ -985,12 +991,13 @@ export function PawEmpire({ data }: { data: SalonData }) {
 
       {/* ── SERVICES ───────────────────────────────────────────────── */}
       <section className="pe-services" id="services">
+        {/* Pale paw prints */}
+        <PawPrint size={150} opacity={0.12} style={{top:"5%",right:"1%",transform:"rotate(25deg)"}} />
+        <PawPrint size={80} opacity={0.1} style={{bottom:"5%",left:"3%",transform:"rotate(-30deg)"}} />
         <div className="pe-wrap">
           <div className="pe-services-hdr pe-fade-up">
             <p className="pe-tag">Какво предлагаме</p>
             <div className="pe-divider">
-              <div className="pe-divider-line" />
-              <span className="pe-divider-gem">✦</span>
               <div className="pe-divider-line" />
             </div>
             <h2 className="pe-section-title">
@@ -1017,9 +1024,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
                 ))}
           </div>
           <div className="pe-services-cta">
-            <a href="#booking" className="pe-btn pe-btn-gold">
-              ✦ Запишете час
-            </a>
+            <a href="#booking" className="pe-btn pe-btn-gold">Запишете час</a>
           </div>
         </div>
       </section>
@@ -1030,21 +1035,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
           <div className="pe-gallery-hdr pe-fade-up">
             <p className="pe-tag">Нашата работа</p>
             <div className="pe-divider">
-              <div
-                className="pe-divider-line"
-                style={{
-                  background:
-                    "linear-gradient(to right,transparent,rgba(201,168,76,.35),transparent)",
-                }}
-              />
-              <span className="pe-divider-gem">✦</span>
-              <div
-                className="pe-divider-line"
-                style={{
-                  background:
-                    "linear-gradient(to right,transparent,rgba(201,168,76,.35),transparent)",
-                }}
-              />
+              <div className="pe-divider-line" style={{background:"linear-gradient(to right,transparent,rgba(201,168,76,.35),transparent)"}} />
             </div>
             <h2 className="pe-section-title">
               Преди и <em>след</em>
@@ -1058,11 +1049,16 @@ export function PawEmpire({ data }: { data: SalonData }) {
           </div>
           <div className="pe-gallery-grid">
             {galleryUrls.slice(0, 6).map((url, i) => (
-              <div className="pe-g-item" key={i} onClick={() => !isDemo && setLightboxImg(url)} style={!isDemo ? {cursor:"zoom-in"} : undefined}>
+              <div
+                className="pe-g-item"
+                key={i}
+                onClick={() => !isDemo && setLightboxImg(url)}
+                style={!isDemo ? {cursor:"zoom-in"} : undefined}
+              >
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img src={url} alt="" className="pe-g-img" loading="lazy" />
                 <div className="pe-g-overlay">
-                  <span className="pe-g-label">{isDemo ? "Demo" : "✦ " + tenant.salon_name}</span>
+                  <span className="pe-g-label">{isDemo ? "Demo" : tenant.salon_name}</span>
                 </div>
                 {isDemo && <div className="pe-demo-chip">Demo</div>}
               </div>
@@ -1070,12 +1066,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
           </div>
           {igHref && (
             <div className="pe-gallery-cta">
-              <a
-                href={igHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="pe-btn pe-btn-outline-gold"
-              >
+              <a href={igHref} target="_blank" rel="noopener noreferrer" className="pe-btn pe-btn-outline-gold">
                 Вижте повече в Instagram ↗
               </a>
             </div>
@@ -1085,14 +1076,13 @@ export function PawEmpire({ data }: { data: SalonData }) {
 
       {/* ── BOOKING ────────────────────────────────────────────────── */}
       <div className="pe-booking" id="booking">
+        {/* Pale paw prints */}
+        <PawPrint size={120} opacity={0.1} style={{top:"10%",left:"2%",transform:"rotate(10deg)"}} />
+        <PawPrint size={170} opacity={0.09} style={{bottom:"5%",right:"1%",transform:"rotate(-25deg)"}} />
         <div className="pe-wrap" style={{ position: "relative", zIndex: 1 }}>
           <div className="pe-booking-hdr">
-            <p className="pe-tag" style={{ opacity: 0.65 }}>
-              Онлайн резервация
-            </p>
+            <p className="pe-tag" style={{ opacity: 0.65 }}>Онлайн резервация</p>
             <div className="pe-divider">
-              <div className="pe-divider-line" />
-              <span className="pe-divider-gem">✦</span>
               <div className="pe-divider-line" />
             </div>
             <h2 className="pe-booking-title">
@@ -1111,7 +1101,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
             services={flatServices}
             primaryColor="#C5A059"
             textColor="#FAF8F5"
-            bgColor="rgba(255,255,255,0.07)"
+            bgColor="rgba(255,255,255,0.06)"
             isDemo={tenant.salon_slug.startsWith("demo/")}
           />
         </div>
@@ -1119,13 +1109,14 @@ export function PawEmpire({ data }: { data: SalonData }) {
 
       {/* ── CONTACT ────────────────────────────────────────────────── */}
       <section className="pe-contact" id="contact">
+        {/* Pale paw prints */}
+        <PawPrint size={130} opacity={0.11} style={{top:"8%",right:"2%",transform:"rotate(20deg)"}} />
         <div className="pe-wrap">
           <div className="pe-contact-grid">
             <div>
               <p className="pe-tag">Контакти</p>
               <div className="pe-divider" style={{ justifyContent: "flex-start" }}>
-                <div className="pe-divider-line" style={{ maxWidth: "60px" }} />
-                <span className="pe-divider-gem">✦</span>
+                <div className="pe-divider-line" style={{ maxWidth: "80px" }} />
               </div>
               <h2 className="pe-contact-title">
                 Намерете <em>ни</em>
@@ -1134,14 +1125,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
                 {tenant.address && (
                   <div className="pe-contact-row">
                     <div className="pe-contact-ico">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                         <circle cx="12" cy="10" r="3" />
                       </svg>
@@ -1155,14 +1139,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
                 {tenant.phone && (
                   <div className="pe-contact-row">
                     <div className="pe-contact-ico">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.19h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z" />
                       </svg>
                     </div>
@@ -1177,14 +1154,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
                 {tenant.email && (
                   <div className="pe-contact-row">
                     <div className="pe-contact-ico">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <rect x="2" y="4" width="20" height="16" rx="2" />
                         <path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
                       </svg>
@@ -1200,14 +1170,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
                 {workingHours.length > 0 && (
                   <div className="pe-contact-row">
                     <div className="pe-contact-ico">
-                      <svg
-                        width="14"
-                        height="14"
-                        viewBox="0 0 24 24"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth="1.5"
-                      >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <circle cx="12" cy="12" r="10" />
                         <polyline points="12 6 12 12 16 14" />
                       </svg>
@@ -1220,17 +1183,9 @@ export function PawEmpire({ data }: { data: SalonData }) {
                           .sort((a, b) => a.day_of_week - b.day_of_week)
                           .map((h) => (
                             <div className="pe-hours-row" key={h.id}>
-                              <span className="pe-hours-day">
-                                {DAY_LABELS[h.day_of_week]}
-                              </span>
-                              <span
-                                className={
-                                  h.is_day_off ? "pe-hours-off" : "pe-hours-time"
-                                }
-                              >
-                                {h.is_day_off
-                                  ? "почивен ден"
-                                  : `${h.start_time} – ${h.end_time}`}
+                              <span className="pe-hours-day">{DAY_LABELS[h.day_of_week]}</span>
+                              <span className={h.is_day_off ? "pe-hours-off" : "pe-hours-time"}>
+                                {h.is_day_off ? "почивен ден" : `${h.start_time} – ${h.end_time}`}
                               </span>
                             </div>
                           ))}
@@ -1251,15 +1206,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
                   />
                 ) : (
                   <div className="pe-map-empty">
-                    <svg
-                      width="38"
-                      height="38"
-                      viewBox="0 0 24 24"
-                      fill="none"
-                      stroke="currentColor"
-                      strokeWidth="1"
-                      style={{ color: "#3D2B1F", opacity: 0.35 }}
-                    >
+                    <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" style={{ opacity: 0.25 }}>
                       <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
                       <circle cx="12" cy="10" r="3" />
                     </svg>
@@ -1278,20 +1225,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
           <div className="pe-social-inner">
             {igHref && (
               <>
-                <a
-                  href={igHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pe-social-link"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
+                <a href={igHref} target="_blank" rel="noopener noreferrer" className="pe-social-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <rect x="2" y="2" width="20" height="20" rx="5" />
                     <circle cx="12" cy="12" r="4" />
                     <circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none" />
@@ -1303,20 +1238,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
             )}
             {fbHref && (
               <>
-                <a
-                  href={fbHref}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="pe-social-link"
-                >
-                  <svg
-                    width="14"
-                    height="14"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="1.5"
-                  >
+                <a href={fbHref} target="_blank" rel="noopener noreferrer" className="pe-social-link">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                     <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                   </svg>
                   Facebook
@@ -1325,20 +1248,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
               </>
             )}
             {tkHref && (
-              <a
-                href={tkHref}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="pe-social-link"
-              >
-                <svg
-                  width="14"
-                  height="14"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  strokeWidth="1.5"
-                >
+              <a href={tkHref} target="_blank" rel="noopener noreferrer" className="pe-social-link">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                   <path d="M9 12a4 4 0 1 0 4 4V4a5 5 0 0 0 5 5" />
                 </svg>
                 TikTok
@@ -1350,6 +1261,8 @@ export function PawEmpire({ data }: { data: SalonData }) {
 
       {/* ── FOOTER ─────────────────────────────────────────────────── */}
       <footer className="pe-footer">
+        {/* Pale paw prints */}
+        <PawPrint size={100} opacity={0.1} style={{top:"1rem",right:"5%",transform:"rotate(15deg)"}} />
         <div className="pe-wrap">
           {tenant.logo_url?.trim() ? (
             <div style={{display:"flex",justifyContent:"center",marginBottom:".5rem"}}>
@@ -1359,7 +1272,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
           ) : (
             <div className="pe-footer-logo">{tenant.salon_name}</div>
           )}
-          <p className="pe-footer-tagline">✦ &nbsp;Професионален Груминг Салон&nbsp; ✦</p>
+          <p className="pe-footer-tagline">Професионален Груминг Салон</p>
           <nav className="pe-footer-nav">
             <a href="#about">За нас</a>
             <a href="#services">Услуги</a>
