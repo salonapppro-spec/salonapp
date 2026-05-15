@@ -183,11 +183,15 @@ export function PawEmpire({ data }: { data: SalonData }) {
   const galleryUrls = isDemo ? DEMO_GALLERY : gallery.map((g) => g.url);
 
   const heroImg = tenant.hero_image_url?.trim() || HERO_PLACEHOLDER;
-  const soloSpec = specs.find((s) => s.bio) ?? null;
+  // First specialist with any content (bio or avatar), used for About section
+  const soloSpec = specs.find((s) => s.bio || s.avatar_url) ?? null;
   const aboutImg = soloSpec
     ? (soloSpec.avatar_url?.trim() || tenant.about_image_url?.trim() || null)
     : (tenant.about_image_url?.trim() || null);
-  const hasAbout = Boolean(soloSpec || tenant.about_text1 || tenant.about_text2 || tenant.about_image_url);
+  const hasAbout = Boolean(
+    (soloSpec?.bio) || (soloSpec?.avatar_url) ||
+    tenant.about_text1 || tenant.about_text2 || tenant.about_image_url
+  );
 
   return (
     <>
