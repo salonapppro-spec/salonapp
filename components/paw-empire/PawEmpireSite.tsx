@@ -314,6 +314,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
 
         /* ─── HERO ─────────────────────────────────────────────────── */
         .pe-hero{
+          min-height:100vh;
           min-height:100svh;
           background:#2A1B14;
           position:relative;overflow:hidden;
@@ -356,7 +357,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
         }
         .pe-hero-desc{
           font-size:.82rem;
-          color:rgba(245,237,232,.45);
+          color:rgba(245,237,232,.65);
           max-width:420px;margin-bottom:2.2rem;line-height:2;font-weight:300
         }
         .pe-hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
@@ -883,17 +884,16 @@ export function PawEmpire({ data }: { data: SalonData }) {
         <PawPrint size={90} opacity={0.22} style={{top:"65%",left:"2%",transform:"rotate(15deg)"}} />
         <div className="pe-hero-inner">
           <div>
-            {tenant.logo_url?.trim() ? (
+            {tenant.logo_url?.trim() && (
               /* eslint-disable-next-line @next/next/no-img-element */
               <img src={tenant.logo_url} alt={tenant.salon_name} className="pe-hero-logo-big" />
-            ) : (
-              <h1 className="pe-hero-title" style={{marginBottom:"1.6rem"}}>
-                {tenant.hero_title ?? "Твоят любимец"}
-                <strong>{tenant.hero_subtitle ?? "заслужава лукс"}</strong>
-              </h1>
             )}
+            <h1 className="pe-hero-title" style={{marginBottom:"1.6rem"}}>
+              {tenant.hero_title || tenant.salon_name || "Твоят любимец"}
+              <strong>{tenant.hero_subtitle || "заслужава лукс"}</strong>
+            </h1>
             <p className="pe-hero-desc">
-              {tenant.description ??
+              {tenant.description ||
                 "Професионален груминг салон с нежна грижа и любов. Записвайте часове онлайн — бързо, лесно, удобно."}
             </p>
             <div className="pe-hero-actions">
