@@ -102,6 +102,73 @@ function PawPrint({
   );
 }
 
+function Bone({
+  size = 100,
+  opacity = 0.15,
+  style,
+}: {
+  size?: number;
+  opacity?: number;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size * 0.5}
+      viewBox="0 0 100 50"
+      fill="#6B4C35"
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        pointerEvents: "none",
+        userSelect: "none",
+        opacity,
+        ...style,
+      }}
+    >
+      <circle cx="12" cy="13" r="9" />
+      <circle cx="12" cy="37" r="9" />
+      <circle cx="88" cy="13" r="9" />
+      <circle cx="88" cy="37" r="9" />
+      <rect x="14" y="16" width="72" height="18" rx="9" />
+    </svg>
+  );
+}
+
+function BlobShape({
+  size = 320,
+  opacity = 0.05,
+  color = "#C5A059",
+  style,
+}: {
+  size?: number;
+  opacity?: number;
+  color?: string;
+  style?: React.CSSProperties;
+}) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 200 200"
+      aria-hidden="true"
+      style={{
+        position: "absolute",
+        pointerEvents: "none",
+        userSelect: "none",
+        opacity,
+        ...style,
+      }}
+    >
+      <path
+        fill={color}
+        d="M44.3,-76.3C56.2,-68.4,63.5,-53.7,70.4,-39.1C77.3,-24.5,83.8,-10,82.5,3.4C81.2,16.8,72,29,63.3,41.8C54.6,54.6,46.4,68,34.8,74.8C23.2,81.6,8.2,81.8,-6.5,79.6C-21.1,77.4,-35.4,72.9,-45.7,63.3C-56,53.8,-62.4,39.4,-67.8,24.3C-73.2,9.2,-77.5,-6.5,-73.5,-20.1C-69.5,-33.6,-57.1,-45,-44.2,-53.1C-31.3,-61.2,-17.8,-66.1,-1.2,-64.1C15.4,-62.1,32.4,-84.2,44.3,-76.3Z"
+        transform="translate(100 100)"
+      />
+    </svg>
+  );
+}
+
 function ServiceCard({ service, index }: { service: Service; index: number }) {
   const ref = useFadeUp();
   const delay = `${index * 0.08}s`;
@@ -162,7 +229,16 @@ export function PawEmpire({ data }: { data: SalonData }) {
       const el = document.querySelector<HTMLInputElement>('.pe-booking input[type="date"]');
       const fp = (window as unknown as Record<string, unknown>).flatpickr as ((el: HTMLElement, opts: object) => void) | undefined;
       if (el && fp) {
-        fp(el, { minDate: "today", dateFormat: "Y-m-d", disableMobile: true });
+        fp(el, {
+          minDate: "today",
+          dateFormat: "Y-m-d",
+          disableMobile: true,
+          onChange: (_: unknown[], dateStr: string) => {
+            const setter = Object.getOwnPropertyDescriptor(window.HTMLInputElement.prototype, "value")?.set;
+            if (setter) setter.call(el, dateStr);
+            el.dispatchEvent(new Event("input", { bubbles: true }));
+          },
+        });
       }
     };
     document.body.appendChild(script);
@@ -230,7 +306,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
         <a href="#hero" className="pe-nav-brand">
           {tenant.logo_url?.trim() ? (
             /* eslint-disable-next-line @next/next/no-img-element */
-            <img src={tenant.logo_url} alt={tenant.salon_name} style={{height:"40px",width:"auto",objectFit:"contain"}} />
+            <img src={tenant.logo_url} alt={tenant.salon_name} style={{height:"40px",width:"auto",objectFit:"contain",mixBlendMode:"screen"}} />
           ) : (
             <>
               <span className="pe-nav-name">{tenant.salon_name}</span>
@@ -258,9 +334,10 @@ export function PawEmpire({ data }: { data: SalonData }) {
       <section className="pe-hero" id="hero">
         <div className="pe-hero-radial" />
         <div className="pe-hero-grid" />
-        {/* Pale paw prints */}
+        <BlobShape size={480} opacity={0.04} style={{top:"-10%",right:"-8%"}} />
         <PawPrint size={160} opacity={0.32} style={{top:"12%",left:"5%",transform:"rotate(-20deg)"}} />
         <PawPrint size={90} opacity={0.22} style={{top:"65%",left:"2%",transform:"rotate(15deg)"}} />
+        <Bone size={130} opacity={0.2} style={{bottom:"12%",right:"3%",transform:"rotate(-15deg)"}} />
         <div className="pe-hero-inner">
           <div>
             {tenant.logo_url?.trim() && (
@@ -269,7 +346,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
             )}
             <h1 className="pe-hero-title" style={{marginBottom:"1.6rem"}}>
               {tenant.hero_title || tenant.salon_name || "Твоят любимец"}
-              <strong>{tenant.hero_subtitle || "заслужава лукс"}</strong>
+              <strong>{tenant.hero_subtitle || "Бюти салон за четириноги звезди!"}</strong>
             </h1>
             <p className="pe-hero-desc">
               {tenant.description ||
@@ -301,9 +378,10 @@ export function PawEmpire({ data }: { data: SalonData }) {
       {/* ── ABOUT ──────────────────────────────────────────────────── */}
       {hasAbout && (
         <section className="pe-about" id="about">
-          {/* Pale paw prints */}
+          <BlobShape size={380} opacity={0.04} style={{bottom:"-10%",left:"-5%"}} />
           <PawPrint size={200} opacity={0.28} style={{top:"-2rem",right:"2%",transform:"rotate(30deg)"}} />
           <PawPrint size={100} opacity={0.22} style={{bottom:"1rem",left:"1%",transform:"rotate(-10deg)"}} />
+          <Bone size={110} opacity={0.18} style={{top:"15%",right:"1%",transform:"rotate(20deg)"}} />
           <div className="pe-wrap">
             <div className={`pe-about-grid${aboutImg ? "" : " pe-about-grid--no-img"}`}>
               {/* Text on the LEFT */}
@@ -369,9 +447,10 @@ export function PawEmpire({ data }: { data: SalonData }) {
 
       {/* ── SERVICES ───────────────────────────────────────────────── */}
       <section className="pe-services" id="services">
-        {/* Pale paw prints */}
+        <BlobShape size={300} opacity={0.04} style={{top:"-5%",left:"-4%"}} />
         <PawPrint size={150} opacity={0.26} style={{top:"5%",right:"1%",transform:"rotate(25deg)"}} />
         <PawPrint size={80} opacity={0.22} style={{bottom:"5%",left:"3%",transform:"rotate(-30deg)"}} />
+        <Bone size={120} opacity={0.18} style={{bottom:"8%",right:"2%",transform:"rotate(10deg)"}} />
         <div className="pe-wrap">
           <div ref={servicesHdrRef} className="pe-services-hdr pe-fade-up">
             <p className="pe-tag">Какво предлагаме</p>
@@ -645,7 +724,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
           {tenant.logo_url?.trim() ? (
             <div style={{display:"flex",justifyContent:"center",marginBottom:".5rem"}}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={tenant.logo_url} alt={tenant.salon_name} style={{height:"56px",width:"auto",objectFit:"contain"}} />
+              <img src={tenant.logo_url} alt={tenant.salon_name} style={{height:"56px",width:"auto",objectFit:"contain",mixBlendMode:"screen"}} />
             </div>
           ) : (
             <div className="pe-footer-logo">{tenant.salon_name}</div>

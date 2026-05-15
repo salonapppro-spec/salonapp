@@ -145,7 +145,8 @@
         .pe-hero-logo-big{
           height:180px;width:auto;
           object-fit:contain;display:block;
-          margin-bottom:2rem
+          margin-bottom:2rem;
+          mix-blend-mode:screen
         }
         .pe-hero-title{
           font-family:'Cormorant Garamond',Georgia,serif;
@@ -163,17 +164,20 @@
           max-width:420px;margin-bottom:2.2rem;line-height:2;font-weight:300
         }
         .pe-hero-actions{display:flex;gap:1rem;flex-wrap:wrap}
-        .pe-hero-right{position:relative}
-        .pe-hero-frame{position:relative}
+        .pe-hero-right{
+          position:relative;
+          display:flex;align-items:center;justify-content:center
+        }
+        .pe-hero-frame{position:relative;display:inline-block}
         .pe-hero-img{
-          width:100%;height:560px;
+          width:420px;height:420px;
           object-fit:cover;object-position:center top;
-          border-radius:8px;display:block
+          border-radius:50%;display:block
         }
         .pe-hero-border{
-          position:absolute;inset:-10px;
-          border:1px solid rgba(201,168,76,.2);
-          border-radius:12px;pointer-events:none
+          position:absolute;inset:-12px;
+          border:2px solid rgba(201,168,76,.3);
+          border-radius:50%;pointer-events:none
         }
         .pe-hero-badge{
           position:absolute;bottom:-1.8rem;left:-1.8rem;
@@ -562,6 +566,7 @@
           .pe-g-item:nth-child(5){grid-column:2;grid-row:3}
           .pe-g-item:nth-child(6){display:none}
           .pe-hero-logo-big{height:130px}
+          .pe-hero-img{width:280px;height:280px}
           .pe-about{padding:2.5rem 0}
           .pe-services{padding:2.5rem 0}
           .pe-contact{padding:2.5rem 0}
