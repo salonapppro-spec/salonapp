@@ -183,7 +183,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
   const galleryUrls = isDemo ? DEMO_GALLERY : gallery.map((g) => g.url);
 
   const heroImg = tenant.hero_image_url?.trim() || HERO_PLACEHOLDER;
-  const soloSpec = specs.length === 1 && specs[0].bio ? specs[0] : null;
+  const soloSpec = specs.find((s) => s.bio) ?? null;
   const aboutImg = soloSpec
     ? (soloSpec.avatar_url?.trim() || tenant.about_image_url?.trim() || null)
     : (tenant.about_image_url?.trim() || null);
