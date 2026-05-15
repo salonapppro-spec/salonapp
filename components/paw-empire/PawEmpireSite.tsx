@@ -183,7 +183,11 @@ export function PawEmpire({ data }: { data: SalonData }) {
   const galleryUrls = isDemo ? DEMO_GALLERY : gallery.map((g) => g.url);
 
   const heroImg = tenant.hero_image_url?.trim() || HERO_PLACEHOLDER;
-  const aboutImg = tenant.about_image_url?.trim() || ABOUT_PLACEHOLDER;
+  const soloSpec = specs.length === 1 && specs[0].bio ? specs[0] : null;
+  const aboutImg = soloSpec
+    ? (soloSpec.avatar_url?.trim() || tenant.about_image_url?.trim() || null)
+    : (tenant.about_image_url?.trim() || null);
+  const hasAbout = Boolean(soloSpec || tenant.about_text1 || tenant.about_text2 || tenant.about_image_url);
 
   return (
     <>
@@ -434,7 +438,9 @@ export function PawEmpire({ data }: { data: SalonData }) {
           margin-bottom:1.2rem
         }
         .pe-about-title em{font-style:italic;color:#C5A059}
+        .pe-about-role{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:#C5A059;margin-bottom:1rem;font-weight:500}
         .pe-about-txt{font-size:.83rem;color:rgba(245,237,232,.6);line-height:2.1;margin-bottom:1rem;font-weight:300}
+        .pe-about-grid--no-img{grid-template-columns:1fr}
         .pe-about-stats{
           display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;
           margin-top:2rem;padding-top:2rem;
@@ -910,57 +916,50 @@ export function PawEmpire({ data }: { data: SalonData }) {
       </section>
 
       {/* ── ABOUT ──────────────────────────────────────────────────── */}
-      <section className="pe-about" id="about">
-        {/* Pale paw prints */}
-        <PawPrint size={200} opacity={0.28} style={{top:"-2rem",right:"2%",transform:"rotate(30deg)"}} />
-        <PawPrint size={100} opacity={0.22} style={{bottom:"1rem",left:"1%",transform:"rotate(-10deg)"}} />
-        <div className="pe-wrap">
-          <div className="pe-about-grid">
-            {/* Text on the LEFT */}
-            <div
-              className="pe-fade-up"
-              style={{ "--pe-delay": "0s" } as React.CSSProperties}
-            >
-              <p className="pe-tag">За нас</p>
-              <div className="pe-divider">
-                <div className="pe-divider-line" />
-              </div>
-              <h2 className="pe-about-title">
-                <em>{tenant.salon_name}</em>
-              </h2>
-              <p className="pe-about-txt">
-                {tenant.about_text1 || "Добре дошли в нашия груминг салон — място, където вашият любимец получава грижа с любов и професионализъм. Всяка среща с нас е изживяване, изпълнено с нежност, внимание и безупречна хигиена."}
-              </p>
-              {(tenant.about_text2) && (
-                <p className="pe-about-txt">{tenant.about_text2}</p>
-              )}
-              {!tenant.about_text2 && (
-                <p className="pe-about-txt">
-                  {"Използваме само висококачествени продукти, безопасни за вашия домашен любимец. Нашият екип от опитни грумери се грижи всеки клиент да напусне салона сияещ и щастлив."}
-                </p>
-              )}
-              <div className="pe-about-stats">
-                <div className="pe-about-stat">
-                  <span className="pe-stat-num">500+</span>
-                  <span className="pe-stat-lbl">Доволни клиенти</span>
+      {hasAbout && (
+        <section className="pe-about" id="about">
+          {/* Pale paw prints */}
+          <PawPrint size={200} opacity={0.28} style={{top:"-2rem",right:"2%",transform:"rotate(30deg)"}} />
+          <PawPrint size={100} opacity={0.22} style={{bottom:"1rem",left:"1%",transform:"rotate(-10deg)"}} />
+          <div className="pe-wrap">
+            <div className={`pe-about-grid${aboutImg ? "" : " pe-about-grid--no-img"}`}>
+              {/* Text on the LEFT */}
+              <div
+                className="pe-fade-up"
+                style={{ "--pe-delay": "0s" } as React.CSSProperties}
+              >
+                <p className="pe-tag">За нас</p>
+                <div className="pe-divider">
+                  <div className="pe-divider-line" />
                 </div>
-                <div className="pe-about-stat">
-                  <span className="pe-stat-num">5 ★</span>
-                  <span className="pe-stat-lbl">Средна оценка</span>
-                </div>
+                {soloSpec ? (
+                  <>
+                    <h2 className="pe-about-title"><em>{soloSpec.name}</em></h2>
+                    {soloSpec.role && <p className="pe-about-role">{soloSpec.role}</p>}
+                    <p className="pe-about-txt">{soloSpec.bio}</p>
+                  </>
+                ) : (
+                  <>
+                    <h2 className="pe-about-title"><em>{tenant.salon_name}</em></h2>
+                    {tenant.about_text1 && <p className="pe-about-txt">{tenant.about_text1}</p>}
+                    {tenant.about_text2 && <p className="pe-about-txt">{tenant.about_text2}</p>}
+                  </>
+                )}
               </div>
-            </div>
-            {/* Image on the RIGHT */}
-            <div
-              className="pe-about-img-wrap pe-fade-up"
-              style={{ "--pe-delay": "0.15s" } as React.CSSProperties}
-            >
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={aboutImg} alt={tenant.salon_name} className="pe-about-img" />
+              {/* Image on the RIGHT */}
+              {aboutImg && (
+                <div
+                  className="pe-about-img-wrap pe-fade-up"
+                  style={{ "--pe-delay": "0.15s" } as React.CSSProperties}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={aboutImg} alt={soloSpec ? soloSpec.name : tenant.salon_name} className="pe-about-img" />
+                </div>
+              )}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       {/* ── HYGIENE BANNER ─────────────────────────────────────────── */}
       <div className="pe-hygiene">
