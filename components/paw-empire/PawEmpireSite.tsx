@@ -250,7 +250,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
   const galleryHdrRef = useFadeUp();
 
   return (
-    <>
+    <div id="pe-root">
 
       {/* ── LIGHTBOX ───────────────────────────────────────────────── */}
       {lightboxImg && (
@@ -703,6 +703,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
           </div>
         </div>
       </footer>
-    </>
+    </div>
   );
 }
