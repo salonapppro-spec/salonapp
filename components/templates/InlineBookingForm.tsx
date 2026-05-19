@@ -1,17 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import type { Service } from "@/types/database";
 
-function MiniCalendar({ value, min, onChange, primaryColor, textColor }: {
+function MiniCalendar({ value, min, onChange, primaryColor, textColor, inputStyle }: {
   value: string; min: string; onChange: (d: string) => void;
   primaryColor: string; textColor: string;
+  inputStyle: React.CSSProperties;
 }) {
+  const [open, setOpen] = useState(false);
+  const ref = useRef<HTMLDivElement>(null);
+
   const todayDate = new Date(); todayDate.setHours(0,0,0,0);
   const minDate = min ? (() => { const d = new Date(min); d.setHours(0,0,0,0); return d; })() : null;
   const initD = value ? new Date(value + "T00:00:00") : new Date();
   const [vy, setVy] = useState(initD.getFullYear());
   const [vm, setVm] = useState(initD.getMonth());
+
+  useEffect(() => {
+    const handler = (e: MouseEvent) => { if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false); };
+    document.addEventListener("mousedown", handler);
+    return () => document.removeEventListener("mousedown", handler);
+  }, []);
 
   const months = ["Януари","Февруари","Март","Април","Май","Юни","Юли","Август","Септември","Октомври","Ноември","Декември"];
   const days  = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
@@ -28,38 +38,71 @@ function MiniCalendar({ value, min, onChange, primaryColor, textColor }: {
   const isPast = (d: number) => { if (!minDate) return false; const dt=new Date(vy,vm,d); dt.setHours(0,0,0,0); return dt<minDate; };
   const isToday = (d: number) => { const dt=new Date(vy,vm,d); dt.setHours(0,0,0,0); return dt.getTime()===todayDate.getTime(); };
 
-  const bg = "rgba(20,8,2,0.98)";
-  const border = `1px solid ${primaryColor}40`;
+  const displayValue = value
+    ? (() => { const [y,m,d] = value.split("-"); return `${d}.${m}.${y}`; })()
+    : "дд.мм.гггг";
+
+  const select = (d: number) => {
+    if (isPast(d)) return;
+    onChange(toStr(d));
+    setOpen(false);
+  };
 
   return (
-    <div style={{background:bg,border,borderRadius:"8px",padding:"14px",width:"100%",boxSizing:"border-box"}}>
-      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"}}>
-        <button type="button" onClick={prevM} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"20px",lineHeight:1,padding:"0 6px"}}>‹</button>
-        <span style={{color:textColor,fontSize:"13px",fontWeight:600,letterSpacing:"0.06em"}}>{months[vm]} {vy}</span>
-        <button type="button" onClick={nextM} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"20px",lineHeight:1,padding:"0 6px"}}>›</button>
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"2px",marginBottom:"6px"}}>
-        {days.map(d=><div key={d} style={{textAlign:"center",fontSize:"10px",color:primaryColor,fontWeight:700,letterSpacing:"0.05em",padding:"2px 0"}}>{d}</div>)}
-      </div>
-      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px"}}>
-        {cells.map((d,i)=>{
-          if(!d) return <div key={`e${i}`}/>;
-          const sel=toStr(d)===value, past=isPast(d), tod=isToday(d);
-          return (
-            <button key={d} type="button" disabled={past} onClick={()=>!past&&onChange(toStr(d))} style={{
-              background: sel ? primaryColor : tod ? `${primaryColor}25` : "transparent",
-              color: past ? `${textColor}28` : sel ? "#1C0D06" : tod ? primaryColor : textColor,
-              border: tod&&!sel ? `1px solid ${primaryColor}55` : "1px solid transparent",
-              borderRadius:"4px", padding:"7px 2px", fontSize:"12px",
-              cursor: past?"default":"pointer", fontWeight: sel?700:400,
-              textAlign:"center", transition:"background 0.15s",
-            }}>{d}</button>
-          );
-        })}
-      </div>
-      {value && (
-        <div style={{marginTop:"10px",display:"flex",justifyContent:"flex-end"}}>
-          <button type="button" onClick={()=>onChange("")} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"11px",letterSpacing:"0.1em",opacity:.7}}>ИЗЧИСТИ</button>
+    <div ref={ref} style={{position:"relative",width:"100%"}}>
+      {/* Trigger input */}
+      <button type="button" onClick={()=>setOpen(o=>!o)} style={{
+        ...inputStyle,
+        display:"flex", alignItems:"center", justifyContent:"space-between",
+        cursor:"pointer", textAlign:"left",
+        color: value ? textColor : `${textColor}55`,
+      }}>
+        <span>{displayValue}</span>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke={primaryColor} strokeWidth="2">
+          <rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+        </svg>
+      </button>
+
+      {/* Dropdown calendar */}
+      {open && (
+        <div style={{
+          position:"absolute", top:"calc(100% + 6px)", left:0, right:0, zIndex:50,
+          background:"rgba(18,6,2,0.99)", border:`1px solid ${primaryColor}45`,
+          borderRadius:"10px", padding:"16px", boxShadow:"0 16px 48px rgba(0,0,0,0.6)",
+        }}>
+          {/* Month nav */}
+          <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"12px"}}>
+            <button type="button" onClick={prevM} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"22px",lineHeight:1,padding:"0 8px"}}>‹</button>
+            <span style={{color:textColor,fontSize:"13px",fontWeight:600,letterSpacing:"0.08em"}}>{months[vm]} {vy}</span>
+            <button type="button" onClick={nextM} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"22px",lineHeight:1,padding:"0 8px"}}>›</button>
+          </div>
+          {/* Day headers */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"2px",marginBottom:"6px"}}>
+            {days.map(d=><div key={d} style={{textAlign:"center",fontSize:"10px",color:primaryColor,fontWeight:700,letterSpacing:"0.06em",padding:"3px 0"}}>{d}</div>)}
+          </div>
+          {/* Day cells */}
+          <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px"}}>
+            {cells.map((d,i)=>{
+              if(!d) return <div key={`e${i}`}/>;
+              const sel=toStr(d)===value, past=isPast(d), tod=isToday(d);
+              return (
+                <button key={d} type="button" disabled={past} onClick={()=>select(d)} style={{
+                  background: sel ? primaryColor : tod ? `${primaryColor}20` : "transparent",
+                  color: past ? `${textColor}25` : sel ? "#1C0D06" : tod ? primaryColor : textColor,
+                  border: tod&&!sel ? `1px solid ${primaryColor}50` : "1px solid transparent",
+                  borderRadius:"5px", padding:"8px 2px", fontSize:"13px",
+                  cursor: past?"default":"pointer", fontWeight: sel?700:400,
+                  textAlign:"center", transition:"background 0.12s",
+                }}>{d}</button>
+              );
+            })}
+          </div>
+          {/* Clear */}
+          {value && (
+            <div style={{marginTop:"12px",display:"flex",justifyContent:"flex-end"}}>
+              <button type="button" onClick={()=>{onChange("");setOpen(false);}} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"11px",letterSpacing:"0.1em",opacity:.65}}>ИЗЧИСТИ</button>
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -423,6 +466,7 @@ export function InlineBookingForm({
             onChange={setDate}
             primaryColor={primaryColor}
             textColor={textColor}
+            inputStyle={inputStyle}
           />
           <input type="hidden" value={date} required />
         </div>
