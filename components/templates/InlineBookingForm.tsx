@@ -316,6 +316,7 @@ export function InlineBookingForm({
     boxSizing: "border-box",
     fontFamily: "inherit",
     colorScheme: "dark",
+    accentColor: primaryColor,
   };
 
   const labelStyle: React.CSSProperties = {

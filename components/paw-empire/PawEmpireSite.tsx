@@ -365,7 +365,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
                 {soloSpec ? (
                   <>
                     <h2 className="pe-about-title"><em>{soloSpec.name}</em></h2>
-                    {soloSpec.role && <p className="pe-about-role">{soloSpec.role}</p>}
                     <p className="pe-about-txt">{soloSpec.bio}</p>
                   </>
                 ) : (
@@ -402,7 +401,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
               </svg>
             </div>
             <div className="pe-hygiene-content">
-              <span className="pe-hygiene-label">Включено в цялостна хигиенна подстрижка</span>
               <p className="pe-hygiene-text">
                 <strong>Цялостна хигиенна подстрижка включва:</strong>{" "}
                 къпане, изсушаване, разресване и оформяне на козината, почистване на интим, уши и
