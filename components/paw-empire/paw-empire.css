@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&family=Montserrat:wght@300;400;500;600&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400;1,600;1,700&display=swap');
 
         /* ─── RESET & ROOT ─────────────────────────────────────────── */
         *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
@@ -6,7 +6,7 @@
         body{
           background:#2A1B14;
           color:#FAF8F5;
-          font-family:'Montserrat',sans-serif;
+          font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;
           font-weight:300;
           line-height:1.7;
           overflow-x:hidden
@@ -20,7 +20,7 @@
         /* ─── LAYOUT UTILITIES ─────────────────────────────────────── */
         .pe-wrap{max-width:1160px;margin:0 auto;padding:0 2rem}
         .pe-tag{
-          font-family:'Montserrat',sans-serif;
+          font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;
           font-size:.58rem;
           letter-spacing:.35em;
           text-transform:uppercase;
@@ -39,7 +39,7 @@
         /* ─── BUTTONS ──────────────────────────────────────────────── */
         .pe-btn{
           display:inline-flex;align-items:center;gap:.5rem;
-          font-family:'Montserrat',sans-serif;
+          font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;
           font-size:.65rem;font-weight:600;letter-spacing:.14em;text-transform:uppercase;
           padding:.9rem 2.4rem;border-radius:2px;
           cursor:pointer;border:none;text-decoration:none;
@@ -72,7 +72,7 @@
         }
         .pe-nav-name{font-size:1.45rem;font-weight:600;color:#C5A059;letter-spacing:.06em;line-height:1}
         .pe-nav-sub{
-          font-family:'Montserrat',sans-serif;
+          font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;
           font-size:.48rem;letter-spacing:.3em;text-transform:uppercase;
           color:rgba(245,237,232,.35);margin-top:3px
         }
@@ -100,7 +100,7 @@
         .pe-mobile-close{
           position:absolute;top:1.5rem;right:1.8rem;
           background:none;border:none;
-          font-family:'Montserrat',sans-serif;
+          font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;
           font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;
           color:rgba(245,237,232,.3);cursor:pointer;
           transition:color .3s ease
@@ -185,7 +185,7 @@
         }
         .pe-hero-badge-lbl{
           font-size:.5rem;letter-spacing:.18em;text-transform:uppercase;
-          font-family:'Montserrat',sans-serif;opacity:.75;margin-top:3px;display:block
+          font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;opacity:.75;margin-top:3px;display:block
         }
         .pe-hero-scroll{
           position:absolute;bottom:2.5rem;left:50%;transform:translateX(-50%);
@@ -221,7 +221,7 @@
           background:none;border:none;cursor:pointer;
           color:rgba(245,237,232,.4);
           font-size:.55rem;letter-spacing:.22em;text-transform:uppercase;
-          font-family:'Montserrat',sans-serif;
+          font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;
           transition:color .2s ease
         }
         .pe-lb-close:hover{color:#C5A059}

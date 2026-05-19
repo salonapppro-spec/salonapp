@@ -341,10 +341,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
             </div>
           </div>
         </div>
-        <div className="pe-hero-scroll">
-          <div className="pe-hero-scroll-line" />
-          <span>Скрол</span>
-        </div>
       </section>
 
       {/* ── ABOUT ──────────────────────────────────────────────────── */}
