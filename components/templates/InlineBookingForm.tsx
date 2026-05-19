@@ -3,6 +3,69 @@
 import { useState, useEffect } from "react";
 import type { Service } from "@/types/database";
 
+function MiniCalendar({ value, min, onChange, primaryColor, textColor }: {
+  value: string; min: string; onChange: (d: string) => void;
+  primaryColor: string; textColor: string;
+}) {
+  const todayDate = new Date(); todayDate.setHours(0,0,0,0);
+  const minDate = min ? (() => { const d = new Date(min); d.setHours(0,0,0,0); return d; })() : null;
+  const initD = value ? new Date(value + "T00:00:00") : new Date();
+  const [vy, setVy] = useState(initD.getFullYear());
+  const [vm, setVm] = useState(initD.getMonth());
+
+  const months = ["Януари","Февруари","Март","Април","Май","Юни","Юли","Август","Септември","Октомври","Ноември","Декември"];
+  const days  = ["Пн","Вт","Ср","Чт","Пт","Сб","Нд"];
+
+  const prevM = () => { if (vm===0){setVm(11);setVy(y=>y-1);}else setVm(m=>m-1); };
+  const nextM = () => { if (vm===11){setVm(0);setVy(y=>y+1);}else setVm(m=>m+1); };
+
+  const dim = new Date(vy, vm+1, 0).getDate();
+  const start = (new Date(vy, vm, 1).getDay()+6)%7;
+  const cells: (number|null)[] = Array(start).fill(null);
+  for (let d=1; d<=dim; d++) cells.push(d);
+
+  const toStr = (d: number) => `${vy}-${String(vm+1).padStart(2,"0")}-${String(d).padStart(2,"0")}`;
+  const isPast = (d: number) => { if (!minDate) return false; const dt=new Date(vy,vm,d); dt.setHours(0,0,0,0); return dt<minDate; };
+  const isToday = (d: number) => { const dt=new Date(vy,vm,d); dt.setHours(0,0,0,0); return dt.getTime()===todayDate.getTime(); };
+
+  const bg = "rgba(20,8,2,0.98)";
+  const border = `1px solid ${primaryColor}40`;
+
+  return (
+    <div style={{background:bg,border,borderRadius:"8px",padding:"14px",width:"100%",boxSizing:"border-box"}}>
+      <div style={{display:"flex",alignItems:"center",justifyContent:"space-between",marginBottom:"10px"}}>
+        <button type="button" onClick={prevM} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"20px",lineHeight:1,padding:"0 6px"}}>‹</button>
+        <span style={{color:textColor,fontSize:"13px",fontWeight:600,letterSpacing:"0.06em"}}>{months[vm]} {vy}</span>
+        <button type="button" onClick={nextM} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"20px",lineHeight:1,padding:"0 6px"}}>›</button>
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"2px",marginBottom:"6px"}}>
+        {days.map(d=><div key={d} style={{textAlign:"center",fontSize:"10px",color:primaryColor,fontWeight:700,letterSpacing:"0.05em",padding:"2px 0"}}>{d}</div>)}
+      </div>
+      <div style={{display:"grid",gridTemplateColumns:"repeat(7,1fr)",gap:"3px"}}>
+        {cells.map((d,i)=>{
+          if(!d) return <div key={`e${i}`}/>;
+          const sel=toStr(d)===value, past=isPast(d), tod=isToday(d);
+          return (
+            <button key={d} type="button" disabled={past} onClick={()=>!past&&onChange(toStr(d))} style={{
+              background: sel ? primaryColor : tod ? `${primaryColor}25` : "transparent",
+              color: past ? `${textColor}28` : sel ? "#1C0D06" : tod ? primaryColor : textColor,
+              border: tod&&!sel ? `1px solid ${primaryColor}55` : "1px solid transparent",
+              borderRadius:"4px", padding:"7px 2px", fontSize:"12px",
+              cursor: past?"default":"pointer", fontWeight: sel?700:400,
+              textAlign:"center", transition:"background 0.15s",
+            }}>{d}</button>
+          );
+        })}
+      </div>
+      {value && (
+        <div style={{marginTop:"10px",display:"flex",justifyContent:"flex-end"}}>
+          <button type="button" onClick={()=>onChange("")} style={{background:"none",border:"none",color:primaryColor,cursor:"pointer",fontSize:"11px",letterSpacing:"0.1em",opacity:.7}}>ИЗЧИСТИ</button>
+        </div>
+      )}
+    </div>
+  );
+}
+
 interface TimeSlot {
   time: string;
   magnetic: boolean;
@@ -354,14 +417,14 @@ export function InlineBookingForm({
         {/* Date */}
         <div>
           <label style={labelStyle}>Дата</label>
-          <input
-            type="date"
+          <MiniCalendar
             value={date}
             min={today}
-            onChange={(e) => setDate(e.target.value)}
-            required
-            style={inputStyle}
+            onChange={setDate}
+            primaryColor={primaryColor}
+            textColor={textColor}
           />
+          <input type="hidden" value={date} required />
         </div>
 
         {/* Time slots — appear once service + date are chosen */}
