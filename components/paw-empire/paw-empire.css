@@ -15,9 +15,6 @@
           color:#FAF8F5;
           background:#2A1B14
         }
-        #pe-root *{
-          font-family:inherit
-        }
         @media(min-width:1024px){
           #pe-root{font-size:1.08rem}
         }
