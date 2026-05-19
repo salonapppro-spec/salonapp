@@ -318,7 +318,6 @@ export function PawEmpire({ data }: { data: SalonData }) {
               <img src={tenant.logo_url} alt={tenant.salon_name} className="pe-hero-logo-big" />
             )}
             <h1 className="pe-hero-title" style={{marginBottom:"1.6rem"}}>
-              {tenant.hero_title || tenant.salon_name || "Твоят любимец"}
               <strong>{tenant.hero_subtitle || "Бюти салон за четириноги звезди!"}</strong>
             </h1>
             <p className="pe-hero-desc">
