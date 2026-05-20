@@ -99,24 +99,25 @@
         /* ─── MOBILE OVERLAY ───────────────────────────────────────── */
         .pe-mobile{
           display:none;
-          position:fixed;inset:0;z-index:99;
+          position:fixed;inset:0;z-index:200;
           background:#1C110D;
-          flex-direction:column;align-items:center;justify-content:center;gap:2.5rem
+          flex-direction:column;align-items:center;justify-content:center;gap:2rem
         }
         .pe-mobile.open{display:flex}
         .pe-mobile-close{
           position:absolute;top:1.5rem;right:1.8rem;
           background:none;border:none;
           font-family:'Century Gothic','CenturyGothic','AppleGothic',sans-serif;
-          font-size:.55rem;letter-spacing:.2em;text-transform:uppercase;
-          color:rgba(245,237,232,.3);cursor:pointer;
+          font-size:.65rem;letter-spacing:.2em;text-transform:uppercase;
+          color:rgba(245,237,232,.45);cursor:pointer;padding:.5rem;
           transition:color .3s ease
         }
         .pe-mobile-close:hover{color:#C5A059}
         .pe-mobile a{
           font-family:'Cormorant Garamond',Georgia,serif;
-          font-size:2.6rem;font-weight:300;
+          font-size:1.9rem;font-weight:300;
           color:#FAF8F5;letter-spacing:.04em;
+          width:100%;text-align:center;padding:.3rem 2rem;
           transition:color .3s ease
         }
         .pe-mobile a:hover{color:#C5A059}
@@ -532,8 +533,10 @@
 
         /* ─── RESPONSIVE ───────────────────────────────────────────── */
         @media(max-width:1080px){
-          .pe-hero-inner{grid-template-columns:1fr;gap:0;padding:7rem 2rem 3rem}
-          .pe-hero-right{display:none}
+          .pe-hero-inner{grid-template-columns:1fr;gap:2rem;padding:6rem 2rem 3rem}
+          .pe-hero-right{display:flex;justify-content:center;order:-1}
+          .pe-hero-img{width:260px;height:260px}
+          .pe-hero-border{inset:-9px}
           .pe-about-grid{grid-template-columns:1fr;gap:2.5rem}
           .pe-contact-grid{grid-template-columns:1fr}
           .pe-gallery-grid{
@@ -567,7 +570,8 @@
           .pe-g-item:nth-child(5){grid-column:2;grid-row:3}
           .pe-g-item:nth-child(6){display:none}
           .pe-hero-logo-big{height:130px}
-          .pe-hero-img{width:280px;height:280px}
+          .pe-hero-img{width:220px;height:220px}
+          .pe-hero-badge{display:none}
           .pe-about{padding:2.5rem 0}
           .pe-services{padding:2.5rem 0}
           .pe-contact{padding:2.5rem 0}
@@ -581,6 +585,7 @@
           .pe-about-stats{grid-template-columns:1fr 1fr}
           .pe-booking form{padding:0 .5rem}
           .pe-hero-logo-big{height:110px}
+          .pe-hero-img{width:180px;height:180px}
           .pe-services-grid{gap:.8rem}
           .pe-contact-grid{gap:2rem}
           .pe-footer{padding:2.5rem 0 1.5rem}
