@@ -1,7 +1,7 @@
+import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
-import { FinancialSettingsForm } from "@/components/admin/FinancialSettingsForm";
 import { FinanceAbcSection } from "@/components/admin/finances/FinanceAbcSection";
 import { FinanceExpensesSection } from "@/components/admin/finances/FinanceExpensesSection";
 import { FinanceReportsSection } from "@/components/admin/finances/FinanceReportsSection";
@@ -95,6 +95,8 @@ async function FinancesDataSection() {
       ) : null}
 
       <div className="mt-8 space-y-10">
+        <FinanceAbcSection initialSettings={settings} services={abcServices} />
+
         <FinanceSummarySection
           dayRev={dayRev}
           weekRev={weekRev}
@@ -105,13 +107,23 @@ async function FinancesDataSection() {
           daily={daily}
         />
 
-        <FinanceAbcSection initialSettings={settings} services={abcServices} />
-
         <FinanceExpensesSection defaultFrom={monthFrom} defaultTo={today} />
 
         {canSeeReports ? <FinanceReportsSection year={y} month={m} /> : null}
 
-        <FinancialSettingsForm settings={settings} variant="booking" />
+        <section className="admin-card space-y-3">
+          <h2 className="text-lg font-semibold tracking-tight text-brand-900">Резервации и график</h2>
+          <p className="text-sm text-brand-800/85">
+            Буфер между часове, прозорец за онлайн запис и магнитно планиране се управляват от страницата Настройки, за
+            да не се дублират с финансовите полета тук.
+          </p>
+          <Link
+            href="/admin/settings"
+            className="inline-flex w-fit items-center justify-center rounded-xl border border-brand-300/80 bg-white px-4 py-2 text-sm font-semibold text-brand-900 shadow-sm transition hover:bg-brand-50"
+          >
+            Отвори настройки →
+          </Link>
+        </section>
       </div>
     </>
   );
@@ -122,7 +134,7 @@ export default function AdminFinancesPage() {
     <div className="admin-page-shell max-w-5xl">
       <h1 className="text-2xl font-semibold tracking-tight text-brand-900 sm:text-3xl">Финанси</h1>
       <p className="mt-2 text-sm text-brand-800/85 sm:text-base">
-        Оборот от завършени резервации, ABC анализ и разходи.
+        Първо задайте разходи и цел, после вижте оборота и ABC. Разходни фактури и отчети са по-долу.
       </p>
 
       <Suspense fallback={<FinancesSkeleton />}>

@@ -7,10 +7,12 @@ export type {
   Plan,
   TenantStatus,
   BookingStatus,
+  CalendarSyncStatus,
   Template,
   PaymentType,
   FinancialSettings,
   Specialist,
+  TenantGoogleIntegration,
   TimeSlot,
   SalonData,
 } from "./database";
@@ -88,6 +90,12 @@ export interface Booking {
   notes: string | null;
   hair_length: HairLength | null;
   hair_density: HairDensity | null;
+  google_event_id?: string | null;
+  calendar_sync_status?: import("./database").CalendarSyncStatus;
+  calendar_sync_error?: string | null;
+  calendar_synced_at?: string | null;
+  cancel_reason?: string | null;
+  cancellation_email_sent_at?: string | null;
 }
 
 export interface Service {

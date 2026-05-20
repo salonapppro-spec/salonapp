@@ -1,3 +1,5 @@
+import { formatCalendarMonthBg } from "@/lib/finance-dates";
+
 type DayPoint = { key: string; amount: number; label: string };
 
 function goalTone(goal: number, actual: number): "neutral" | "bad" | "mid" | "good" {
@@ -52,14 +54,16 @@ export function FinanceSummarySection(props: {
               Цел: {revenueGoal.toFixed(2)} € ({((monthRev / revenueGoal) * 100).toFixed(0)}%)
             </p>
           ) : (
-            <p className="mt-2 text-xs text-brand-600">Задайте месечна цел в „Постоянни разходи“.</p>
+            <p className="mt-2 text-xs text-brand-600">
+              Задайте месечна цел по-горе в „Постоянни разходи и параметри“.
+            </p>
           )}
         </div>
       </div>
 
       <div className="admin-card">
         <h3 className="text-sm font-semibold text-brand-900">
-          Оборот по дни — {props.month}.{props.year}
+          Оборот по дни — {formatCalendarMonthBg(props.year, props.month)}
         </h3>
         <div className="mt-4 flex h-40 items-end gap-0.5 overflow-x-auto pb-1">
           {daily.map((d) => (

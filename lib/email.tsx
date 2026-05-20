@@ -205,3 +205,19 @@ export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promi
     status: "sent",
   });
 }
+
+export async function sendCancellationEmailFromGoogle(booking: Booking, tenant: Tenant): Promise<void> {
+  const to = booking.client_email?.trim();
+  if (!to) return;
+  const subject = `Резервацията е отменена — ${tenant.salon_name}`;
+  const html = `
+    <div style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:20px;line-height:1.5;color:#1a1a1a">
+      <h2 style="margin:0 0 12px 0;">Резервацията е отменена</h2>
+      <p>Здравейте, ${booking.client_name},</p>
+      <p>Вашата резервация за <strong>${booking.service_name}</strong> на <strong>${booking.booking_date}</strong> в <strong>${formatTime(booking.booking_time)}</strong> беше отменена от календара на специалиста.</p>
+      <p>Ако желаете нов час, можете да направите нова резервация през сайта на салона.</p>
+      <p style="margin-top:16px;">${contactLines(tenant).join("<br/>")}</p>
+    </div>
+  `;
+  await sendResendHtml(to, subject, html);
+}

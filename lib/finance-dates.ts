@@ -25,3 +25,9 @@ export function monthBoundsISO(year: number, month: number): { from: string; to:
 export function yearBoundsISO(year: number): { from: string; to: string } {
   return { from: `${year}-01-01`, to: `${year}-12-31` };
 }
+
+/** Човешко заглавие за календарен месец (напр. „април 2026 г.“). */
+export function formatCalendarMonthBg(year: number, month: number): string {
+  const d = new Date(year, month - 1, 1);
+  return d.toLocaleDateString("bg-BG", { month: "long", year: "numeric" });
+}

@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { FinancialSettingsForm } from "@/components/admin/FinancialSettingsForm";
+import { GoogleCalendarIntegrationCard } from "@/components/admin/GoogleCalendarIntegrationCard";
 import { PremiumSmsSection } from "@/components/admin/PremiumSmsSection";
 import { getFinancialSettings, getSpecialistsAdmin, getTenantBySalonSlug } from "@/lib/data";
 import type { FinancialSettings } from "@/types";
@@ -12,7 +13,8 @@ import { SettingsForm } from "./settings-form";
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
 
-export default async function AdminSettingsPage() {
+export default async function AdminSettingsPage(props: { searchParams?: Promise<Record<string, string | string[] | undefined>> }) {
+  const searchParams = (await props.searchParams) ?? {};
   const salonSlug = await requireAdminTenantSlugForPage();
   const [tenant, financial, specialists] = await Promise.all([
     getTenantBySalonSlug(salonSlug),
@@ -22,6 +24,9 @@ export default async function AdminSettingsPage() {
   if (!tenant) notFound();
 
   const isPremium = tenant.plan === "premium";
+  const googleConnected = searchParams.google_connected === "1";
+  const googleErrorRaw = searchParams.google_error;
+  const googleError = typeof googleErrorRaw === "string" ? googleErrorRaw : null;
 
   return (
     <div className="admin-page-shell max-w-3xl">
@@ -67,6 +72,22 @@ export default async function AdminSettingsPage() {
       </div>
 
       {/* Salon profile form */}
+      {salonSlug === "the-skin" ? (
+        <div className="mt-6">
+          {googleConnected ? (
+            <div className="mb-4 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-semibold text-emerald-800">
+              Google Calendar е свързан успешно.
+            </div>
+          ) : null}
+          {googleError ? (
+            <div className="mb-4 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
+              Грешка при Google интеграцията: {googleError}
+            </div>
+          ) : null}
+          <GoogleCalendarIntegrationCard />
+        </div>
+      ) : null}
+
       <div className="mt-6">
         <SettingsForm tenant={tenant} specialists={specialists} />
       </div>

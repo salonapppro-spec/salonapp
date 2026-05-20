@@ -8,7 +8,11 @@
  * Използване:
  *   node scripts/upload-product-images.mjs theskin ./staging-upload-products/theskin
  *
- * След успех — копирай отпечатаните https URL в `tenants.design_tokens.products[].image_url`.
+ * Автоматично свързване към редовете в БД по ред на файловете (/bg сортировка по име):
+ *   node scripts/upload-product-images.mjs theskin ./staging-upload-products/theskin --apply
+ *   npm run upload:product-images -- theskin ./staging-upload-products/theskin --apply
+ *
+ * Без --apply — само качва и печата URL за ръчно копиране в tenants.design_tokens.
  */
 
 import { createClient } from "@supabase/supabase-js";
@@ -60,8 +64,12 @@ function extOf(fname) {
 
 async function main() {
   loadEnvLocal();
-  const [, , slugRaw, folderRaw] = process.argv;
-  const salonSlug = (slugRaw ?? "").trim().toLowerCase();
+  const argv = process.argv.slice(2);
+  const applyToDb = argv.includes("--apply");
+  const positional = argv.filter((a) => !a.startsWith("--"));
+  const slugRaw = positional[0] ?? "";
+  const folderRaw = positional[1] ?? "";
+  const salonSlug = slugRaw.trim().toLowerCase();
   const folderAbs = folderRaw
     ? path.resolve(folderRaw.trim())
     : path.join(process.cwd(), "staging-upload-products", salonSlug || "salon-slug");
@@ -135,10 +143,85 @@ async function main() {
     results.push({ file, publicUrl: pub.publicUrl });
   }
 
-  console.log("— Готово. Добави в tenants.design_tokens → products[].image_url по подредба:\n");
-  results.forEach((r, i) => {
-    console.log(`${i + 1}. (${r.file})\n   ${r.publicUrl}\n`);
-  });
+  if (!applyToDb) {
+    console.log("— Готово. Добави в tenants.design_tokens → products[].image_url по подредба:\n");
+    results.forEach((r, i) => {
+      console.log(`${i + 1}. (${r.file})\n   ${r.publicUrl}\n`);
+    });
+    console.log("(Повтори с --apply за автоматичен merge в базата по същия ред.)");
+    return;
+  }
+
+  const { data: row, error: fetchErr } = await supabase
+    .from("tenants")
+    .select("design_tokens")
+    .eq("salon_slug", salonSlug)
+    .maybeSingle();
+
+  if (fetchErr) {
+    console.error("Неуспешно четене на tenants.design_tokens:", fetchErr.message);
+    process.exit(1);
+  }
+  if (!row) {
+    console.error(`Няма ред в tenants за salon_slug=${salonSlug}.`);
+    process.exit(1);
+  }
+
+  const rawDt = row.design_tokens;
+  const dt =
+    rawDt !== null && typeof rawDt === "object" && !Array.isArray(rawDt)
+      ? /** @type {Record<string, unknown>} */ ({ ...rawDt })
+      : {};
+
+  const rawProducts = dt.products;
+  if (!Array.isArray(rawProducts) || rawProducts.length === 0) {
+    console.error(
+      "В design_tokens няма products[] или е празно. Добави поне един продукт (име/описание) в tenants.design_tokens в Supabase.",
+    );
+    process.exit(1);
+  }
+
+  /** @type {Record<string, unknown>[]} */
+  const productsNext = rawProducts.map((item) =>
+    item !== null && typeof item === "object" && !Array.isArray(item)
+      ? /** @type {Record<string, unknown>} */ ({ ...item })
+      : {},
+  );
+
+  const nApply = Math.min(results.length, productsNext.length);
+  if (results.length > productsNext.length) {
+    console.warn(
+      `Предупреждение: ${results.length} снимки, но само ${productsNext.length} продукта. Ползват се първите ${productsNext.length} URL.`,
+    );
+  }
+  if (results.length < productsNext.length) {
+    console.warn(
+      `Забележка: ${results.length} снимки за ${productsNext.length} продукта — очакваните продукти без нова снимка запазват старото image_url (ако има).`,
+    );
+  }
+
+  for (let i = 0; i < nApply; i++) {
+    productsNext[i].image_url = results[i].publicUrl;
+    delete productsNext[i].image;
+  }
+
+  const design_tokens = { ...dt, products: productsNext };
+
+  const { error: upErr } = await supabase.from("tenants").update({ design_tokens }).eq("salon_slug", salonSlug);
+
+  if (upErr) {
+    console.error("Неуспешен update на design_tokens:", upErr.message);
+    process.exit(1);
+  }
+
+  console.log(`— Обновено tenants.design_tokens.products[0…${String(nApply - 1)}].image_url за ${salonSlug}:\n`);
+  for (let i = 0; i < nApply; i++) {
+    const pname =
+      typeof productsNext[i].name === "string" && productsNext[i].name.trim()
+        ? `"${productsNext[i].name.trim()}"`
+        : `#${String(i + 1)}`;
+    console.log(`${i + 1}. ${pname} ← ${results[i].file}\n   ${results[i].publicUrl}\n`);
+  }
 }
 
 main().catch((e) => {

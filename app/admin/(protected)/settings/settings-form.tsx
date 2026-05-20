@@ -799,7 +799,43 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       <FieldCard>
         <SectionHeader icon="🗺️" title="Google Maps embed" desc="Поставете само embed URL (не iframe код)" />
         {hasUnsavedMaps && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
-        <p className="mb-3 text-xs text-[#1A1A1A]/40">Google Maps → Сподели → Embed → копирай само `src` URL, напр. `https://www.google.com/maps/embed?...`</p>
+        <div className="mb-5 rounded-xl border px-4 py-3" style={{ borderColor: "rgba(201,168,76,0.25)", backgroundColor: "rgba(201,168,76,0.06)" }}>
+          <p className="mb-2 text-xs font-semibold text-[#1A1A1A]/85">Точна локация (latitude / longitude)</p>
+          <p className="mb-3 text-xs text-[#1A1A1A]/40">
+            Отвори мястото в Google Maps → кликни върху пина → координатите са в линка или под адреса. Попълни{" "}
+            <strong>и двете</strong>, или изчисти двете за да се ползва само адресът от контактите.
+          </p>
+          <div className="grid gap-4 sm:grid-cols-2">
+            <div>
+              <Label>Latitude</Label>
+              <input
+                type="text"
+                inputMode="decimal"
+                className="input-admin mt-2"
+                value={mapsPinLat}
+                onChange={(e) => setMapsPinLat(e.target.value)}
+                placeholder="42.4924703"
+                autoComplete="off"
+              />
+            </div>
+            <div>
+              <Label>Longitude</Label>
+              <input
+                type="text"
+                inputMode="decimal"
+                className="input-admin mt-2"
+                value={mapsPinLng}
+                onChange={(e) => setMapsPinLng(e.target.value)}
+                placeholder="27.4625005"
+                autoComplete="off"
+              />
+            </div>
+          </div>
+        </div>
+        <p className="mb-3 text-xs text-[#1A1A1A]/40">
+          Google Maps → Сподели → Embed → копирай само <code className="text-[10px]">src</code> URL, напр.{" "}
+          <code className="text-[10px]">https://www.google.com/maps/embed?pb=…</code>
+        </p>
         <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
         <div className="mt-4 flex justify-end">
           <button

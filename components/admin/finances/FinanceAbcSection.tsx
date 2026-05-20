@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import {
@@ -19,20 +19,57 @@ function rowClass(band: "low" | "mid" | "high"): string {
   return "bg-emerald-50/90 text-emerald-950";
 }
 
+type AbcLocal = {
+  rent_eur: number;
+  electricity_eur: number;
+  water_eur: number;
+  accounting_eur: number;
+  monthly_expenses: number;
+  desired_salary: number;
+  working_days_per_week: number;
+  working_hours_per_day: number;
+  vat_enabled: boolean;
+  monthly_revenue_goal_eur: number;
+};
+
+function localFromFinancialSettings(i: FinancialSettings): AbcLocal {
+  return {
+    rent_eur: i.rent_eur,
+    electricity_eur: i.electricity_eur,
+    water_eur: i.water_eur,
+    accounting_eur: i.accounting_eur,
+    monthly_expenses: i.monthly_expenses,
+    desired_salary: i.desired_salary,
+    working_days_per_week: i.working_days_per_week,
+    working_hours_per_day: i.working_hours_per_day,
+    vat_enabled: i.vat_enabled,
+    monthly_revenue_goal_eur: i.monthly_revenue_goal_eur,
+  };
+}
+
 export function FinanceAbcSection(props: { initialSettings: FinancialSettings; services: Service[] }) {
   const router = useRouter();
-  const [s, setS] = useState({
-    rent_eur: props.initialSettings.rent_eur,
-    electricity_eur: props.initialSettings.electricity_eur,
-    water_eur: props.initialSettings.water_eur,
-    accounting_eur: props.initialSettings.accounting_eur,
-    monthly_expenses: props.initialSettings.monthly_expenses,
-    desired_salary: props.initialSettings.desired_salary,
-    working_days_per_week: props.initialSettings.working_days_per_week,
-    working_hours_per_day: props.initialSettings.working_hours_per_day,
-    vat_enabled: props.initialSettings.vat_enabled,
-    monthly_revenue_goal_eur: props.initialSettings.monthly_revenue_goal_eur,
-  });
+  const [s, setS] = useState<AbcLocal>(() => localFromFinancialSettings(props.initialSettings));
+
+  const serverSnap = useMemo(
+    () => JSON.stringify(localFromFinancialSettings(props.initialSettings)),
+    [
+      props.initialSettings.rent_eur,
+      props.initialSettings.electricity_eur,
+      props.initialSettings.water_eur,
+      props.initialSettings.accounting_eur,
+      props.initialSettings.monthly_expenses,
+      props.initialSettings.desired_salary,
+      props.initialSettings.working_days_per_week,
+      props.initialSettings.working_hours_per_day,
+      props.initialSettings.vat_enabled,
+      props.initialSettings.monthly_revenue_goal_eur,
+    ]
+  );
+
+  useEffect(() => {
+    setS(JSON.parse(serverSnap) as AbcLocal);
+  }, [serverSnap]);
   const [saving, setSaving] = useState(false);
   const [err, setErr] = useState<string | null>(null);
 

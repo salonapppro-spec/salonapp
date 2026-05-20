@@ -200,6 +200,9 @@ export function tenantDb(rawSlug: string) {
           .order("booking_time", { ascending: false })
           .limit(200);
       },
+      getById(bookingId: string) {
+        return q("bookings").select("*").eq("salon_slug", salonSlug).eq("id", bookingId).maybeSingle();
+      },
       updateById(bookingId: string, patch: AnyRow) {
         return q("bookings")
           .update(patch)
@@ -401,11 +404,46 @@ export function tenantDb(rawSlug: string) {
       getSalonName() {
         return q("tenants").select("salon_name").eq("salon_slug", salonSlug).maybeSingle();
       },
+      getTenantId() {
+        return q("tenants").select("id").eq("salon_slug", salonSlug).maybeSingle();
+      },
       getDesignTokens() {
         return q("tenants").select("design_tokens").eq("salon_slug", salonSlug).maybeSingle();
       },
       updatePublicFields(values: AnyRow) {
         return q("tenants").update(values).eq("salon_slug", salonSlug);
+      },
+    },
+    googleIntegration: {
+      getAny() {
+        return q("tenant_google_integrations").select("*").eq("salon_slug", salonSlug).limit(1).maybeSingle();
+      },
+      listActive() {
+        return q("tenant_google_integrations").select("*").eq("sync_enabled", true);
+      },
+      getActive() {
+        return q("tenant_google_integrations")
+          .select("*")
+          .eq("salon_slug", salonSlug)
+          .eq("sync_enabled", true)
+          .limit(1)
+          .maybeSingle();
+      },
+      upsert(values: AnyRow) {
+        return q("tenant_google_integrations")
+          .upsert(withTenantSlug(values, salonSlug), { onConflict: "salon_slug" })
+          .select("*")
+          .maybeSingle();
+      },
+      updateWatch(values: AnyRow) {
+        return q("tenant_google_integrations")
+          .update(values)
+          .eq("salon_slug", salonSlug)
+          .select("*")
+          .maybeSingle();
+      },
+      disable() {
+        return q("tenant_google_integrations").delete().eq("salon_slug", salonSlug);
       },
     },
     storage: {

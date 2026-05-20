@@ -6,6 +6,7 @@
 export type Plan = "starter" | "standard" | "pro" | "premium";
 export type TenantStatus = "trial" | "active" | "inactive";
 export type BookingStatus = "pending" | "confirmed" | "completed" | "cancelled" | "no_show";
+export type CalendarSyncStatus = "pending" | "synced" | "failed" | "skipped";
 export type Template = "bloom" | "luxe" | "luxe2" | "clean" | "zen" | "bold" | "groom" | "theskin";
 export type PaymentType = "stripe" | "bank";
 /** Целева схема (MASTER); БД може да ползва BG низове до миграция. */
@@ -100,7 +101,35 @@ export interface Booking {
   notes: string | null;
   hair_length: HairLength | null;
   hair_density: HairDensity | null;
+  google_event_id?: string | null;
+  calendar_sync_status?: CalendarSyncStatus;
+  calendar_sync_error?: string | null;
+  calendar_synced_at?: string | null;
+  cancel_reason?: string | null;
+  cancellation_email_sent_at?: string | null;
   created_at: string | null;
+}
+
+export interface TenantGoogleIntegration {
+  id: string;
+  tenant_id: string;
+  salon_slug: string;
+  google_email: string;
+  calendar_id: string;
+  calendar_name: string | null;
+  refresh_token_encrypted: string;
+  access_token_encrypted: string | null;
+  token_expires_at: string | null;
+  sync_enabled: boolean;
+  needs_reconnect: boolean;
+  last_sync_error: string | null;
+  watch_channel_id?: string | null;
+  watch_resource_id?: string | null;
+  watch_sync_token?: string | null;
+  watch_expiration_at?: string | null;
+  watch_channel_token_encrypted?: string | null;
+  created_at: string | null;
+  updated_at: string | null;
 }
 
 export interface Client {

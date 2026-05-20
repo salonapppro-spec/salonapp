@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { syncBookingDeletionToGoogle, syncBookingToGoogle } from "@/lib/google-calendar-sync";
 import { tenantDb } from "@/lib/tenant-db";
 import { AdminBookingPatchSchema } from "@/schemas/booking-admin";
 
@@ -28,6 +29,10 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   if (error) return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
   if (!data) return NextResponse.json({ error: "Не е намерена резервация" }, { status: 404 });
 
+  if (data) {
+    void syncBookingToGoogle(data as import("@/types").Booking);
+  }
+
   return NextResponse.json({ booking: data });
 }
 
@@ -36,7 +41,12 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const { id } = await ctx.params;
+  const current = await tenantDb(salonSlug).bookings.getById(id);
+  const currentBooking = current.data as import("@/types").Booking | null;
   const { error } = await tenantDb(salonSlug).bookings.deleteById(id);
   if (error) return NextResponse.json({ error: "Грешка при изтриване" }, { status: 500 });
+  if (currentBooking) {
+    void syncBookingDeletionToGoogle(currentBooking);
+  }
   return NextResponse.json({ ok: true });
 }
