@@ -166,6 +166,8 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
   const [facebook, setFacebook] = useState(tenant.facebook_url ?? "");
   const [tiktok, setTiktok] = useState(tenant.tiktok_url ?? "");
   const [mapsEmbed, setMapsEmbed] = useState(tenant.google_maps_embed ?? "");
+  const [mapsPinLat, setMapsPinLat] = useState("");
+  const [mapsPinLng, setMapsPinLng] = useState("");
 
   const [savingSection, setSavingSection] = useState<"logo" | "contacts" | "social" | "maps" | "hero" | "about" | "all" | null>(null);
   const [savingSpecialists, setSavingSpecialists] = useState<string | null>(null);
