@@ -17,6 +17,7 @@ import { Luxe2 } from "@/components/templates/Luxe2";
 import { Zen } from "@/components/templates/Zen";
 import { TheSkin } from "@/components/templates/TheSkin";
 import { PawEmpire } from "@/components/paw-empire/PawEmpireSite";
+import { TheBeastSite } from "@/components/tenants/TheBeastSite";
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -31,14 +32,15 @@ function isValidSlug(slug: string): boolean {
 
 function renderTemplate(template: Template, data: SalonData) {
   if (data.tenant.salon_slug === "paw-empire") return <PawEmpire data={data} />;
+  if (data.tenant.salon_slug === "the-beast") return <TheBeastSite data={data} />;
   switch (template) {
-    case "bloom":  return <Bloom data={data} />;
-    case "luxe":   return <Luxe data={data} />;
-    case "clean":  return <Clean data={data} />;
-    case "zen":    return <Zen data={data} />;
-    case "bold":   return <Bold data={data} />;
-    case "luxe2":  return <Luxe2 data={data} />;
-    case "groom":  return <Groom data={data} />;
+    case "bloom":   return <Bloom data={data} />;
+    case "luxe":    return <Luxe data={data} />;
+    case "clean":   return <Clean data={data} />;
+    case "zen":     return <Zen data={data} />;
+    case "bold":    return <Bold data={data} />;
+    case "luxe2":   return <Luxe2 data={data} />;
+    case "groom":   return <Groom data={data} />;
     case "theskin": return <TheSkin data={data} />;
     default:        return <Bloom data={data} />;
   }
@@ -133,7 +135,6 @@ export default async function PublicSalonPage(props: {
 
   return (
     <>
-      {/* Google Fonts — all supported typefaces preloaded */}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
