@@ -339,7 +339,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       if (sectionInitialRef.current) {
         sectionInitialRef.current = { ...sectionInitialRef.current, about: snapAbout() };
       }
-      setOk("✓ Секцията „За нас" е запазена.");
+      setOk('✓ Секцията „За нас" е запазена.');
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
@@ -685,7 +685,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
 
       {/* ── За нас (About) ── */}
       <FieldCard>
-        <SectionHeader icon="💬" title="За нас" desc="Текст и снимка за секцията „За нас"" />
+        <SectionHeader icon="💬" title="За нас" desc={'Текст и снимка за секцията „За нас"'} />
         {hasUnsavedAbout && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
         <div className="grid gap-4">
           <div>
@@ -713,7 +713,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
             <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{aboutText2.length}/1200</p>
           </div>
           <ImageUpload
-            label="Снимка за „За нас""
+            label={'Снимка за „За нас"'}
             value={aboutImageUrl}
             onChange={setAboutImageUrl}
             aspect="wide"
@@ -728,7 +728,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
             onClick={() => void saveAbout()}
             disabled={savingSection != null}
           >
-            {savingSection === "about" ? "Запазване…" : "✓ Запази „За нас""}
+            {savingSection === "about" ? "Запазване…" : '✓ Запази „За нас"'}
           </button>
         </div>
       </FieldCard>
