@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useMemo, useState } from "react";
+import { useEffect, useRef, useMemo, useState, type ReactNode } from "react";
 
 import type { Specialist, Tenant } from "@/types";
 
@@ -123,7 +123,7 @@ function SectionHeader({ icon, title, desc }: { icon: string; title: string; des
   );
 }
 
-function FieldCard({ children }: { children: React.ReactNode }) {
+function FieldCard({ children }: { children: ReactNode }) {
   return (
     <div
       className="rounded-2xl bg-white p-5"
@@ -134,7 +134,7 @@ function FieldCard({ children }: { children: React.ReactNode }) {
   );
 }
 
-function Label({ children }: { children: React.ReactNode }) {
+function Label({ children }: { children: ReactNode }) {
   return (
     <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "rgba(26,26,26,0.4)" }}>
       {children}
