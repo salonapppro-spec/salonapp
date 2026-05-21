@@ -74,6 +74,9 @@ function TornDividerLightToDark() {
 
 export function TheBeastSite({ data }: { data: SalonData }) {
   const { tenant, gallery } = data;
+  const soloBarber = data.specialists?.find(s => s.is_active) ?? null;
+  const aboutText = tenant.about_text1 || soloBarber?.bio || null;
+  const aboutText2 = tenant.about_text2 || null;
   const [scrolled, setScrolled] = useState(false);
   const [menuOpen, setMenuOpen] = useState(false);
 
@@ -87,7 +90,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
   const tkHref = safeTiktokHref(tenant.tiktok_url);
   const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
   const hasGallery = gallery.length > 0;
-  const hasAbout = Boolean(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url);
+  const hasAbout = Boolean(aboutText || aboutText2 || tenant.about_image_url);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -229,94 +232,117 @@ export function TheBeastSite({ data }: { data: SalonData }) {
           background: var(--beast-black);
           display: flex; flex-direction: column; align-items: center; justify-content: center;
           position: relative; overflow: hidden;
-          padding: 8rem 1.75rem 4rem;
+          padding: 8rem 1.75rem 5rem;
           text-align: center;
         }
         .tb-hero::before {
           content: '';
           position: absolute; inset: 0;
           background:
-            repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(212,175,55,.04) 60px),
-            repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(212,175,55,.04) 60px);
+            repeating-linear-gradient(0deg, transparent, transparent 59px, rgba(212,175,55,.03) 60px),
+            repeating-linear-gradient(90deg, transparent, transparent 59px, rgba(212,175,55,.03) 60px);
           pointer-events: none;
         }
-        .tb-hero-eyebrow {
+        /* Decorative corner ornaments */
+        .tb-hero::after {
+          content: '';
+          position: absolute; inset: 1.5rem;
+          border: 1px solid rgba(212,175,55,.12);
+          pointer-events: none;
+        }
+        .tb-hero-badge {
           font-family: var(--beast-slab);
-          font-size: .65rem;
+          font-size: .6rem;
           font-weight: 400;
-          letter-spacing: .45em;
+          letter-spacing: .55em;
           text-transform: uppercase;
           color: var(--beast-gold);
-          margin-bottom: 1.8rem;
+          margin-bottom: 2rem;
           position: relative;
-          display: flex; align-items: center; gap: 1.2rem;
+          display: flex; align-items: center; gap: 1.5rem;
         }
-        .tb-hero-eyebrow::before, .tb-hero-eyebrow::after {
-          content: ''; flex: 1; max-width: 80px;
-          height: 1px; background: var(--beast-gold); opacity: .5;
+        .tb-hero-badge::before, .tb-hero-badge::after {
+          content: ''; flex: 1; max-width: 100px;
+          height: 1px; background: var(--beast-gold); opacity: .4;
         }
         .tb-hero-title {
           font-family: var(--beast-serif);
-          font-size: clamp(4.5rem, 12vw, 10rem);
+          font-size: clamp(4rem, 14vw, 13rem);
           font-weight: 900;
-          line-height: .9;
+          line-height: .88;
           color: var(--beast-cream);
-          letter-spacing: -.01em;
+          letter-spacing: -.02em;
+          text-transform: uppercase;
           position: relative;
-          margin-bottom: .6rem;
+          margin-bottom: .5rem;
         }
         .tb-hero-title em {
           font-style: italic;
           color: var(--beast-gold);
           display: block;
         }
+        .tb-hero-title .tb-amp {
+          color: var(--beast-gold);
+          font-style: italic;
+        }
+        .tb-hero-divider {
+          display: flex; align-items: center; gap: 1.5rem;
+          justify-content: center;
+          margin: 1.2rem 0;
+          color: var(--beast-gold);
+          font-size: .7rem;
+          opacity: .6;
+        }
+        .tb-hero-divider::before, .tb-hero-divider::after {
+          content: ''; flex: 0 0 80px; height: 1px; background: var(--beast-gold);
+        }
         .tb-hero-subtitle {
           font-family: var(--beast-fell);
-          font-size: clamp(1.1rem, 2.5vw, 1.6rem);
+          font-size: clamp(1rem, 2.5vw, 1.5rem);
           font-style: italic;
-          color: rgba(245,240,232,.45);
+          color: rgba(245,240,232,.5);
           margin-bottom: 3rem;
-          letter-spacing: .04em;
+          letter-spacing: .05em;
         }
         .tb-hero-cta {
           font-family: var(--beast-slab);
-          font-size: .75rem;
+          font-size: .78rem;
           font-weight: 600;
-          letter-spacing: .3em;
+          letter-spacing: .35em;
           text-transform: uppercase;
           color: var(--beast-black);
           background: var(--beast-gold);
-          padding: 1rem 2.8rem;
+          padding: 1.1rem 3.2rem;
           border: none; cursor: pointer;
           transition: background .25s, transform .2s, box-shadow .2s;
           display: inline-block;
-          box-shadow: 0 0 0 1px var(--beast-gold2), 4px 4px 0 var(--beast-gold2);
+          box-shadow: 0 0 0 1px var(--beast-gold2), 5px 5px 0 var(--beast-gold2);
         }
         .tb-hero-cta:hover {
           background: var(--beast-gold2);
           transform: translate(-2px, -2px);
-          box-shadow: 0 0 0 1px var(--beast-gold2), 6px 6px 0 var(--beast-gold2);
+          box-shadow: 0 0 0 1px var(--beast-gold2), 7px 7px 0 var(--beast-gold2);
         }
         .tb-hero-scroll {
-          position: absolute; bottom: 5rem; left: 50%; transform: translateX(-50%);
+          position: absolute; bottom: 3rem; left: 50%; transform: translateX(-50%);
           display: flex; flex-direction: column; align-items: center; gap: .5rem;
           font-family: var(--beast-slab);
-          font-size: .58rem; letter-spacing: .35em;
+          font-size: .55rem; letter-spacing: .35em;
           text-transform: uppercase;
-          color: rgba(212,175,55,.4);
+          color: rgba(212,175,55,.35);
           animation: tbScrollBounce 2.5s ease-in-out infinite;
         }
         @keyframes tbScrollBounce {
-          0%, 100% { transform: translateX(-50%) translateY(0); opacity: .4; }
-          50% { transform: translateX(-50%) translateY(6px); opacity: .7; }
+          0%, 100% { transform: translateX(-50%) translateY(0); opacity: .35; }
+          50% { transform: translateX(-50%) translateY(6px); opacity: .65; }
         }
         .tb-hero-ornament {
           position: absolute;
           font-family: var(--beast-serif);
-          font-size: 18vw;
+          font-size: 20vw;
           font-weight: 900;
           font-style: italic;
-          color: rgba(212,175,55,.03);
+          color: rgba(212,175,55,.025);
           pointer-events: none;
           user-select: none;
           letter-spacing: -.05em;
@@ -404,6 +430,33 @@ export function TheBeastSite({ data }: { data: SalonData }) {
           width: 60px; height: 2px;
           background: var(--beast-gold);
           margin: 1.5rem 0;
+        }
+        .tb-about-barber {
+          display: flex; align-items: center; gap: 1rem;
+          margin-top: 1.8rem;
+          padding-top: 1.5rem;
+          border-top: 1px solid rgba(0,0,0,.1);
+        }
+        .tb-about-barber-avatar {
+          width: 52px; height: 52px; border-radius: 50%;
+          overflow: hidden; flex-shrink: 0;
+          border: 2px solid var(--beast-gold);
+          filter: sepia(.2) contrast(1.05);
+        }
+        .tb-about-barber-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .tb-about-barber-name {
+          font-family: var(--beast-serif);
+          font-size: 1.05rem;
+          font-weight: 700;
+          color: var(--beast-black);
+        }
+        .tb-about-barber-role {
+          font-family: var(--beast-slab);
+          font-size: .58rem;
+          letter-spacing: .35em;
+          text-transform: uppercase;
+          color: var(--beast-gold2);
+          margin-top: .2rem;
         }
 
         /* ── SERVICES (DARK — MENU STYLE) ── */
@@ -736,17 +789,17 @@ export function TheBeastSite({ data }: { data: SalonData }) {
         )}
         <span className="tb-hero-ornament" aria-hidden="true">{tenant.salon_name}</span>
         <div ref={heroRef} className="tb-fade">
-          <p className="tb-hero-eyebrow">Барбершоп · Истинско майсторство</p>
+          <p className="tb-hero-badge">{tenant.salon_name}</p>
           <h1 className="tb-hero-title">
             {tenant.hero_title ? (
-              <>
-                {tenant.hero_title.split(" ").slice(0, -1).join(" ")}{" "}
-                <em>{tenant.hero_title.split(" ").slice(-1)}</em>
-              </>
+              tenant.hero_title
             ) : (
-              <><span>The</span> <em>Beast</em></>
+              <>
+                Прически<br /><em>&amp; Брада</em>
+              </>
             )}
           </h1>
+          <div className="tb-hero-divider" aria-hidden="true">✦</div>
           <p className="tb-hero-subtitle">
             {tenant.hero_subtitle ?? "Класически стил. Без компромиси."}
           </p>
@@ -788,11 +841,26 @@ export function TheBeastSite({ data }: { data: SalonData }) {
                   Истинско <em>майсторство</em>,<br />за истински <em>мъже</em>.
                 </h2>
                 <div className="tb-about-rule" />
-                {tenant.about_text1 && (
-                  <p className="tb-about-text">{tenant.about_text1}</p>
+                {aboutText && (
+                  <p className="tb-about-text">{aboutText}</p>
                 )}
-                {tenant.about_text2 && (
-                  <p className="tb-about-text">{tenant.about_text2}</p>
+                {aboutText2 && (
+                  <p className="tb-about-text">{aboutText2}</p>
+                )}
+                {soloBarber && (
+                  <div className="tb-about-barber">
+                    {soloBarber.avatar_url && (
+                      <div className="tb-about-barber-avatar">
+                        <img src={soloBarber.avatar_url} alt={soloBarber.name} loading="lazy" />
+                      </div>
+                    )}
+                    <div>
+                      <p className="tb-about-barber-name">{soloBarber.name}</p>
+                      {soloBarber.role && (
+                        <p className="tb-about-barber-role">{soloBarber.role}</p>
+                      )}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>
