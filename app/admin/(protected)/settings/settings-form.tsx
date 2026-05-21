@@ -355,11 +355,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
       if (sectionInitialRef.current) {
         sectionInitialRef.current = { ...sectionInitialRef.current, about: snapAbout() };
       }
-<<<<<<< HEAD
       setOk('✓ Секцията „За нас" е запазена.');
-=======
-      setOk("✓ Секцията 'За нас' е запазена.");
->>>>>>> 0750b30 (feat: migrate to per-tenant site components, remove old templates)
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка при запис.");
     } finally {
@@ -712,11 +708,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
 
       {/* ── За нас (About) ── */}
       <FieldCard>
-<<<<<<< HEAD
         <SectionHeader icon="💬" title="За нас" desc={'Текст и снимка за секцията „За нас"'} />
-=======
-        <SectionHeader icon="💬" title="За нас" desc="Текст и снимка за секцията За нас" />
->>>>>>> 0750b30 (feat: migrate to per-tenant site components, remove old templates)
         {hasUnsavedAbout && <p className="mb-3 text-xs font-semibold text-amber-800">Промените още не са запазени.</p>}
         <div className="grid gap-4">
           <div>
@@ -744,11 +736,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
             <p className="mt-1 text-[10px] text-[#1A1A1A]/30">{aboutText2.length}/1200</p>
           </div>
           <ImageUpload
-<<<<<<< HEAD
             label={'Снимка за „За нас"'}
-=======
-            label="Снимка за раздел За нас"
->>>>>>> 0750b30 (feat: migrate to per-tenant site components, remove old templates)
             value={aboutImageUrl}
             onChange={setAboutImageUrl}
             aspect="wide"
@@ -763,11 +751,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
             onClick={() => void saveAbout()}
             disabled={savingSection != null}
           >
-<<<<<<< HEAD
             {savingSection === "about" ? "Запазване…" : '✓ Запази „За нас"'}
-=======
-            {savingSection === "about" ? "Запазване…" : "✓ Запази За нас"}
->>>>>>> 0750b30 (feat: migrate to per-tenant site components, remove old templates)
           </button>
         </div>
       </FieldCard>
