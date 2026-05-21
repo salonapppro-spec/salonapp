@@ -14,7 +14,6 @@ import { TheBeastSite } from "@/components/tenants/TheBeastSite";
 import { EuphoriaSite } from "@/components/tenants/euphoria/Page";
 import { LindySite } from "@/components/tenants/lindy/Page";
 import { TheSkinSite } from "@/components/tenants/theskin/Page";
-import { DemoSite } from "@/components/tenants/demo/Page";
 
 // ── Per-tenant site registry ───────────────────────────────────────────────────
 // Each tenant has its own unique component. To add a new tenant:
@@ -26,7 +25,6 @@ const TENANT_SITES: Record<string, ComponentType<{ data: SalonData }>> = {
   "euphoria":   EuphoriaSite,
   "lindy":      LindySite,
   "theskin":    TheSkinSite,
-  "demo":       DemoSite,
 };
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
