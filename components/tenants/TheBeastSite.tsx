@@ -693,25 +693,25 @@ export function TheBeastSite({ data }: { data: SalonData }) {
 
       {/* ── MOBILE MENU ── */}
       <div className={`tb-mobile-menu${menuOpen ? " open" : ""}`}>
-        <button className="tb-mobile-close" onClick={() => setMenuOpen(false)}>✕ close</button>
-        {hasAbout && <a href="#about" onClick={() => setMenuOpen(false)}>About</a>}
-        <a href="#services" onClick={() => setMenuOpen(false)}>Services</a>
-        {hasGallery && <a href="#gallery" onClick={() => setMenuOpen(false)}>Gallery</a>}
-        <a href="#booking" onClick={() => setMenuOpen(false)}>Book Now</a>
-        <a href="#contact" onClick={() => setMenuOpen(false)}>Contact</a>
+        <button className="tb-mobile-close" onClick={() => setMenuOpen(false)}>✕ затвори</button>
+        {hasAbout && <a href="#about" onClick={() => setMenuOpen(false)}>За нас</a>}
+        <a href="#services" onClick={() => setMenuOpen(false)}>Услуги</a>
+        {hasGallery && <a href="#gallery" onClick={() => setMenuOpen(false)}>Галерия</a>}
+        <a href="#booking" onClick={() => setMenuOpen(false)}>Запази час</a>
+        <a href="#contact" onClick={() => setMenuOpen(false)}>Контакти</a>
       </div>
 
       {/* ── NAV ── */}
       <nav className={`tb-nav${scrolled ? " scrolled" : ""}`}>
         <a href="#hero" className="tb-nav-logo">{tenant.salon_name}</a>
         <ul className="tb-nav-links">
-          {hasAbout && <li><a href="#about">About</a></li>}
-          <li><a href="#services">Services</a></li>
-          {hasGallery && <li><a href="#gallery">Gallery</a></li>}
-          <li><a href="#contact">Contact</a></li>
+          {hasAbout && <li><a href="#about">За нас</a></li>}
+          <li><a href="#services">Услуги</a></li>
+          {hasGallery && <li><a href="#gallery">Галерия</a></li>}
+          <li><a href="#contact">Контакти</a></li>
         </ul>
-        <a href="#booking" className="tb-nav-cta">Book a Chair</a>
-        <button className="tb-hamburger" onClick={() => setMenuOpen(true)} aria-label="Open menu">
+        <a href="#booking" className="tb-nav-cta">Запази час</a>
+        <button className="tb-hamburger" onClick={() => setMenuOpen(true)} aria-label="Отвори меню">
           <span /><span /><span />
         </button>
       </nav>
@@ -736,7 +736,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
         )}
         <span className="tb-hero-ornament" aria-hidden="true">{tenant.salon_name}</span>
         <div ref={heroRef} className="tb-fade">
-          <p className="tb-hero-eyebrow">Est. Since Day One</p>
+          <p className="tb-hero-eyebrow">Барбершоп · Истинско майсторство</p>
           <h1 className="tb-hero-title">
             {tenant.hero_title ? (
               <>
@@ -748,12 +748,12 @@ export function TheBeastSite({ data }: { data: SalonData }) {
             )}
           </h1>
           <p className="tb-hero-subtitle">
-            {tenant.hero_subtitle ?? "Old-School Craft. No Apologies."}
+            {tenant.hero_subtitle ?? "Класически стил. Без компромиси."}
           </p>
-          <a href="#booking" className="tb-hero-cta">Reserve Your Seat</a>
+          <a href="#booking" className="tb-hero-cta">Запази час</a>
         </div>
         <div className="tb-hero-scroll" aria-hidden="true">
-          <span>Scroll</span>
+          <span>Скрол</span>
           <svg width="14" height="20" viewBox="0 0 14 20" fill="none">
             <rect x="1" y="1" width="12" height="18" rx="6" stroke="currentColor" strokeWidth="1.5" opacity=".5"/>
             <rect x="6" y="4" width="2" height="5" rx="1" fill="currentColor"/>
@@ -783,9 +783,9 @@ export function TheBeastSite({ data }: { data: SalonData }) {
                 </div>
               </div>
               <div>
-                <p className="tb-label">Our Story</p>
+                <p className="tb-label">Нашата история</p>
                 <h2 className="tb-about-heading">
-                  Real <em>Craft</em>,<br />Real <em>Men</em>.
+                  Истинско <em>майсторство</em>,<br />за истински <em>мъже</em>.
                 </h2>
                 <div className="tb-about-rule" />
                 {tenant.about_text1 && (
@@ -807,9 +807,9 @@ export function TheBeastSite({ data }: { data: SalonData }) {
         <div className="tb-container">
           <div ref={servicesRef} className="tb-fade">
             <div className="tb-services-hdr">
-              <p className="tb-label" style={{ justifyContent: "center" }}>The Menu</p>
+              <p className="tb-label" style={{ justifyContent: "center" }}>Менюто</p>
               <h2 className="tb-section-heading">
-                Our <em>Services</em>
+                Нашите <em>Услуги</em>
               </h2>
               <div className="tb-services-divider">✦</div>
             </div>
@@ -835,7 +835,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
             </div>
             <div style={{ textAlign: "center", marginTop: "3rem" }}>
               <a href="#booking" className="tb-nav-cta" style={{ display: "inline-block" }}>
-                Book Now
+                Запази час
               </a>
             </div>
           </div>
@@ -848,9 +848,9 @@ export function TheBeastSite({ data }: { data: SalonData }) {
           <div className="tb-container">
             <div ref={galleryRef} className="tb-fade">
               <div className="tb-gallery-hdr">
-                <p className="tb-label" style={{ justifyContent: "center" }}>The Work</p>
+                <p className="tb-label" style={{ justifyContent: "center" }}>Нашата работа</p>
                 <h2 className="tb-section-heading">
-                  Sharp <em>Cuts</em>
+                  Прецизни <em>прически</em>
                 </h2>
               </div>
               <div className="tb-masonry">
@@ -878,9 +878,9 @@ export function TheBeastSite({ data }: { data: SalonData }) {
         <div className="tb-container">
           <div ref={bookingRef} className="tb-fade">
             <div className="tb-booking-hdr">
-              <p className="tb-label" style={{ justifyContent: "center" }}>Reserve</p>
+              <p className="tb-label" style={{ justifyContent: "center" }}>Резервация</p>
               <h2 className="tb-section-heading">
-                Book a <em>Chair</em>
+                Запази <em>час</em>
               </h2>
             </div>
             <div className="tb-booking-frame">
@@ -895,9 +895,9 @@ export function TheBeastSite({ data }: { data: SalonData }) {
         <div className="tb-hours-wrap">
           <div className="tb-container">
             <div ref={contactRef} className="tb-hours-inner tb-fade">
-              <p className="tb-label" style={{ justifyContent: "center" }}>Hours</p>
+              <p className="tb-label" style={{ justifyContent: "center" }}>Работно време</p>
               <h2 className="tb-section-heading" style={{ marginBottom: "2rem" }}>
-                We Are <em>Open</em>
+                Отворени <em>сме</em>
               </h2>
               <SalonWorkingHours
                 data={data}
@@ -915,15 +915,15 @@ export function TheBeastSite({ data }: { data: SalonData }) {
         <div className="tb-container">
           <div className="tb-contact-grid">
             <div>
-              <p className="tb-label">Find Us</p>
+              <p className="tb-label">Намерете ни</p>
               <h2 className="tb-section-heading" style={{ marginBottom: "2rem", fontSize: "clamp(2rem,3.5vw,3rem)" }}>
-                <em>Contact</em>
+                <em>Контакти</em>
               </h2>
               {tenant.address && (
                 <div className="tb-contact-row">
                   <svg className="tb-contact-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
                   <div>
-                    <p className="tb-contact-label">Address</p>
+                    <p className="tb-contact-label">Адрес</p>
                     <p className="tb-contact-val">{tenant.address}</p>
                   </div>
                 </div>
@@ -932,7 +932,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
                 <div className="tb-contact-row">
                   <svg className="tb-contact-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.19h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L7.91 8.8a16 16 0 0 0 6 6l.91-.91a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg>
                   <div>
-                    <p className="tb-contact-label">Phone</p>
+                    <p className="tb-contact-label">Телефон</p>
                     <p className="tb-contact-val"><a href={`tel:${tenant.phone}`}>{tenant.phone}</a></p>
                   </div>
                 </div>
@@ -941,7 +941,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
                 <div className="tb-contact-row">
                   <svg className="tb-contact-icon" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7"/></svg>
                   <div>
-                    <p className="tb-contact-label">Email</p>
+                    <p className="tb-contact-label">Имейл</p>
                     <p className="tb-contact-val"><a href={`mailto:${tenant.email}`}>{tenant.email}</a></p>
                   </div>
                 </div>
@@ -949,8 +949,8 @@ export function TheBeastSite({ data }: { data: SalonData }) {
             </div>
             <div className="tb-map-wrap">
               {mapsSrc
-                ? <iframe src={mapsSrc} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Map" />
-                : <span>No Map Set</span>
+                ? <iframe src={mapsSrc} allowFullScreen loading="lazy" referrerPolicy="no-referrer-when-downgrade" title="Карта" />
+                : <span>Картата не е зададена</span>
               }
             </div>
           </div>
@@ -987,17 +987,17 @@ export function TheBeastSite({ data }: { data: SalonData }) {
       <footer className="tb-footer">
         <div className="tb-container">
           <p className="tb-footer-logo">{tenant.salon_name}</p>
-          <p className="tb-footer-tagline">Premium Barbershop · Handcrafted Since Day One</p>
+          <p className="tb-footer-tagline">Премиум Барбершоп · Истинско майсторство</p>
           <ul className="tb-footer-nav">
-            {hasAbout && <li><a href="#about">About</a></li>}
-            <li><a href="#services">Services</a></li>
-            {hasGallery && <li><a href="#gallery">Gallery</a></li>}
-            <li><a href="#booking">Book</a></li>
-            <li><a href="#contact">Contact</a></li>
-            <li><Link href={`/${tenant.salon_slug}/booking`}>Full Booking</Link></li>
+            {hasAbout && <li><a href="#about">За нас</a></li>}
+            <li><a href="#services">Услуги</a></li>
+            {hasGallery && <li><a href="#gallery">Галерия</a></li>}
+            <li><a href="#booking">Резервация</a></li>
+            <li><a href="#contact">Контакти</a></li>
+            <li><Link href={`/${tenant.salon_slug}/booking`}>Онлайн резервация</Link></li>
           </ul>
           <p className="tb-footer-copy">
-            © {new Date().getFullYear()} {tenant.salon_name} · All rights reserved
+            © {new Date().getFullYear()} {tenant.salon_name} · Всички права запазени
           </p>
         </div>
       </footer>
