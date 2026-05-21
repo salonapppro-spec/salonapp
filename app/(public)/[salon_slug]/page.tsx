@@ -8,7 +8,6 @@ import type { SalonData } from "@/types/database";
 import { loadPublicSalonData } from "@/lib/data";
 import { mergeTokens, tokensToCssVars } from "@/lib/design-tokens";
 import { ConsentAnalytics } from "@/components/ConsentAnalytics";
-import { Bloom } from "@/components/templates/Bloom";
 import { PawEmpire } from "@/components/paw-empire/PawEmpireSite";
 import { TheBeastSite } from "@/components/tenants/TheBeastSite";
 import { EuphoriaSite } from "@/components/tenants/euphoria/Page";
@@ -38,11 +37,47 @@ function isValidSlug(slug: string): boolean {
   return slug.length <= 80 && SLUG_RE.test(slug);
 }
 
+function UnderConstruction({ data }: { data: SalonData }) {
+  const name = data.tenant.salon_name;
+  const logo = data.tenant.logo_url?.trim();
+  return (
+    <div style={{
+      minHeight: "100svh",
+      background: "#0f0f0f",
+      display: "flex",
+      flexDirection: "column",
+      alignItems: "center",
+      justifyContent: "center",
+      fontFamily: "'Inter', sans-serif",
+      color: "#f5f5f5",
+      textAlign: "center",
+      padding: "2rem",
+      gap: "1.5rem",
+    }}>
+      {logo && (
+        <img src={logo} alt={name} style={{ height: "64px", objectFit: "contain", marginBottom: ".5rem" }} />
+      )}
+      <h1 style={{ fontSize: "clamp(1.4rem,4vw,2.2rem)", fontWeight: 700, letterSpacing: "-.02em", margin: 0 }}>
+        {name}
+      </h1>
+      <p style={{ fontSize: "1rem", color: "rgba(255,255,255,.45)", margin: 0, maxWidth: "360px", lineHeight: 1.6 }}>
+        Сайтът е в изграждане.<br />Очаквайте скоро.
+      </p>
+      <div style={{ width: "40px", height: "2px", background: "rgba(255,255,255,.15)", borderRadius: "2px" }} />
+      {data.tenant.phone && (
+        <a href={`tel:${data.tenant.phone}`} style={{ color: "rgba(255,255,255,.5)", fontSize: ".9rem", textDecoration: "none" }}>
+          {data.tenant.phone}
+        </a>
+      )}
+    </div>
+  );
+}
+
 function renderSite(slug: string, data: SalonData) {
   const Site = TENANT_SITES[slug];
   if (Site) return <Site data={data} />;
-  // Fallback for new tenants not yet added to the registry
-  return <Bloom data={data} />;
+  // Сайтът е в изграждане — ще бъде построен от SalonApp екипа
+  return <UnderConstruction data={data} />;
 }
 
 function beautyBusinessJsonLd(data: SalonData, canonicalUrl: string) {
