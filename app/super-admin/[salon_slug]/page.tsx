@@ -81,8 +81,7 @@ export default async function SuperAdminTenantPage({
           </div>
           <p className="mt-1 text-sm text-neutral-400">
             <code className="rounded bg-neutral-800 px-1">{tenant.salon_slug}</code>
-            {" · "}{tenant.plan}{" · "}
-            {tenant.template}
+            {" · "}{tenant.plan}
           </p>
           <p className={overdue ? "mt-1.5 text-sm font-semibold text-red-300" : "mt-1.5 text-sm text-neutral-400"}>
             {overdue
@@ -124,7 +123,7 @@ export default async function SuperAdminTenantPage({
           { label: "Резервации", value: bookingCount ?? 0, color: "text-sky-300" },
           { label: "Клиенти", value: clientCount ?? 0, color: "text-violet-300" },
           { label: "План", value: tenant.plan, color: "text-amber-300" },
-          { label: "Шаблон", value: tenant.template ?? "—", color: "text-rose-300" },
+          { label: "Статус", value: tenant.status, color: "text-rose-300" },
         ].map((s) => (
           <div key={s.label} className="rounded-xl border border-neutral-800 bg-neutral-900/60 p-3">
             <p className="text-[10px] uppercase tracking-wide text-neutral-500">{s.label}</p>
