@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
-import Image from "next/image";
 import Link from "next/link";
 
 import type { SalonData } from "@/types/database";
@@ -88,7 +87,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
   const tkHref = safeTiktokHref(tenant.tiktok_url);
   const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed);
   const hasGallery = gallery.length > 0;
-  const hasAbout = Boolean(tenant.about_text1 || tenant.about_text2);
+  const hasAbout = Boolean(tenant.about_text1 || tenant.about_text2 || tenant.about_image_url);
 
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 60);
@@ -718,7 +717,23 @@ export function TheBeastSite({ data }: { data: SalonData }) {
       </nav>
 
       {/* ── HERO ── */}
-      <section className="tb-hero" id="hero">
+      <section
+        className="tb-hero"
+        id="hero"
+        style={tenant.hero_image_url ? {
+          backgroundImage: `url(${tenant.hero_image_url})`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+          backgroundRepeat: "no-repeat",
+        } : undefined}
+      >
+        {tenant.hero_image_url && (
+          <div style={{
+            position: "absolute", inset: 0,
+            background: "linear-gradient(to bottom, rgba(17,17,17,0.72) 0%, rgba(17,17,17,0.55) 50%, rgba(17,17,17,0.85) 100%)",
+            pointerEvents: "none",
+          }} aria-hidden="true" />
+        )}
         <span className="tb-hero-ornament" aria-hidden="true">{tenant.salon_name}</span>
         <div ref={heroRef} className="tb-fade">
           <p className="tb-hero-eyebrow">Est. Since Day One</p>
@@ -756,12 +771,11 @@ export function TheBeastSite({ data }: { data: SalonData }) {
               <div className="tb-photo-wrap">
                 <div className="tb-photo-inner">
                   {tenant.about_image_url ? (
-                    <Image
+                    <img
                       src={tenant.about_image_url}
                       alt={tenant.salon_name}
-                      fill
-                      sizes="(max-width: 768px) 100vw, 45vw"
-                      style={{ objectFit: "cover" }}
+                      loading="lazy"
+                      style={{ width: "100%", height: "100%", objectFit: "cover" }}
                     />
                   ) : (
                     <div className="tb-photo-placeholder">✂</div>
@@ -842,12 +856,11 @@ export function TheBeastSite({ data }: { data: SalonData }) {
               <div className="tb-masonry">
                 {gallery.map((img, i) => (
                   <div className="tb-masonry-item" key={img.id}>
-                    <Image
+                    <img
                       src={img.url}
                       alt={`Gallery ${i + 1}`}
-                      width={600}
-                      height={400}
-                      style={{ width: "100%", height: "auto" }}
+                      loading="lazy"
+                      style={{ width: "100%", height: "auto", display: "block" }}
                     />
                     <div className="tb-masonry-overlay">
                       <span className="tb-masonry-nr">#{String(i + 1).padStart(2, "0")}</span>
