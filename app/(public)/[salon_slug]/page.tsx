@@ -3,21 +3,31 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 
+import type { ComponentType } from "react";
 import type { SalonData } from "@/types/database";
-import type { Template } from "@/types";
 import { loadPublicSalonData } from "@/lib/data";
 import { mergeTokens, tokensToCssVars } from "@/lib/design-tokens";
 import { ConsentAnalytics } from "@/components/ConsentAnalytics";
 import { Bloom } from "@/components/templates/Bloom";
-import { Bold } from "@/components/templates/Bold";
-import { Clean } from "@/components/templates/Clean";
-import { Groom } from "@/components/templates/Groom";
-import { Luxe } from "@/components/templates/Luxe";
-import { Luxe2 } from "@/components/templates/Luxe2";
-import { Zen } from "@/components/templates/Zen";
-import { TheSkin } from "@/components/templates/TheSkin";
 import { PawEmpire } from "@/components/paw-empire/PawEmpireSite";
 import { TheBeastSite } from "@/components/tenants/TheBeastSite";
+import { EuphoriaSite } from "@/components/tenants/euphoria/Page";
+import { LindySite } from "@/components/tenants/lindy/Page";
+import { TheSkinSite } from "@/components/tenants/theskin/Page";
+import { DemoSite } from "@/components/tenants/demo/Page";
+
+// ── Per-tenant site registry ───────────────────────────────────────────────────
+// Each tenant has its own unique component. To add a new tenant:
+// 1. Create components/tenants/[slug]/Page.tsx
+// 2. Import it here and add to TENANT_SITES
+const TENANT_SITES: Record<string, ComponentType<{ data: SalonData }>> = {
+  "paw-empire": PawEmpire,
+  "thebeast":   TheBeastSite,
+  "euphoria":   EuphoriaSite,
+  "lindy":      LindySite,
+  "theskin":    TheSkinSite,
+  "demo":       DemoSite,
+};
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -30,20 +40,11 @@ function isValidSlug(slug: string): boolean {
   return slug.length <= 80 && SLUG_RE.test(slug);
 }
 
-function renderTemplate(template: Template, data: SalonData) {
-  if (data.tenant.salon_slug === "paw-empire") return <PawEmpire data={data} />;
-  if (data.tenant.salon_slug === "the-beast") return <TheBeastSite data={data} />;
-  switch (template) {
-    case "bloom":   return <Bloom data={data} />;
-    case "luxe":    return <Luxe data={data} />;
-    case "clean":   return <Clean data={data} />;
-    case "zen":     return <Zen data={data} />;
-    case "bold":    return <Bold data={data} />;
-    case "luxe2":   return <Luxe2 data={data} />;
-    case "groom":   return <Groom data={data} />;
-    case "theskin": return <TheSkin data={data} />;
-    default:        return <Bloom data={data} />;
-  }
+function renderSite(slug: string, data: SalonData) {
+  const Site = TENANT_SITES[slug];
+  if (Site) return <Site data={data} />;
+  // Fallback for new tenants not yet added to the registry
+  return <Bloom data={data} />;
 }
 
 function beautyBusinessJsonLd(data: SalonData, canonicalUrl: string) {
@@ -151,7 +152,7 @@ export default async function PublicSalonPage(props: {
         clarityId={data.tenant.clarity_id}
       />
       <div id="salon-design-root" style={designVarStyle}>
-        {renderTemplate(data.tenant.template, data)}
+        {renderSite(slug, data)}
       </div>
     </>
   );
