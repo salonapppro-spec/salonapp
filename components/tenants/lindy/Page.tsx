@@ -597,6 +597,11 @@ const STYLES = `
     transition: color 0.2s;
   }
   .ln-booking-phone-hint a:hover { color: #fff; }
+  .ln-booking-cal-wrap {
+    background: #FAF7F4;
+    border-radius: 4px;
+    overflow: hidden;
+  }
 
   /* ── Contact ── */
   .ln-contact { background: var(--bg); padding: 88px 0; }
@@ -971,15 +976,17 @@ export function LindySite({ data }: { data: SalonData }) {
                   </p>
                 )}
               </div>
-              <BookingCalendar
-                salonSlug={tenant.salon_slug}
-                salonName={tenant.salon_name}
-                salonPhone={tenant.phone ?? undefined}
-                salonAddress={tenant.address ?? undefined}
-                salonGoogleMapsEmbed={tenant.google_maps_embed ?? undefined}
-                services={services}
-                workingHours={workingHours}
-              />
+              <div className="ln-booking-cal-wrap">
+                <BookingCalendar
+                  salonSlug={tenant.salon_slug}
+                  salonName={tenant.salon_name}
+                  salonPhone={tenant.phone ?? undefined}
+                  salonAddress={tenant.address ?? undefined}
+                  salonGoogleMapsEmbed={tenant.google_maps_embed ?? undefined}
+                  services={services}
+                  workingHours={workingHours}
+                />
+              </div>
             </div>
           </div>
         </section>
