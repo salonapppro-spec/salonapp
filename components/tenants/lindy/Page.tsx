@@ -668,6 +668,10 @@ const STYLES = `
       gap: 80px; align-items: start;
     }
   }
+  .ln-contact-logo {
+    height: 72px; width: auto; object-fit: contain;
+    display: block; margin-bottom: 28px;
+  }
   .ln-contact-row {
     display: flex; align-items: flex-start; gap: 12px;
     font-size: 15px; color: var(--ink);
@@ -1074,6 +1078,17 @@ export function LindySite({ data }: { data: SalonData }) {
 
               {/* Info */}
               <div>
+                {/* Лого в контактната секция */}
+                {tenant.logo_url?.trim() && (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={tenant.logo_url}
+                    alt={tenant.salon_name}
+                    className="ln-contact-logo"
+                    loading="lazy"
+                    decoding="async"
+                  />
+                )}
                 <span className="ln-tag">Контакти</span>
                 <h2 className="ln-h2">{tenant.salon_name}</h2>
                 {tenant.address && (

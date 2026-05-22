@@ -192,6 +192,11 @@ export default async function SuperAdminTenantPage({
         <form action={updateTenantBasics} className="mt-4 grid gap-4 sm:grid-cols-2">
           <input type="hidden" name="salon_slug" value={tenant.salon_slug} />
 
+          <div className="sm:col-span-2">
+            <label className="text-xs text-neutral-400">Име на салона</label>
+            <input name="salon_name" defaultValue={tenant.salon_name} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm" />
+          </div>
+
           <div>
             <label className="text-xs text-neutral-400">Статус</label>
             <select name="status" defaultValue={tenant.status} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">

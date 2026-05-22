@@ -192,10 +192,13 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
   if (!VALID_STATUSES.has(status))   throw new Error(`Невалиден статус: ${status}`);
   if (!VALID_PLANS.has(plan))        throw new Error(`Невалиден план: ${plan}`);
 
+  const salonName = String(formData.get("salon_name") ?? "").trim();
+
   const patch = {
     status,
     plan,
     template,
+    ...(salonName ? { salon_name: salonName } : {}),
     facebook_pixel_id: String(formData.get("facebook_pixel_id") ?? "") || null,
     gtm_id:            String(formData.get("gtm_id") ?? "")            || null,
     owner_email:       String(formData.get("owner_email") ?? "")       || null,
