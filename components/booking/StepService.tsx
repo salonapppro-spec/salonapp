@@ -2,6 +2,11 @@
 
 import type { Service } from "@/types";
 
+const BGN_RATE = 1.956;
+function eurToBgn(eur: number): string {
+  return (eur * BGN_RATE).toFixed(2);
+}
+
 export function StepService(props: {
   stepLabel: string;
   services: Service[];
@@ -26,7 +31,9 @@ export function StepService(props: {
               }`}
             >
               <span className="font-medium text-neutral-900">{s.name}</span>
-              <span className="shrink-0 font-semibold text-brand-800">{Number(s.price_eur).toFixed(0)}€</span>
+              <span className="shrink-0 font-semibold text-brand-800">
+                {Number(s.price_eur).toFixed(0)} € <span className="font-normal text-neutral-500 text-xs">({eurToBgn(Number(s.price_eur))} лв)</span>
+              </span>
             </button>
           ))}
         </div>

@@ -143,6 +143,16 @@ NEXT_PUBLIC_STRIPE_PAYMENT_LINK_COLLECTIVE=
 
 ---
 
+## Правило 6: НИКОГА повече шаблони (templates) — ВСЕКИ салон получава уникален сайт
+
+- **НЕ** предлагай template-и (Bloom, Zen, Luxe, Bold, Clean, Groom и т.н.) за нови салони
+- **НЕ** споменавай `components/templates/` при работа по публичен сайт на салон
+- Всеки нов салон → уникален компонент в `components/tenants/[salon-name]/` или `components/tenants/[SalonName]Site.tsx`
+- Примери за правилния подход: `TheBeastSite.tsx`, `euphoria/Page.tsx`, `PawEmpireSite.tsx`
+- Ако видиш `template: "bloom"` в базата — игнорирай го, той е legacy поле
+
+---
+
 ## Не пипай без да разбереш
 
 - `middleware.ts` — логиката засяга всички тенанти едновременно

@@ -656,7 +656,7 @@ export function BookingCalendar({
           >
             {active.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}{s.price_eur ? ` — ${Number(s.price_eur).toFixed(0)} €` : ""}
+                {s.name}{s.price_eur ? ` — ${Number(s.price_eur).toFixed(0)} € (~${(Number(s.price_eur) * 1.956).toFixed(2)} лв)` : ""}
                 {!s.is_complex && s.duration_minutes ? ` · ${s.duration_minutes} мин` : ""}
               </option>
             ))}

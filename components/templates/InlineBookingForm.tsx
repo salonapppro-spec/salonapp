@@ -451,7 +451,7 @@ export function InlineBookingForm({
             <option value="">— Изберете услуга —</option>
             {activeServices.map((s) => (
               <option key={s.id} value={s.id}>
-                {s.name}{s.price_eur ? ` — ${s.price_eur} €` : ""}
+                {s.name}{s.price_eur ? ` — ${Number(s.price_eur).toFixed(0)} € (~${(Number(s.price_eur) * 1.956).toFixed(2)} лв)` : ""}
               </option>
             ))}
           </select>

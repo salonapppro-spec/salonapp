@@ -52,6 +52,12 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
       setError("Моля изберете файлове снимки (JPG, PNG, WebP…).");
       return;
     }
+    // Проверка преди изпращане — Vercel отхвърля > 4.5 MB преди сървъра
+    const tooBig = images.find((f) => f.size > 4 * 1024 * 1024);
+    if (tooBig) {
+      setError(`„${tooBig.name}" е твърде голяма (${(tooBig.size / 1024 / 1024).toFixed(1)} MB). Моля компресирай снимката до под 4 MB преди качване.`);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -59,8 +65,12 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
         const fd = new FormData();
         fd.set("file", file);
         const res = await fetch("/api/admin/gallery/upload", { method: "POST", body: fd });
-        const json = (await res.json()) as { error?: string };
+        // Сървърът може да върне plain-text 413 преди route handler-а — catch gracefully
+        const json = await res.json().catch(() => null) as { error?: string } | null;
         if (!res.ok) {
+          if (res.status === 413) {
+            throw new Error("Снимката е твърде голяма. Компресирай я до под 4 MB и опитай отново.");
+          }
           throw new Error(json?.error ?? "Качването не успя. Нужен е публичен Storage bucket 'gallery' в Supabase.");
         }
       }

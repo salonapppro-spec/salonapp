@@ -889,7 +889,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
                       <span className="tb-menu-name">{service.name}</span>
                       <span className="tb-menu-dots" aria-hidden="true" />
                       <span className="tb-menu-price">
-                        {service.price_eur.toFixed(0)} €
+                        {service.price_eur.toFixed(0)} € <span className="tb-menu-price-bgn">(≈{(Number(service.price_eur) * 1.956).toFixed(2)} лв)</span>
                       </span>
                     </div>
                     {service.duration_minutes && (
