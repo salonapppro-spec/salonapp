@@ -669,8 +669,8 @@ const STYLES = `
     }
   }
   .ln-contact-logo {
-    height: 72px; width: auto; object-fit: contain;
-    display: block; margin-bottom: 28px;
+    height: clamp(120px, 18vw, 200px); width: auto; object-fit: contain;
+    display: block; margin-bottom: 32px;
   }
   .ln-contact-row {
     display: flex; align-items: flex-start; gap: 12px;
@@ -1090,7 +1090,6 @@ export function LindySite({ data }: { data: SalonData }) {
                   />
                 )}
                 <span className="ln-tag">Контакти</span>
-                <h2 className="ln-h2">{tenant.salon_name}</h2>
                 {tenant.address && (
                   <div className="ln-contact-row">
                     <PinIcon />
