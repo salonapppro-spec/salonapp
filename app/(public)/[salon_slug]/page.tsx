@@ -22,7 +22,7 @@ const TENANT_SITES: Record<string, ComponentType<{ data: SalonData }>> = {
   "paw-empire": PawEmpire,
   "thebeast":   TheBeastSite,
   "euphoria":   EuphoriaSite,
-  "lindy":      LindySite,
+  "lindynails": LindySite,
   "theskin":    TheSkinSite,
 };
 
