@@ -29,6 +29,40 @@ function extractMapsUrl(embed: string | null | undefined): string | null {
   return trimmed;
 }
 
+/**
+ * Определя src URL за картата с приоритети:
+ * 1. Правилен embed URL от admin (https://www.google.com/maps/embed?pb=...)
+ * 2. Ако embed URL е зададен но е в лош формат — игнорира го
+ * 3. Координати от design_tokens.maps_pin → генерира embed URL
+ */
+function resolveMapSrc(
+  embed: string | null | undefined,
+  tokens: unknown
+): string | null {
+  // Опит 1: embed URL само ако е правилният формат (/maps/embed)
+  const url = extractMapsUrl(embed);
+  if (url && url.includes("maps/embed")) return url;
+
+  // Опит 2: координати от design_tokens.maps_pin
+  if (tokens && typeof tokens === "object" && !Array.isArray(tokens)) {
+    const t = tokens as Record<string, unknown>;
+    const pin = t.maps_pin;
+    if (pin && typeof pin === "object" && !Array.isArray(pin)) {
+      const p = pin as Record<string, unknown>;
+      const lat = typeof p.lat === "number" ? p.lat : null;
+      const lng = typeof p.lng === "number" ? p.lng : null;
+      if (lat !== null && lng !== null) {
+        return `https://maps.google.com/maps?q=${lat},${lng}&z=15&output=embed&iwloc=near`;
+      }
+    }
+  }
+
+  // Опит 3: ако embed URL е зададен (дори лош формат), покажи него
+  if (url) return url;
+
+  return null;
+}
+
 function fmtDuration(min: number | null): string {
   if (!min) return "";
   if (min < 60) return `${min} мин`;
@@ -705,6 +739,7 @@ export function LindySite({ data }: { data: SalonData }) {
 
   const heroImg  = tenant.hero_image_url?.trim() || gallery[0]?.url || "";
   const aboutImg = tenant.about_image_url?.trim() || gallery[1]?.url || gallery[0]?.url || "";
+  const mapSrc   = resolveMapSrc(tenant.google_maps_embed, tenant.design_tokens);
 
   const socials = [
     tenant.instagram_url ? { href: tenant.instagram_url, label: "Instagram", type: "ig" } : null,
@@ -1022,7 +1057,7 @@ export function LindySite({ data }: { data: SalonData }) {
                   salonName={tenant.salon_name}
                   salonPhone={tenant.phone ?? undefined}
                   salonAddress={tenant.address ?? undefined}
-                  salonGoogleMapsEmbed={extractMapsUrl(tenant.google_maps_embed) ?? undefined}
+                  salonGoogleMapsEmbed={mapSrc ?? undefined}
                   services={services}
                   workingHours={workingHours}
                 />
@@ -1081,11 +1116,11 @@ export function LindySite({ data }: { data: SalonData }) {
                 </div>
               </div>
 
-              {/* Map — iframe ако има embed (URL или пълен iframe код), иначе placeholder */}
+              {/* Map — iframe от embed URL или от координати, иначе placeholder */}
               <div>
-                {extractMapsUrl(tenant.google_maps_embed) ? (
+                {mapSrc ? (
                   <iframe
-                    src={extractMapsUrl(tenant.google_maps_embed)!}
+                    src={mapSrc}
                     title="Карта"
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"
