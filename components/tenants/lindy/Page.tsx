@@ -655,7 +655,7 @@ const STYLES = `
   }
 
   /* ── Contact ── */
-  .ln-contact { background: var(--bg); padding: 88px 0; }
+  .ln-contact { background: var(--bg); padding: 52px 0 88px; }
   .ln-contact-wrap {
     max-width: 1320px; margin: 0 auto;
     padding: 0 32px;
@@ -669,8 +669,8 @@ const STYLES = `
     }
   }
   .ln-contact-logo {
-    height: clamp(220px, 32vw, 360px); width: auto; object-fit: contain;
-    display: block; margin-bottom: 36px;
+    height: clamp(140px, 20vw, 220px); width: auto; object-fit: contain;
+    display: block; margin-bottom: 16px;
   }
   .ln-contact-row {
     display: flex; align-items: flex-start; gap: 12px;
