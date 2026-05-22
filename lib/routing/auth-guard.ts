@@ -102,7 +102,7 @@ export function applyAuthGuard(params: {
     if (!user) {
       const login = new URL("/admin/login", request.url);
       login.searchParams.set("next", pathname + request.nextUrl.search);
-      return NextResponse.redirect(login);
+      return redirectWithCookies(login, request, response);
     }
   }
 
@@ -111,12 +111,12 @@ export function applyAuthGuard(params: {
     if (!user) {
       const login = new URL("/admin/login", request.url);
       login.searchParams.set("next", pathname + request.nextUrl.search);
-      return NextResponse.redirect(login);
+      return redirectWithCookies(login, request, response);
     }
     if (!isSuperAdminRole(user)) {
       const login = new URL("/admin/login", request.url);
       login.searchParams.set("super_admin_only", "1");
-      return NextResponse.redirect(login);
+      return redirectWithCookies(login, request, response);
     }
   }
 

@@ -7,7 +7,7 @@
  * Usage: localhost:3000/paw-empire/... → resolvePreviewSlug("/paw-empire/...") → "paw-empire"
  */
 
-import { RESERVED_PATHS } from "./constants";
+import { RESERVED_PATHS, SLUG_RE } from "./constants";
 
 /**
  * Extracts the tenant slug from the first path segment.
@@ -20,6 +20,6 @@ import { RESERVED_PATHS } from "./constants";
  */
 export function resolvePreviewSlug(pathname: string): string | null {
   const first = pathname.split("/").filter(Boolean)[0] ?? "";
-  if (!first || RESERVED_PATHS.has(first) || first.includes(".")) return null;
+  if (!first || RESERVED_PATHS.has(first) || first.includes(".") || !SLUG_RE.test(first)) return null;
   return first;
 }

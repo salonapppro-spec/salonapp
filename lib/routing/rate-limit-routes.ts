@@ -34,7 +34,7 @@ const RULES: RouteRateRule[] = [
   },
   {
     test: (p, m) => p === "/api/bookings" && m === "POST",
-    key: (ip) => `booking-post:${ip}`,
+    key: (ip) => `bookings-post:${ip}`,
     policy: RATE.bookingPost,
     label: "booking_post",
   },

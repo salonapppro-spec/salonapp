@@ -2,12 +2,11 @@ import { NextResponse } from "next/server";
 
 import { logAbuseEvent } from "@/lib/abuse-log";
 import { clientIpFromHeaders } from "@/lib/rate-limit";
+import { SLUG_RE } from "@/lib/routing/constants";
 
 type TenantHeaderCheck =
   | { ok: true; salonSlug: string }
   | { ok: false; response: NextResponse };
-
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export function requireTenantFromHeaders(
   req: Request,

@@ -4,9 +4,7 @@ import { NextResponse } from "next/server";
 import { getTenant } from "@/lib/get-tenant";
 import { recoverOwnerTenantSlug } from "@/lib/internal/owner-tenant-recovery";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
-
-/** Slug format: lowercase latin, digits, hyphens (matches public URLs). */
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
+import { SLUG_RE } from "@/lib/routing/constants";
 
 /**
  * HttpOnly контекст: супер админ без salon_slug в JWT може да „влезе“ в салонски админ
