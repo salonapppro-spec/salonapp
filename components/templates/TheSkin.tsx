@@ -173,7 +173,7 @@ export function TheSkin({ data }: { data: SalonData }) {
         @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400;1,500&family=DM+Sans:wght@300;400;500&display=swap');
 
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; font-size: 16px; }
+        html { scroll-behavior: smooth; scroll-padding-top: 72px; font-size: 16px; }
         body { background: #FAF8F4; color: #1A1A1A; font-family: 'DM Sans', system-ui, sans-serif; font-weight: 300; line-height: 1.7; overflow-x: hidden; }
         a { color: inherit; text-decoration: none; }
         img { display: block; max-width: 100%; }

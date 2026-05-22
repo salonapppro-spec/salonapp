@@ -1,6 +1,10 @@
 /** @type {import('next').NextConfig} */
 import { withSentryConfig } from "@sentry/nextjs";
 
+// 'unsafe-eval' is required by Next.js React Fast Refresh in dev mode only.
+// In production, Next.js does not use eval so this is safe to omit there.
+const isDev = process.env.NODE_ENV === "development";
+
 function sentryIngestOrigin() {
   const dsn = process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN;
   if (!dsn) return null;
@@ -26,12 +30,13 @@ const connectSrcParts = [
 const CSP_POLICY = [
   "default-src 'self'",
   // Next.js изисква unsafe-inline за hydration; GTM/Pixel/Clarity са external скриптове
-  "script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://www.google-analytics.com",
+  // unsafe-eval е нужен само в dev режим (React Fast Refresh / HMR)
+  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ""} https://www.googletagmanager.com https://connect.facebook.net https://www.clarity.ms https://www.google-analytics.com`,
   // Inline styles се ползват масово в templates
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
-  // Supabase Storage за снимки
-  "img-src 'self' data: blob: https://*.supabase.co https://*.salonapp.pro https://www.google.com https://www.gstatic.com",
+  // Supabase Storage за снимки; Unsplash само в dev (placeholder изображения)
+  `img-src 'self' data: blob: https://*.supabase.co https://*.salonapp.pro https://www.google.com https://www.gstatic.com${isDev ? " https://images.unsplash.com" : ""}`,
   // Iframe preview в super-admin builder + Google Maps iframe
   "frame-src 'self' https://www.google.com https://maps.google.com https://*.salonapp.pro",
   // Supabase realtime + REST, Stripe, Meta CAPI + Sentry ingest
