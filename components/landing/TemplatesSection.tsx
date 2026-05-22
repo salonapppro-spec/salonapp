@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 
 const TEMPLATES = [
   {
@@ -83,18 +82,16 @@ export default function TemplatesSection() {
             Избери своя стил.
           </h2>
           <p className="mt-3 max-w-xl text-sm text-[#1A1A1A]/50">
-            Всеки шаблон е напълно готов с резервации, услуги и работно време. Кликни и виж как ще изглежда точно твоят салон.
+            Всеки салон получава уникален дизайн, изграден специално за него — не шаблон.
           </p>
         </div>
 
         {/* Clean 3-column equal grid */}
         <div className="grid grid-cols-1 gap-[30px] sm:grid-cols-2 lg:grid-cols-3">
           {TEMPLATES.map((t) => (
-            <Link
+            <div
               key={t.slug}
-              href={t.href}
-              target="_blank"
-              className="group relative flex flex-col overflow-hidden rounded-xl bg-white shadow-md transition-all duration-300 hover:-translate-y-1 hover:shadow-xl"
+              className="relative flex flex-col overflow-hidden rounded-xl bg-white shadow-md"
             >
               {/* Badge */}
               {t.tag && (
@@ -112,13 +109,11 @@ export default function TemplatesSection() {
                   src={`/previews/${t.slug}.jpg`}
                   alt={`${t.name} шаблон превю`}
                   fill
-                  className="object-cover object-top transition-transform duration-500 group-hover:scale-105"
+                  className="object-cover object-top"
                   sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
                 />
-                {/* Топъл overlay — хармонизира цветовете с бежовия сайт */}
-                {/* При hover изчезва и разкрива истинските цветове на шаблона */}
                 <div
-                  className="absolute inset-0 z-10 transition-opacity duration-500 group-hover:opacity-0"
+                  className="absolute inset-0 z-10"
                   style={{ background: "rgba(210, 175, 135, 0.38)" }}
                 />
               </div>
@@ -141,20 +136,8 @@ export default function TemplatesSection() {
                   {t.desc}
                 </p>
 
-                {/* Arrow link */}
-                <div
-                  className="mt-5 flex items-center gap-1.5 text-[12px] font-bold transition-colors duration-200"
-                  style={{ color: t.accent }}
-                >
-                  <span className="border-b border-transparent transition-colors duration-200 group-hover:border-current">
-                    Виж демото
-                  </span>
-                  <span className="transition-transform duration-200 group-hover:translate-x-1">
-                    →
-                  </span>
-                </div>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
 
