@@ -166,14 +166,14 @@ const STYLES = `
     max-width: 1320px;
     margin: 0 auto;
     padding: 0 28px;
-    height: 70px;
+    height: 80px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 16px;
   }
   .ln-logo { text-decoration: none; flex-shrink: 0; display: flex; align-items: center; }
-  .ln-logo-img { height: 42px; width: auto; object-fit: contain; }
+  .ln-logo-img { height: 62px; width: auto; object-fit: contain; }
   .ln-logo-text {
     font-family: var(--script);
     font-size: 28px;
@@ -685,6 +685,13 @@ const STYLES = `
   }
   .ln-footer-txt a { color: rgba(255,255,255,0.45); text-decoration: none; }
   .ln-footer-txt a:hover { color: rgba(255,255,255,0.75); }
+  .ln-footer-cookie {
+    background: none; border: none; cursor: pointer; padding: 0;
+    color: rgba(255,255,255,0.28); font-size: 13px;
+    text-decoration: underline; text-underline-offset: 3px;
+    transition: color 0.2s; font-family: inherit;
+  }
+  .ln-footer-cookie:hover { color: rgba(255,255,255,0.6); }
 `;
 
 // ─── Component ────────────────────────────────────────────────────────────────
@@ -1118,6 +1125,17 @@ export function LindySite({ data }: { data: SalonData }) {
             <a href="https://salonapp.pro" target="_blank" rel="noopener noreferrer">
               SalonApp.pro
             </a>
+            {" · "}
+            <button
+              type="button"
+              className="ln-footer-cookie"
+              onClick={() => {
+                try { localStorage.removeItem("salonapp_cookie_consent"); } catch {}
+                window.location.reload();
+              }}
+            >
+              Бисквитки
+            </button>
           </p>
         </footer>
 
