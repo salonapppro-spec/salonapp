@@ -1,225 +1,62 @@
+/**
+ * middleware.ts — Routing pipeline for SalonApp.pro
+ *
+ * Thin orchestration layer. All extracted logic lives in lib/routing/*.
+ *
+ * Execution order (each step may short-circuit and return early):
+ *  1.  Classify host + derive pathname
+ *  2.  Password-recovery token redirect (Supabase emails land on "/")
+ *  3.  Route rate limiting          ← fail-fast before any DB / auth work
+ *  4.  /temporarily-unavailable bypass
+ *  5.  Admin/API redirect from tenant subdomains → salonapp.pro
+ *  6.  Build requestHeaders + base response object
+ *  7.  Supabase session refresh + getUser()
+ *      7c. Set x-salon-slug from JWT; override with impersonation cookie
+ *      7d. Auth guards (platform hosts only)
+ *  8.  Root domain passthrough (return response with refreshed cookies)
+ *  9.  Dev / Vercel preview → path-based tenant routing
+ *  10. Subdomain / custom-domain → RPC tenant resolution + rewrite
+ */
+
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-import { logAbuseEvent } from "@/lib/abuse-log";
-import { RATE } from "@/lib/rate-limit-policies";
-import { applyRateLimit, clientIpFromHeaders } from "@/lib/rate-limit";
-
-// ── Hostname helpers ──────────────────────────────────────────────────────────
-
-function normalizeHostname(host: string): string {
-  return host.split(":")[0]?.toLowerCase() ?? "";
-}
-
-/** salonapp.pro и www.salonapp.pro — маркетинг + админ панел */
-function isRootDomain(hostname: string): boolean {
-  return hostname === "salonapp.pro" || hostname === "www.salonapp.pro";
-}
-
-/** localhost / 127.0.0.1 — dev среда */
-function isDevHost(hostname: string): boolean {
-  return hostname === "localhost" || hostname === "127.0.0.1";
-}
-
-/** *.vercel.app — Vercel preview URL */
-function isVercelDeploymentHost(hostname: string): boolean {
-  return hostname.endsWith(".vercel.app");
-}
-
-/** *.salonapp.pro субдомейн (не root) */
-function isSalonSubdomain(hostname: string): boolean {
-  return hostname.endsWith(".salonapp.pro") && !isRootDomain(hostname);
-}
-
-function isSuperAdminRole(user: {
-  app_metadata?: Record<string, unknown>;
-  user_metadata?: Record<string, unknown>;
-}): boolean {
-  return user.app_metadata?.role === "super_admin";
-}
-
-const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
-const SUPER_ADMIN_SALON_COOKIE = "salonapp_super_admin_salon";
-
-// Пътища, запазени за платформата — не са salon slugs
-const RESERVED_PATHS = new Set([
-  "admin",
-  "api",
-  "super-admin",
-  "get-started",
-  "demo",
-  "_next",
-  "favicon.ico",
-  "robots.txt",
-  "sitemap.xml",
-  "temporarily-unavailable",
-  "icon.png",
-  "apple-icon.png",
-]);
-
-// ── Tenant resolution (edge-safe fetch) ──────────────────────────────────────
-
-type ResolvedTenant = { salon_slug: string; status: string } | null;
-
-async function resolveTenant(params: {
-  supabaseUrl: string;
-  anonKey: string;
-  salonSlug?: string;
-  domain?: string;
-}): Promise<ResolvedTenant> {
-  const { supabaseUrl, anonKey, salonSlug, domain } = params;
-  if ((!salonSlug && !domain) || (salonSlug && domain)) return null;
-
-  const url = `${supabaseUrl.replace(/\/$/, "")}/rest/v1/rpc/resolve_tenant_public`;
-  try {
-    const res = await fetch(url, {
-      method: "POST",
-      headers: {
-        apikey: anonKey,
-        Authorization: `Bearer ${anonKey}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        p_salon_slug: salonSlug ?? null,
-        p_domain: domain ?? null,
-      }),
-      cache: "no-store",
-    });
-
-    if (!res.ok) return null;
-    const json = (await res.json()) as unknown;
-    if (!Array.isArray(json) || json.length === 0) return null;
-    const first = json[0] as { salon_slug?: unknown; status?: unknown };
-    if (typeof first.salon_slug !== "string" || !first.salon_slug) return null;
-    const status = typeof first.status === "string" ? first.status : "active";
-    return { salon_slug: first.salon_slug, status };
-  } catch {
-    return null;
-  }
-}
-
-// ── Middleware ────────────────────────────────────────────────────────────────
+import { clientIpFromHeaders } from "@/lib/rate-limit";
+import { SLUG_RE, SUPER_ADMIN_SALON_COOKIE } from "@/lib/routing/constants";
+import { classifyHost, isPlatformHost } from "@/lib/routing/host";
+import { resolvePreviewSlug } from "@/lib/routing/preview";
+import { resolveTenantFromHost } from "@/lib/routing/tenant-resolution";
+import { getImpersonatedSlug } from "@/lib/routing/impersonation";
+import { applyRouteRateLimits } from "@/lib/routing/rate-limit-routes";
+import {
+  applyAuthGuard,
+  isAdminPublicAuthPath,
+  isSuperAdminRole,
+} from "@/lib/routing/auth-guard";
 
 export async function middleware(request: NextRequest) {
+  // ── Step 1 ───────────────────────────────────────────────────────────────────
   const pathname = request.nextUrl.pathname;
-  const hostHeader = request.headers.get("host") ?? "";
-  const hostname = normalizeHostname(hostHeader);
-  const isAdminAuthPage =
-    pathname === "/admin/login" ||
-    pathname.startsWith("/admin/login/") ||
-    pathname === "/admin/forgot-password" ||
-    pathname.startsWith("/admin/forgot-password/") ||
-    pathname === "/admin/reset-password" ||
-    pathname.startsWith("/admin/reset-password/");
+  const hostInfo = classifyHost(request.headers.get("host") ?? "");
 
-  // Supabase dashboard "Reset password" emails may redirect to Site URL (root).
-  // If recovery params arrive on "/", forward users to the dedicated reset screen.
-  if (
-    pathname === "/" &&
-    (isRootDomain(hostname) || isVercelDeploymentHost(hostname) || isDevHost(hostname))
-  ) {
+  // ── Step 2: Password-recovery token redirect ─────────────────────────────────
+  // Supabase sends recovery emails with Site URL = salonapp.pro ("/").
+  // Forward recovery tokens to the dedicated reset-password page.
+  if (pathname === "/" && isPlatformHost(hostInfo)) {
     const qp = request.nextUrl.searchParams;
-    const type = qp.get("type");
-    const hasRecoveryToken = qp.has("code") || qp.has("token_hash");
-    if (type === "recovery" && hasRecoveryToken) {
-      const redirectUrl = new URL("/admin/reset-password", request.url);
-      qp.forEach((value, key) => {
-        redirectUrl.searchParams.set(key, value);
-      });
-      return NextResponse.redirect(redirectUrl, 307);
+    if (qp.get("type") === "recovery" && (qp.has("code") || qp.has("token_hash"))) {
+      const dest = new URL("/admin/reset-password", request.url);
+      qp.forEach((value, key) => dest.searchParams.set(key, value));
+      return NextResponse.redirect(dest, 307);
     }
   }
 
-  // ── Rate limiting (Upstash when UPSTASH_* env is set, else in-memory) ────
+  // ── Step 3: Rate limiting ─────────────────────────────────────────────────────
   const ip = clientIpFromHeaders(request.headers);
-  const m = request.method;
+  const rateLimited = await applyRouteRateLimits(pathname, request.method, ip);
+  if (rateLimited) return rateLimited;
 
-  const rl = async (key: string, policy: (typeof RATE)[keyof typeof RATE], label: string) => {
-    if (!(await applyRateLimit(key, policy.limit, policy.windowMs)).ok) {
-      logAbuseEvent({
-        kind: "rate_limited",
-        path: pathname,
-        method: m,
-        status: 429,
-        ip,
-        key: label,
-      });
-      if (pathname.startsWith("/api/confirm/") || pathname.startsWith("/api/cancel/")) {
-        return new NextResponse(
-          "<!DOCTYPE html><html><head><meta charset='utf-8'/><title>Твърде много заявки</title></head><body style='font-family:system-ui;padding:2rem;max-width:24rem'>Моля, опитайте отново след минута.</body></html>",
-          { status: 429, headers: { "Content-Type": "text/html; charset=utf-8", "Retry-After": "60" } }
-        );
-      }
-      return NextResponse.json(
-        { error: "Too many requests" },
-        { status: 429, headers: { "Retry-After": "60" } }
-      );
-    }
-    return null;
-  };
-
-  if (pathname === "/api/bookings" && m === "GET") {
-    const r = await rl(`bookings-get:${ip}`, RATE.bookingGet, "bookings_get");
-    if (r) return r;
-  }
-  if (pathname === "/api/bookings" && m === "POST") {
-    const r = await rl(`booking-post:${ip}`, RATE.bookingPost, "booking_post");
-    if (r) return r;
-  }
-  if (pathname === "/api/leads" && m === "POST") {
-    const r = await rl(`leads-post:${ip}`, RATE.leadsPost, "leads_post");
-    if (r) return r;
-  }
-  if (pathname === "/api/consultation" && m === "POST") {
-    const r = await rl(`consultation-post:${ip}`, RATE.consultationPost, "consultation_post");
-    if (r) return r;
-  }
-  if (pathname === "/api/availability" && m === "GET") {
-    const r = await rl(`availability-get:${ip}`, RATE.availabilityGet, "availability_get");
-    if (r) return r;
-  }
-  if (pathname === "/api/services" && m === "GET") {
-    const r = await rl(`services-get:${ip}`, RATE.servicesGet, "services_get");
-    if (r) return r;
-  }
-  if (pathname === "/api/clients/lookup" && m === "GET") {
-    const r = await rl(`clients-lookup:${ip}`, RATE.clientsLookupGet, "clients_lookup");
-    if (r) return r;
-  }
-  if (pathname === "/api/gdpr/delete-request" && m === "POST") {
-    const r = await rl(`gdpr-delete:${ip}`, RATE.gdprDeletePost, "gdpr_delete");
-    if (r) return r;
-  }
-  if (pathname === "/api/gdpr/export" && m === "POST") {
-    const r = await rl(`gdpr-export:${ip}`, RATE.gdprExportPost, "gdpr_export");
-    if (r) return r;
-  }
-  if (pathname === "/api/gdpr/export/confirm" && m === "GET") {
-    const r = await rl(`gdpr-export-confirm:${ip}`, RATE.gdprExportConfirm, "gdpr_export_confirm");
-    if (r) return r;
-  }
-  if (pathname === "/api/track" && m === "POST") {
-    const r = await rl(`track-post:${ip}`, RATE.trackPost, "track_post");
-    if (r) return r;
-  }
-  if (pathname.startsWith("/api/confirm/") && (m === "GET" || m === "POST")) {
-    const r = await rl(`token-confirm:${ip}`, RATE.tokenAction, "token_confirm");
-    if (r) return r;
-  }
-  if (pathname.startsWith("/api/cancel/") && (m === "GET" || m === "POST")) {
-    const r = await rl(`token-cancel:${ip}`, RATE.tokenAction, "token_cancel");
-    if (r) return r;
-  }
-  if (pathname.startsWith("/api/cron/")) {
-    const r = await rl(`cron-route:${ip}`, RATE.cronRoute, "cron_route");
-    if (r) return r;
-  }
-  if (pathname === "/api/webhooks/stripe" && m === "POST") {
-    const r = await rl(`stripe-webhook:${ip}`, RATE.stripeWebhookPost, "stripe_webhook");
-    if (r) return r;
-  }
-
-  // ── Temporarily unavailable bypass ──────────────────────────────────────
+  // ── Step 4: /temporarily-unavailable bypass ──────────────────────────────────
   if (
     pathname === "/temporarily-unavailable" ||
     pathname.startsWith("/temporarily-unavailable/")
@@ -227,15 +64,13 @@ export async function middleware(request: NextRequest) {
     return NextResponse.next();
   }
 
-  // Админ/супер-админ API са само на основния host (salonapp.pro, localhost, *.vercel.app).
-  // Поддомейн/кастом домейн на салон: /admin* иначе се rewrite-ва като /{slug}/... и влизането „не работи“.
+  // ── Step 5: Admin / API redirect from tenant subdomains ──────────────────────
+  // Without this, the subdomain rewrite below turns /admin → /paw-empire/admin.
   if (
     (pathname.startsWith("/admin") ||
       pathname.startsWith("/super-admin") ||
       pathname.startsWith("/api/admin")) &&
-    !isRootDomain(hostname) &&
-    !isDevHost(hostname) &&
-    !isVercelDeploymentHost(hostname)
+    !isPlatformHost(hostInfo)
   ) {
     const dest = new URL(request.url);
     dest.protocol = "https:";
@@ -247,22 +82,27 @@ export async function middleware(request: NextRequest) {
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
-  // Base request headers forwarded to every page
+  // ── Step 6: Build request headers + base response ────────────────────────────
+  // `response` is mutated by Supabase setAll() to carry refreshed session cookies.
+  // Every auth-related early return must use `response` (not NextResponse.next())
+  // to avoid losing refreshed tokens.
   const requestHeaders = new Headers(request.headers);
   requestHeaders.set("x-pathname", pathname);
 
-  // Base response — may have Supabase cookies refreshed below
   let response = NextResponse.next({ request: { headers: requestHeaders } });
-  if (isAdminAuthPage) {
-    // Prevent stale auth pages from browser/proxy cache during password recovery.
+
+  // Prevent stale auth pages from browser / proxy cache during password recovery
+  if (isAdminPublicAuthPath(pathname)) {
     response.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
     response.headers.set("Pragma", "no-cache");
     response.headers.set("Expires", "0");
   }
 
-  // ── Supabase auth + session refresh ─────────────────────────────────────
-  // Runs for ALL domains — keeps cookies fresh on salonapp.pro too
-  let user: { app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> } | null = null;
+  // ── Step 7: Supabase session refresh + getUser() ─────────────────────────────
+  let user: {
+    app_metadata?: Record<string, unknown>;
+    user_metadata?: Record<string, unknown>;
+  } | null = null;
 
   if (supabaseUrl && supabaseAnonKey) {
     const supabase = createServerClient(supabaseUrl, supabaseAnonKey, {
@@ -271,7 +111,7 @@ export async function middleware(request: NextRequest) {
           return request.cookies.getAll();
         },
         setAll(cookiesToSet) {
-          // Write refreshed cookies onto the current response
+          // Write refreshed tokens onto `response` so they reach the browser
           cookiesToSet.forEach(({ name, value, options }) => {
             response.cookies.set(name, value, options);
           });
@@ -282,126 +122,104 @@ export async function middleware(request: NextRequest) {
     const { data } = await supabase.auth.getUser();
     user = data.user;
 
-    const userSlug =
-      typeof user?.app_metadata?.salon_slug === "string" ? user.app_metadata.salon_slug.trim() : "";
-    if (userSlug && SLUG_RE.test(userSlug)) {
-      requestHeaders.set("x-salon-slug", userSlug);
-    }
-    if (user && isSuperAdminRole(user)) {
-      const contextSlug = request.cookies.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim() ?? "";
-      if (contextSlug && SLUG_RE.test(contextSlug)) {
-        requestHeaders.set("x-salon-slug", contextSlug);
+    // ── Step 7c: x-salon-slug from JWT (platform hosts only) ─────────────────
+    // Set from authenticated user's JWT, then override with impersonation cookie
+    // if the user is a super_admin. Only on platform hosts — subdomain hosts
+    // always get x-salon-slug from the RPC result at step 10.
+    if (isPlatformHost(hostInfo)) {
+      const userSlug =
+        typeof user?.app_metadata?.salon_slug === "string"
+          ? user.app_metadata.salon_slug.trim()
+          : "";
+      if (userSlug && SLUG_RE.test(userSlug)) {
+        requestHeaders.set("x-salon-slug", userSlug);
+      }
+
+      if (user && isSuperAdminRole(user)) {
+        const impersonated = getImpersonatedSlug(
+          request.cookies.get(SUPER_ADMIN_SALON_COOKIE)?.value
+        );
+        if (impersonated) {
+          requestHeaders.set("x-salon-slug", impersonated);
+        }
       }
     }
 
-    // ── Auth guards ────────────────────────────────────────────────────
-    // Only apply on root domain and Vercel URL; subdomains are public sites
-    if (isRootDomain(hostname) || isVercelDeploymentHost(hostname) || isDevHost(hostname)) {
-      const isAdminPublicAuthPath =
-        pathname === "/admin/login" ||
-        pathname.startsWith("/admin/login/") ||
-        pathname === "/admin/forgot-password" ||
-        pathname.startsWith("/admin/forgot-password/") ||
-        pathname === "/admin/reset-password" ||
-        pathname.startsWith("/admin/reset-password/");
-
-      // Redirect already-logged-in users away from login
-      if ((pathname === "/admin/login" || pathname.startsWith("/admin/login/")) && user) {
-        const superOnly = request.nextUrl.searchParams.get("super_admin_only") === "1";
-        const tenantRequired = request.nextUrl.searchParams.get("tenant_required") === "1";
-        const nextParam = request.nextUrl.searchParams.get("next");
-        const safeNext =
-          nextParam &&
-          nextParam.startsWith("/") &&
-          !nextParam.startsWith("//") &&
-          !nextParam.startsWith("/admin/login") &&
-          (nextParam.startsWith("/admin") || nextParam.startsWith("/super-admin"))
-            ? nextParam
-            : null;
-
-        if (isSuperAdminRole(user)) {
-          const dest = safeNext ?? "/super-admin";
-          const r = NextResponse.redirect(new URL(dest, request.url));
-          response.cookies.getAll().forEach((c) => r.cookies.set(c.name, c.value));
-          return r;
-        }
-        if (!superOnly && !tenantRequired) {
-          const dest = safeNext ?? "/admin/dashboard";
-          const r = NextResponse.redirect(new URL(dest, request.url));
-          response.cookies.getAll().forEach((c) => r.cookies.set(c.name, c.value));
-          return r;
-        }
-      }
-
-      // Protect /admin/* except auth entry points used by password recovery
-      if (pathname.startsWith("/admin") && !isAdminPublicAuthPath) {
-        if (!user) {
-          const login = new URL("/admin/login", request.url);
-          login.searchParams.set("next", pathname + request.nextUrl.search);
-          return NextResponse.redirect(login);
-        }
-      }
-
-      // Protect /super-admin
-      if (pathname.startsWith("/super-admin")) {
-        if (!user) {
-          const login = new URL("/admin/login", request.url);
-          login.searchParams.set("next", pathname + request.nextUrl.search);
-          return NextResponse.redirect(login);
-        }
-        if (!isSuperAdminRole(user)) {
-          const login = new URL("/admin/login", request.url);
-          login.searchParams.set("super_admin_only", "1");
-          return NextResponse.redirect(login);
-        }
-      }
+    // ── Step 7d: Auth guards ──────────────────────────────────────────────────
+    if (isPlatformHost(hostInfo)) {
+      const guard = applyAuthGuard({
+        pathname,
+        hostInfo,
+        user,
+        request,
+        response,
+      });
+      if (guard) return guard;
     }
   }
 
-  // ── Root domain: salonapp.pro / www.salonapp.pro ─────────────────────────
-  // Marketing page, admin panel, super admin — serve as-is
-  if (isRootDomain(hostname)) {
-    return response; // НЕ NextResponse.next() — запазва обновените cookies
-  }
-
-  // ── Dev + Vercel preview: path-based tenant routing ──────────────────────
-  // localhost/salon-bizhu или salonapp-ten.vercel.app/salon-bizhu
-  if (isDevHost(hostname) || isVercelDeploymentHost(hostname)) {
-    const first = pathname.split("/").filter(Boolean)[0] ?? "";
-    if (first && !RESERVED_PATHS.has(first) && !first.includes(".")) {
-      const h = new Headers(request.headers);
-      h.set("x-salon-slug", first);
-      h.set("x-pathname", pathname);
-      return NextResponse.next({ request: { headers: h } });
-    }
+  // ── Step 8: Root domain passthrough ──────────────────────────────────────────
+  // Must return `response` (not NextResponse.next()) to preserve refreshed cookies.
+  if (hostInfo.isRootDomain) {
     return response;
   }
 
-  // ── Subdomain / custom domain: resolve tenant ─────────────────────────────
+  // ── Step 9: Dev + Vercel preview — path-based tenant routing ─────────────────
+  // Uses next() with NEW headers (not requestHeaders) — the slug is already in
+  // the URL path; rewriting would double-prefix it to /paw-empire/paw-empire.
+  if (hostInfo.isDevHost || hostInfo.isVercelPreview) {
+    const previewSlug = resolvePreviewSlug(pathname);
+    if (previewSlug) {
+      const h = new Headers(request.headers);
+      h.set("x-salon-slug", previewSlug);
+      h.set("x-pathname", pathname);
+      return NextResponse.next({ request: { headers: h } });
+    }
+
+    // ── Step 9b: API routes in dev/preview ──────────────────────────────────
+    // /api/* paths are reserved so resolvePreviewSlug returns null above.
+    // Infer tenant slug from the `salon_slug` query param (GET) or the
+    // Referer header (POST — body can't be read in middleware).
+    // This only affects dev/preview — production always uses subdomain routing.
+    if (pathname.startsWith("/api/")) {
+      const qpSlug = request.nextUrl.searchParams.get("salon_slug")?.trim() ?? "";
+      let inferredSlug = SLUG_RE.test(qpSlug) ? qpSlug : null;
+
+      if (!inferredSlug) {
+        // Fallback: parse tenant slug from Referer path (e.g. http://localhost:3000/paw-empire)
+        const referer = request.headers.get("referer") ?? "";
+        if (referer) {
+          try {
+            inferredSlug = resolvePreviewSlug(new URL(referer).pathname);
+          } catch { /* invalid referer — ignore */ }
+        }
+      }
+
+      if (inferredSlug) {
+        const h = new Headers(request.headers);
+        h.set("x-salon-slug", inferredSlug);
+        h.set("x-pathname", pathname);
+        return NextResponse.next({ request: { headers: h } });
+      }
+    }
+
+    return response;
+  }
+
+  // ── Step 10: Subdomain / custom-domain — resolve tenant ──────────────────────
   if (!supabaseUrl || !supabaseAnonKey) {
     return response;
   }
 
-  let salonSlug: string | undefined;
-  let byDomain: string | undefined;
-
-  if (isSalonSubdomain(hostname)) {
-    // salon-bizhu.salonapp.pro → slug = "salon-bizhu"
-    salonSlug = hostname.replace(/\.salonapp\.pro$/, "");
-  } else {
-    // Custom domain: bizhu.bg
-    byDomain = hostname;
-  }
-
-  const tenant = await resolveTenant({
+  const tenant = await resolveTenantFromHost({
     supabaseUrl,
     anonKey: supabaseAnonKey,
-    salonSlug,
-    domain: byDomain,
+    salonSlug: hostInfo.subdomainSlug ?? undefined,
+    domain: hostInfo.isLegacyCustomHost ? hostInfo.normalized : undefined,
   });
 
   if (!tenant) {
-    // Непознат домейн → marketing page
+    // Unknown domain → marketing page
     return NextResponse.redirect(new URL("https://salonapp.pro"));
   }
 
@@ -409,36 +227,42 @@ export async function middleware(request: NextRequest) {
     return NextResponse.rewrite(new URL("/temporarily-unavailable", request.url));
   }
 
-  // API routes от субдомейн/кастом домейн: НЕ rewrite-ваме — пускаме директно
-  // с x-salon-slug header, за да може requireTenantFromHeaders да работи.
+  // API routes from subdomain / custom domain:
+  // Do NOT rewrite path — just set x-salon-slug so requireTenantFromHeaders() works.
   if (pathname.startsWith("/api/")) {
     const apiHeaders = new Headers(request.headers);
     apiHeaders.set("x-salon-slug", tenant.salon_slug);
     apiHeaders.set("x-pathname", pathname);
-    if (byDomain) apiHeaders.set("x-tenant-domain", byDomain);
+    if (hostInfo.isLegacyCustomHost) {
+      apiHeaders.set("x-tenant-domain", hostInfo.normalized);
+    }
     return NextResponse.next({ request: { headers: apiHeaders } });
   }
 
-  // Rewrite: salon-bizhu.salonapp.pro/ANYTHING → /salon-bizhu/ANYTHING
-  // Необходимо защото Next.js routing не знае за поддомейни —
-  // вижда само пътя, затова го remapваме към /(public)/[salon_slug]
+  // Rewrite: paw-empire.salonapp.pro/anything → /paw-empire/anything
+  // Next.js routing only sees the path — it has no subdomain awareness —
+  // so we remap to /(public)/[salon_slug].
   const rewritePath = `/${tenant.salon_slug}${pathname === "/" ? "" : pathname}`;
   const rewriteUrl = new URL(rewritePath, request.url);
 
   const tenantHeaders = new Headers(request.headers);
   tenantHeaders.set("x-salon-slug", tenant.salon_slug);
   tenantHeaders.set("x-pathname", pathname);
-  if (byDomain) tenantHeaders.set("x-tenant-domain", byDomain);
+  if (hostInfo.isLegacyCustomHost) {
+    tenantHeaders.set("x-tenant-domain", hostInfo.normalized);
+  }
 
   const rewriteRes = NextResponse.rewrite(rewriteUrl, {
     request: { headers: tenantHeaders },
   });
 
-  // Без CDN кеш — всеки субдомейн = различен тенант
+  // No CDN caching — each subdomain is a different tenant
   rewriteRes.headers.set("Cache-Control", "private, no-cache, no-store, must-revalidate");
+  // Tell CDNs / proxies to vary cache per host, not just path
   rewriteRes.headers.set("Vary", "host");
-  // Public tenant previews must be embeddable in super-admin builder iframe.
+  // Allow tenant previews to be embedded in the super-admin builder iframe
   rewriteRes.headers.delete("X-Frame-Options");
+
   return rewriteRes;
 }
 
