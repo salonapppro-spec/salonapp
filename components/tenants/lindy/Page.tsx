@@ -12,6 +12,23 @@ function fmtBgn(eur: number): string {
   return `${(eur * BGN_RATE).toFixed(2)} лв`;
 }
 
+/**
+ * Извлича Google Maps embed URL от:
+ * - Пълен <iframe ...> HTML (потребителят е копирал целия код)
+ * - Само URL (очакваният формат)
+ */
+function extractMapsUrl(embed: string | null | undefined): string | null {
+  if (!embed) return null;
+  const trimmed = embed.trim();
+  if (!trimmed) return null;
+  // Ако е пълен iframe HTML — извлечи src="..."
+  if (trimmed.startsWith("<iframe") || trimmed.startsWith("<IFRAME")) {
+    const match = trimmed.match(/src="([^"]+)"/i);
+    return match?.[1] ?? null;
+  }
+  return trimmed;
+}
+
 function fmtDuration(min: number | null): string {
   if (!min) return "";
   if (min < 60) return `${min} мин`;
@@ -998,7 +1015,7 @@ export function LindySite({ data }: { data: SalonData }) {
                   salonName={tenant.salon_name}
                   salonPhone={tenant.phone ?? undefined}
                   salonAddress={tenant.address ?? undefined}
-                  salonGoogleMapsEmbed={tenant.google_maps_embed ?? undefined}
+                  salonGoogleMapsEmbed={extractMapsUrl(tenant.google_maps_embed) ?? undefined}
                   services={services}
                   workingHours={workingHours}
                 />
@@ -1057,11 +1074,11 @@ export function LindySite({ data }: { data: SalonData }) {
                 </div>
               </div>
 
-              {/* Map — iframe ако има embed, иначе placeholder с линк */}
+              {/* Map — iframe ако има embed (URL или пълен iframe код), иначе placeholder */}
               <div>
-                {tenant.google_maps_embed ? (
+                {extractMapsUrl(tenant.google_maps_embed) ? (
                   <iframe
-                    src={tenant.google_maps_embed}
+                    src={extractMapsUrl(tenant.google_maps_embed)!}
                     title="Карта"
                     loading="lazy"
                     referrerPolicy="no-referrer-when-downgrade"

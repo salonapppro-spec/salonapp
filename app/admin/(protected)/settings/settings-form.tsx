@@ -142,6 +142,17 @@ function Label({ children }: { children: ReactNode }) {
   );
 }
 
+/** Извлича Google Maps embed URL от пълен iframe HTML или го връща ако е вече URL. */
+function parseMapsEmbedUrl(raw: string): string {
+  const trimmed = raw.trim();
+  if (!trimmed) return "";
+  if (trimmed.startsWith("<iframe") || trimmed.startsWith("<IFRAME")) {
+    const match = trimmed.match(/src="([^"]+)"/i);
+    return match?.[1] ?? trimmed;
+  }
+  return trimmed;
+}
+
 function sectionSaveClass(disabled: boolean) {
   return `w-full rounded-xl py-3 text-xs font-black text-white shadow-sm transition sm:w-auto sm:min-w-[12rem] disabled:opacity-50 ${
     disabled ? "" : "hover:opacity-90"
@@ -412,8 +423,9 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
     try {
       const latStr = mapsPinLat.trim();
       const lngStr = mapsPinLng.trim();
+      const cleanedEmbed = parseMapsEmbedUrl(mapsEmbed);
       await postSettingsPartial({
-        google_maps_embed: stringOrNull(mapsEmbed),
+        google_maps_embed: stringOrNull(cleanedEmbed),
         ...(latStr && lngStr
           ? { maps_pin_lat: Number(latStr), maps_pin_lng: Number(lngStr) }
           : latStr === "" && lngStr === ""
@@ -859,7 +871,18 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
           Google Maps → Сподели → Embed → копирай само <code className="text-[10px]">src</code> URL, напр.{" "}
           <code className="text-[10px]">https://www.google.com/maps/embed?pb=…</code>
         </p>
-        <textarea className="textarea-admin-mono min-h-[7rem]" rows={5} value={mapsEmbed} onChange={(e) => setMapsEmbed(e.target.value)} placeholder="https://www.google.com/maps/embed?pb=..." />
+        <textarea
+          className="textarea-admin-mono min-h-[7rem]"
+          rows={5}
+          value={mapsEmbed}
+          onChange={(e) => setMapsEmbed(e.target.value)}
+          onBlur={(e) => {
+            // Автоматично извлича src URL ако е поставен пълен iframe код
+            const parsed = parseMapsEmbedUrl(e.target.value);
+            if (parsed !== e.target.value) setMapsEmbed(parsed);
+          }}
+          placeholder="https://www.google.com/maps/embed?pb=..."
+        />
         <div className="mt-4 flex justify-end">
           <button
             type="button"
