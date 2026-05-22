@@ -634,9 +634,25 @@ const STYLES = `
     transition: border-color 0.2s, background 0.2s;
   }
   .ln-soc-btn:hover { border-color: var(--p); background: var(--p-lt); }
+  .ln-soc-btn-inactive {
+    opacity: 0.35; pointer-events: none; cursor: default;
+  }
   .ln-map-frame {
     width: 100%; height: 380px;
     border: none; display: block;
+  }
+  .ln-map-placeholder {
+    width: 100%; height: 380px;
+    background: var(--bg2);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    gap: 16px; text-align: center;
+    padding: 32px;
+  }
+  .ln-map-placeholder-icon { opacity: 0.25; }
+  .ln-map-placeholder-addr {
+    font-size: 15px; color: var(--muted);
+    max-width: 280px; line-height: 1.6;
   }
 
   /* ── Footer ── */
@@ -1019,21 +1035,31 @@ export function LindySite({ data }: { data: SalonData }) {
                     <a href={`mailto:${tenant.email}`}>{tenant.email}</a>
                   </div>
                 )}
-                {socials.length > 0 && (
-                  <div className="ln-contact-socials">
-                    {socials.map((s) => (
-                      <a key={s.href} href={s.href} target="_blank" rel="noopener noreferrer" className="ln-soc-btn">
+                {/* Социалните мрежи — винаги показани; неактивни ако URL липсва */}
+                <div className="ln-contact-socials">
+                  {[
+                    { href: tenant.instagram_url, label: "Instagram", type: "ig" },
+                    { href: tenant.facebook_url,  label: "Facebook",  type: "fb" },
+                    { href: tenant.tiktok_url,    label: "TikTok",    type: "tk" },
+                  ].map((s) =>
+                    s.href ? (
+                      <a key={s.type} href={s.href} target="_blank" rel="noopener noreferrer" className="ln-soc-btn">
                         <SocialIcon type={s.type} />
                         <span>{s.label}</span>
                       </a>
-                    ))}
-                  </div>
-                )}
+                    ) : (
+                      <span key={s.type} className="ln-soc-btn ln-soc-btn-inactive" aria-hidden="true">
+                        <SocialIcon type={s.type} />
+                        <span>{s.label}</span>
+                      </span>
+                    )
+                  )}
+                </div>
               </div>
 
-              {/* Map */}
-              {tenant.google_maps_embed && (
-                <div>
+              {/* Map — iframe ако има embed, иначе placeholder с линк */}
+              <div>
+                {tenant.google_maps_embed ? (
                   <iframe
                     src={tenant.google_maps_embed}
                     title="Карта"
@@ -1042,8 +1068,27 @@ export function LindySite({ data }: { data: SalonData }) {
                     allowFullScreen
                     className="ln-map-frame"
                   />
-                </div>
-              )}
+                ) : (
+                  <div className="ln-map-placeholder">
+                    <div className="ln-map-placeholder-icon">
+                      <PinIcon />
+                    </div>
+                    {tenant.address && (
+                      <p className="ln-map-placeholder-addr">{tenant.address}</p>
+                    )}
+                    {tenant.address && (
+                      <a
+                        href={`https://www.google.com/maps/search/${encodeURIComponent(tenant.address)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="ln-btn-outline"
+                      >
+                        Виж в Google Maps →
+                      </a>
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </section>
