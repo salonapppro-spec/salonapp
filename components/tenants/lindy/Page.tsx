@@ -669,8 +669,8 @@ const STYLES = `
     }
   }
   .ln-contact-logo {
-    height: clamp(120px, 18vw, 200px); width: auto; object-fit: contain;
-    display: block; margin-bottom: 32px;
+    height: clamp(220px, 32vw, 360px); width: auto; object-fit: contain;
+    display: block; margin-bottom: 36px;
   }
   .ln-contact-row {
     display: flex; align-items: flex-start; gap: 12px;
