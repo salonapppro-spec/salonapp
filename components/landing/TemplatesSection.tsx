@@ -54,10 +54,10 @@ export default function TemplatesSection() {
             className="mt-3 text-3xl font-black text-[#1A1A1A] md:text-5xl"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
           >
-            Те ни се довериха.
+            Виж примерни проекти.
           </h2>
           <p className="mt-3 max-w-xl text-sm text-[#1A1A1A]/50">
-            Всеки от тях получи уникален сайт, изграден специално за неговия бизнес — не шаблон, а истинска онлайн идентичност.
+            Индивидуално решение за всеки клиент — уникален сайт, изграден специално за неговия бизнес.
           </p>
         </div>
 
