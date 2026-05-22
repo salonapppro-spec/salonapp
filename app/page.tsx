@@ -461,6 +461,23 @@ export default function Home() {
                 </a>
               </div>
 
+              {/* Телефони */}
+              <div className="flex flex-col items-center gap-1.5 sm:items-end">
+                {[
+                  { label: "Продажби", phone: "+359889967291", display: "+359 889 967 291" },
+                  { label: "Маркетинг & Реклама", phone: "+359897834243", display: "+359 897 834 243" },
+                  { label: "Техническа Поддръжка", phone: "+359877874700", display: "+359 877 874 700" },
+                ].map(({ label, phone, display }) => (
+                  <a
+                    key={phone}
+                    href={`tel:${phone}`}
+                    className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1A1A]/45 transition-colors hover:text-[#C9A84C]"
+                  >
+                    {label}: {display}
+                  </a>
+                ))}
+              </div>
+
               {/* Линкове */}
               <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 sm:justify-end">
                 {[
