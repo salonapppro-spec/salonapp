@@ -47,9 +47,6 @@ export default function TemplatesSection() {
 
         {/* Header */}
         <div className="mb-12 border-b border-[#1A1A1A]/10 pb-8">
-          <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C9A84C]">
-            Примерни проекти
-          </p>
           <h2
             className="mt-3 text-3xl font-black text-[#1A1A1A] md:text-5xl"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
