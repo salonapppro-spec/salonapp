@@ -2,6 +2,19 @@
 
 ---
 
+## 2026-05-23 — Fix: horizontal scroll на Magnetic Eyes
+
+**Проблем:** Публичният сайт на tenant `magnetic-eyes` имаше хоризонтален скрол на mobile.
+
+**Fix:** В `components/tenants/magnetic-eyes/Page.tsx` са добавени responsive правила за свиване/пренасяне на дълги CTA текстове, stack layout за услугите на mobile, корекция на `about` stats grid-а и wrapping за FAQ/contact/footer текстове. Добавен е scoped `overflow-x: clip` на `.me-root` като предпазна мрежа.
+
+**Проверка:** Локално през headless Chrome:
+- 375px viewport: `scrollWidth = 375`, `overflow = 0`, offenders: `[]`
+- 320px viewport: `scrollWidth = 320`, `overflow = 0`, offenders: `[]`
+- `npx tsc --noEmit` минава чисто.
+
+---
+
 ## 2026-05-14 — Поли: Fix на регистрация на нов тенант (задаване на парола)
 
 **Проблем:** Новорегистриран собственик на салон кликва линка от welcome имейла → попада на `/admin/login` (форма за вход) вместо на `/admin/reset-password` (форма за задаване на парола). Потребителят не можеше да си зadadе парола.

@@ -124,6 +124,9 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           background: var(--me-cream);
           color: var(--me-text-dark);
           font-family: var(--me-sans);
+          width: 100%;
+          max-width: 100%;
+          overflow-x: clip;
         }
 
         /* ─── NAV ─── */
@@ -258,6 +261,10 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-size: 12px; font-weight: 700; letter-spacing: 0.18em;
           text-decoration: none; border-radius: 4px;
           transition: background 0.2s, transform 0.15s;
+          max-width: 100%;
+          justify-content: center;
+          text-align: center;
+          white-space: normal;
         }
         .me-btn-gold:hover { background: var(--me-gold2); transform: translateY(-2px); }
         .me-btn-outline-cream {
@@ -268,6 +275,10 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-size: 12px; font-weight: 700; letter-spacing: 0.18em;
           text-decoration: none; border-radius: 4px;
           transition: border-color 0.2s, background 0.2s;
+          max-width: 100%;
+          justify-content: center;
+          text-align: center;
+          white-space: normal;
         }
         .me-btn-outline-cream:hover {
           border-color: var(--me-gold);
@@ -337,6 +348,7 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           display: grid; grid-template-columns: 1fr;
           gap: 64px; align-items: center;
         }
+        .me-about-inner > * { min-width: 0; }
         @media (min-width: 900px) {
           .me-about-inner { grid-template-columns: 1fr 1fr; }
         }
@@ -369,11 +381,12 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           margin-bottom: 32px; font-family: var(--me-sans);
         }
         .me-about-stats {
-          display: grid; grid-template-columns: repeat(3, 1fr);
+          display: grid; grid-template-columns: repeat(3, minmax(0, 1fr));
           gap: 1px; margin-bottom: 32px;
           border: 1px solid rgba(196,151,63,0.2);
           border-radius: 8px; overflow: hidden;
         }
+        @media (max-width: 640px) { .me-about-stats { grid-template-columns: 1fr; } }
         .me-about-stat {
           background: #fff; padding: 20px 16px; text-align: center;
         }
@@ -384,10 +397,12 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
           text-transform: uppercase; color: var(--me-text-dark);
           margin-bottom: 6px; line-height: 1.4; font-family: var(--me-sans);
+          overflow-wrap: anywhere;
         }
         .me-about-stat-sub {
           font-size: 12px; color: rgba(26,16,8,0.5);
           line-height: 1.5; font-family: var(--me-sans);
+          overflow-wrap: anywhere;
         }
         .me-about-quote {
           background: var(--me-dark); border-radius: 8px;
@@ -550,6 +565,7 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           display: grid; grid-template-columns: 1fr auto;
           gap: 16px; align-items: start;
         }
+        .me-service-item > * { min-width: 0; }
         .me-service-item:last-child { border-bottom: none; }
         .me-service-num {
           font-size: 10px; font-weight: 700; letter-spacing: 0.2em;
@@ -594,7 +610,10 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-size: 10px; font-weight: 700; letter-spacing: 0.16em;
           text-decoration: none; border-radius: 3px;
           transition: background 0.18s;
-          white-space: nowrap;
+          max-width: 100%;
+          justify-content: center;
+          text-align: center;
+          white-space: normal;
         }
         .me-btn-dark-sm:hover { background: var(--me-dark2); }
         .me-services-benefits {
@@ -620,6 +639,8 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-family: var(--me-sans);
         }
         @media (max-width: 640px) {
+          .me-service-item { grid-template-columns: 1fr; }
+          .me-service-price-col { align-items: flex-start; text-align: left; }
           .me-services-benefits { padding: 20px 24px; }
           .me-benefit { min-width: 50%; border-right: none; border-bottom: 1px solid rgba(196,151,63,0.12); }
           .me-benefit:last-child { border-bottom: none; }
@@ -821,6 +842,8 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-size: 15px; font-weight: 600; color: var(--me-text-dark);
           font-family: var(--me-sans); flex: 1;
           text-align: left;
+          min-width: 0;
+          overflow-wrap: anywhere;
         }
         .me-faq-icon {
           width: 26px; height: 26px; border-radius: 50%;
@@ -892,6 +915,7 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-size: 15px; color: var(--me-text-dark);
           font-family: var(--me-sans); font-weight: 500;
           text-decoration: none;
+          overflow-wrap: anywhere;
         }
         a.me-contact-info-val:hover { color: var(--me-gold); }
         .me-contact-info-val-sm {
@@ -960,8 +984,9 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           display: grid; grid-template-columns: repeat(3, 1fr);
           gap: 32px;
         }
+        .me-footer-cols > * { min-width: 0; }
         @media (max-width: 500px) {
-          .me-footer-cols { grid-template-columns: 1fr 1fr; }
+          .me-footer-cols { grid-template-columns: 1fr; }
         }
         .me-footer-col-title {
           font-size: 10px; font-weight: 700; letter-spacing: 0.25em;
@@ -973,12 +998,15 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-size: 13px; color: rgba(245,237,227,0.5);
           text-decoration: none; margin-bottom: 10px;
           transition: color 0.15s; font-family: var(--me-sans);
+          min-width: 0;
+          overflow-wrap: anywhere;
         }
         .me-footer-col-link:hover { color: var(--me-gold); }
         .me-footer-col-text {
           font-size: 13px; color: rgba(245,237,227,0.45);
           margin-bottom: 8px; line-height: 1.5;
           font-family: var(--me-sans);
+          overflow-wrap: anywhere;
         }
         .me-footer-bottom {
           display: flex; align-items: center; justify-content: space-between;
@@ -989,6 +1017,7 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-family: var(--me-sans);
         }
         .me-footer-legal { display: flex; gap: 20px; }
+        @media (max-width: 640px) { .me-footer-legal { flex-wrap: wrap; } }
         .me-footer-legal a {
           font-size: 12px; color: rgba(245,237,227,0.28);
           text-decoration: none; font-family: var(--me-sans);
