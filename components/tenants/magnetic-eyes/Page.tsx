@@ -206,6 +206,9 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           position: absolute; inset: 0;
           background-size: cover; background-position: center top;
         }
+        @media (max-width: 640px) {
+          .me-hero-bg { background-position: 86% top; }
+        }
         .me-hero-overlay {
           position: absolute; inset: 0;
           background: linear-gradient(
@@ -214,6 +217,16 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
             rgba(13,11,8,0.65) 45%,
             rgba(13,11,8,0.20) 100%
           );
+        }
+        @media (max-width: 640px) {
+          .me-hero-overlay {
+            background: linear-gradient(
+              105deg,
+              rgba(13,11,8,0.88) 0%,
+              rgba(13,11,8,0.70) 50%,
+              rgba(13,11,8,0.28) 100%
+            );
+          }
         }
         .me-hero-content {
           position: relative; z-index: 2;
@@ -253,6 +266,11 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
         }
         .me-hero-btns {
           display: flex; gap: 14px; flex-wrap: wrap;
+        }
+        @media (max-width: 640px) {
+          .me-hero-btns { flex-direction: column; align-items: stretch; }
+          .me-hero-btns .me-btn-gold,
+          .me-hero-btns .me-btn-outline-cream { width: 100%; }
         }
         .me-btn-gold {
           display: inline-flex; align-items: center; gap: 8px;

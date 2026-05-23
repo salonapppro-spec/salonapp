@@ -38,7 +38,7 @@
 
 ## ✅ ЗАВЪРШЕНО
 
-- [x] **Fix: horizontal scroll на Magnetic Eyes** (2026-05-23) — mobile responsive CSS в `components/tenants/magnetic-eyes/Page.tsx`; проверено на 375px и 320px с `overflow = 0`
+- [x] **Fix: horizontal scroll + mobile hero crop на Magnetic Eyes** (2026-05-23) — mobile responsive CSS в `components/tenants/magnetic-eyes/Page.tsx`; проверено на 375px и 320px с `overflow = 0`
 - [x] **Fix: регистрация на нов тенант — задаване на парола** (2026-05-14) — recovery link redirectTo сочеше към `/admin/login` вместо `/admin/reset-password`
 - [x] **Stripe Payment Links + Webhook + ENV vars** (2026-05-13) — 4 линка (15/19/29/49€), webhook на `salonapp.pro/api/webhooks/stripe`, всички ENV в Vercel, редеплой — системата е live
 - [x] **GDPR export security fix** (2026-05-12) → PR #30 — двустъпков email verification flow + rate limiting

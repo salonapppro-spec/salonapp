@@ -8,9 +8,12 @@
 
 **Fix:** В `components/tenants/magnetic-eyes/Page.tsx` са добавени responsive правила за свиване/пренасяне на дълги CTA текстове, stack layout за услугите на mobile, корекция на `about` stats grid-а и wrapping за FAQ/contact/footer текстове. Добавен е scoped `overflow-x: clip` на `.me-root` като предпазна мрежа.
 
+**Допълнение:** Hero снимката на mobile вече се crop-ва към лицето/окото (`background-position: 86% top`) вместо към ухото; hero бутоните се подреждат един под друг на mobile.
+
 **Проверка:** Локално през headless Chrome:
 - 375px viewport: `scrollWidth = 375`, `overflow = 0`, offenders: `[]`
 - 320px viewport: `scrollWidth = 320`, `overflow = 0`, offenders: `[]`
+- Hero mobile check: `heroPosition = 86% 0%`, `heroButtons = column`, `overflow = 0`
 - `npx tsc --noEmit` минава чисто.
 
 ---
