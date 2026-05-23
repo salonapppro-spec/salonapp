@@ -462,7 +462,7 @@ export default function Home() {
               </div>
 
               {/* Телефони */}
-              <div className="flex flex-col items-center gap-1.5 sm:items-end">
+              <div className="flex flex-col items-center gap-2 sm:items-end">
                 {[
                   { label: "Продажби", phone: "+359889967291", display: "+359 889 967 291" },
                   { label: "Маркетинг & Реклама", phone: "+359897834243", display: "+359 897 834 243" },
@@ -471,9 +471,14 @@ export default function Home() {
                   <a
                     key={phone}
                     href={`tel:${phone}`}
-                    className="text-[10px] font-black uppercase tracking-[0.2em] text-[#1A1A1A]/45 transition-colors hover:text-[#C9A84C]"
+                    className="flex flex-col items-center gap-0.5 transition-colors hover:text-[#C9A84C] sm:flex-row sm:items-baseline sm:gap-1.5"
                   >
-                    {label}: {display}
+                    <span className="text-[9px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/30">
+                      {label}
+                    </span>
+                    <span className="text-[10px] font-black tracking-[0.1em] text-[#1A1A1A]/45">
+                      {display}
+                    </span>
                   </a>
                 ))}
               </div>
