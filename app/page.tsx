@@ -92,7 +92,7 @@ export default function Home() {
       <main className="pt-[57px]">
 
         {/* ── HERO ── */}
-        <section className="relative overflow-hidden bg-[#EAD5C4] px-4 pb-20 pt-2 sm:px-6 md:pb-28 md:pt-6">
+        <section className="relative overflow-hidden bg-[#EAD5C4] px-4 pb-12 pt-2 sm:px-6 md:pb-16 md:pt-6">
           {/* Giant decorative text behind */}
           <span
             className="pointer-events-none absolute -right-8 top-8 select-none text-[18vw] font-black leading-none text-[#1A1A1A]/[0.025] md:text-[14vw]"
@@ -243,7 +243,7 @@ export default function Home() {
         <TemplatesSection />
 
         {/* ── PROBLEMS — grid cards ── */}
-        <section className="px-4 py-16 sm:px-6 md:py-20">
+        <section className="px-4 py-10 sm:px-6 md:py-14">
           <div className="mx-auto max-w-5xl">
             <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C9A84C]">
               Познато ли ти е?
@@ -259,7 +259,7 @@ export default function Home() {
         </section>
 
         {/* ── СРАВНИТЕЛНА ТАБЛИЦА ── */}
-        <section id="comparison" className="bg-white px-4 py-16 sm:px-6 md:py-24 scroll-mt-16">
+        <section id="comparison" className="bg-white px-4 py-10 sm:px-6 md:py-14 scroll-mt-16">
           <div className="mx-auto max-w-5xl">
             <h2 className="playfair mb-12 text-center text-2xl font-black text-[#1A1A1A] md:text-4xl">
               Защо SalonApp е по-добрият избор за твоя бранд?
@@ -334,7 +334,7 @@ export default function Home() {
         </section>
 
         {/* ── PLANS ── */}
-        <section className="bg-[#EAD5C4] px-4 py-16 sm:px-6 md:py-24">
+        <section className="bg-[#EAD5C4] px-4 py-10 sm:px-6 md:py-14">
           <div className="mx-auto max-w-6xl">
             <div className="border-b border-[#1A1A1A]/10 pb-8">
               <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C9A84C]">
@@ -357,7 +357,7 @@ export default function Home() {
         <div className="h-px bg-[#C9A84C]/20" />
 
         {/* ── FAQ ── */}
-        <section className="bg-white px-4 py-16 sm:px-6 md:py-24">
+        <section className="bg-white px-4 py-10 sm:px-6 md:py-14">
           <div className="mx-auto max-w-6xl">
             <div className="mb-10 border-b border-[#1A1A1A]/10 pb-8">
               <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C9A84C]">
@@ -374,7 +374,7 @@ export default function Home() {
         </section>
 
         {/* ── CTA BANNER ── */}
-        <section className="relative overflow-hidden bg-[#1A1A1A] px-4 py-20 sm:px-6 md:py-28">
+        <section className="relative overflow-hidden bg-[#1A1A1A] px-4 py-14 sm:px-6 md:py-20">
           <div
             className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
             style={{ background: GOLD, opacity: 0.08 }}
