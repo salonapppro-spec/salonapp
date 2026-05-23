@@ -13,7 +13,21 @@ import {
 
 const DAY_LABELS = ["Неделя","Понеделник","Вторник","Сряда","Четвъртък","Петък","Събота"] as const;
 
-const MAPS_FALLBACK = "https://www.google.com/maps/embed?q=%D1%83%D0%BB.+%D0%98%D1%81%D0%BA%D1%80%D0%B0+12,+%D0%9A%D0%B0%D0%B7%D0%B0%D0%BD%D0%BB%D1%8A%D0%BA,+%D0%91%D1%8A%D0%BB%D0%B3%D0%B0%D1%80%D0%B8%D1%8F&hl=bg&z=17";
+function mapsEmbedFromAddress(address: string): string {
+  return `https://maps.google.com/maps?hl=bg&q=${encodeURIComponent(address)}&t=m&z=17&ie=UTF8&iwloc=B&output=embed`;
+}
+
+function resolveMapsSrc(
+  tenantEmbed: string | null | undefined,
+  address: string,
+): string {
+  const tenantMapsSrc = safeGoogleMapsEmbedSrc(tenantEmbed);
+  const officialPbEmbed =
+    tenantMapsSrc?.startsWith("https://www.google.com/maps/embed?pb=")
+      ? tenantMapsSrc
+      : null;
+  return officialPbEmbed ?? mapsEmbedFromAddress(address);
+}
 
 const BEFORE_AFTER_IMGS = [
   "https://ncnmqufixlfovfrbykyc.supabase.co/storage/v1/object/public/gallery/magnetic-eyes/938debf4-e387-406f-acf4-2d9dc6144cb2.webp",
@@ -94,14 +108,13 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
   const igHref = safeInstagramHref(tenant.instagram_url);
   const fbHref = safeFacebookHref(tenant.facebook_url);
   const tkHref = safeTiktokHref(tenant.tiktok_url);
-  const mapsSrc = safeGoogleMapsEmbedSrc(tenant.google_maps_embed) ?? MAPS_FALLBACK;
-
   const heroImg = tenant.hero_image_url?.trim() || null;
   const aboutImg = tenant.about_image_url?.trim() || null;
   const logoImg = tenant.logo_url?.trim() || null;
   const phone = tenant.phone ?? "+359 897 777 777";
   const email = tenant.email ?? "magneticeyes@gmail.com";
   const address = tenant.address ?? 'ул. „Искра" 12, гр. Казанлък';
+  const mapsSrc = resolveMapsSrc(tenant.google_maps_embed, address);
   const instagramHandle = "@magneticeyes.studio";
 
   const navLinks = [
