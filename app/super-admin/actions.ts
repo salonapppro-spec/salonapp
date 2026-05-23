@@ -255,6 +255,84 @@ export async function extendTenantGraceBy7DaysAction(formData: FormData): Promis
   redirect(`/super-admin?op=grace_extended&salon=${encodeURIComponent(salonSlug)}`);
 }
 
+export async function resendOwnerPasswordLinkAction(formData: FormData): Promise<void> {
+  await requireSuperAdminUser();
+  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
+  if (!salonSlug) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("owner_email,salon_name")
+    .eq("salon_slug", salonSlug)
+    .maybeSingle();
+  const ownerEmail = (tenant as { owner_email?: string | null; salon_name?: string } | null)?.owner_email?.trim();
+  const salonName = (tenant as { owner_email?: string | null; salon_name?: string } | null)?.salon_name ?? salonSlug;
+  if (!ownerEmail) throw new Error("Тенантът няма имейл");
+
+  const link = await recoveryActionLinkForEmail(ownerEmail);
+  if (!link) throw new Error("Неуспешно генериране на линк");
+
+  if (process.env.RESEND_API_KEY) {
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${process.env.RESEND_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
+        to: [ownerEmail],
+        subject: "SalonApp — задай парола за достъп",
+        html: `<p>Здравейте,</p><p>Ето еднократен линк за задаване на парола за вашия акаунт в <strong>${salonName}</strong>:</p><p><a href="${link}">Задай парола →</a></p><p>Линкът е валиден 1 час. Ако изтече, помолете администратора да изпрати нов.</p>`,
+      }),
+    }).catch(() => undefined);
+  }
+
+  revalidatePath(`/super-admin/${salonSlug}`);
+  redirect(`/super-admin/${salonSlug}?op=link_sent`);
+}
+
+export async function deleteTenantAction(formData: FormData): Promise<void> {
+  const user = await requireSuperAdminUser();
+  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
+  if (!salonSlug) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+
+  // Allow deletion only for archived tenants.
+  const { data: tenant } = await supabase
+    .from("tenants")
+    .select("id,archived_at,owner_email")
+    .eq("salon_slug", salonSlug)
+    .maybeSingle();
+  if (!tenant) throw new Error("Тенантът не съществува");
+  const { archived_at, owner_email } = tenant as { id: string; archived_at: string | null; owner_email: string | null };
+  if (!archived_at) throw new Error("Може да се изтриват само архивирани тенанти");
+
+  await logTenantActivity({
+    salonSlug,
+    eventType: "tenant_deleted",
+    actorUserId: user.id,
+    payload: { owner_email },
+  });
+
+  const { error } = await supabase.from("tenants").delete().eq("salon_slug", salonSlug);
+  if (error) throw new Error(`Неуспешно изтриване: ${error.message}`);
+
+  // Best-effort: delete auth user if they exist.
+  if (owner_email) {
+    const { data: authUsers } = await supabase.auth.admin.listUsers();
+    const authUser = (authUsers?.users ?? []).find((u) => u.email === owner_email);
+    if (authUser) {
+      await supabase.auth.admin.deleteUser(authUser.id);
+    }
+  }
+
+  revalidatePath("/super-admin");
+  redirect("/super-admin?op=tenant_deleted&salon=" + encodeURIComponent(salonSlug));
+}
+
 export async function markTenantActiveAction(formData: FormData): Promise<void> {
   const user = await requireSuperAdminUser();
   const salonSlug = String(formData.get("salon_slug") ?? "").trim();

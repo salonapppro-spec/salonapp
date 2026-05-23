@@ -5,7 +5,7 @@ import { CopyButton } from "./copy-button";
 import { ConfirmTenantBasicsSubmitButton } from "./confirm-tenant-basics-submit-button";
 
 import { SuperAdminSalonSlugForm } from "@/components/super-admin/SuperAdminSalonSlugForm";
-import { activateTenantManually, enterSalonAdminContextAction, updateTenantBasics } from "@/app/super-admin/actions";
+import { activateTenantManually, enterSalonAdminContextAction, resendOwnerPasswordLinkAction, updateTenantBasics } from "@/app/super-admin/actions";
 import { MARKETING_PLANS, parsePlanId } from "@/lib/marketing-data";
 import { stripePaymentLinkForPlan } from "@/lib/marketing-checkout";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
@@ -23,9 +23,9 @@ export default async function SuperAdminTenantPage({
   searchParams,
 }: {
   params: Promise<{ salon_slug: string }>;
-  searchParams: Promise<{ saved?: string; payment_plan?: string }>;
+  searchParams: Promise<{ saved?: string; payment_plan?: string; op?: string }>;
 }) {
-  const { saved, payment_plan } = await searchParams;
+  const { saved, payment_plan, op } = await searchParams;
   const { salon_slug } = await params;
   const supabase = createSupabaseServiceRoleClient();
   const { data } = await supabase.from("tenants").select("*").eq("salon_slug", salon_slug).maybeSingle();
@@ -70,6 +70,11 @@ export default async function SuperAdminTenantPage({
       {saved === "1" && (
         <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 px-4 py-3 text-sm font-semibold text-emerald-300">
           ✓ Промените са запазени успешно.
+        </div>
+      )}
+      {op === "link_sent" && (
+        <div className="rounded-xl border border-sky-700/60 bg-sky-950/40 px-4 py-3 text-sm font-semibold text-sky-300">
+          ✓ Линкът за задаване на парола е изпратен на {tenant.owner_email}.
         </div>
       )}
       {/* Header */}
@@ -262,6 +267,24 @@ export default async function SuperAdminTenantPage({
             </button>
           </form>
         </div>
+      </section>
+
+      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
+        <h2 className="text-base font-semibold text-neutral-100">🔑 Линк за задаване на парола</h2>
+        <p className="mt-1 text-sm text-neutral-500">
+          Изпраща нов имейл с линк за задаване/смяна на парола на собственика. Линкът е валиден 1 час.
+        </p>
+        {tenant.owner_email ? (
+          <form action={resendOwnerPasswordLinkAction} className="mt-3 flex flex-wrap items-center gap-3">
+            <input type="hidden" name="salon_slug" value={tenant.salon_slug} />
+            <span className="text-sm text-neutral-300">{tenant.owner_email}</span>
+            <button type="submit" className="rounded-lg border border-sky-700 bg-sky-950/50 px-4 py-2 text-sm font-semibold text-sky-300 hover:bg-sky-900/60">
+              Изпрати линк за парола
+            </button>
+          </form>
+        ) : (
+          <p className="mt-2 text-sm text-red-400">Тенантът няма записан имейл — добави го в настройките по-горе.</p>
+        )}
       </section>
 
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">

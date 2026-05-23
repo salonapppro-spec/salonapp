@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { ChangePasswordForm } from "@/components/admin/ChangePasswordForm";
 import { FinancialSettingsForm } from "@/components/admin/FinancialSettingsForm";
 import { PremiumSmsSection } from "@/components/admin/PremiumSmsSection";
 import { getFinancialSettings, getSpecialistsAdmin, getTenantBySalonSlug } from "@/lib/data";
@@ -82,6 +83,8 @@ export default async function AdminSettingsPage(props: { searchParams?: Promise<
           <PremiumSmsSection />
         </div>
       ) : null}
+
+      <ChangePasswordForm />
 
       {/* Account hint — изходът е в навигацията (сайдбар / моб. хедър), за да няма дублиран бутон */}
       <div

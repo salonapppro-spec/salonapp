@@ -1,9 +1,11 @@
 import Link from "next/link";
 
 import { ArchiveTenantSubmitButton } from "./archive-tenant-submit-button";
+import { DeleteTenantSubmitButton } from "./delete-tenant-submit-button";
 
 import {
   archiveTenantAction,
+  deleteTenantAction,
   enterSalonAdminContextAction,
   extendTenantGraceBy7DaysAction,
   markTenantActiveAction,
@@ -131,6 +133,11 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
       {op === "marked_active" ? (
         <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 px-4 py-3 text-sm font-semibold text-emerald-300">
           ✓ Тенантът <span className="text-emerald-200">{salon ?? ""}</span> е активиран.
+        </div>
+      ) : null}
+      {op === "tenant_deleted" ? (
+        <div className="rounded-xl border border-red-700/60 bg-red-950/40 px-4 py-3 text-sm font-semibold text-red-300">
+          ✓ Тенантът <span className="text-red-200">{salon ?? ""}</span> е изтрит окончателно.
         </div>
       ) : null}
       {op === "already_active" ? (
@@ -349,6 +356,16 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                     Stripe линк
                   </button>
                 </form>
+                {t.archived_at ? (
+                  <form action={deleteTenantAction} className="mt-2">
+                    <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                    <DeleteTenantSubmitButton
+                      salonName={t.salon_name}
+                      salonSlug={t.salon_slug}
+                      className="w-full rounded-lg border border-red-700 bg-red-950/40 py-2 text-sm font-semibold text-red-300 hover:bg-red-900/60"
+                    />
+                  </form>
+                ) : null}
                 <div className="mt-2 grid grid-cols-2 gap-2">
                   {canExtendGrace ? (
                     <form action={extendTenantGraceBy7DaysAction}>
@@ -389,6 +406,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                 <th className="py-2 pr-2">Създаден</th>
                 <th className="py-2 pr-2">Детайли</th>
                 <th className="py-2 pr-2">Архив</th>
+                <th className="py-2 pr-2">Изтрий</th>
                 <th className="py-2 pr-2">Плащане</th>
                 <th className="py-2 pr-2">Quick actions</th>
                 <th className="py-2">Админ</th>
@@ -432,6 +450,20 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                         className={t.archived_at ? "text-xs font-semibold text-sky-300 hover:text-sky-200" : "text-xs font-semibold text-neutral-300 hover:text-neutral-200"}
                       />
                     </form>
+                  </td>
+                  <td className="py-2 pr-2">
+                    {t.archived_at ? (
+                      <form action={deleteTenantAction}>
+                        <input type="hidden" name="salon_slug" value={t.salon_slug} />
+                        <DeleteTenantSubmitButton
+                          salonName={t.salon_name}
+                          salonSlug={t.salon_slug}
+                          className="text-xs font-semibold text-red-400 hover:text-red-300"
+                        />
+                      </form>
+                    ) : (
+                      <span className="text-xs text-neutral-600">—</span>
+                    )}
                   </td>
                   <td className="py-2 pr-2">
                     <form method="get" action={`/super-admin/${t.salon_slug}`} className="flex items-center gap-2">
@@ -484,7 +516,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
               )})}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={11} className="py-8 text-center text-neutral-400">
+                  <td colSpan={12} className="py-8 text-center text-neutral-400">
                     Няма резултати.
                   </td>
                 </tr>

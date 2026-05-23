@@ -1,6 +1,8 @@
 import Link from "next/link";
 
-import { closeCallTaskAction, markCallTaskCalledAction, snoozeCallTaskAction } from "./actions";
+import { closeCallTaskAction, deleteLeadAction, markCallTaskCalledAction, snoozeCallTaskAction } from "./actions";
+
+import { DeleteLeadButton } from "./delete-lead-button";
 
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
@@ -135,6 +137,9 @@ export default async function SuperAdminLeadsPage({
       ) : null}
       {op === "closed" ? (
         <div className="rounded-xl border border-neutral-700/60 bg-neutral-900/80 px-4 py-3 text-sm font-semibold text-neutral-300">✓ Задачата е затворена.</div>
+      ) : null}
+      {op === "lead_deleted" ? (
+        <div className="rounded-xl border border-red-700/60 bg-red-950/40 px-4 py-3 text-sm font-semibold text-red-300">✓ Заявката е изтрита.</div>
       ) : null}
       {/* Header */}
       <div className="flex items-center justify-between">
@@ -282,6 +287,7 @@ export default async function SuperAdminLeadsPage({
                       ➕ Създай тенант
                     </Link>
                   )}
+                  <DeleteLeadButton leadId={lead.id} salonName={lead.salon_name} action={deleteLeadAction} />
                 </div>
 
                 <div className="mt-3 rounded-lg border border-neutral-800 bg-neutral-950/40 p-3">

@@ -86,3 +86,18 @@ export async function closeCallTaskAction(formData: FormData): Promise<void> {
   revalidatePath("/super-admin/leads");
   redirect("/super-admin/leads?op=closed");
 }
+
+export async function deleteLeadAction(formData: FormData): Promise<void> {
+  await requireSuperAdminUser();
+  const leadId = String(formData.get("lead_id") ?? "").trim();
+  if (!leadId) throw new Error("Missing lead_id");
+
+  const supabase = createSupabaseServiceRoleClient();
+  // Call tasks are deleted first (FK constraint).
+  await supabase.from("lead_call_tasks").delete().eq("lead_id", leadId);
+  const { error } = await supabase.from("platform_leads").delete().eq("id", leadId);
+  if (error) throw new Error(`Неуспешно изтриване: ${error.message}`);
+
+  revalidatePath("/super-admin/leads");
+  redirect("/super-admin/leads?op=lead_deleted");
+}
