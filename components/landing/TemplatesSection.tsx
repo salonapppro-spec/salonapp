@@ -38,6 +38,13 @@ const CLIENTS = [
     url: "https://euphoria.salonapp.pro",
     accent: "#5A8A5E",
   },
+  {
+    slug: "magnetic-eyes",
+    name: "Magnetic Eyes",
+    type: "Мигли, Вежди & Перманентен грим",
+    url: "https://magnetic-eyes.salonapp.pro",
+    accent: "#7C5C8A",
+  },
 ];
 
 export default function TemplatesSection() {
