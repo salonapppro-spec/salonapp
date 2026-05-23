@@ -35,7 +35,6 @@ export default function NewTenantPage() {
   const [ownerEmail, setOwnerEmail] = useState("");
   const [ownerPhone, setOwnerPhone] = useState("");
   const [plan, setPlan] = useState("starter");
-  const [template, setTemplate] = useState("bloom");
   const [availability, setAvailability] = useState<Availability>("idle");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -100,7 +99,6 @@ export default function NewTenantPage() {
           owner_email: ownerEmail || undefined,
           owner_phone: ownerPhone || undefined,
           plan,
-          template,
         }),
       });
       const j = (await res.json()) as CreatedPayload & { error?: string; ok?: boolean };
@@ -241,27 +239,14 @@ export default function NewTenantPage() {
             {availability === "checking" ? "Проверка..." : availability === "ok" ? "Slug е свободен." : availability === "taken" ? "Slug е зает." : availability === "invalid" ? "Невалиден формат." : "Формат: lower-case и тирета."}
           </p>
         </div>
-        <div className="grid gap-4 sm:grid-cols-2">
-          <div>
-            <label className="text-xs text-neutral-400">План</label>
-            <select value={plan} onChange={(e) => setPlan(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
-              <option value="starter">starter</option>
-              <option value="standard">standard</option>
-              <option value="pro">pro</option>
-              <option value="premium">premium</option>
-            </select>
-          </div>
-          <div>
-            <label className="text-xs text-neutral-400">Шаблон</label>
-            <select value={template} onChange={(e) => setTemplate(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
-              <option value="bloom">bloom</option>
-              <option value="luxe">luxe</option>
-              <option value="luxe2">luxe2</option>
-              <option value="bold">bold</option>
-              <option value="zen">zen</option>
-              <option value="groom">groom</option>
-            </select>
-          </div>
+        <div>
+          <label className="text-xs text-neutral-400">План</label>
+          <select value={plan} onChange={(e) => setPlan(e.target.value)} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm">
+            <option value="starter">starter</option>
+            <option value="standard">standard</option>
+            <option value="pro">pro</option>
+            <option value="premium">premium</option>
+          </select>
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           <div>
