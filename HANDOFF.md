@@ -10,10 +10,13 @@
 
 **Допълнение:** Hero снимката на mobile вече се crop-ва към лицето/окото (`background-position: 86% top`) вместо към ухото; hero бутоните се подреждат един под друг на mobile.
 
+**Допълнение 2:** Добавен е document-level lock за horizontal scroll (`me-no-x-scroll` class върху `html` и `body`) при mount на Magnetic Eyes, защото Samsung/mobile browser все още позволяваше плъзване надясно въпреки root overflow guard-а.
+
 **Проверка:** Локално през headless Chrome:
 - 375px viewport: `scrollWidth = 375`, `overflow = 0`, offenders: `[]`
 - 320px viewport: `scrollWidth = 320`, `overflow = 0`, offenders: `[]`
 - Hero mobile check: `heroPosition = 86% 0%`, `heroButtons = column`, `overflow = 0`
+- Forced horizontal scroll check: след `window.scrollTo(200, 0)` → `scrollX = 0`, `html/body overflow-x = hidden`, offenders: `[]`
 - `npx tsc --noEmit` минава чисто.
 
 ---

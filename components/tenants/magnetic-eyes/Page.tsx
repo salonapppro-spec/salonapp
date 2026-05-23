@@ -81,6 +81,16 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
 
+  useEffect(() => {
+    document.documentElement.classList.add("me-no-x-scroll");
+    document.body.classList.add("me-no-x-scroll");
+
+    return () => {
+      document.documentElement.classList.remove("me-no-x-scroll");
+      document.body.classList.remove("me-no-x-scroll");
+    };
+  }, []);
+
   const igHref = safeInstagramHref(tenant.instagram_url);
   const fbHref = safeFacebookHref(tenant.facebook_url);
   const tkHref = safeTiktokHref(tenant.tiktok_url);
@@ -109,6 +119,12 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
       <style>{`
         /* ─── MAGNETIC EYES — base ─── */
         *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html.me-no-x-scroll,
+        body.me-no-x-scroll {
+          width: 100%;
+          max-width: 100%;
+          overflow-x: hidden;
+        }
         .me-root {
           --me-dark: #0D0B08;
           --me-dark2: #181410;
@@ -126,7 +142,8 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           font-family: var(--me-sans);
           width: 100%;
           max-width: 100%;
-          overflow-x: clip;
+          position: relative;
+          overflow-x: hidden;
         }
 
         /* ─── NAV ─── */
