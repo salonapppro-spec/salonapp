@@ -13,17 +13,19 @@ import { TheBeastSite } from "@/components/tenants/TheBeastSite";
 import { EuphoriaSite } from "@/components/tenants/euphoria/Page";
 import { LindySite } from "@/components/tenants/lindy/Page";
 import { TheSkinSite } from "@/components/tenants/theskin/Page";
+import { MagneticEyesSite } from "@/components/tenants/magnetic-eyes/Page";
 
 // ── Per-tenant site registry ───────────────────────────────────────────────────
 // Each tenant has its own unique component. To add a new tenant:
 // 1. Create components/tenants/[slug]/Page.tsx
 // 2. Import it here and add to TENANT_SITES
 const TENANT_SITES: Record<string, ComponentType<{ data: SalonData }>> = {
-  "paw-empire": PawEmpire,
-  "thebeast":   TheBeastSite,
-  "euphoria":   EuphoriaSite,
-  "lindynails": LindySite,
-  "theskin":    TheSkinSite,
+  "paw-empire":    PawEmpire,
+  "thebeast":      TheBeastSite,
+  "euphoria":      EuphoriaSite,
+  "lindynails":    LindySite,
+  "theskin":       TheSkinSite,
+  "magnetic-eyes": MagneticEyesSite,
 };
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
