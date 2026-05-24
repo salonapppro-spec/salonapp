@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import { LP } from "@/components/landing/palette";
 
 type FaqItem = {
   q: string;
@@ -20,7 +21,7 @@ function ChevronIcon({ open }: { open: boolean }) {
       strokeWidth="2"
       animate={{ rotate: open ? 180 : 0 }}
       transition={{ duration: 0.25 }}
-      className="shrink-0 text-[#C9A84C]"
+      className="shrink-0 text-[#C8A063]"
       aria-hidden
     >
       <path d="M6 9l6 6 6-6" />
@@ -32,16 +33,16 @@ function FaqRow({ item }: { item: FaqItem }) {
   const [open, setOpen] = useState(false);
 
   return (
-    <div className="border-b border-[#1A1A1A]/8 last:border-0">
+    <div className="border-b border-[#E7DDD0] last:border-0">
       <button
         onClick={() => setOpen((v) => !v)}
         className="flex w-full items-center gap-4 py-5 text-left"
       >
         <span
           className="mr-1 h-[2px] w-4 shrink-0 transition-all duration-300"
-          style={{ background: open ? "#C9A84C" : "rgba(26,26,26,0.15)" }}
+          style={{ background: open ? LP.accent : LP.border }}
         />
-        <span className="flex-1 text-sm font-bold text-[#1A1A1A]/80">
+        <span className="flex-1 text-sm font-bold text-[#1A1A1A]">
           {item.q}
         </span>
         <ChevronIcon open={open} />
@@ -56,7 +57,7 @@ function FaqRow({ item }: { item: FaqItem }) {
             transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
             className="overflow-hidden"
           >
-            <p className="pb-5 pl-9 pr-6 text-sm leading-relaxed text-[#1A1A1A]/50">
+            <p className="pb-5 pl-9 pr-6 text-sm leading-relaxed text-[#6E6A63]">
               {item.a}
             </p>
           </motion.div>

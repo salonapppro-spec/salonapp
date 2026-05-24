@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { LP } from "@/components/landing/palette";
 
 const CLIENTS = [
   {
@@ -8,21 +9,21 @@ const CLIENTS = [
     name: "Lindy Nails",
     type: "Нокти & Маникюр",
     url: "https://lindynails.salonapp.pro",
-    accent: "#C8826A",
+    accent: LP.accentDark,
   },
   {
     slug: "theskin",
     name: "The Skin",
     type: "Козметика & Грижа за кожата",
     url: "https://theskin.salonapp.pro",
-    accent: "#C9A84C",
+    accent: LP.accent,
   },
   {
     slug: "thebeast",
     name: "The Beast",
     type: "Барбершоп",
     url: "https://thebeast.salonapp.pro",
-    accent: "#1A1A1A",
+    accent: LP.text,
   },
   {
     slug: "paw-empire",
@@ -49,18 +50,18 @@ const CLIENTS = [
 
 export default function TemplatesSection() {
   return (
-    <section id="templates" className="bg-[#EDE4D8] px-4 py-10 sm:px-6 md:py-14">
+    <section id="templates" className="bg-[#FFFCF8] px-4 py-10 sm:px-6 md:py-14">
       <div className="mx-auto max-w-6xl">
 
         {/* Header */}
-        <div className="mb-12 border-b border-[#1A1A1A]/10 pb-8">
+        <div className="mb-12 border-b border-[#E7DDD0] pb-8">
           <h2
             className="mt-3 text-3xl font-black text-[#1A1A1A] md:text-5xl"
             style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
           >
             Ти избираш стила.
           </h2>
-          <p className="mt-3 max-w-xl text-sm text-[#1A1A1A]/50">
+          <p className="mt-3 max-w-xl text-sm text-[#6E6A63]">
             Всеки салон получава уникален дизайн, изграден специално за него.<br />Виж примерни проекти.
           </p>
         </div>
@@ -70,10 +71,10 @@ export default function TemplatesSection() {
           {CLIENTS.map((c) => (
             <div
               key={c.slug}
-              className="relative flex flex-col overflow-hidden rounded-xl bg-white shadow-md"
+              className="relative flex flex-col overflow-hidden rounded-xl bg-[#FDFBF8] shadow-md border border-[#E7DDD0]"
             >
               {/* Live iframe preview */}
-              <div className="relative h-[220px] overflow-hidden bg-[#f5f0eb]">
+              <div className="relative h-[220px] overflow-hidden bg-[#F7F5F2]">
                 <iframe
                   src={c.url}
                   className="absolute left-0 top-0 border-0"

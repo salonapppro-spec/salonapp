@@ -1,9 +1,7 @@
 "use client";
 
 import Link from "next/link";
-
-const GOLD = "#C9A84C";
-const ROSE = "#C8826A";
+import { LP, LP_GRADIENT } from "@/components/landing/palette";
 
 const plans = [
   {
@@ -60,19 +58,19 @@ export default function PlansSection() {
       {plans.map((plan) => (
         <div
           key={plan.name}
-          className="relative flex flex-col border border-[#1A1A1A]/10 bg-white p-7 shadow-sm transition-shadow hover:shadow-lg"
-          style={plan.featured ? { borderTop: `3px solid ${GOLD}` } : {}}
+          className="relative flex flex-col border border-[#E7DDD0] bg-[#FDFBF8] p-7 shadow-sm transition-shadow hover:shadow-lg"
+          style={plan.featured ? { borderTop: `3px solid ${LP.accent}` } : {}}
         >
           {plan.tag && (
             <div
               className="absolute -top-3 left-6 px-3 py-1 text-[10px] font-black uppercase tracking-widest text-white"
-              style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
+              style={{ background: LP_GRADIENT }}
             >
               {plan.tag}
             </div>
           )}
 
-          <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[#1A1A1A]/40">
+          <div className="text-[10px] font-black uppercase tracking-[0.3em] text-[#6E6A63]">
             {plan.name}
           </div>
 
@@ -80,21 +78,21 @@ export default function PlansSection() {
             className="mt-3 text-5xl font-black leading-none"
             style={{
               fontFamily: "var(--font-playfair), Georgia, serif",
-              color: plan.featured ? GOLD : "#1A1A1A",
+              color: plan.featured ? LP.accent : LP.text,
             }}
           >
             {plan.price}€
           </div>
-          <div className="mt-1 text-xs text-[#1A1A1A]/35 tracking-widest">/ месец</div>
+          <div className="mt-1 text-xs text-[#6E6A63] tracking-widest">/ месец</div>
 
-          <div className="my-5 h-px bg-[#1A1A1A]/8" />
+          <div className="my-5 h-px bg-[#E7DDD0]" />
 
           <ul className="flex-1 space-y-3">
             {plan.features.map((f) => (
-              <li key={f} className="flex items-start gap-3 text-sm text-[#1A1A1A]/60">
+              <li key={f} className="flex items-start gap-3 text-sm text-[#6E6A63]">
                 <span
                   className="mt-2 h-[2px] w-4 shrink-0"
-                  style={{ background: ROSE }}
+                  style={{ background: LP.accentDark }}
                 />
                 {f}
               </li>
@@ -107,12 +105,12 @@ export default function PlansSection() {
             style={
               plan.featured
                 ? {
-                    background: `linear-gradient(135deg, ${GOLD}, ${ROSE})`,
+                    background: LP_GRADIENT,
                     color: "white",
                   }
                 : {
-                    border: "1px solid rgba(26,26,26,0.2)",
-                    color: "#1A1A1A",
+                    border: `1px solid ${LP.border}`,
+                    color: LP.text,
                   }
             }
           >
