@@ -126,6 +126,18 @@ export async function getCompletedBookingAmountsInRange(
   return (data ?? []) as Array<{ booking_date: string; service_price_eur: number }>;
 }
 
+export async function getRecentCompletedBookings(
+  salonSlug: string,
+  from: string,
+  to: string,
+  specialistId: string | null | undefined,
+  limit: number
+): Promise<Array<{ id: string; booking_date: string; booking_time: string; service_name: string; service_price_eur: number }>> {
+  const { data, error } = await tenantDb(salonSlug).bookings.listRecentCompleted(from, to, limit, specialistId);
+  if (error) throw error;
+  return (data ?? []) as Array<{ id: string; booking_date: string; booking_time: string; service_name: string; service_price_eur: number }>;
+}
+
 export async function getExpensesBetween(
   salonSlug: string,
   from: string,

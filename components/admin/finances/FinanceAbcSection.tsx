@@ -1,7 +1,4 @@
-"use client";
-
-import { useEffect, useMemo, useState } from "react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 import {
   averageWorkingDaysPerMonth,
@@ -19,194 +16,52 @@ function rowClass(band: "low" | "mid" | "high"): string {
   return "bg-emerald-50/90 text-emerald-950";
 }
 
-type AbcLocal = {
-  rent_eur: number;
-  electricity_eur: number;
-  water_eur: number;
-  accounting_eur: number;
-  monthly_expenses: number;
-  desired_salary: number;
-  working_days_per_week: number;
-  working_hours_per_day: number;
-  vat_enabled: boolean;
-  monthly_revenue_goal_eur: number;
-};
-
-function localFromFinancialSettings(i: FinancialSettings): AbcLocal {
-  return {
-    rent_eur: i.rent_eur,
-    electricity_eur: i.electricity_eur,
-    water_eur: i.water_eur,
-    accounting_eur: i.accounting_eur,
-    monthly_expenses: i.monthly_expenses,
-    desired_salary: i.desired_salary,
-    working_days_per_week: i.working_days_per_week,
-    working_hours_per_day: i.working_hours_per_day,
-    vat_enabled: i.vat_enabled,
-    monthly_revenue_goal_eur: i.monthly_revenue_goal_eur,
-  };
-}
-
 export function FinanceAbcSection(props: { initialSettings: FinancialSettings; services: Service[] }) {
-  const router = useRouter();
-  const [s, setS] = useState<AbcLocal>(() => localFromFinancialSettings(props.initialSettings));
+  const { initialSettings: s, services } = props;
 
-  const serverSnap = useMemo(
-    () => JSON.stringify(localFromFinancialSettings(props.initialSettings)),
-    [
-      props.initialSettings.rent_eur,
-      props.initialSettings.electricity_eur,
-      props.initialSettings.water_eur,
-      props.initialSettings.accounting_eur,
-      props.initialSettings.monthly_expenses,
-      props.initialSettings.desired_salary,
-      props.initialSettings.working_days_per_week,
-      props.initialSettings.working_hours_per_day,
-      props.initialSettings.vat_enabled,
-      props.initialSettings.monthly_revenue_goal_eur,
-    ]
-  );
+  const overhead = totalMonthlyOverheadEur({
+    rent_eur: s.rent_eur,
+    electricity_eur: s.electricity_eur,
+    water_eur: s.water_eur,
+    accounting_eur: s.accounting_eur,
+    desired_salary: s.desired_salary,
+    other_monthly_expenses: s.monthly_expenses,
+  });
 
-  useEffect(() => {
-    setS(JSON.parse(serverSnap) as AbcLocal);
-  }, [serverSnap]);
-  const [saving, setSaving] = useState(false);
-  const [err, setErr] = useState<string | null>(null);
-
-  const overhead = useMemo(
-    () =>
-      totalMonthlyOverheadEur({
-        rent_eur: s.rent_eur,
-        electricity_eur: s.electricity_eur,
-        water_eur: s.water_eur,
-        accounting_eur: s.accounting_eur,
-        desired_salary: s.desired_salary,
-        other_monthly_expenses: s.monthly_expenses,
-      }),
-    [s]
-  );
-
-  const minutes = useMemo(
-    () => productiveMinutesPerMonth(s.working_days_per_week, s.working_hours_per_day),
-    [s.working_days_per_week, s.working_hours_per_day]
-  );
-
-  const cpm = useMemo(() => costPerMinuteEur(overhead, minutes), [overhead, minutes]);
-
-  const rows = useMemo(() => buildAbcRows(props.services, cpm, s.vat_enabled), [props.services, cpm, s.vat_enabled]);
-
+  const minutes = productiveMinutesPerMonth(s.working_days_per_week, s.working_hours_per_day);
+  const cpm = costPerMinuteEur(overhead, minutes);
+  const rows = buildAbcRows(services, cpm, s.vat_enabled);
   const daysPm = averageWorkingDaysPerMonth(s.working_days_per_week);
-
-  async function save() {
-    setSaving(true);
-    setErr(null);
-    try {
-      const res = await fetch("/api/admin/financial-settings", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          rent_eur: s.rent_eur,
-          electricity_eur: s.electricity_eur,
-          water_eur: s.water_eur,
-          accounting_eur: s.accounting_eur,
-          monthly_expenses: s.monthly_expenses,
-          desired_salary: s.desired_salary,
-          working_days_per_week: s.working_days_per_week,
-          working_hours_per_day: s.working_hours_per_day,
-          vat_enabled: s.vat_enabled,
-          monthly_revenue_goal_eur: s.monthly_revenue_goal_eur,
-        }),
-      });
-      const j = await res.json();
-      if (!res.ok) throw new Error(j?.error ?? "Грешка");
-      router.refresh();
-    } catch (e) {
-      setErr(e instanceof Error ? e.message : "Грешка");
-    } finally {
-      setSaving(false);
-    }
-  }
 
   return (
     <div className="space-y-8">
-      <section className="admin-card space-y-4">
-        <h2 className="text-lg font-semibold tracking-tight text-brand-900">Постоянни разходи и параметри</h2>
-        <p className="text-sm text-brand-800/85">
-          Месечни суми (EUR). „Други разходи“ са прочие освен изброените. Работни дни/часове определят разпределението на
-          разхода върху минутите (~{daysPm.toFixed(1)} дни / месец при текущия график).
-        </p>
-        {err ? <div className="rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{err}</div> : null}
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {(
-            [
-              ["rent_eur", "Наем"],
-              ["electricity_eur", "Ток"],
-              ["water_eur", "Вода"],
-              ["accounting_eur", "Счетоводство"],
-              ["monthly_expenses", "Други месечни"],
-              ["desired_salary", "Желана заплата"],
-            ] as const
-          ).map(([k, label]) => (
-            <div key={k}>
-              <label className="text-xs font-medium text-brand-800">{label}</label>
-              <input
-                className="input-admin tabular-nums"
-                inputMode="decimal"
-                value={String(s[k])}
-                onChange={(e) => setS((p) => ({ ...p, [k]: Number(e.target.value) || 0 }))}
-              />
-            </div>
-          ))}
-          <div>
-            <label className="text-xs font-medium text-brand-800">Работни дни / седмица</label>
-            <input
-              className="input-admin tabular-nums"
-              inputMode="numeric"
-              value={s.working_days_per_week}
-              onChange={(e) => setS((p) => ({ ...p, working_days_per_week: Number(e.target.value) || 1 }))}
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-brand-800">Работни часове / ден</label>
-            <input
-              className="input-admin tabular-nums"
-              inputMode="numeric"
-              value={s.working_hours_per_day}
-              onChange={(e) => setS((p) => ({ ...p, working_hours_per_day: Number(e.target.value) || 1 }))}
-            />
-          </div>
-          <div>
-            <label className="text-xs font-medium text-brand-800">Месечна цел — оборот (€)</label>
-            <input
-              className="input-admin tabular-nums"
-              inputMode="decimal"
-              value={s.monthly_revenue_goal_eur}
-              onChange={(e) => setS((p) => ({ ...p, monthly_revenue_goal_eur: Number(e.target.value) || 0 }))}
-            />
-          </div>
-          <div className="flex items-center gap-2 sm:col-span-2">
-            <input
-              id="vat-fin"
-              type="checkbox"
-              checked={s.vat_enabled}
-              onChange={(e) => setS((p) => ({ ...p, vat_enabled: e.target.checked }))}
-            />
-            <label htmlFor="vat-fin" className="text-sm text-brand-900">
-              ДДС режим (20%) — маржът се смята върху нетна цена
-            </label>
-          </div>
-        </div>
-        <button type="button" className="btn-admin-primary" disabled={saving} onClick={() => void save()}>
-          {saving ? "Запазване…" : "Запази параметрите"}
-        </button>
-      </section>
-
       <section className="admin-card">
         <h2 className="text-lg font-semibold tracking-tight text-brand-900">ABC калкулатор</h2>
         <p className="mt-1 text-sm text-brand-800/85">
-          Разход на минута: <strong className="tabular-nums">{cpm.toFixed(4)} €</strong> · Продуктивни минути / месец:{" "}
-          <strong>{minutes}</strong> · Общо месечни разходи: <strong className="tabular-nums">{overhead.toFixed(2)} €</strong>
+          Разход на минута: <strong className="tabular-nums">{cpm.toFixed(4)} €</strong> · Продуктивни минути /
+          месец: <strong>{minutes}</strong> · Общо месечни разходи:{" "}
+          <strong className="tabular-nums">{overhead.toFixed(2)} €</strong> (~{daysPm.toFixed(1)} раб. дни/месец).{" "}
+          <Link
+            href="/admin/settings#fixed-costs"
+            className="text-brand-600 underline underline-offset-2 hover:text-brand-800"
+          >
+            Промени параметрите →
+          </Link>
         </p>
+
+        {overhead === 0 ? (
+          <div className="mt-4 rounded-xl border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-sm text-amber-900">
+            Разходните параметри са нулеви.{" "}
+            <Link
+              href="/admin/settings#fixed-costs"
+              className="font-semibold underline underline-offset-2"
+            >
+              Задайте ги в Настройки → Фиксирани разходи
+            </Link>{" "}
+            за реален ABC анализ.
+          </div>
+        ) : null}
+
         <div className="mt-4 space-y-2 sm:hidden">
           {rows.map((r) => (
             <div key={r.serviceId} className={`rounded-xl border border-brand-200/80 p-3 ${rowClass(r.marginBand)}`}>
@@ -215,11 +70,21 @@ export function FinanceAbcSection(props: { initialSettings: FinancialSettings; s
                 <p className="text-sm font-semibold tabular-nums">{r.marginPercent.toFixed(1)}%</p>
               </div>
               <div className="mt-2 grid grid-cols-2 gap-2 text-xs">
-                <p>Мин: <strong className="tabular-nums">{r.durationMin}</strong></p>
-                <p>Бруто: <strong className="tabular-nums">{r.priceGrossEur.toFixed(2)}€</strong></p>
-                <p>Нето: <strong className="tabular-nums">{r.priceNetEur.toFixed(2)}€</strong></p>
-                <p>Себест.: <strong className="tabular-nums">{r.costEur.toFixed(2)}€</strong></p>
-                <p className="col-span-2">Печалба: <strong className="tabular-nums">{r.profitEur.toFixed(2)}€</strong></p>
+                <p>
+                  Мин: <strong className="tabular-nums">{r.durationMin}</strong>
+                </p>
+                <p>
+                  Бруто: <strong className="tabular-nums">{r.priceGrossEur.toFixed(2)}€</strong>
+                </p>
+                <p>
+                  Нето: <strong className="tabular-nums">{r.priceNetEur.toFixed(2)}€</strong>
+                </p>
+                <p>
+                  Себест.: <strong className="tabular-nums">{r.costEur.toFixed(2)}€</strong>
+                </p>
+                <p className="col-span-2">
+                  Печалба: <strong className="tabular-nums">{r.profitEur.toFixed(2)}€</strong>
+                </p>
               </div>
             </div>
           ))}
@@ -260,9 +125,10 @@ export function FinanceAbcSection(props: { initialSettings: FinancialSettings; s
       </section>
 
       <section className="rounded-2xl border border-amber-200/80 bg-amber-50/90 p-4 text-sm leading-relaxed text-amber-950 shadow-card sm:p-5">
-        <strong>Задължителна бележка за СУПТО:</strong> Тази справка е само за вътрешна информация и управленски анализ.
-        Не замества счетоводен одит, счетоводна политика, НСС, фискални отчети или изисквания на НАП. Маржовете и
-        „себестойностите“ са ориентировъчни по метода на разпределение на постоянните разходи върху минутите.
+        <strong>Задължителна бележка за СУПТО:</strong> Тази справка е само за вътрешна информация и управленски
+        анализ. Не замества счетоводен одит, счетоводна политика, НСС, фискални отчети или изисквания на НАП.
+        Маржовете и „себестойностите" са ориентировъчни по метода на разпределение на постоянните разходи върху
+        минутите.
       </section>
     </div>
   );

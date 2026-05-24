@@ -240,6 +240,19 @@ export function tenantDb(rawSlug: string) {
         if (specialistId) query = query.eq("specialist_id", specialistId);
         return query;
       },
+      listRecentCompleted(dateFrom: string, dateTo: string, limit: number, specialistId?: string | null) {
+        let query = q("bookings")
+          .select("id,booking_date,booking_time,service_name,service_price_eur")
+          .eq("salon_slug", salonSlug)
+          .eq("status", "completed")
+          .gte("booking_date", dateFrom)
+          .lte("booking_date", dateTo)
+          .order("booking_date", { ascending: false })
+          .order("booking_time", { ascending: false })
+          .limit(limit);
+        if (specialistId) query = query.eq("specialist_id", specialistId);
+        return query;
+      },
     },
     blockedSlots: {
       listForPublicDate(date: string, specialistId?: string) {

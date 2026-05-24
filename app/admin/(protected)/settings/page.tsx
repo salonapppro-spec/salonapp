@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 
 import { ChangePasswordForm } from "@/components/admin/ChangePasswordForm";
 import { FinancialSettingsForm } from "@/components/admin/FinancialSettingsForm";
+import { FixedCostsSettingsForm } from "@/components/admin/FixedCostsSettingsForm";
 import { PremiumSmsSection } from "@/components/admin/PremiumSmsSection";
 import { getFinancialSettings, getSpecialistsAdmin, getTenantBySalonSlug } from "@/lib/data";
 import type { FinancialSettings } from "@/types";
@@ -42,18 +43,19 @@ export default async function AdminSettingsPage(props: { searchParams?: Promise<
           Настройки на салона
         </h1>
         <p className="mt-1 text-sm text-[#1A1A1A]/45">
-          Профил, сайт, разписание и финансови настройки
+          Профил, сайт, разписание, резервации и финансови параметри
         </p>
       </div>
 
       {/* Quick-nav cards */}
-      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 gap-3 sm:grid-cols-3">
         {[
           { icon: "👤", label: "За мен", href: "#owner-profile", desc: "Личен профил" },
           { icon: "🏷️", label: "Лого (сайт)", href: "#salon-logo", desc: "Шапка на сайта" },
           { icon: "🕐", label: "Работно време", href: "/admin/working-hours", desc: "График по дни" },
           { icon: "🖼️", label: "Галерия", href: "/admin/gallery", desc: "Снимки на салона" },
           { icon: "✂️", label: "Услуги", href: "/admin/services", desc: "Цени и описания" },
+          { icon: "💰", label: "Разходи", href: "#fixed-costs", desc: "Фиксирани параметри" },
         ].map((card) => (
           <Link
             key={card.label}
@@ -72,9 +74,14 @@ export default async function AdminSettingsPage(props: { searchParams?: Promise<
         <SettingsForm tenant={tenant} specialists={specialists} />
       </div>
 
-      {/* Financial settings */}
+      {/* Booking settings */}
       <div className="mt-6">
         <FinancialSettingsForm settings={financial as FinancialSettings | null} variant="booking" />
+      </div>
+
+      {/* Fixed monthly costs */}
+      <div className="mt-6">
+        <FixedCostsSettingsForm settings={financial as FinancialSettings | null} />
       </div>
 
       {/* SMS (premium + feature flag) */}

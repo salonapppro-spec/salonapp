@@ -1,144 +1,186 @@
-import Link from "next/link";
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 
-import { FinanceAbcSection } from "@/components/admin/finances/FinanceAbcSection";
-import { FinanceExpensesSection } from "@/components/admin/finances/FinanceExpensesSection";
-import { FinanceReportsSection } from "@/components/admin/finances/FinanceReportsSection";
-import { FinanceSummarySection } from "@/components/admin/finances/FinanceSummarySection";
 import { resolveFinanceScope } from "@/lib/admin-finance-scope";
 import {
   financialSettingsForUi,
   getAllServicesAdmin,
-  getCompletedBookingAmountsInRange,
   getCompletedRevenueBetween,
+  getExpensesBetween,
+  getExpensesForMonth,
   getFinancialSettings,
+  getRecentCompletedBookings,
+  getTenantBySalonSlug,
 } from "@/lib/data";
-import { currentWeekRangeISO, monthBoundsISO } from "@/lib/finance-dates";
+import { totalMonthlyOverheadEur } from "@/lib/finance-abc";
+import { monthBoundsISO } from "@/lib/finance-dates";
+import {
+  type CategorySlice,
+  type MonthBar,
+  type Transaction,
+  EXPENSE_CATEGORIES,
+} from "@/lib/finance-constants";
+import { FinancesDashboard } from "@/components/admin/finances/FinancesDashboard";
 
-function todayLocalISO(): string {
-  const d = new Date();
-  const y = d.getFullYear();
-  const mo = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${mo}-${day}`;
-}
+// ─── Bulgarian short month labels ─────────────────────────────────────────────
+const BG_SHORT = ["яну","фев","мар","апр","май","юни","юли","авг","сеп","окт","ное","дек"];
 
+// ─── Skeleton ─────────────────────────────────────────────────────────────────
 function FinancesSkeleton() {
   return (
-    <div className="mt-8 animate-pulse space-y-6">
+    <div className="animate-pulse space-y-6 pb-32 pt-2">
+      <div className="flex items-center justify-between">
+        <div className="h-8 w-36 rounded-2xl bg-slate-200" />
+        <div className="h-10 w-40 rounded-2xl bg-slate-200" />
+      </div>
       <div className="grid gap-3 sm:grid-cols-3">
-        <div className="h-24 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
-        <div className="h-24 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
-        <div className="h-24 rounded-2xl border border-[#C9A84C]/20 bg-white/80" />
+        {[0, 1, 2].map((i) => (
+          <div key={i} className="h-32 rounded-3xl bg-slate-100" />
+        ))}
       </div>
-      <div className="space-y-3">
-        <div className="h-5 w-44 rounded-lg bg-[#1A1A1A]/10" />
-        <div className="h-48 rounded-2xl border border-[#C9A84C]/15 bg-white/80" />
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="h-48 rounded-3xl bg-white ring-1 ring-slate-100" />
+        <div className="h-48 rounded-3xl bg-white ring-1 ring-slate-100" />
       </div>
-      <div className="space-y-3">
-        <div className="h-5 w-36 rounded-lg bg-[#1A1A1A]/10" />
-        <div className="h-64 rounded-2xl border border-[#C9A84C]/15 bg-white/80" />
-      </div>
+      <div className="h-64 rounded-3xl bg-white ring-1 ring-slate-100" />
     </div>
   );
 }
 
-async function FinancesDataSection() {
+// ─── Data Section (server async) ──────────────────────────────────────────────
+async function FinancesDataSection({ year, month }: { year: number; month: number }) {
   const scope = await resolveFinanceScope();
   if (!scope) redirect("/admin/login");
 
-  const { salonSlug, specialistIdFilter, canSeeReports } = scope;
+  const { salonSlug, specialistIdFilter } = scope;
+  const { from: monthFrom, to: monthTo } = monthBoundsISO(year, month);
 
-  const now = new Date();
-  const y = now.getFullYear();
-  const m = now.getMonth() + 1;
-  const today = todayLocalISO();
-  const { from: weekFrom, to: weekTo } = currentWeekRangeISO();
-  const { from: monthFrom, to: monthTo, daysInMonth } = monthBoundsISO(y, m);
-
-  const [settingsRow, dayRev, weekRev, monthRev, bookingAmounts, allServices] = await Promise.all([
+  // ── Fetch current month data in parallel ──────────────────────────────────
+  const [tenant, settingsRow, monthRevenue, monthExpenseRows, recentBookings] = await Promise.all([
+    getTenantBySalonSlug(salonSlug),
     getFinancialSettings(salonSlug),
-    getCompletedRevenueBetween(salonSlug, today, today, specialistIdFilter),
-    getCompletedRevenueBetween(salonSlug, weekFrom, weekTo, specialistIdFilter),
     getCompletedRevenueBetween(salonSlug, monthFrom, monthTo, specialistIdFilter),
-    getCompletedBookingAmountsInRange(salonSlug, monthFrom, monthTo, specialistIdFilter),
-    getAllServicesAdmin(salonSlug),
+    getExpensesForMonth(salonSlug, year, month),
+    getRecentCompletedBookings(salonSlug, monthFrom, monthTo, specialistIdFilter, 8),
   ]);
 
-  const settings = financialSettingsForUi(salonSlug, settingsRow);
+  const settings        = financialSettingsForUi(salonSlug, settingsRow);
+  const overheadMissing = settings.rent_eur === 0 &&
+    settings.electricity_eur === 0 &&
+    settings.water_eur === 0 &&
+    settings.accounting_eur === 0 &&
+    settings.desired_salary === 0 &&
+    settings.monthly_expenses === 0;
 
-  const byDay = new Map<string, number>();
-  for (const r of bookingAmounts) {
-    const k = r.booking_date;
-    byDay.set(k, (byDay.get(k) ?? 0) + Number(r.service_price_eur));
-  }
-  const daily: { key: string; amount: number; label: string }[] = [];
-  for (let d = 1; d <= daysInMonth; d++) {
-    const key = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
-    daily.push({ key, amount: byDay.get(key) ?? 0, label: String(d) });
-  }
-
-  const abcServices = allServices.filter((s) => {
-    if (!s.is_active) return false;
-    if (!specialistIdFilter) return true;
-    return s.specialist_id === specialistIdFilter || s.specialist_id == null;
+  const overhead = totalMonthlyOverheadEur({
+    rent_eur:              settings.rent_eur,
+    electricity_eur:       settings.electricity_eur,
+    water_eur:             settings.water_eur,
+    accounting_eur:        settings.accounting_eur,
+    desired_salary:        settings.desired_salary,
+    other_monthly_expenses: settings.monthly_expenses,
   });
 
+  const variableExpenses = monthExpenseRows.reduce(
+    (s, e) => s + Number((e as { amount: unknown }).amount ?? 0), 0
+  );
+
+  // ── Category slices for donut ─────────────────────────────────────────────
+  const catMap = new Map<string, number>();
+  for (const e of monthExpenseRows) {
+    const row  = e as { description: string; amount: number };
+    const desc = row.description ?? "🔹 Други";
+    const matched = EXPENSE_CATEGORIES.find((c) => desc.startsWith(c.emoji) || desc === c.value);
+    const key  = matched ? matched.value : "🔹 Други";
+    catMap.set(key, (catMap.get(key) ?? 0) + Number(row.amount));
+  }
+  const categorySlices: CategorySlice[] = EXPENSE_CATEGORIES.map((c) => ({
+    category: c.value,
+    emoji:    c.emoji,
+    amount:   catMap.get(c.value) ?? 0,
+    color:    c.color,
+  }));
+
+  // ── Last 6 months for bar chart ───────────────────────────────────────────
+  const monthsToFetch = Array.from({ length: 6 }, (_, i) => {
+    const d = new Date(year, month - 1 - (5 - i), 1);
+    return { y: d.getFullYear(), m: d.getMonth() + 1 };
+  });
+
+  const last6Months: MonthBar[] = await Promise.all(
+    monthsToFetch.map(async ({ y, m }) => {
+      const { from, to } = monthBoundsISO(y, m);
+      const [rev, expRows] = await Promise.all([
+        getCompletedRevenueBetween(salonSlug, from, to, specialistIdFilter),
+        getExpensesBetween(salonSlug, from, to),
+      ]);
+      const varExp = expRows.reduce((s, e) => s + Number(e.amount), 0);
+      return {
+        label:    BG_SHORT[m - 1],
+        revenue:  rev,
+        expenses: varExp + overhead,
+      };
+    })
+  );
+
+  // ── Recent transactions (bookings + expenses, last 5) ─────────────────────
+  const incomeItems: Transaction[] = recentBookings.map((b) => ({
+    id:     b.id,
+    date:   b.booking_date,
+    label:  b.service_name,
+    amount: Number(b.service_price_eur),
+    type:   "in",
+    emoji:  "✂️",
+  }));
+
+  const expenseItems: Transaction[] = monthExpenseRows.map((e) => {
+    const row     = e as { id: string; date: string; description: string; amount: number };
+    const matched = EXPENSE_CATEGORIES.find(
+      (c) => row.description?.startsWith(c.emoji) || row.description === c.value
+    );
+    return {
+      id:     row.id,
+      date:   row.date,
+      label:  row.description ?? "Разход",
+      amount: Number(row.amount),
+      type:   "out",
+      emoji:  matched?.emoji ?? "🔹",
+    };
+  });
+
+  const transactions: Transaction[] = [...incomeItems, ...expenseItems]
+    .sort((a, b) => b.date.localeCompare(a.date) || b.id.localeCompare(a.id))
+    .slice(0, 5);
+
   return (
-    <>
-      {specialistIdFilter ? (
-        <p className="mt-3 rounded-xl border border-amber-200/90 bg-amber-50/90 px-4 py-3 text-sm text-amber-950">
-          Колективен режим: виждате оборота и услугите за вашия профил. Техническият администратор вижда салона
-          изцяло.
-        </p>
-      ) : null}
-
-      <div className="mt-8 space-y-10">
-        <FinanceAbcSection initialSettings={settings} services={abcServices} />
-
-        <FinanceSummarySection
-          dayRev={dayRev}
-          weekRev={weekRev}
-          monthRev={monthRev}
-          revenueGoal={settings.monthly_revenue_goal_eur}
-          year={y}
-          month={m}
-          daily={daily}
-        />
-
-        <FinanceExpensesSection defaultFrom={monthFrom} defaultTo={today} />
-
-        {canSeeReports ? <FinanceReportsSection year={y} month={m} /> : null}
-
-        <section className="admin-card space-y-3">
-          <h2 className="text-lg font-semibold tracking-tight text-brand-900">Резервации и график</h2>
-          <p className="text-sm text-brand-800/85">
-            Буфер между часове, прозорец за онлайн запис и магнитно планиране се управляват от страницата Настройки, за
-            да не се дублират с финансовите полета тук.
-          </p>
-          <Link
-            href="/admin/settings"
-            className="inline-flex w-fit items-center justify-center rounded-xl border border-brand-300/80 bg-white px-4 py-2 text-sm font-semibold text-brand-900 shadow-sm transition hover:bg-brand-50"
-          >
-            Отвори настройки →
-          </Link>
-        </section>
-      </div>
-    </>
+    <FinancesDashboard
+      salonName        ={tenant?.salon_name ?? salonSlug}
+      year             ={year}
+      month            ={month}
+      revenue          ={monthRevenue}
+      overhead         ={overhead}
+      variableExpenses ={variableExpenses}
+      categorySlices   ={categorySlices}
+      last6Months      ={last6Months}
+      transactions     ={transactions}
+      overheadMissing  ={overheadMissing}
+    />
   );
 }
 
-export default function AdminFinancesPage() {
-  return (
-    <div className="admin-page-shell max-w-5xl">
-      <h1 className="text-2xl font-semibold tracking-tight text-brand-900 sm:text-3xl">Финанси</h1>
-      <p className="mt-2 text-sm text-brand-800/85 sm:text-base">
-        Първо задайте разходи и цел, после вижте оборота и ABC. Разходни фактури и отчети са по-долу.
-      </p>
+// ─── Page ─────────────────────────────────────────────────────────────────────
+export default async function AdminFinancesPage(
+  props: { searchParams?: Promise<Record<string, string | string[] | undefined>> }
+) {
+  const sp  = (await props.searchParams) ?? {};
+  const now = new Date();
+  const year  = Math.min(Math.max(Number(sp.y ?? now.getFullYear()), 2020), 2030);
+  const month = Math.min(Math.max(Number(sp.m ?? now.getMonth() + 1), 1), 12);
 
+  return (
+    <div className="admin-page-shell max-w-3xl">
       <Suspense fallback={<FinancesSkeleton />}>
-        <FinancesDataSection />
+        <FinancesDataSection year={year} month={month} />
       </Suspense>
     </div>
   );
