@@ -286,19 +286,11 @@ export function FinancesDashboard(props: {
           <p className="mt-3 text-[2.4rem] font-black leading-none tabular-nums text-rose-800">
             {totalExpenses.toFixed(2)}<span className="ml-1 text-xl font-bold">€</span>
           </p>
-          <div className="mt-2 flex items-center justify-between gap-2">
-            <p className="text-xs text-rose-600/80">
-              {props.overhead > 0
-                ? `${props.overhead.toFixed(0)}€ пост. + ${props.variableExpenses.toFixed(0)}€ факт.`
-                : `${props.variableExpenses.toFixed(0)}€ фактури`}
-            </p>
-            <Link
-              href="/admin/settings#fixed-costs"
-              className="shrink-0 rounded-lg bg-rose-100 px-2 py-1 text-[10px] font-semibold text-rose-500 transition hover:bg-rose-200"
-            >
-              ✎ Промени
-            </Link>
-          </div>
+          <p className="mt-2 text-xs text-rose-600/80">
+            {props.overhead > 0
+              ? `${props.overhead.toFixed(0)}€ пост. + ${props.variableExpenses.toFixed(0)}€ факт.`
+              : `${props.variableExpenses.toFixed(0)}€ фактури`}
+          </p>
         </div>
 
         {/* Net profit */}
@@ -407,6 +399,14 @@ export function FinancesDashboard(props: {
           </ul>
         )}
       </div>
+
+      {/* ── Fixed costs hint ─────────────────────── */}
+      <p className="mt-4 text-center text-xs text-slate-400">
+        Постоянните разходи може да въведеш или промениш от{" "}
+        <Link href="/admin/settings#fixed-costs" className="underline underline-offset-2 hover:text-slate-600">
+          тук
+        </Link>
+      </p>
 
       {/* ── FAB ──────────────────────────────────── */}
       <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-[60] flex justify-center px-4 md:bottom-6">
