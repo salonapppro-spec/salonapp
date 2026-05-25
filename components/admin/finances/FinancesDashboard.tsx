@@ -286,11 +286,19 @@ export function FinancesDashboard(props: {
           <p className="mt-3 text-[2.4rem] font-black leading-none tabular-nums text-rose-800">
             {totalExpenses.toFixed(2)}<span className="ml-1 text-xl font-bold">€</span>
           </p>
-          <p className="mt-2 text-xs text-rose-600/80">
-            {props.overhead > 0
-              ? `${props.overhead.toFixed(0)}€ пост. + ${props.variableExpenses.toFixed(0)}€ факт.`
-              : `${props.variableExpenses.toFixed(0)}€ фактури`}
-          </p>
+          <div className="mt-2 flex items-center justify-between gap-2">
+            <p className="text-xs text-rose-600/80">
+              {props.overhead > 0
+                ? `${props.overhead.toFixed(0)}€ пост. + ${props.variableExpenses.toFixed(0)}€ факт.`
+                : `${props.variableExpenses.toFixed(0)}€ фактури`}
+            </p>
+            <Link
+              href="/admin/settings#fixed-costs"
+              className="shrink-0 rounded-lg bg-rose-100 px-2 py-1 text-[10px] font-semibold text-rose-500 transition hover:bg-rose-200"
+            >
+              ✎ Промени
+            </Link>
+          </div>
         </div>
 
         {/* Net profit */}
