@@ -401,7 +401,7 @@ export function FinancesDashboard(props: {
       </div>
 
       {/* ── FAB ──────────────────────────────────── */}
-      <div className="fixed bottom-6 left-0 right-0 z-40 flex justify-center px-4">
+      <div className="fixed bottom-[calc(4.5rem+env(safe-area-inset-bottom))] left-0 right-0 z-[60] flex justify-center px-4 md:bottom-6">
         <button
           className="flex items-center gap-2.5 rounded-full bg-[#1A1A1A] px-8 py-4 text-base font-black text-white shadow-2xl transition hover:bg-[#2A2A2A] hover:shadow-[0_8px_30px_rgba(0,0,0,0.3)] active:scale-95"
           onClick={() => setShowModal(true)}
