@@ -8,13 +8,12 @@ import { SignOutButton } from "@/components/admin/SignOutButton";
 const primaryTabs = [
   { href: "/admin/dashboard", label: "Днес", short: "Дн", icon: "✦" },
   { href: "/admin/calendar", label: "Календар", short: "Кал", icon: "📅" },
-  { href: "/admin/services", label: "Услуги", short: "Ус", icon: "✂️" },
+  { href: "/admin/settings/services", label: "Услуги", short: "Ус", icon: "✂️" },
   { href: "/admin/clients", label: "Клиенти", short: "Кл", icon: "👤" },
   { href: "/admin/finances", label: "Финанси", short: "Фин", icon: "💰" },
 ] as const;
 
 const secondaryLinks = [
-  { href: "/admin/working-hours", label: "Работно време", icon: "🕐" },
   { href: "/admin/settings", label: "Настройки", icon: "⚙️" },
 ] as const;
 
