@@ -1,51 +1,14 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
-import Link from "next/link";
 
 const CLIENTS = [
-  {
-    slug: "lindynails",
-    name: "Lindy Nails",
-    type: "Нокти & Маникюр",
-    url: "https://lindynails.salonapp.pro",
-    accent: "#C8826A",
-  },
-  {
-    slug: "theskin",
-    name: "The Skin",
-    type: "Козметика & Грижа за кожата",
-    url: "https://theskin.salonapp.pro",
-    accent: "#C79A4B",
-  },
-  {
-    slug: "thebeast",
-    name: "The Beast",
-    type: "Барбершоп",
-    url: "https://thebeast.salonapp.pro",
-    accent: "#C79A4B",
-  },
-  {
-    slug: "magnetic-eyes",
-    name: "Magnetic Eyes",
-    type: "Мигли, Вежди & Перманентен грим",
-    url: "https://magnetic-eyes.salonapp.pro",
-    accent: "#E8A0B4",
-  },
-  {
-    slug: "euphoria",
-    name: "Euphoria",
-    type: "Спа & Уелнес",
-    url: "https://euphoria.salonapp.pro",
-    accent: "#5A8A5E",
-  },
-  {
-    slug: "paw-empire",
-    name: "Paw Empire",
-    type: "Pet Grooming",
-    url: "https://paw-empire.salonapp.pro",
-    accent: "#4A7AB5",
-  },
+  { slug: "lindynails", name: "Lindy Nails", type: "Нокти & Маникюр", url: "https://lindynails.salonapp.pro", accent: "#C8826A", img: "/previews/p01.jpg" },
+  { slug: "theskin", name: "The Skin", type: "Козметика & Грижа за кожата", url: "https://theskin.salonapp.pro", accent: "#C79A4B", img: "/previews/p02.jpg" },
+  { slug: "thebeast", name: "The Beast", type: "Барбершоп", url: "https://thebeast.salonapp.pro", accent: "#C79A4B", img: "/previews/p03.jpg" },
+  { slug: "magnetic-eyes", name: "Magnetic Eyes", type: "Мигли, Вежди & Перманентен грим", url: "https://magnetic-eyes.salonapp.pro", accent: "#E8A0B4", img: "/previews/p04.jpg" },
+  { slug: "euphoria", name: "Euphoria", type: "Спа & Уелнес", url: "https://euphoria.salonapp.pro", accent: "#5A8A5E", img: "/previews/p01.jpg" },
+  { slug: "paw-empire", name: "Paw Empire", type: "Pet Grooming", url: "https://paw-empire.salonapp.pro", accent: "#4A7AB5", img: "/previews/p02.jpg" },
 ];
 
 // Card dimensions
@@ -79,25 +42,13 @@ function SiteCard({ client, isActive }: { client: typeof CLIENTS[0]; isActive: b
         </div>
       </div>
 
-      {/* Site preview */}
+      {/* Site preview — static screenshot */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
       <div style={{ width: w, height: h, overflow: "hidden", position: "relative", background: "#faf7f2" }}>
-        <iframe
-          src={client.url}
-          title={client.name}
-          loading="lazy"
-          tabIndex={-1}
-          aria-hidden="true"
-          style={{
-            position: "absolute",
-            top: 0,
-            left: 0,
-            width: 1440,
-            height: Math.round(h / scale),
-            transform: `scale(${scale})`,
-            transformOrigin: "top left",
-            border: "none",
-            pointerEvents: "none",
-          }}
+        <img
+          src={client.img}
+          alt={client.name}
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }}
         />
       </div>
 

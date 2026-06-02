@@ -98,35 +98,35 @@ export default function Home() {
               </span>
             </div>
 
-            <h1 className="playfair font-black leading-[1.08] tracking-tight text-[#3D1F0A]" style={{ fontSize: "clamp(2.8rem, 5vw, 5rem)" }}>
-              <span style={{ whiteSpace: "nowrap", display: "block" }}>Твоят салон.</span>
-              <span style={{ whiteSpace: "nowrap", display: "block" }}>Твоят сайт.</span>
-              <span style={{ whiteSpace: "nowrap", display: "block" }}>Твоята <span style={{ color: "#C79A4B" }}>система.</span></span>
+            <h1 className="playfair font-black leading-[1.08] tracking-tight text-[#3D1F0A]" style={{ fontSize: "clamp(2.2rem, 5vw, 5rem)" }}>
+              <span style={{ display: "block" }}>Твоят салон.</span>
+              <span style={{ display: "block" }}>Твоят сайт.</span>
+              <span style={{ display: "block" }}>Твоята <span style={{ color: "#C79A4B" }}>система.</span></span>
             </h1>
 
             <p className="mt-5 text-base leading-relaxed text-[#5A5550]">
               Красив сайт, онлайн резервации, график, клиенти и напомняния. Всичко необходимо, за да расте бизнесът ти.
             </p>
 
-            <div className="mt-8 flex flex-row gap-3">
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/get-started"
-                className="btn-pulse inline-flex min-h-[48px] items-center justify-center whitespace-nowrap bg-[#C79A4B] px-6 text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
+                className="btn-pulse inline-flex min-h-[48px] items-center justify-center bg-[#C79A4B] px-6 text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
               >
                 ЗАПОЧНИ БЕЗПЛАТНО →
               </Link>
               <a
                 href="#templates"
-                className="inline-flex min-h-[48px] items-center justify-center whitespace-nowrap border border-[#1A1A1A] px-6 text-[11px] font-black uppercase tracking-widest text-[#181818] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"
+                className="inline-flex min-h-[48px] items-center justify-center border border-[#1A1A1A] px-6 text-[11px] font-black uppercase tracking-widest text-[#181818] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"
               >
                 ВИЖ ДЕМО ▶
               </a>
             </div>
 
             {/* Trust badges */}
-            <div className="mt-6 flex flex-nowrap gap-x-5">
+            <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2">
               {["Без договор", "Без банкова карта", "Спираш когато поискаш"].map((t) => (
-                <span key={t} className="flex items-center gap-1.5 whitespace-nowrap text-sm text-[#5A5550]">
+                <span key={t} className="flex items-center gap-1.5 text-sm text-[#5A5550]">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C79A4B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
