@@ -48,7 +48,7 @@ function SiteCard({ client, isActive }: { client: typeof CLIENTS[0]; isActive: b
         <img
           src={client.img}
           alt={client.name}
-          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top", display: "block" }}
+          style={{ width: "100%", height: "100%", objectFit: "cover", objectPosition: "top center", display: "block" }}
         />
       </div>
 
