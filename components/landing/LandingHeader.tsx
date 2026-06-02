@@ -80,14 +80,8 @@ export default function LandingHeader() {
             </Link>
           </div>
 
-          {/* Mobile: CTA + Burger */}
-          <div className="flex items-center gap-3 lg:hidden">
-            <Link
-              href="/get-started"
-              className="rounded bg-[#C79A4B] px-4 py-2 text-[11px] font-semibold tracking-wide text-white"
-            >
-              БЕЗПЛАТНО
-            </Link>
+          {/* Mobile: Burger only */}
+          <div className="flex items-center lg:hidden">
             <button
               onClick={() => setOpen((v) => !v)}
               className="flex h-9 w-9 flex-col items-center justify-center gap-[5px]"
