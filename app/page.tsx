@@ -78,24 +78,19 @@ export default function Home() {
       <main className="pt-[57px]">
 
         {/* ── HERO ── */}
-        <section
-          className="relative overflow-hidden bg-[#F8EBDD]"
-          style={{ minHeight: "calc(100vh - 57px)" }}
-        >
-          {/* Mockup — прикрепен вдясно, пълна височина */}
+        <section className="relative overflow-hidden bg-[#F8EBDD]">
+
+          {/* Десктоп мокъп — абсолютно вдясно */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
             src="/hero-mockup.png"
             alt=""
-            className="absolute right-0 top-0 h-full w-auto"
+            className="hidden lg:block absolute right-0 top-0 h-full w-auto"
             style={{ maxWidth: "none" }}
           />
 
-          {/* Текст — вляво, върху кремавия фон */}
-          <div
-            className="relative z-10 flex flex-col justify-start px-8 pt-14 pb-6 lg:pl-16"
-            style={{ minHeight: "calc(100vh - 57px)", width: "42%", minWidth: 320 }}
-          >
+          {/* Текст */}
+          <div className="relative z-10 flex flex-col justify-start px-8 pt-14 pb-10 lg:pl-16 w-full lg:w-[42%] lg:min-h-[calc(100vh-57px)]">
             {/* Badge */}
             <div className="mb-6 inline-flex items-center self-start whitespace-nowrap rounded-full border border-[#E8DDD0] bg-[#EEE6DC] px-4 py-1.5">
               <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C79A4B]">
@@ -140,6 +135,14 @@ export default function Home() {
               ))}
             </div>
           </div>
+
+          {/* Мобилен мокъп — под текста, само на малки екрани */}
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/mobile-mockup.png"
+            alt=""
+            className="lg:hidden w-full object-contain"
+          />
         </section>
 
         {/* ── SOCIAL PROOF CAROUSEL ── */}

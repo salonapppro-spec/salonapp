@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 
 const CLIENTS = [
@@ -114,8 +114,16 @@ export default function TemplatesSection() {
   const [active, setActive] = useState(0);
   const n = CLIENTS.length;
 
-  const prev = () => setActive((active - 1 + n) % n);
-  const next = () => setActive((active + 1) % n);
+  const prev = () => setActive((a) => (a - 1 + n) % n);
+  const next = () => setActive((a) => (a + 1) % n);
+  const paused = useRef(false);
+
+  useEffect(() => {
+    const id = setInterval(() => {
+      if (!paused.current) setActive((a) => (a + 1) % n);
+    }, 3500);
+    return () => clearInterval(id);
+  }, [n]);
 
   return (
     <section id="templates" className="bg-[#FFFCF8] px-8 py-10 lg:px-16 md:py-14">
@@ -134,7 +142,12 @@ export default function TemplatesSection() {
       </div>
 
       {/* Carousel */}
-      <div className="relative overflow-hidden" style={{ height: BIG_H + 56 + 40 }}>
+      <div
+        className="relative overflow-hidden"
+        style={{ height: BIG_H + 56 + 40 }}
+        onMouseEnter={() => { paused.current = true; }}
+        onMouseLeave={() => { paused.current = false; }}
+      >
         {POSITIONS.map(({ offset, scale, z, opacity, tx }) => {
           const c = CLIENTS[(active + offset + n) % n];
           const isActive = offset === 0;
