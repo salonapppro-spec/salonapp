@@ -84,7 +84,7 @@ export default function LandingHeader() {
           <div className="flex items-center gap-3 lg:hidden">
             <Link
               href="/get-started"
-              className="bg-[#C79A4B] px-4 py-2 text-[10px] font-black uppercase tracking-[0.15em] text-white"
+              className="rounded bg-[#C79A4B] px-4 py-2 text-[11px] font-semibold tracking-wide text-white"
             >
               БЕЗПЛАТНО
             </Link>
@@ -114,15 +114,15 @@ export default function LandingHeader() {
       {open && (
         <div
           className="fixed inset-0 z-30 flex flex-col lg:hidden"
-          style={{ background: "rgba(250,247,242,0.97)", paddingTop: 72 }}
+          style={{ background: "#F8EBDD", paddingTop: 68 }}
         >
-          <nav className="flex flex-col px-8 pt-8 gap-1">
+          <nav className="flex flex-col px-8 pt-6 gap-0">
             {NAV.map(({ label, href }) => (
               <a
                 key={label}
                 href={href}
                 onClick={() => setOpen(false)}
-                className="border-b border-[#E8DDD0] py-5 text-lg font-black uppercase tracking-[0.12em] text-[#3D1F0A]"
+                className="border-b border-[#E8DDD0] py-5 text-[17px] font-medium tracking-wide text-[#3D1F0A]"
               >
                 {label}
               </a>
@@ -130,7 +130,7 @@ export default function LandingHeader() {
             <a
               href="/admin"
               onClick={() => setOpen(false)}
-              className="border-b border-[#E8DDD0] py-5 text-lg font-black uppercase tracking-[0.12em] text-[#6E6A63]"
+              className="border-b border-[#E8DDD0] py-5 text-[17px] font-medium tracking-wide text-[#9a8a7a]"
             >
               Вход за салони
             </a>
@@ -139,9 +139,9 @@ export default function LandingHeader() {
             <Link
               href="/get-started"
               onClick={() => setOpen(false)}
-              className="block w-full bg-[#C79A4B] py-4 text-center text-sm font-black uppercase tracking-widest text-white"
+              className="block w-full rounded-lg bg-[#C79A4B] py-4 text-center text-[13px] font-semibold tracking-widest text-white"
             >
-              ЗАПОЧНИ БЕЗПЛАТНО →
+              Започни безплатно →
             </Link>
           </div>
         </div>

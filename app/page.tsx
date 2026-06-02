@@ -147,7 +147,7 @@ export default function Home() {
 
         {/* ── SOCIAL PROOF CAROUSEL ── */}
         <section className="border-y border-[#E8DDD0] bg-white py-8 overflow-hidden">
-          <p className="mb-6 text-center text-[10px] font-black uppercase tracking-[0.35em] text-[#6E6A63]">
+          <p className="mb-6 text-center text-[10px] font-semibold uppercase tracking-[0.35em] text-[#6E6A63]">
             Доверени от салони в цяла България
           </p>
           <style>{`
@@ -192,7 +192,7 @@ export default function Home() {
         {/* ── FEATURES GRID ── */}
         <section id="features" className="bg-[#F8EBDD] px-8 py-12 lg:px-16 md:py-16 scroll-mt-16">
           <div>
-            <h2 className="playfair mb-10 text-center text-3xl font-black text-[#3D1F0A] md:text-4xl">
+            <h2 className="playfair mb-10 text-center text-3xl font-bold text-[#3D1F0A] md:text-4xl">
               Всичко, от което се нуждае твоят салон
             </h2>
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
@@ -269,10 +269,10 @@ export default function Home() {
         <section className="px-8 py-10 lg:px-16 md:py-14">
           <div>
             <RevealOnScroll>
-              <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C79A4B]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#C79A4B]">
                 Познато ли ти е?
               </p>
-              <h2 className="playfair mt-3 mb-2 text-3xl font-black text-[#3D1F0A] md:text-5xl">
+              <h2 className="playfair mt-3 mb-2 text-3xl font-bold text-[#3D1F0A] md:text-5xl">
                 Познато ли ти е това?
               </h2>
               <p className="mb-10 text-base text-[#6E6A63]">
@@ -286,7 +286,7 @@ export default function Home() {
         {/* ── СРАВНЕНИЕ ── */}
         <section id="comparison" className="bg-[#F8EBDD] px-8 py-14 lg:px-16 scroll-mt-16">
           <RevealOnScroll>
-            <h2 className="playfair mb-3 text-center text-3xl font-black text-[#3D1F0A] md:text-4xl">
+            <h2 className="playfair mb-3 text-center text-3xl font-bold text-[#3D1F0A] md:text-4xl">
               Защо SalonApp?
             </h2>
             <p className="mb-12 text-center text-sm text-[#6E6A63]">Сравни сам и реши.</p>
@@ -295,8 +295,8 @@ export default function Home() {
 
               {/* Marketplace — dimmed */}
               <div className="flex-1 rounded-2xl border border-[#E8DDD0] bg-white/60 p-8 opacity-70">
-                <p className="mb-1 text-[10px] font-black uppercase tracking-[0.3em] text-[#9a9080]">Marketplace / Каталог</p>
-                <p className="mb-8 text-lg font-black text-[#9a9080]">Загубен сред другите</p>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#9a9080]">Marketplace / Каталог</p>
+                <p className="mb-8 text-lg font-semibold text-[#9a9080]">Загубен сред другите</p>
                 {[
                   "Само профил при тях",
                   "Рекламират конкурентите ти",
@@ -313,11 +313,11 @@ export default function Home() {
 
               {/* SalonApp — golden */}
               <div className="relative flex-1 rounded-2xl border border-[#C79A4B]/40 bg-[#3D1F0A] p-8 shadow-xl">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#C79A4B] px-4 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-white">
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#C79A4B] px-4 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
                   Препоръчано
                 </div>
-                <p className="mb-1 text-[10px] font-black uppercase tracking-[0.3em] text-[#C79A4B]">SalonApp</p>
-                <p className="mb-8 text-lg font-black text-white">Твоят бранд. Твоите правила.</p>
+                <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#C79A4B]">SalonApp</p>
+                <p className="mb-8 text-lg font-semibold text-white">Твоят бранд. Твоите правила.</p>
                 {[
                   "Собствен луксозен сайт",
                   "Клиентите виждат само теб",
@@ -346,11 +346,11 @@ export default function Home() {
         <section className="bg-[#F8EBDD] px-8 py-10 lg:px-16 md:py-14">
           <div>
             <div className="border-b border-[#E8DDD0] pb-8">
-              <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C79A4B]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#C79A4B]">
                 Планове и цени
               </p>
               <h2
-                className="playfair mt-3 text-3xl font-black text-[#3D1F0A] md:text-5xl"
+                className="playfair mt-3 text-3xl font-bold text-[#3D1F0A] md:text-5xl"
               >
                 Избери план. Смени го или го спри, когато поискаш.
               </h2>
@@ -369,11 +369,11 @@ export default function Home() {
         <section className="bg-[#F8EBDD] px-8 py-10 lg:px-16 md:py-14">
           <div>
             <div className="mb-10 border-b border-[#E8DDD0] pb-8">
-              <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C79A4B]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#C79A4B]">
                 Въпроси
               </p>
               <h2
-                className="playfair mt-3 text-3xl font-black text-[#3D1F0A] md:text-5xl"
+                className="playfair mt-3 text-3xl font-bold text-[#3D1F0A] md:text-5xl"
               >
                 Знаем какво си помисли вече.
               </h2>
@@ -389,11 +389,11 @@ export default function Home() {
             style={{ background: LP.accent, opacity: 0.08 }}
           />
           <div className="text-center">
-            <p className="text-[10px] font-black uppercase tracking-[0.45em] text-[#C79A4B]">
+            <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#C79A4B]">
               Започни сега
             </p>
             <h2
-              className="playfair mt-5 text-4xl font-black leading-tight text-white md:text-6xl"
+              className="playfair mt-5 text-4xl font-bold leading-tight text-white md:text-6xl"
             >
               Остави тефтера в миналото.
             </h2>
@@ -503,7 +503,7 @@ export default function Home() {
                   <Link
                     key={label}
                     href={href}
-                    className="text-[10px] font-black uppercase tracking-[0.2em] text-[#6E6A63] transition-colors hover:text-[#C79A4B]"
+                    className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#6E6A63] transition-colors hover:text-[#C79A4B]"
                   >
                     {label}
                   </Link>

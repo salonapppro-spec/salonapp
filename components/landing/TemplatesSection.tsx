@@ -7,7 +7,7 @@ const CLIENTS = [
   { slug: "theskin", name: "The Skin", type: "Козметика & Грижа за кожата", url: "https://theskin.salonapp.pro", accent: "#C79A4B", img: "/previews/theskin.jpg" },
   { slug: "thebeast", name: "The Beast", type: "Барбершоп", url: "https://thebeast.salonapp.pro", accent: "#C79A4B", img: "/previews/thebeast.jpg" },
   { slug: "magnetic-eyes", name: "Magnetic Eyes", type: "Мигли, Вежди & Перманентен грим", url: "https://magnetic-eyes.salonapp.pro", accent: "#E8A0B4", img: "/previews/magnetic-eyes.jpg" },
-  { slug: "euphoria", name: "Euphoria", type: "Спа & Уелнес", url: "https://euphoria.salonapp.pro", accent: "#5A8A5E", img: "/previews/euphoria.jpg" },
+  { slug: "euphoria", name: "Euphoria", type: "Фризьорски салон", url: "https://euphoria.salonapp.pro", accent: "#5A8A5E", img: "/previews/euphoria.jpg" },
   { slug: "paw-empire", name: "Paw Empire", type: "Pet Grooming", url: "https://paw-empire.salonapp.pro", accent: "#4A7AB5", img: "/previews/paw-empire.jpg" },
 ];
 
