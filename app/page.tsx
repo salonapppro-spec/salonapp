@@ -92,34 +92,34 @@ export default function Home() {
           {/* Текст */}
           <div className="relative z-10 flex flex-col justify-start px-8 pt-14 pb-10 lg:pl-16 w-full lg:w-[42%] lg:min-h-[calc(100vh-57px)]">
             {/* Badge */}
-            <div className="mb-6 inline-flex items-center self-start whitespace-nowrap rounded-full border border-[#E8DDD0] bg-[#EEE6DC] px-4 py-1.5">
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-[#C79A4B]">
+            <div className="mb-5 inline-flex items-center self-start rounded-full border border-[#E8DDD0] bg-[#EEE6DC] px-4 py-1.5">
+              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#C79A4B]">
                 Сайт и резервационна система за твоя салон
               </span>
             </div>
 
-            <h1 className="playfair font-black leading-[1.08] tracking-tight text-[#3D1F0A]" style={{ fontSize: "clamp(2.2rem, 5vw, 5rem)" }}>
+            <h1 className="playfair font-bold leading-[1.1] tracking-tight text-[#3D1F0A]" style={{ fontSize: "clamp(2rem, 5vw, 5rem)" }}>
               <span style={{ display: "block" }}>Твоят салон.</span>
               <span style={{ display: "block" }}>Твоят сайт.</span>
               <span style={{ display: "block" }}>Твоята <span style={{ color: "#C79A4B" }}>система.</span></span>
             </h1>
 
-            <p className="mt-5 text-base leading-relaxed text-[#5A5550]">
+            <p className="mt-4 text-[15px] leading-relaxed text-[#5A5550]">
               Красив сайт, онлайн резервации, график, клиенти и напомняния. Всичко необходимо, за да расте бизнесът ти.
             </p>
 
-            <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
               <Link
                 href="/get-started"
-                className="btn-pulse inline-flex min-h-[48px] items-center justify-center bg-[#C79A4B] px-6 text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
+                className="btn-pulse inline-flex min-h-[44px] items-center justify-center bg-[#C79A4B] px-6 text-[11px] font-semibold uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
               >
-                ЗАПОЧНИ БЕЗПЛАТНО →
+                Започни безплатно →
               </Link>
               <a
                 href="#templates"
-                className="inline-flex min-h-[48px] items-center justify-center border border-[#1A1A1A] px-6 text-[11px] font-black uppercase tracking-widest text-[#181818] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"
+                className="inline-flex min-h-[44px] items-center justify-center border border-[#3D1F0A]/30 px-6 text-[11px] font-semibold uppercase tracking-widest text-[#3D1F0A] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"
               >
-                ВИЖ ДЕМО ▶
+                Виж демо ▶
               </a>
             </div>
 

@@ -92,9 +92,9 @@ export default function TemplatesSection() {
         </p>
       </div>
 
-      {/* Carousel */}
+      {/* Desktop Carousel */}
       <div
-        className="relative overflow-hidden"
+        className="relative hidden overflow-hidden lg:block"
         style={{ height: BIG_H + 56 + 40 }}
         onMouseEnter={() => { paused.current = true; }}
         onMouseLeave={() => { paused.current = false; }}
@@ -127,8 +127,30 @@ export default function TemplatesSection() {
         })}
       </div>
 
+      {/* Mobile Carousel — single card, full width */}
+      <div className="lg:hidden">
+        <div
+          className="relative overflow-hidden rounded-xl shadow-lg cursor-pointer"
+          style={{ aspectRatio: "4/3" }}
+          onClick={() => window.open(CLIENTS[active].url, "_blank", "noopener,noreferrer")}
+        >
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src={CLIENTS[active].img}
+            alt={CLIENTS[active].name}
+            className="w-full h-full object-cover object-top transition-all duration-500"
+          />
+          {/* Overlay label */}
+          <div className="absolute bottom-0 left-0 right-0 flex items-center justify-between px-4 py-3"
+            style={{ background: "rgba(248,235,221,0.92)", backdropFilter: "blur(8px)" }}>
+            <span className="text-sm font-bold text-[#3D1F0A]">{CLIENTS[active].name}</span>
+            <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: CLIENTS[active].accent }}>{CLIENTS[active].type}</span>
+          </div>
+        </div>
+      </div>
+
       {/* Controls */}
-      <div className="mt-4 flex items-center justify-center gap-6">
+      <div className="mt-6 flex items-center justify-center gap-6">
         <button onClick={prev} className="flex h-10 w-10 items-center justify-center rounded-full border border-[#E8DDD0] bg-white text-[#3D1F0A] transition hover:border-[#C79A4B] hover:text-[#C79A4B]" aria-label="Предишен">←</button>
         <div className="flex gap-2">
           {CLIENTS.map((_, i) => (
