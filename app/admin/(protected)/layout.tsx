@@ -56,7 +56,7 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
 
 export default function AdminProtectedGroupLayout(props: { children: React.ReactNode }) {
   return (
-    <div className="min-h-[100dvh] text-[#1A1A1A]" style={{ background: "linear-gradient(160deg, #FAF7F2 0%, #F3EBE0 50%, #EAD5C4 100%)" }}>
+    <div className="min-h-[100dvh] text-[#1A1A1A]" style={{ background: "linear-gradient(160deg, #F8EBDD 0%, #F3EBE0 50%, #EAD5C4 100%)" }}>
       <AdminProtectedFrame>{props.children}</AdminProtectedFrame>
     </div>
   );
