@@ -3,12 +3,12 @@
 import { useState, useEffect, useRef } from "react";
 
 const CLIENTS = [
-  { slug: "lindynails", name: "Lindy Nails", type: "Нокти & Маникюр", url: "https://lindynails.salonapp.pro", accent: "#C8826A", img: "/previews/p01.jpg" },
-  { slug: "theskin", name: "The Skin", type: "Козметика & Грижа за кожата", url: "https://theskin.salonapp.pro", accent: "#C79A4B", img: "/previews/p02.jpg" },
-  { slug: "thebeast", name: "The Beast", type: "Барбершоп", url: "https://thebeast.salonapp.pro", accent: "#C79A4B", img: "/previews/p03.jpg" },
-  { slug: "magnetic-eyes", name: "Magnetic Eyes", type: "Мигли, Вежди & Перманентен грим", url: "https://magnetic-eyes.salonapp.pro", accent: "#E8A0B4", img: "/previews/p04.jpg" },
-  { slug: "euphoria", name: "Euphoria", type: "Спа & Уелнес", url: "https://euphoria.salonapp.pro", accent: "#5A8A5E", img: "/previews/p01.jpg" },
-  { slug: "paw-empire", name: "Paw Empire", type: "Pet Grooming", url: "https://paw-empire.salonapp.pro", accent: "#4A7AB5", img: "/previews/p02.jpg" },
+  { slug: "lindynails", name: "Lindy Nails", type: "Нокти & Маникюр", url: "https://lindynails.salonapp.pro", accent: "#C8826A", img: "/previews/lindynails.jpg" },
+  { slug: "theskin", name: "The Skin", type: "Козметика & Грижа за кожата", url: "https://theskin.salonapp.pro", accent: "#C79A4B", img: "/previews/theskin.jpg" },
+  { slug: "thebeast", name: "The Beast", type: "Барбершоп", url: "https://thebeast.salonapp.pro", accent: "#C79A4B", img: "/previews/thebeast.jpg" },
+  { slug: "magnetic-eyes", name: "Magnetic Eyes", type: "Мигли, Вежди & Перманентен грим", url: "https://magnetic-eyes.salonapp.pro", accent: "#E8A0B4", img: "/previews/magnetic-eyes.jpg" },
+  { slug: "euphoria", name: "Euphoria", type: "Спа & Уелнес", url: "https://euphoria.salonapp.pro", accent: "#5A8A5E", img: "/previews/euphoria.jpg" },
+  { slug: "paw-empire", name: "Paw Empire", type: "Pet Grooming", url: "https://paw-empire.salonapp.pro", accent: "#4A7AB5", img: "/previews/paw-empire.jpg" },
 ];
 
 // Card dimensions
