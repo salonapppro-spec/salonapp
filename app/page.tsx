@@ -99,8 +99,8 @@ export default function Home() {
           <img
             src="/hero-mockup.png"
             alt=""
-            className="hidden lg:block absolute right-0 top-0 h-full w-auto"
-            style={{ maxWidth: "none" }}
+            className="hidden lg:block absolute top-0 h-full w-auto"
+            style={{ maxWidth: "none", right: "-6%" }}
           />
 
           {/* Текст */}
