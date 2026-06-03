@@ -3,38 +3,57 @@
 import { useState, useEffect } from "react";
 
 const TABS = [
+  { key: "dashboard", label: "Днес",       img: "/screenshots/admin-dashboard.png"   },
+  { key: "clients",   label: "Клиенти",    img: "/screenshots/admin-clients.png"     },
+  { key: "rezerv",    label: "Резервации", img: "/screenshots/admin-rezervation.png" },
+  { key: "services",  label: "Услуги",     img: "/screenshots/admin-services.png"    },
+  { key: "finance",   label: "Финанси",    img: "/screenshots/admin-finance.png"     },
+];
+
+const FLOAT_CARDS = [
   {
-    key: "dashboard",
-    label: "Днес",
-    img: "/screenshots/admin-dashboard.jpg",
-    caption: "Оборот, резервации и следващ клиент — всичко с един поглед.",
+    pos: "top-[8%] right-[2%]",
+    content: (
+      <div className="flex items-center gap-2.5">
+        <span className="text-xl">💰</span>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8a6a]">Оборот днес</p>
+          <p className="text-lg font-bold text-[#3D1F0A]">400.00 €</p>
+        </div>
+      </div>
+    ),
   },
   {
-    key: "clients",
-    label: "Клиенти",
-    img: "/screenshots/admin-clients.jpg",
-    caption: "База клиенти — изгражда се автоматично с всяка резервация.",
+    pos: "top-[38%] right-[-2%]",
+    content: (
+      <div className="flex items-center gap-2.5">
+        <span className="text-xl">📅</span>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8a6a]">Следващ клиент</p>
+          <p className="text-sm font-bold text-[#3D1F0A]">18:45 · Наталия</p>
+        </div>
+      </div>
+    ),
   },
   {
-    key: "reservation",
-    label: "Резервации",
-    img: "/screenshots/admin-reservation.jpg",
-    caption: "Пълни детайли за всеки час — клиент, услуга, статус.",
-  },
-  {
-    key: "services",
-    label: "Услуги",
-    img: "/screenshots/admin-services.jpg",
-    caption: "Добавяш услуга за 30 секунди — само три полета.",
+    pos: "bottom-[18%] right-[0%]",
+    content: (
+      <div className="flex items-center gap-2.5">
+        <span className="text-xl">✅</span>
+        <div>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8a6a]">SMS напомняне</p>
+          <p className="text-sm font-bold text-[#3D1F0A]">Изпратено автоматично</p>
+        </div>
+      </div>
+    ),
   },
 ];
 
 export default function AdminShowcase() {
   const [active, setActive] = useState(0);
 
-  // Auto-rotate
   useEffect(() => {
-    const id = setInterval(() => setActive((a) => (a + 1) % TABS.length), 3000);
+    const id = setInterval(() => setActive((a) => (a + 1) % TABS.length), 3500);
     return () => clearInterval(id);
   }, []);
 
@@ -56,54 +75,53 @@ export default function AdminShowcase() {
         </p>
       </div>
 
-      <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-12">
+      <div className="flex flex-col gap-10 lg:flex-row lg:items-center lg:gap-8">
 
-        {/* Screenshot — floating card */}
-        <div className="float-phone relative lg:w-[45%]">
-          {/* Outer glow */}
+        {/* ── LEFT: Phone + floating cards ── */}
+        <div className="relative mx-auto lg:mx-0" style={{ width: 280, flexShrink: 0 }}>
+
+          {/* Glow */}
           <div
-            className="absolute -inset-3 rounded-3xl opacity-40 blur-2xl"
-            style={{ background: "radial-gradient(ellipse at center, rgba(199,154,75,0.4), transparent 70%)" }}
+            className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+            style={{ width: 260, height: 260, background: "rgba(199,154,75,0.18)", zIndex: 0 }}
           />
-          {/* Card */}
-          <div
-            className="relative overflow-hidden rounded-2xl"
-            style={{ boxShadow: "0 20px 60px rgba(61,31,10,0.15), 0 0 0 1px rgba(199,154,75,0.2)" }}
-          >
-            {/* Browser chrome bar */}
-            <div
-              className="flex items-center gap-2 px-4"
-              style={{ height: 40, background: "#f0ece6", borderBottom: "1px solid #e4ddd3" }}
-            >
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f87171", display: "inline-block" }} />
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#fbbf24", display: "inline-block" }} />
-              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#34d399", display: "inline-block" }} />
-              <div
-                className="ml-2 flex flex-1 items-center rounded px-3"
-                style={{ height: 24, background: "#e4ddd3" }}
-              >
-                <span style={{ fontSize: 10, color: "#9a9080" }}>salonapp.pro/admin</span>
-              </div>
-            </div>
-            {/* Screenshots crossfade */}
-            <div className="relative" style={{ aspectRatio: "9/16", maxHeight: 480 }}>
-              {TABS.map((tab, i) => (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  key={tab.key}
-                  src={tab.img}
-                  alt={tab.label}
-                  className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500"
-                  style={{ opacity: i === active ? 1 : 0 }}
-                />
-              ))}
-            </div>
+
+          {/* Phone screenshot */}
+          <div className="float-phone relative z-10">
+            {TABS.map((tab, i) => (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img
+                key={tab.key}
+                src={tab.img}
+                alt={tab.label}
+                className="absolute inset-0 h-full w-full object-contain transition-opacity duration-500"
+                style={{ opacity: i === active ? 1 : 0 }}
+              />
+            ))}
+            {/* Placeholder height */}
+            <img src={TABS[0].img} alt="" className="invisible w-full" />
           </div>
+
+          {/* Floating stat cards — desktop only */}
+          {FLOAT_CARDS.map((card, i) => (
+            <div
+              key={i}
+              className={`absolute hidden lg:flex ${card.pos} z-20 items-center rounded-2xl bg-white px-4 py-3`}
+              style={{
+                boxShadow: "0 8px 32px rgba(61,31,10,0.12)",
+                border: "1px solid rgba(199,154,75,0.15)",
+                minWidth: 200,
+                animation: `float-phone ${3.5 + i * 0.7}s ease-in-out infinite`,
+              }}
+            >
+              {card.content}
+            </div>
+          ))}
         </div>
 
-        {/* Right — tabs + features */}
+        {/* ── RIGHT: Tabs + features ── */}
         <div className="flex-1">
-          {/* Tabs */}
+          {/* Tab buttons */}
           <div className="mb-6 flex flex-wrap gap-2">
             {TABS.map((tab, i) => (
               <button
@@ -121,28 +139,24 @@ export default function AdminShowcase() {
             ))}
           </div>
 
-          {/* Caption */}
-          <p className="mb-6 text-[15px] leading-relaxed text-[#5A5550]">
-            {TABS[active].caption}
-          </p>
-
           {/* Feature list */}
-          <ul className="space-y-4">
+          <ul className="mb-8 space-y-4">
             {[
-              "Работи от всеки телефон — без инсталация",
-              "Промени влизат веднага в живо",
-              "Всичко на едно място — час, клиент, приход",
-              "Ние настройваме всичко вместо теб",
+              { icon: "📱", text: "Работи от всеки телефон — без инсталация" },
+              { icon: "⚡", text: "Промени влизат веднага в живо" },
+              { icon: "📊", text: "Виждаш оборота, разходите и печалбата в реално време" },
+              { icon: "🔔", text: "SMS напомняния се изпращат автоматично" },
+              { icon: "🛠", text: "Ние настройваме всичко вместо теб" },
             ].map((item) => (
-              <li key={item} className="flex items-start gap-3">
-                <span className="mt-0.5 font-bold text-[#C79A4B]">✓</span>
-                <span className="text-sm text-[#5A5550]">{item}</span>
+              <li key={item.text} className="flex items-start gap-3">
+                <span className="text-base">{item.icon}</span>
+                <span className="text-sm text-[#5A5550]">{item.text}</span>
               </li>
             ))}
           </ul>
 
           {/* Dots */}
-          <div className="mt-8 flex gap-2">
+          <div className="flex gap-2">
             {TABS.map((_, i) => (
               <button
                 key={i}
