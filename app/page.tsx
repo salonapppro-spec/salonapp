@@ -83,7 +83,7 @@ export default function Home() {
         }
         .btn-pulse { animation: pulse-gold 2.8s ease-in-out infinite; }
         .playfair  { font-family: var(--font-playfair), Georgia, serif; }
-        html, body { background-color: #F8EBDD; }
+        html, body { background-color: #F8EBDD; color-scheme: only light; }
       `}</style>
 
       <LandingHeader />

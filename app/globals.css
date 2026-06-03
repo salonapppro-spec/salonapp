@@ -3,6 +3,7 @@
 @tailwind utilities;
 
 :root {
+  color-scheme: only light;
   --background: #F8EBDD;
   --foreground: #171717;
   --admin-surface: #ffffff;
@@ -12,18 +13,13 @@
   --admin-accent-foreground: #3d2b1f;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-    --admin-surface: #1a1512;
-    --admin-surface-muted: #2a221c;
-    --admin-accent: #d49a78;
-    --admin-accent-foreground: #f5ebe4;
-  }
+html {
+  color-scheme: only light;
+  background: #F8EBDD;
 }
 
 body {
+  color-scheme: only light;
   color: var(--foreground);
   background: var(--background);
 }

@@ -2,6 +2,16 @@
 
 ---
 
+## 2026-06-03 — Fix: mobile forced dark mode on landing
+
+**Проблем:** На някои Android/Samsung браузъри `salonapp.pro` се показваше с тъмен hero фон, а на други със светлия бежов фон. Причината беше глобалният `@media (prefers-color-scheme: dark)` в `app/globals.css`, който сменяше root цветовете при dark mode.
+
+**Fix:** `app/globals.css` вече заключва `color-scheme: only light` и не обръща `--background/--foreground` в dark mode. `app/layout.tsx` добавя `themeColor`, `colorScheme` и meta тагове за light схема, а `app/page.tsx` подсилва същото за landing страницата.
+
+**Проверка:** `npx tsc --noEmit` минава чисто. `npm run build` минава успешно със съществуващи lint warnings.
+
+---
+
 ## 2026-06-03 — Redesign: desktop AdminShowcase section
 
 **Промяна:** В `components/landing/AdminShowcase.tsx` desktop layout-ът е преработен от ляво-залепен phone mockup + празно пространство към центриран `max-w-[1450px]` grid. Phone mockup-ът е по-голям визуален anchor, floating cards са с по-мек shadow, а copy/tabs/features/stat блоковете са в подредена дясна колона.

@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import "./globals.css";
 
@@ -18,11 +18,13 @@ export const metadata: Metadata = {
   description: "Beauty. Business. Elevated.",
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 5,
-  viewportFit: "cover" as const,
+  viewportFit: "cover",
+  themeColor: "#F8EBDD",
+  colorScheme: "light",
 };
 
 export default function RootLayout({
@@ -33,6 +35,8 @@ export default function RootLayout({
   return (
     <html lang="bg" className="scroll-smooth">
       <head>
+        <meta name="color-scheme" content="light" />
+        <meta name="supported-color-schemes" content="light" />
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link
