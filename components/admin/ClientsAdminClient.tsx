@@ -209,11 +209,11 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1.3fr]">
         {/* Left: list */}
         <div>
-          <div className="mb-3 flex items-center justify-between gap-2">
+          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs font-semibold text-[#1A1A1A]/40">
               {clients.length} {clients.length === 1 ? "клиент" : "клиента"}
             </span>
-            <div className="flex items-center gap-2">
+            <div className="flex shrink-0 items-center gap-2">
               <a
                 href="/api/admin/clients/export"
                 className="rounded-xl border px-3 py-1.5 text-[11px] font-bold text-[#1A1A1A]/50 transition hover:text-[#1A1A1A]"
