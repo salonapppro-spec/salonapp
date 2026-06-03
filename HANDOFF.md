@@ -2,6 +2,18 @@
 
 ---
 
+## 2026-06-03 — Redesign: desktop AdminShowcase section
+
+**Промяна:** В `components/landing/AdminShowcase.tsx` desktop layout-ът е преработен от ляво-залепен phone mockup + празно пространство към центриран `max-w-[1450px]` grid. Phone mockup-ът е по-голям визуален anchor, floating cards са с по-мек shadow, а copy/tabs/features/stat блоковете са в подредена дясна колона.
+
+**Цел:** Секцията "Админ панел" да запълва страницата естествено на desktop и да изглежда като завършен product showcase, не като малък елемент вляво с празно поле вдясно.
+
+**Проверка:** `npx tsc --noEmit` минава чисто. Headless Chrome проверка:
+- 1920x980: `scrollWidth=1920`, section width `1920`
+- 390x844: `scrollWidth=390`, section width `390`
+
+---
+
 ## 2026-06-03 — Fix: landing hero композиция
 
 **Промяна:** В `app/page.tsx` hero mockup-ът `hero-mockup-new.png` е центриран вертикално, намален до `86%` от hero височината и дръпнат навътре от десния край (`right: 9.5%`). Текстовата колона е разширена до `48%`, центрирана вертикално и с по-голям desktop ляв отстъп. Mobile hero image-ът вече използва същия `hero-mockup-new.png` вместо стария `mobile-mockup.png`.
