@@ -9,6 +9,7 @@ import PlansSection from "@/components/landing/PlansSection";
 import TemplatesSection from "@/components/landing/TemplatesSection";
 import { LP } from "@/components/landing/palette";
 import RevealOnScroll from "@/components/landing/RevealOnScroll";
+import AdminShowcase from "@/components/landing/AdminShowcase";
 
 const playfair = Playfair_Display({
   subsets: ["latin", "cyrillic"],
@@ -261,6 +262,9 @@ export default function Home() {
             </div>
           </div>
         </section>
+
+        {/* ── ADMIN SHOWCASE ── */}
+        <RevealOnScroll><AdminShowcase /></RevealOnScroll>
 
         {/* ── TEMPLATES — "Избери своя стил" ── */}
         <RevealOnScroll><TemplatesSection /></RevealOnScroll>
