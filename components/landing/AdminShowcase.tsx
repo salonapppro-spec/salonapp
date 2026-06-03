@@ -12,7 +12,7 @@ const TABS = [
 
 const FLOAT_CARDS = [
   {
-    pos: "top-[8%] right-[2%]",
+    pos: "top-[9%] right-[-32%]",
     content: (
       <div className="flex items-center gap-2.5">
         <span className="text-xl">💰</span>
@@ -24,7 +24,7 @@ const FLOAT_CARDS = [
     ),
   },
   {
-    pos: "top-[38%] right-[-2%]",
+    pos: "top-[42%] right-[-36%]",
     content: (
       <div className="flex items-center gap-2.5">
         <span className="text-xl">📅</span>
@@ -36,12 +36,12 @@ const FLOAT_CARDS = [
     ),
   },
   {
-    pos: "bottom-[18%] right-[0%]",
+    pos: "bottom-[15%] right-[-34%]",
     content: (
       <div className="flex items-center gap-2.5">
-        <span className="text-xl">✅</span>
+        <span className="text-xl">✉️</span>
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8a6a]">SMS напомняне</p>
+          <p className="text-[10px] font-semibold uppercase tracking-wide text-[#9a8a6a]">Имейл напомняне</p>
           <p className="text-sm font-bold text-[#3D1F0A]">Изпратено автоматично</p>
         </div>
       </div>
@@ -142,9 +142,8 @@ export default function AdminShowcase() {
           <ul className="mt-8 grid gap-3 sm:grid-cols-2">
             {[
               { icon: "📱", text: "Работи от всеки телефон — без инсталация" },
-              { icon: "⚡", text: "Промени влизат веднага в живо" },
               { icon: "📊", text: "Виждаш оборота, разходите и печалбата в реално време" },
-              { icon: "🔔", text: "SMS напомняния се изпращат автоматично" },
+              { icon: "✉️", text: "Имейл напомняния се изпращат автоматично" },
               { icon: "🛠", text: "Ние настройваме всичко вместо теб" },
             ].map((item) => (
               <li

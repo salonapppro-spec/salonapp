@@ -26,7 +26,7 @@
 
 ## ✅ ЗАВЪРШЕНО
 
-- [x] **Redesign: desktop AdminShowcase section** (2026-06-03) — `components/landing/AdminShowcase.tsx` вече е центриран two-column product showcase с голям phone mockup, дясна copy/features колона и desktop/mobile проверка без horizontal scroll
+- [x] **Redesign: desktop AdminShowcase section** (2026-06-03) — `components/landing/AdminShowcase.tsx` вече е центриран two-column product showcase с голям phone mockup, изнесени floating cards, email reminders copy и desktop/mobile проверка без horizontal scroll
 - [x] **Fix: landing hero композиция** (2026-06-03) — `hero-mockup-new.png` е по-близо до текста, центриран вертикално и дръпнат навътре от десния край; същият mockup се използва и на mobile; desktop/mobile viewport проверени без horizontal scroll
 - [x] **Fix: horizontal scroll + mobile hero crop на Magnetic Eyes** (2026-05-23) — mobile responsive CSS + document-level horizontal scroll lock в `components/tenants/magnetic-eyes/Page.tsx`; проверено на 375px и 320px с `overflow = 0`
 - [x] **Fix: регистрация на нов тенант — задаване на парола** (2026-05-14) — recovery link redirectTo сочеше към `/admin/login` вместо `/admin/reset-password`
