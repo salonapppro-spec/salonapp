@@ -99,12 +99,12 @@ export default function Home() {
           <img
             src="/hero-mockup-new.png"
             alt=""
-            className="hidden lg:block absolute top-0 h-full w-auto"
-            style={{ maxWidth: "none", right: "-2%" }}
+            className="hidden lg:block absolute top-1/2 h-[86%] w-auto -translate-y-1/2"
+            style={{ maxWidth: "none", right: "9.5%" }}
           />
 
           {/* Текст */}
-          <div className="relative z-10 flex flex-col justify-start px-8 pt-14 pb-10 lg:pl-16 w-full lg:w-[42%] lg:min-h-[calc(100vh-57px)]">
+          <div className="relative z-10 flex flex-col justify-center px-8 py-12 md:px-12 lg:min-h-[calc(100vh-57px)] lg:w-[48%] lg:pl-24 lg:pr-0">
             {/* Badge */}
             <div className="badge-in mb-5 inline-flex items-center self-start rounded-full border border-[#E8DDD0] bg-[#EEE6DC] px-4 py-1.5">
               <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#C79A4B]">
@@ -153,9 +153,9 @@ export default function Home() {
           {/* Мобилен мокъп — под текста, само на малки екрани */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/mobile-mockup.png"
+            src="/hero-mockup-new.png"
             alt=""
-            className="lg:hidden w-full object-contain"
+            className="lg:hidden mx-auto mt-2 w-[108%] max-w-none -translate-x-[4%] object-contain sm:w-full sm:max-w-[520px] sm:translate-x-0"
           />
         </section>
 
