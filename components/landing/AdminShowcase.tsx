@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 
 const TABS = [
   {
@@ -53,7 +53,7 @@ export default function AdminShowcase() {
       <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-16">
 
         {/* Phone mockup */}
-        <div className="relative shrink-0" style={{ width: 260 }}>
+        <div className="float-phone relative shrink-0" style={{ width: 260 }}>
           {/* Phone frame */}
           <div
             className="relative overflow-hidden rounded-[36px] bg-white"

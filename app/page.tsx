@@ -10,6 +10,7 @@ import TemplatesSection from "@/components/landing/TemplatesSection";
 import { LP } from "@/components/landing/palette";
 import RevealOnScroll from "@/components/landing/RevealOnScroll";
 import AdminShowcase from "@/components/landing/AdminShowcase";
+import GoldDust from "@/components/landing/GoldDust";
 
 const playfair = Playfair_Display({
   subsets: ["latin", "cyrillic"],
@@ -69,6 +70,17 @@ export default function Home() {
           0%, 100% { box-shadow: 0 0 0 0 rgba(199,154,75,0.35); }
           50%       { box-shadow: 0 0 28px 8px rgba(199,154,75,0.15); }
         }
+        @keyframes float-phone {
+          0%, 100% { transform: translateY(0px); }
+          50%       { transform: translateY(-10px); }
+        }
+        .float-phone { animation: float-phone 4s ease-in-out infinite; }
+        @keyframes badge-in {
+          from { opacity: 0; transform: scale(0.85); }
+          to   { opacity: 1; transform: scale(1); }
+        }
+        .badge-in { animation: badge-in 0.6s cubic-bezier(0.22,1,0.36,1) both; }
+        }
         .btn-pulse { animation: pulse-gold 2.8s ease-in-out infinite; }
         .playfair  { font-family: var(--font-playfair), Georgia, serif; }
         html, body { background-color: #F8EBDD; }
@@ -80,6 +92,7 @@ export default function Home() {
 
         {/* ── HERO ── */}
         <section className="relative overflow-hidden bg-[#F8EBDD]">
+          <GoldDust count={35} />
 
           {/* Десктоп мокъп — абсолютно вдясно */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -93,7 +106,7 @@ export default function Home() {
           {/* Текст */}
           <div className="relative z-10 flex flex-col justify-start px-8 pt-14 pb-10 lg:pl-16 w-full lg:w-[42%] lg:min-h-[calc(100vh-57px)]">
             {/* Badge */}
-            <div className="mb-5 inline-flex items-center self-start rounded-full border border-[#E8DDD0] bg-[#EEE6DC] px-4 py-1.5">
+            <div className="badge-in mb-5 inline-flex items-center self-start rounded-full border border-[#E8DDD0] bg-[#EEE6DC] px-4 py-1.5">
               <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#C79A4B]">
                 Сайт и резервационна система за твоя салон
               </span>
@@ -388,6 +401,7 @@ export default function Home() {
 
         {/* ── CTA BANNER ── */}
         <section className="relative overflow-hidden bg-[#3D1F0A] px-4 py-14 sm:px-6 md:py-20">
+          <GoldDust count={50} />
           <div
             className="pointer-events-none absolute left-1/2 top-1/2 h-[500px] w-[500px] -translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]"
             style={{ background: LP.accent, opacity: 0.08 }}
