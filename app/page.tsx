@@ -97,10 +97,10 @@ export default function Home() {
           {/* Десктоп мокъп — абсолютно вдясно */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/hero-mockup.png"
+            src="/hero-mockup-new.png"
             alt=""
             className="hidden lg:block absolute top-0 h-full w-auto"
-            style={{ maxWidth: "none", right: "-6%" }}
+            style={{ maxWidth: "none", right: "-2%" }}
           />
 
           {/* Текст */}
