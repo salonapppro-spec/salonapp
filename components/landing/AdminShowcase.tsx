@@ -12,7 +12,7 @@ const TABS = [
 
 const FLOAT_CARDS = [
   {
-    pos: "top-[9%] left-[-35%]",
+    pos: "top-[9%] left-[60%]",
     content: (
       <div className="flex items-center gap-2.5">
         <span className="text-xl">💰</span>
@@ -24,7 +24,7 @@ const FLOAT_CARDS = [
     ),
   },
   {
-    pos: "top-[42%] left-[-40%]",
+    pos: "top-[42%] left-[64%]",
     content: (
       <div className="flex items-center gap-2.5">
         <span className="text-xl">📅</span>
@@ -36,7 +36,7 @@ const FLOAT_CARDS = [
     ),
   },
   {
-    pos: "bottom-[15%] left-[-37%]",
+    pos: "bottom-[15%] left-[61%]",
     content: (
       <div className="flex items-center gap-2.5">
         <span className="text-xl">✉️</span>
@@ -61,18 +61,18 @@ export default function AdminShowcase() {
     <section className="relative overflow-hidden bg-[#F8EBDD] px-6 py-16 sm:px-8 lg:px-16 lg:py-20">
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_22%_52%,rgba(199,154,75,0.16),transparent_34%),radial-gradient(circle_at_82%_20%,rgba(61,31,10,0.06),transparent_30%)]" />
 
-      <div className="relative mx-auto grid max-w-[1450px] items-center gap-10 lg:grid-cols-[minmax(390px,0.92fr)_minmax(560px,1.08fr)] xl:gap-16">
+      <div className="relative mx-auto grid max-w-[1580px] items-center gap-10 lg:grid-cols-[minmax(620px,0.95fr)_minmax(560px,1.05fr)] xl:gap-14">
         {/* ── LEFT: Phone + floating cards ── */}
-        <div className="relative mx-auto w-full max-w-[440px] lg:max-w-[520px]">
+        <div className="relative mx-auto w-full max-w-[440px] lg:mx-0 lg:max-w-[660px]">
 
           {/* Glow */}
           <div
-            className="absolute left-1/2 top-[54%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
+            className="absolute left-[28%] top-[54%] -translate-x-1/2 -translate-y-1/2 rounded-full blur-3xl"
             style={{ width: 430, height: 430, background: "rgba(199,154,75,0.18)", zIndex: 0 }}
           />
 
           {/* Phone screenshot */}
-          <div className="float-phone relative z-10 mx-auto w-[74%] max-w-[360px]">
+          <div className="float-phone relative z-10 mx-auto w-[74%] max-w-[360px] lg:mx-0 lg:w-[56%]">
             {TABS.map((tab, i) => (
               // eslint-disable-next-line @next/next/no-img-element
               <img
@@ -92,7 +92,7 @@ export default function AdminShowcase() {
           {FLOAT_CARDS.map((card, i) => (
             <div
               key={i}
-              className={`absolute hidden 2xl:flex ${card.pos} z-20 items-center rounded-2xl bg-white px-4 py-3 xl:px-5`}
+              className={`absolute hidden xl:flex ${card.pos} z-20 items-center rounded-2xl bg-white px-4 py-3 xl:px-5`}
               style={{
                 boxShadow: "0 18px 55px rgba(61,31,10,0.13)",
                 border: "1px solid rgba(199,154,75,0.15)",
