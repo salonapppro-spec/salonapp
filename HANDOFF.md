@@ -4,13 +4,13 @@
 
 ## 2026-06-03 — Fix: landing hero композиция
 
-**Промяна:** В `app/page.tsx` hero mockup-ът `hero-mockup-new.png` е центриран вертикално, намален до `86%` от hero височината и дръпнат навътре от десния край (`right: 9.5%`). Текстовата колона е разширена до `48%`, центрирана вертикално и с по-голям desktop ляв отстъп.
+**Промяна:** В `app/page.tsx` hero mockup-ът `hero-mockup-new.png` е центриран вертикално, намален до `86%` от hero височината и дръпнат навътре от десния край (`right: 9.5%`). Текстовата колона е разширена до `48%`, центрирана вертикално и с по-голям desktop ляв отстъп. Mobile hero image-ът вече използва същия `hero-mockup-new.png` вместо стария `mobile-mockup.png`.
 
 **Цел:** Hero image-ът стои по-близо до текста, двата елемента са по-центрирани и има повече въздух от краищата на desktop.
 
 **Проверка:** `npx tsc --noEmit` минава чисто. Headless Chrome проверка:
 - 1920x952: mockup `left=921`, `right=1738`, `scrollWidth=1920`
-- 390x844: desktop mockup скрит, mobile mockup видим, `scrollWidth=390`
+- 390x844: desktop mockup скрит, mobile `hero-mockup-new.png` видим, `scrollWidth=390`
 
 ---
 

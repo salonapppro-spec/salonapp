@@ -153,9 +153,9 @@ export default function Home() {
           {/* Мобилен мокъп — под текста, само на малки екрани */}
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
-            src="/mobile-mockup.png"
+            src="/hero-mockup-new.png"
             alt=""
-            className="lg:hidden w-full object-contain"
+            className="lg:hidden mx-auto mt-2 w-[108%] max-w-none -translate-x-[4%] object-contain sm:w-full sm:max-w-[520px] sm:translate-x-0"
           />
         </section>
 
