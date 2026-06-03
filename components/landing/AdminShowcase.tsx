@@ -32,6 +32,12 @@ const TABS = [
 export default function AdminShowcase() {
   const [active, setActive] = useState(0);
 
+  // Auto-rotate
+  useEffect(() => {
+    const id = setInterval(() => setActive((a) => (a + 1) % TABS.length), 3000);
+    return () => clearInterval(id);
+  }, []);
+
   return (
     <section className="bg-[#F8EBDD] px-8 py-14 lg:px-16">
       {/* Header */}
@@ -40,7 +46,7 @@ export default function AdminShowcase() {
           Админ панел
         </p>
         <h2
-          className="playfair mt-2 text-3xl font-bold text-[#3D1F0A] md:text-4xl"
+          className="mt-2 text-3xl font-bold text-[#3D1F0A] md:text-4xl"
           style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
         >
           Управлявай всичко от телефона.
@@ -50,46 +56,54 @@ export default function AdminShowcase() {
         </p>
       </div>
 
-      <div className="flex flex-col items-center gap-8 lg:flex-row lg:items-start lg:gap-16">
+      <div className="flex flex-col gap-8 lg:flex-row lg:items-center lg:gap-12">
 
-        {/* Phone mockup */}
-        <div className="float-phone relative shrink-0" style={{ width: 260 }}>
-          {/* Phone frame */}
+        {/* Screenshot — floating card */}
+        <div className="float-phone relative lg:w-[45%]">
+          {/* Outer glow */}
           <div
-            className="relative overflow-hidden rounded-[36px] bg-white"
-            style={{
-              width: 260,
-              height: 520,
-              boxShadow: "0 24px 60px rgba(61,31,10,0.18), 0 0 0 8px #3D1F0A, 0 0 0 10px #C79A4B33",
-            }}
-          >
-            {/* Notch */}
-            <div
-              className="absolute left-1/2 top-3 z-10 -translate-x-1/2 rounded-full bg-[#3D1F0A]"
-              style={{ width: 80, height: 24 }}
-            />
-            {/* Screenshot */}
-            {TABS.map((tab, i) => (
-              <img
-                key={tab.key}
-                src={tab.img}
-                alt={tab.label}
-                className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500"
-                style={{ opacity: i === active ? 1 : 0 }}
-              />
-            ))}
-          </div>
-
-          {/* Glow */}
-          <div
-            className="absolute -bottom-4 left-1/2 -translate-x-1/2 rounded-full blur-2xl"
-            style={{ width: 180, height: 40, background: "rgba(199,154,75,0.25)" }}
+            className="absolute -inset-3 rounded-3xl opacity-40 blur-2xl"
+            style={{ background: "radial-gradient(ellipse at center, rgba(199,154,75,0.4), transparent 70%)" }}
           />
+          {/* Card */}
+          <div
+            className="relative overflow-hidden rounded-2xl"
+            style={{ boxShadow: "0 20px 60px rgba(61,31,10,0.15), 0 0 0 1px rgba(199,154,75,0.2)" }}
+          >
+            {/* Browser chrome bar */}
+            <div
+              className="flex items-center gap-2 px-4"
+              style={{ height: 40, background: "#f0ece6", borderBottom: "1px solid #e4ddd3" }}
+            >
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#f87171", display: "inline-block" }} />
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#fbbf24", display: "inline-block" }} />
+              <span style={{ width: 10, height: 10, borderRadius: "50%", background: "#34d399", display: "inline-block" }} />
+              <div
+                className="ml-2 flex flex-1 items-center rounded px-3"
+                style={{ height: 24, background: "#e4ddd3" }}
+              >
+                <span style={{ fontSize: 10, color: "#9a9080" }}>salonapp.pro/admin</span>
+              </div>
+            </div>
+            {/* Screenshots crossfade */}
+            <div className="relative" style={{ aspectRatio: "9/16", maxHeight: 480 }}>
+              {TABS.map((tab, i) => (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  key={tab.key}
+                  src={tab.img}
+                  alt={tab.label}
+                  className="absolute inset-0 h-full w-full object-cover object-top transition-opacity duration-500"
+                  style={{ opacity: i === active ? 1 : 0 }}
+                />
+              ))}
+            </div>
+          </div>
         </div>
 
-        {/* Tabs + caption */}
+        {/* Right — tabs + features */}
         <div className="flex-1">
-          {/* Tab buttons */}
+          {/* Tabs */}
           <div className="mb-6 flex flex-wrap gap-2">
             {TABS.map((tab, i) => (
               <button
@@ -107,25 +121,41 @@ export default function AdminShowcase() {
             ))}
           </div>
 
-          {/* Feature list */}
-          <div className="space-y-4">
-            <ul className="space-y-3">
-              {[
-                { icon: "✓", text: "Работи от всеки телефон — без инсталация" },
-                { icon: "✓", text: "Промени влизат веднага в живо" },
-                { icon: "✓", text: "Всичко на едно място — час, клиент, приход" },
-                { icon: "✓", text: "Ние настройваме всичко вместо теб" },
-              ].map((item) => (
-                <li key={item.text} className="flex items-start gap-3">
-                  <span className="mt-0.5 text-[#C79A4B] font-bold">{item.icon}</span>
-                  <span className="text-sm text-[#5A5550]">{item.text}</span>
-                </li>
-              ))}
-            </ul>
+          {/* Caption */}
+          <p className="mb-6 text-[15px] leading-relaxed text-[#5A5550]">
+            {TABS[active].caption}
+          </p>
 
-            <p className="mt-2 text-[13px] italic text-[#6E6A63]">
-              {TABS[active].caption}
-            </p>
+          {/* Feature list */}
+          <ul className="space-y-4">
+            {[
+              "Работи от всеки телефон — без инсталация",
+              "Промени влизат веднага в живо",
+              "Всичко на едно място — час, клиент, приход",
+              "Ние настройваме всичко вместо теб",
+            ].map((item) => (
+              <li key={item} className="flex items-start gap-3">
+                <span className="mt-0.5 font-bold text-[#C79A4B]">✓</span>
+                <span className="text-sm text-[#5A5550]">{item}</span>
+              </li>
+            ))}
+          </ul>
+
+          {/* Dots */}
+          <div className="mt-8 flex gap-2">
+            {TABS.map((_, i) => (
+              <button
+                key={i}
+                onClick={() => setActive(i)}
+                style={{
+                  width: i === active ? 24 : 8,
+                  height: 8,
+                  borderRadius: 999,
+                  background: i === active ? "#C79A4B" : "#E8DDD0",
+                  transition: "all 0.3s",
+                }}
+              />
+            ))}
           </div>
         </div>
       </div>
