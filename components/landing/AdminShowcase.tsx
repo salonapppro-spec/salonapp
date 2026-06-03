@@ -12,7 +12,7 @@ const TABS = [
 
 const FLOAT_CARDS = [
   {
-    pos: "top-[9%] right-[-32%]",
+    pos: "top-[9%] left-[-35%]",
     content: (
       <div className="flex items-center gap-2.5">
         <span className="text-xl">💰</span>
@@ -24,7 +24,7 @@ const FLOAT_CARDS = [
     ),
   },
   {
-    pos: "top-[42%] right-[-36%]",
+    pos: "top-[42%] left-[-40%]",
     content: (
       <div className="flex items-center gap-2.5">
         <span className="text-xl">📅</span>
@@ -36,7 +36,7 @@ const FLOAT_CARDS = [
     ),
   },
   {
-    pos: "bottom-[15%] right-[-34%]",
+    pos: "bottom-[15%] left-[-37%]",
     content: (
       <div className="flex items-center gap-2.5">
         <span className="text-xl">✉️</span>
@@ -92,7 +92,7 @@ export default function AdminShowcase() {
           {FLOAT_CARDS.map((card, i) => (
             <div
               key={i}
-              className={`absolute hidden lg:flex ${card.pos} z-20 items-center rounded-2xl bg-white px-4 py-3 xl:px-5`}
+              className={`absolute hidden 2xl:flex ${card.pos} z-20 items-center rounded-2xl bg-white px-4 py-3 xl:px-5`}
               style={{
                 boxShadow: "0 18px 55px rgba(61,31,10,0.13)",
                 border: "1px solid rgba(199,154,75,0.15)",
