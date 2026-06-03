@@ -159,52 +159,8 @@ export default function Home() {
           />
         </section>
 
-        {/* ── SOCIAL PROOF CAROUSEL ── */}
-        <section className="border-y border-[#E8DDD0] bg-white py-8 overflow-hidden">
-          <p className="mb-6 text-center text-[10px] font-semibold uppercase tracking-[0.35em] text-[#6E6A63]">
-            Доверени от салони в цяла България
-          </p>
-          <style>{`
-            @keyframes brands-scroll {
-              0%   { transform: translateX(0); }
-              100% { transform: translateX(-50%); }
-            }
-            .brands-track {
-              animation: brands-scroll 22s linear infinite;
-            }
-            .brands-track:hover { animation-play-state: paused; }
-          `}</style>
-          <div className="brands-track flex items-center whitespace-nowrap">
-            {[
-              { name: "LINDY NAILS", sub: "НОКТИ & МАНИКЮР" },
-              { name: "THE SKIN", sub: "КОЗМЕТИКА & ГРИЖА" },
-              { name: "THE BEAST", sub: "BARBERSHOP" },
-              { name: "EUPHORIA", sub: "BEAUTY STUDIO" },
-              { name: "BEAUTY ROOM", sub: "BY IVANA" },
-              { name: "PAW EMPIRE", sub: "PET GROOMING" },
-              { name: "MAGNETIC EYES", sub: "ПЕРМАНЕНТЕН ГРИМ" },
-              { name: "LINDY NAILS", sub: "НОКТИ & МАНИКЮР" },
-              { name: "THE SKIN", sub: "КОЗМЕТИКА & ГРИЖА" },
-              { name: "THE BEAST", sub: "BARBERSHOP" },
-              { name: "EUPHORIA", sub: "BEAUTY STUDIO" },
-              { name: "BEAUTY ROOM", sub: "BY IVANA" },
-              { name: "PAW EMPIRE", sub: "PET GROOMING" },
-              { name: "MAGNETIC EYES", sub: "ПЕРМАНЕНТЕН ГРИМ" },
-            ].map((brand, i) => (
-              <div key={i} className="mx-10 flex flex-col items-center leading-tight">
-                <span className="text-sm font-black uppercase tracking-widest text-[#3D1F0A]">
-                  {brand.name}
-                </span>
-                <span className="text-[9px] font-semibold uppercase tracking-[0.2em] text-[#C79A4B]">
-                  {brand.sub}
-                </span>
-              </div>
-            ))}
-          </div>
-        </section>
-
         {/* ── FEATURES GRID ── */}
-        <section id="features" className="bg-[#F8EBDD] px-8 py-12 lg:px-16 md:py-16 scroll-mt-16">
+        <section id="features" className="bg-white px-8 py-12 lg:px-16 md:py-16 scroll-mt-16">
           <div>
             <h2 className="playfair mb-10 text-center text-3xl font-bold text-[#3D1F0A] md:text-4xl">
               Всичко, от което се нуждае твоят салон
