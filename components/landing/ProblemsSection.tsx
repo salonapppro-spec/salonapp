@@ -56,11 +56,11 @@ const cards = [
 
 export default function ProblemsSection() {
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-5xl mx-auto">
+    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
       {cards.map(({ Icon, title, body }, i) => (
         <div
           key={i}
-          className="flex flex-col gap-4 rounded-2xl border border-[#E7DDD0] bg-[#FDFBF8] p-7 shadow-sm"
+          className="card-hover flex flex-col gap-4 rounded-2xl border border-[#E7DDD0] bg-[#FDFBF8] p-7 shadow-sm"
         >
           <div
             className="flex h-11 w-11 items-center justify-center rounded-xl"

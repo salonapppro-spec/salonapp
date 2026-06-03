@@ -12,7 +12,7 @@ export default function GlobalError(props: { error: Error & { digest?: string };
 
   return (
     <html lang="bg">
-      <body className="min-h-screen bg-[#FAF7F2] text-[#1A1A1A]">
+      <body className="min-h-screen bg-[#F8EBDD] text-[#1A1A1A]">
         <main className="mx-auto flex min-h-screen max-w-xl flex-col items-center justify-center px-6 text-center">
           <h1 className="text-2xl font-bold">Нещо се обърка</h1>
           <p className="mt-3 text-sm text-[#1A1A1A]/70">

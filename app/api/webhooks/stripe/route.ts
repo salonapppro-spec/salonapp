@@ -203,7 +203,7 @@ async function deactivateTenant(customerId: string | null, subscriptionId: strin
   }
   // Не деактивираме веднага — оставяме grace периода да изтече естествено.
   console.log(
-    `[stripe-webhook] Абонаментът е прекратен за ${tenant.salon_slug}. Grace до: ${tenant.grace_until_date ?? "—"}`,
+    `[stripe-webhook] Абонаментът е прекратен за ${tenant.salon_slug}.`,
   );
 }
 

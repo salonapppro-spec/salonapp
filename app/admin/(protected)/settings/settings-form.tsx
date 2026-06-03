@@ -49,7 +49,7 @@ function ImageUpload({
       <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "rgba(26,26,26,0.4)" }}>{label}</label>
       <div className="mt-2 flex items-start gap-3">
         <div
-          className="shrink-0 overflow-hidden rounded-xl border flex items-center justify-center bg-[#FAF7F2]"
+          className="shrink-0 overflow-hidden rounded-xl border flex items-center justify-center bg-[#F8EBDD]"
           style={{
             width: aspect === "wide" ? 96 : 56,
             height: 56,

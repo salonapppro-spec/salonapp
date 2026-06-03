@@ -39,7 +39,7 @@ export function AdminChrome(props: {
   return (
     <>
       {/* Desktop sidebar */}
-      <aside className="fixed bottom-0 left-0 top-0 z-40 hidden h-[100dvh] w-56 flex-col border-r border-[#C9A84C]/15 bg-gradient-to-b from-[#FAF7F2] to-[#F3EBE0] shadow-[2px_0_20px_rgba(0,0,0,0.06)] backdrop-blur-md md:flex">
+      <aside className="fixed bottom-0 left-0 top-0 z-40 hidden h-[100dvh] w-56 flex-col border-r border-[#C9A84C]/15 bg-gradient-to-b from-[#F8EBDD] to-[#F3EBE0] shadow-[2px_0_20px_rgba(0,0,0,0.06)] backdrop-blur-md md:flex">
         {/* Logo */}
         <div className="shrink-0 border-b border-[#C9A84C]/15 px-4 py-4">
           <Link href="/admin/dashboard" className="group flex items-center gap-2">
@@ -132,7 +132,7 @@ export function AdminChrome(props: {
 
       {/* Mobile bottom tab bar */}
       <nav
-        className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-[#C9A84C]/20 bg-[#FAF7F2]/97 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden"
+        className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-[#C9A84C]/20 bg-[#F8EBDD]/97 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden"
         aria-label="Основна навигация"
       >
         {primaryTabs.map((l) => {
@@ -166,7 +166,7 @@ export function AdminChrome(props: {
       </nav>
 
       {/* Mobile header: brand row + full-width day shortcuts (no horizontal squeeze) */}
-      <header className="sticky top-0 z-30 border-b border-[#C9A84C]/20 bg-[#FAF7F2]/92 backdrop-blur-md md:hidden">
+      <header className="sticky top-0 z-30 border-b border-[#C9A84C]/20 bg-[#F8EBDD]/92 backdrop-blur-md md:hidden">
         <div className="flex items-center justify-between gap-2 px-3 py-2.5">
           <Link href="/admin/dashboard" className="flex min-w-0 shrink-0 items-center gap-1.5">
             <span

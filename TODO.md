@@ -4,25 +4,13 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-04-30
+> Актуализирай след всяка задача. Последна промяна: 2026-06-02
 
 ---
 
 ## 🔴 КРИТИЧНО (сега)
 
-- [ ] **Свържи домейн `salonapp.pro` с Vercel** — Лина  
-  → Vercel → Settings → Domains → добави `salonapp.pro` и `*.salonapp.pro`  
-  → DNS: `A` запис `@` → `76.76.21.21` | `CNAME` `*` → `cname.vercel-dns.com`  
-  → До тогава работи само `salonapp-ten.vercel.app/salon-bizhu`
-
-- [ ] **Добави Stripe ENV в Vercel** — Лина  
-  → `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`  
-  → `NEXT_PUBLIC_STRIPE_PAYMENT_LINK_STANDARD/PRO/PREMIUM/COLLECTIVE`
-
-- [ ] **Регистрирай Stripe Webhook endpoint** — Лина  
-  → Stripe Dashboard → Developers → Webhooks  
-  → URL: `https://salonapp.pro/api/webhooks/stripe`  
-  → Events: `checkout.session.completed`, `invoice.paid`, `invoice.payment_failed`, `customer.subscription.deleted`
+Няма. ✅
 
 ---
 
@@ -55,7 +43,9 @@
 - [x] **Имейл нотификация до салона при резервация** (2026-05-11) → PR #11
 - [x] **Нормализиране на телефони** (2026-05-11) — migration 024
 - [x] **Банер при super-admin impersonation** — в `layout.tsx`
-- [x] **Clean шаблон primary_color** — оправено
+- [x] **Изтриване на всички шаблони** (2026-06-02) — bloom, clean, zen, luxe и др. изтрити; всеки салон има уникален компонент в `components/tenants/`
+- [x] **Свързване на домейн + Stripe** (2026-06-02) — `salonapp.pro` + `*.salonapp.pro` в Vercel, всички Stripe ENV + webhook ✅
+- [x] **Clean шаблон primary_color** — legacy, не се ползва
 - [x] **Lead нотификация до супер-админ** — `lib/lead-notify.ts`
 - [x] **Автоматична деактивация cron** — `billing-expiry` + `vercel.json`
 - [x] **Google Calendar интеграция Phase 1+2+3** (2026-05-05)

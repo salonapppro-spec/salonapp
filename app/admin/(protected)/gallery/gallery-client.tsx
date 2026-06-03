@@ -194,7 +194,7 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
           <div className="mt-3 flex gap-2">
             <input
               className="flex-1 rounded-xl border px-3 py-2 text-sm outline-none transition focus:ring-2 focus:ring-[#C9A84C]/30"
-              style={{ borderColor: "rgba(201,168,76,0.3)", background: "#FAF7F2" }}
+              style={{ borderColor: "rgba(201,168,76,0.3)", background: "#F8EBDD" }}
               placeholder="https://..."
               type="url"
               value={url}
