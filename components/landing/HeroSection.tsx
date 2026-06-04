@@ -161,7 +161,7 @@ export default function HeroSection() {
 
         {/* ───────── Мобилен мокъп (под текста) ───────── */}
         <motion.div
-          className="lg:hidden mx-auto mt-2 w-[108%] max-w-none -translate-x-[4%] sm:w-full sm:max-w-[520px] sm:translate-x-0"
+          className="lg:hidden w-full px-4 pb-8 pt-2"
           initial={reduce ? { opacity: 0 } : { opacity: 0, y: 32 }}
           animate={reduce ? { opacity: 1 } : { opacity: 1, y: 0 }}
           transition={{ duration: 0.9, delay: 0.5, ease: [0.16, 0.85, 0.25, 1] }}
@@ -172,7 +172,7 @@ export default function HeroSection() {
             width={1157}
             height={1016}
             priority
-            className="h-auto w-full object-contain"
+            className="h-auto w-full object-contain drop-shadow-[0_24px_40px_rgba(70,45,28,0.22)]"
           />
         </motion.div>
       </div>
