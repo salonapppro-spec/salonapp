@@ -11,6 +11,7 @@ import { LP } from "@/components/landing/palette";
 import RevealOnScroll from "@/components/landing/RevealOnScroll";
 import AdminShowcase from "@/components/landing/AdminShowcase";
 import GoldDust from "@/components/landing/GoldDust";
+import HeroSection from "@/components/landing/HeroSection";
 
 const playfair = Playfair_Display({
   subsets: ["latin", "cyrillic"],
@@ -98,75 +99,8 @@ export default function Home() {
       <main className="pt-[57px]">
 
         {/* ── HERO ── */}
-        <section className="relative overflow-hidden bg-[#F8EBDD]">
-          <GoldDust count={35} />
-
-          {/* Десктоп мокъп — абсолютно вдясно */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/hero-mockup-new.png"
-            alt=""
-            className="mockup-float hidden lg:block absolute h-[86%] w-auto"
-            style={{ maxWidth: "none", right: "9.5%", top: "50%" }}
-          />
-
-
-          {/* Текст */}
-          <div className="relative z-10 flex flex-col justify-center px-8 py-12 md:px-12 lg:min-h-[calc(100vh-57px)] lg:w-[48%] lg:pl-24 lg:pr-0">
-            {/* Badge */}
-            <div className="badge-in mb-5 inline-flex items-center self-start rounded-full border border-[#E8DDD0] bg-[#EEE6DC] px-4 py-1.5">
-              <span className="text-[10px] font-semibold uppercase tracking-[0.15em] text-[#C79A4B]">
-                Сайт и резервационна система за твоя салон
-              </span>
-            </div>
-
-            <h1 className="playfair font-bold leading-[1.1] tracking-tight text-[#3D1F0A]" style={{ fontSize: "clamp(2rem, 5vw, 5rem)" }}>
-              Твоят бизнес заслужава
-              <br />
-              <span style={{ color: "#C79A4B" }}>повече от тефтер.</span>
-            </h1>
-
-            <p className="mt-5 text-[15px] leading-relaxed text-[#5A5550]">
-              Спри да делиш клиентите си с конкуренцията. Получи собствен сайт и автоматизирана система за резервации.{" "}
-              <strong className="text-[#3D1F0A]">Ние изграждаме всичко и настройваме услугите ти вместо теб – напълно безплатно.</strong>
-            </p>
-
-            <div className="mt-7 flex flex-col gap-3 sm:flex-row">
-              <Link
-                href="/get-started"
-                className="btn-pulse inline-flex min-h-[44px] items-center justify-center bg-[#C79A4B] px-6 text-[11px] font-semibold uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
-              >
-                Заяви безплатна консултация и сайт
-              </Link>
-              <a
-                href="#demo"
-                className="inline-flex min-h-[44px] items-center justify-center border border-[#3D1F0A]/30 px-6 text-[11px] font-semibold uppercase tracking-widest text-[#3D1F0A] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"
-              >
-                Виж демо салон
-              </a>
-            </div>
-
-            {/* Trust badges */}
-            <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2">
-              {["Без банкова карта при регистрация", "Без договори", "Спираш, когато поискаш"].map((t) => (
-                <span key={t} className="flex items-center gap-1.5 text-sm text-[#5A5550]">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C79A4B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  {t}
-                </span>
-              ))}
-            </div>
-          </div>
-
-          {/* Мобилен мокъп — под текста, само на малки екрани */}
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/hero-mockup-new.png"
-            alt=""
-            className="lg:hidden mx-auto mt-2 w-[108%] max-w-none -translate-x-[4%] object-contain sm:w-full sm:max-w-[520px] sm:translate-x-0"
-          />
-        </section>
+        <GoldDust count={35} />
+        <HeroSection />
 
         {/* ── FEATURES GRID ── */}
         <section id="features" className="bg-white px-8 py-12 lg:px-16 md:py-16 scroll-mt-16">
