@@ -70,17 +70,24 @@ export default function Home() {
           0%, 100% { box-shadow: 0 0 0 0 rgba(199,154,75,0.35); }
           50%       { box-shadow: 0 0 28px 8px rgba(199,154,75,0.15); }
         }
-        @keyframes float-phone {
-          0%, 100% { transform: translateY(0px); }
-          50%       { transform: translateY(-10px); }
+        @keyframes float-mockup {
+          0%, 100% { transform: translateY(calc(-50% + 0px)) rotateY(0deg); }
+          50%       { transform: translateY(calc(-50% - 12px)) rotateY(0deg); }
         }
-        .float-phone { animation: float-phone 4s ease-in-out infinite; }
+        @keyframes in-right {
+          from { opacity: 0; transform: translateY(-50%) translateX(80px) rotateY(-14deg) scale(0.95); }
+          60%  { opacity: 1; }
+          to   { opacity: 1; transform: translateY(-50%) translateX(0px) rotateY(0deg) scale(1); }
+        }
+        .mockup-float {
+          animation: in-right 1.2s cubic-bezier(0.16,0.85,0.25,1) 0.2s forwards,
+                     float-mockup 7s ease-in-out 1.5s infinite;
+        }
         @keyframes badge-in {
           from { opacity: 0; transform: scale(0.85); }
           to   { opacity: 1; transform: scale(1); }
         }
         .badge-in { animation: badge-in 0.6s cubic-bezier(0.22,1,0.36,1) both; }
-        }
         .btn-pulse { animation: pulse-gold 2.8s ease-in-out infinite; }
         .playfair  { font-family: var(--font-playfair), Georgia, serif; }
         html, body { background-color: #F8EBDD; color-scheme: only light; }
@@ -99,9 +106,10 @@ export default function Home() {
           <img
             src="/hero-mockup-new.png"
             alt=""
-            className="hidden lg:block absolute top-1/2 h-[86%] w-auto -translate-y-1/2"
-            style={{ maxWidth: "none", right: "9.5%" }}
+            className="mockup-float hidden lg:block absolute h-[86%] w-auto"
+            style={{ maxWidth: "none", right: "9.5%", top: "50%" }}
           />
+
 
           {/* Текст */}
           <div className="relative z-10 flex flex-col justify-center px-8 py-12 md:px-12 lg:min-h-[calc(100vh-57px)] lg:w-[48%] lg:pl-24 lg:pr-0">
@@ -113,13 +121,14 @@ export default function Home() {
             </div>
 
             <h1 className="playfair font-bold leading-[1.1] tracking-tight text-[#3D1F0A]" style={{ fontSize: "clamp(2rem, 5vw, 5rem)" }}>
-              <span style={{ display: "block" }}>Твоят салон.</span>
-              <span style={{ display: "block" }}>Твоят сайт.</span>
-              <span style={{ display: "block" }}>Твоята <span style={{ color: "#C79A4B" }}>система.</span></span>
+              Твоят бизнес заслужава
+              <br />
+              <span style={{ color: "#C79A4B" }}>повече от тефтер.</span>
             </h1>
 
-            <p className="mt-4 text-[15px] leading-relaxed text-[#5A5550]">
-              Красив сайт, онлайн резервации, график, клиенти и напомняния. Всичко необходимо, за да расте бизнесът ти.
+            <p className="mt-5 text-[15px] leading-relaxed text-[#5A5550]">
+              Спри да делиш клиентите си с конкуренцията. Получи собствен сайт и автоматизирана система за резервации.{" "}
+              <strong className="text-[#3D1F0A]">Ние изграждаме всичко и настройваме услугите ти вместо теб – напълно безплатно.</strong>
             </p>
 
             <div className="mt-7 flex flex-col gap-3 sm:flex-row">
@@ -127,19 +136,19 @@ export default function Home() {
                 href="/get-started"
                 className="btn-pulse inline-flex min-h-[44px] items-center justify-center bg-[#C79A4B] px-6 text-[11px] font-semibold uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
               >
-                Започни безплатно →
+                Заяви безплатна консултация и сайт
               </Link>
               <a
-                href="#templates"
+                href="#demo"
                 className="inline-flex min-h-[44px] items-center justify-center border border-[#3D1F0A]/30 px-6 text-[11px] font-semibold uppercase tracking-widest text-[#3D1F0A] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"
               >
-                Виж демо ▶
+                Виж демо салон
               </a>
             </div>
 
             {/* Trust badges */}
             <div className="mt-6 flex flex-wrap gap-x-4 gap-y-2">
-              {["Без договор", "Без банкова карта", "Спираш когато поискаш"].map((t) => (
+              {["Без банкова карта при регистрация", "Без договори", "Спираш, когато поискаш"].map((t) => (
                 <span key={t} className="flex items-center gap-1.5 text-sm text-[#5A5550]">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#C79A4B" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
@@ -257,64 +266,75 @@ export default function Home() {
         </section>
 
         {/* ── СРАВНЕНИЕ ── */}
-        <section id="comparison" className="bg-[#F8EBDD] px-8 py-14 lg:px-16 scroll-mt-16">
+        <section id="comparison" className="bg-[#F8EBDD] px-5 py-14 scroll-mt-16 sm:px-8 lg:px-16">
           <RevealOnScroll>
-            <h2 className="playfair mb-3 text-center text-3xl font-bold text-[#3D1F0A] md:text-4xl">
-              Защо SalonApp?
+            <h2 className="playfair mb-10 text-center text-3xl font-bold text-[#3D1F0A] md:text-4xl">
+              Защо SalonApp е по-добрият избор за твоя бранд?
             </h2>
-            <p className="mb-12 text-center text-sm text-[#6E6A63]">Сравни сам и реши.</p>
 
-            <div className="mx-auto flex max-w-2xl flex-col gap-4 sm:flex-row sm:items-stretch sm:gap-6">
-
-              {/* Marketplace — dimmed */}
-              <div className="flex-1 rounded-2xl border border-[#E8DDD0] bg-white/60 p-8 opacity-70">
-                <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#9a9080]">Marketplace / Каталог</p>
-                <p className="mb-8 text-lg font-semibold text-[#9a9080]">Загубен сред другите</p>
-                {[
-                  "Само профил при тях",
-                  "Рекламират конкурентите ти",
-                  "Те притежават данните",
-                  "Бориш се сам с настройките",
-                  "Плащаш комисионна за всеки клиент",
-                ].map((item) => (
-                  <div key={item} className="mb-4 flex items-start gap-3">
-                    <span className="mt-0.5 text-base">✗</span>
-                    <span className="text-sm text-[#9a9080]">{item}</span>
-                  </div>
-                ))}
+            <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[#E2D4C3] shadow-sm">
+              {/* Header */}
+              <div className="grid grid-cols-[1fr_1fr_1fr] bg-[#1E1209] text-sm font-semibold">
+                <div className="px-5 py-4 text-[#9A8F85]">Какво получаваш?</div>
+                <div className="border-l border-white/10 px-5 py-4 text-center text-white/80">Marketplace</div>
+                <div className="border-l border-white/10 px-5 py-4 text-center font-bold text-[#C79A4B]">SalonApp</div>
               </div>
 
-              {/* SalonApp — golden */}
-              <div className="relative flex-1 rounded-2xl border border-[#C79A4B]/40 bg-[#3D1F0A] p-8 shadow-xl">
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-[#C79A4B] px-4 py-1 text-[10px] font-semibold uppercase tracking-[0.2em] text-white">
-                  Препоръчано
-                </div>
-                <p className="mb-1 text-[10px] font-semibold uppercase tracking-[0.3em] text-[#C79A4B]">SalonApp</p>
-                <p className="mb-8 text-lg font-semibold text-white">Твоят бранд. Твоите правила.</p>
-                {[
-                  "Собствен луксозен сайт",
-                  "Клиентите виждат само теб",
-                  "Ти притежаваш всичко",
-                  "Ние правим настройката вместо теб",
-                  "0% комисионна, никога",
-                ].map((item) => (
-                  <div key={item} className="mb-4 flex items-start gap-3">
-                    <span className="mt-0.5 text-base text-[#C79A4B]">✓</span>
-                    <span className="text-sm text-white/90">{item}</span>
-                  </div>
-                ))}
-                <Link
-                  href="/get-started"
-                  className="btn-pulse mt-6 inline-flex w-full min-h-[48px] items-center justify-center bg-[#C79A4B] text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-[#A6823A] rounded-xl"
+              {/* Rows */}
+              {[
+                {
+                  feature: "Твой сайт",
+                  bad: { icon: "❌", text: "Само профил при тях" },
+                  good: { text: "Модерен собствен сайт" },
+                },
+                {
+                  feature: "Клиенти",
+                  bad: { icon: "❌", text: "Рекламират конкуренти" },
+                  good: { text: "Виждат само теб" },
+                },
+                {
+                  feature: "База данни",
+                  bad: { icon: "⚠️", text: "Те притежават данните" },
+                  good: { text: "Ти притежаваш базата" },
+                },
+                {
+                  feature: "Настройка",
+                  bad: { icon: "❌", text: "Бориш се сам с часове" },
+                  good: { text: "Ние правим всичко" },
+                },
+                {
+                  feature: "Комисионни",
+                  bad: { icon: "⚠️", text: "Плащаш за всеки клиент" },
+                  good: { text: "0% комисионна" },
+                },
+              ].map((row, i) => (
+                <div
+                  key={row.feature}
+                  className={`grid grid-cols-[1fr_1fr_1fr] border-t border-[#E2D4C3] text-sm ${i % 2 === 0 ? "bg-white" : "bg-[#FDF7F2]"}`}
                 >
-                  Започни безплатно →
-                </Link>
-              </div>
+                  <div className="px-5 py-5 font-bold text-[#3D1F0A]">{row.feature}</div>
+                  <div className="flex flex-col items-center justify-center gap-1 border-l border-[#E2D4C3] px-4 py-5 text-center text-[#9A8F85]">
+                    <span className="text-lg leading-none">{row.bad.icon}</span>
+                    <span className="text-xs">{row.bad.text}</span>
+                  </div>
+                  <div className="flex flex-col items-center justify-center gap-1 border-l border-[#E2D4C3] px-4 py-5 text-center">
+                    <span className="text-lg leading-none">✅</span>
+                    <span className="text-xs font-bold text-[#3D1F0A]">{row.good.text}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
 
+            <div className="mt-10 text-center">
+              <Link
+                href="/get-started"
+                className="inline-flex min-h-[52px] items-center justify-center rounded-xl bg-[#C79A4B] px-10 text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
+              >
+                Заяви безплатна консултация и сайт
+              </Link>
             </div>
           </RevealOnScroll>
         </section>
-
         {/* ── PLANS ── */}
         <section className="bg-[#F8EBDD] px-8 py-10 lg:px-16 md:py-14">
           <div>
