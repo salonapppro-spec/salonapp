@@ -205,10 +205,10 @@ export default function Home() {
 
             <div className="mx-auto max-w-3xl overflow-hidden rounded-2xl border border-[#E2D4C3] shadow-sm">
               {/* Header */}
-              <div className="grid grid-cols-[1fr_1fr_1fr] bg-[#1E1209] text-sm font-semibold">
-                <div className="px-5 py-4 text-[#9A8F85]">Какво получаваш?</div>
-                <div className="border-l border-white/10 px-5 py-4 text-center text-white/80">Marketplace</div>
-                <div className="border-l border-white/10 px-5 py-4 text-center font-bold text-[#C79A4B]">SalonApp</div>
+              <div className="grid grid-cols-[1.1fr_1fr_1fr] bg-[#1E1209] text-sm font-semibold">
+                <div className="px-3 py-3 text-[11px] text-[#9A8F85] sm:px-5 sm:py-4 sm:text-sm">Какво получаваш?</div>
+                <div className="border-l border-white/10 px-2 py-3 text-center text-[11px] text-white/80 sm:px-5 sm:py-4 sm:text-sm">Marketplace</div>
+                <div className="border-l border-white/10 px-2 py-3 text-center text-[11px] font-bold text-[#C79A4B] sm:px-5 sm:py-4 sm:text-sm">SalonApp</div>
               </div>
 
               {/* Rows */}
@@ -216,7 +216,7 @@ export default function Home() {
                 {
                   feature: "Твой сайт",
                   bad: { icon: "❌", text: "Само профил при тях" },
-                  good: { text: "Модерен собствен сайт" },
+                  good: { text: "Собствен сайт" },
                 },
                 {
                   feature: "Клиенти",
@@ -230,27 +230,27 @@ export default function Home() {
                 },
                 {
                   feature: "Настройка",
-                  bad: { icon: "❌", text: "Бориш се сам с часове" },
+                  bad: { icon: "❌", text: "Бориш се сам" },
                   good: { text: "Ние правим всичко" },
                 },
                 {
                   feature: "Комисионни",
-                  bad: { icon: "⚠️", text: "Плащаш за всеки клиент" },
+                  bad: { icon: "⚠️", text: "Плащаш за всеки" },
                   good: { text: "0% комисионна" },
                 },
               ].map((row, i) => (
                 <div
                   key={row.feature}
-                  className={`grid grid-cols-[1fr_1fr_1fr] border-t border-[#E2D4C3] text-sm ${i % 2 === 0 ? "bg-white" : "bg-[#FDF7F2]"}`}
+                  className={`grid grid-cols-[1.1fr_1fr_1fr] border-t border-[#E2D4C3] text-sm ${i % 2 === 0 ? "bg-white" : "bg-[#FDF7F2]"}`}
                 >
-                  <div className="px-5 py-5 font-bold text-[#3D1F0A]">{row.feature}</div>
-                  <div className="flex flex-col items-center justify-center gap-1 border-l border-[#E2D4C3] px-4 py-5 text-center text-[#9A8F85]">
-                    <span className="text-lg leading-none">{row.bad.icon}</span>
-                    <span className="text-xs">{row.bad.text}</span>
+                  <div className="px-3 py-3 text-[12px] font-bold text-[#3D1F0A] sm:px-5 sm:py-5 sm:text-sm">{row.feature}</div>
+                  <div className="flex flex-col items-center justify-center gap-1 border-l border-[#E2D4C3] px-2 py-3 text-center text-[#9A8F85] sm:px-4 sm:py-5">
+                    <span className="text-base leading-none sm:text-lg">{row.bad.icon}</span>
+                    <span className="text-[10px] leading-tight sm:text-xs">{row.bad.text}</span>
                   </div>
-                  <div className="flex flex-col items-center justify-center gap-1 border-l border-[#E2D4C3] px-4 py-5 text-center">
-                    <span className="text-lg leading-none">✅</span>
-                    <span className="text-xs font-bold text-[#3D1F0A]">{row.good.text}</span>
+                  <div className="flex flex-col items-center justify-center gap-1 border-l border-[#E2D4C3] px-2 py-3 text-center sm:px-4 sm:py-5">
+                    <span className="text-base leading-none sm:text-lg">✅</span>
+                    <span className="text-[10px] font-bold leading-tight text-[#3D1F0A] sm:text-xs">{row.good.text}</span>
                   </div>
                 </div>
               ))}
