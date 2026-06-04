@@ -193,11 +193,11 @@
 
 | Проблем | Файл/Място | Бележка |
 |---------|-----------|---------|
-| `salon-bizhu.salonapp.pro` → DNS грешка | DNS / Vercel Settings | Домейнът `salonapp.pro` не е свързан с Vercel — не е код проблем |
-| `clean` шаблон игнорира `primary_color` | `templates/Clean.tsx`, ред ~19 | Ползва hardcoded `#0066CC` вместо `tenant.primary_color` |
-| Stripe ENV не са в Vercel | Vercel → Settings → Env Vars | `STRIPE_SECRET_KEY`, `STRIPE_WEBHOOK_SECRET`, payment link URLs |
-| Stripe webhook не е регистриран | Stripe Dashboard | Endpoint `https://salonapp.pro/api/webhooks/stripe` трябва да се добави |
-| Няма автоматична деактивация | Няма cron job | Салони с изтекъл `grace_until_date` остават `active` |
+| ~~`salon-bizhu.salonapp.pro` → DNS грешка~~ | ~~DNS / Vercel Settings~~ | ✅ Домейнът е свързан (2026-06-03) |
+| ~~`clean` шаблон игнорира `primary_color`~~ | ~~`templates/Clean.tsx`~~ | ✅ Оправено (шаблонът е и премахнат) |
+| ~~Stripe ENV не са в Vercel~~ | ~~Vercel → Settings → Env Vars~~ | ✅ Добавени (2026-06-03) |
+| ~~Stripe webhook не е регистриран~~ | ~~Stripe Dashboard~~ | ✅ Регистриран (2026-06-03) |
+| ~~Няма автоматична деактивация~~ | ~~Няма cron job~~ | ✅ `billing-expiry` cron е активен |
 
 ---
 
