@@ -143,7 +143,7 @@ export default function Home() {
                       <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" /><path d="M13.73 21a2 2 0 0 1-3.46 0" />
                     </svg>
                   ),
-                  title: "SMS напомняния",
+                  title: "Имейл напомняния",
                   desc: "Автоматични напомняния 24ч преди всеки час.",
                 },
                 {
@@ -185,9 +185,6 @@ export default function Home() {
         <section className="px-8 py-10 lg:px-16 md:py-14">
           <div>
             <RevealOnScroll>
-              <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#C79A4B]">
-                Познато ли ти е?
-              </p>
               <h2 className="playfair mt-3 mb-2 text-3xl font-bold text-[#3D1F0A] md:text-5xl">
                 Познато ли ти е това?
               </h2>
