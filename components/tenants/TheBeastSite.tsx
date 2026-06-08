@@ -824,6 +824,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
               <div className="tb-photo-wrap">
                 <div className="tb-photo-inner">
                   {tenant.about_image_url ? (
+                    // eslint-disable-next-line @next/next/no-img-element
                     <img
                       src={tenant.about_image_url}
                       alt={tenant.salon_name}
@@ -851,6 +852,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
                   <div className="tb-about-barber">
                     {soloBarber.avatar_url && (
                       <div className="tb-about-barber-avatar">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img src={soloBarber.avatar_url} alt={soloBarber.name} loading="lazy" />
                       </div>
                     )}
@@ -924,6 +926,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
               <div className="tb-masonry">
                 {gallery.map((img, i) => (
                   <div className="tb-masonry-item" key={img.id}>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img
                       src={img.url}
                       alt={`Gallery ${i + 1}`}

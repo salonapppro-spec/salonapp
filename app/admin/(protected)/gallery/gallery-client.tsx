@@ -246,12 +246,12 @@ export function GalleryClient(props: { initialItems: GalleryItem[] }) {
               }}
             >
               {/* Drag + preview only на снимката — без overlay над бутони */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               <div
                 className="group relative cursor-grab select-none overflow-hidden bg-[#faf7f2] active:cursor-grabbing"
                 draggable
                 onDragStart={() => setDragId(g.id)}
               >
+                {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={g.url}
                   alt=""

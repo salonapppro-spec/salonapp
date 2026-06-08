@@ -250,7 +250,7 @@ export function SettingsForm(props: { tenant: Tenant; specialists: Specialist[] 
         mapsPinLng.trim(),
       ]),
     };
-  }, [tenant]);
+  }, [tenant, mapsPinLat, mapsPinLng]);
 
   const hasUnsavedLogo = sectionInitialRef.current != null && snapLogo() !== sectionInitialRef.current.logo;
   const hasUnsavedHero = sectionInitialRef.current != null && snapHero() !== sectionInitialRef.current.hero;

@@ -36,7 +36,6 @@ export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string 
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const { id } = await ctx.params;
-  const current = await tenantDb(salonSlug).bookings.getById(id);
   const { error } = await tenantDb(salonSlug).bookings.deleteById(id);
   if (error) return NextResponse.json({ error: "Грешка при изтриване" }, { status: 500 });
   return NextResponse.json({ ok: true });

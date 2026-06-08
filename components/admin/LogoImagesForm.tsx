@@ -153,17 +153,6 @@ function FieldCard({ children }: { children: ReactNode }) {
   );
 }
 
-function Label({ children }: { children: ReactNode }) {
-  return (
-    <label
-      className="text-[10px] font-black uppercase tracking-[0.15em]"
-      style={{ color: "rgba(26,26,26,0.4)" }}
-    >
-      {children}
-    </label>
-  );
-}
-
 function SaveBtn({
   saving,
   label,

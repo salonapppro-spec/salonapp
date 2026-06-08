@@ -87,7 +87,7 @@ export default async function SuperAdminLeadsPage({
 }: {
   searchParams: Promise<{ op?: string; view?: string }>;
 }) {
-  const { op, view } = await searchParams;
+  const { op } = await searchParams;
   const supabase = createSupabaseServiceRoleClient();
   const { data, error } = await supabase
     .from("platform_leads")

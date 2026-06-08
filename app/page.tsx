@@ -39,8 +39,6 @@ export const metadata: Metadata = {
   },
 };
 
-const demoSalonHref = "/lindy-design";
-
 const faqs = [
   {
     q: "Защо да плащам 19 евро, след като тефтерът ми е безплатен (или има безплатни програми)?",

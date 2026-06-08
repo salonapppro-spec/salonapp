@@ -28,8 +28,6 @@ const POSITIONS = [
 function SiteCard({ client, isActive }: { client: typeof CLIENTS[0]; isActive: boolean }) {
   const w = isActive ? BIG_W : SM_W;
   const h = isActive ? BIG_H : SM_H;
-  const scale = w / 1440;
-
   return (
     <div style={{ width: w, height: h + 56, borderRadius: 16, overflow: "hidden", background: "#fff", boxShadow: isActive ? "0 24px 60px rgba(80,40,10,0.18)" : "0 6px 20px rgba(80,40,10,0.08)" }}>
       {/* Browser chrome */}
@@ -43,8 +41,8 @@ function SiteCard({ client, isActive }: { client: typeof CLIENTS[0]; isActive: b
       </div>
 
       {/* Site preview — static screenshot */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
       <div style={{ width: w, height: h, overflow: "hidden", position: "relative", background: "#faf7f2" }}>
+        {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={client.img}
           alt={client.name}

@@ -81,7 +81,7 @@ const FAQ_ITEMS = [
 ];
 
 export function MagneticEyesSite({ data }: { data: SalonData }) {
-  const { tenant, gallery, workingHours } = data;
+  const { tenant, workingHours } = data;
   const services = servicesFlatForPublic(data);
 
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -1118,6 +1118,7 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
         <nav className={`me-nav${scrolled ? " scrolled" : ""}`}>
           <a href="#home">
             {logoImg
+              // eslint-disable-next-line @next/next/no-img-element
               ? <img src={logoImg} alt={tenant.salon_name} className="me-nav-logo" />
               : <span className="me-nav-name">{tenant.salon_name}</span>}
           </a>
@@ -1186,6 +1187,7 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           <div className="me-about-inner">
             <div className="me-about-img-wrap">
               {aboutImg
+                // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={aboutImg} alt="Мария Петрова" className="me-about-img" loading="lazy" />
                 : <div className="me-about-img-placeholder" aria-hidden="true">🌿</div>}
             </div>
@@ -1371,6 +1373,7 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           <div className="me-faq-inner">
             <div className="me-faq-left">
               {aboutImg
+                // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={aboutImg} alt="" className="me-faq-img" loading="lazy" />
                 : <div className="me-faq-img-placeholder" aria-hidden="true">👁</div>}
               <div className="me-faq-card">
@@ -1499,6 +1502,7 @@ export function MagneticEyesSite({ data }: { data: SalonData }) {
           <div className="me-footer-top">
             <div>
               {logoImg
+                // eslint-disable-next-line @next/next/no-img-element
                 ? <img src={logoImg} alt={tenant.salon_name} className="me-footer-brand-logo" />
                 : <div className="me-footer-brand-name">{tenant.salon_name}</div>}
               <p className="me-footer-brand-sub">Микроблейдинг, мигли и перманентен грим с внимание към всеки детайл.</p>

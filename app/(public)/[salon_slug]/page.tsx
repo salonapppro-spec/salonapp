@@ -57,6 +57,7 @@ function UnderConstruction({ data }: { data: SalonData }) {
       gap: "1.5rem",
     }}>
       {logo && (
+        // eslint-disable-next-line @next/next/no-img-element
         <img src={logo} alt={name} style={{ height: "64px", objectFit: "contain", marginBottom: ".5rem" }} />
       )}
       <h1 style={{ fontSize: "clamp(1.4rem,4vw,2.2rem)", fontWeight: 700, letterSpacing: "-.02em", margin: 0 }}>

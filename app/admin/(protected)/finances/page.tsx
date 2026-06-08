@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import { resolveFinanceScope } from "@/lib/admin-finance-scope";
 import {
   financialSettingsForUi,
-  getAllServicesAdmin,
   getCompletedRevenueBetween,
   getExpensesBetween,
   getExpensesForMonth,

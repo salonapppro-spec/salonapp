@@ -145,7 +145,7 @@ export function BookingCalendar({
       })
       .catch(() => setSlots([]))
       .finally(() => setSlotsLoading(false));
-  }, [selectedDate, serviceId, salonSlug, isDemo]);
+  }, [selectedDate, serviceId, salonSlug, isDemo, today]);
 
   async function handleSubmit() {
     if (!selectedDate || !selectedTime || !serviceId || !name.trim() || !isValidPhone(phone) || !email.trim()) return;
