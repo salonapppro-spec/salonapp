@@ -95,12 +95,20 @@ export function QuickBooking(props: {
     const dayOfWeek = new Date(`${bookingDate}T00:00:00`).getDay();
     fetch("/api/admin/working-hours")
       .then((r) => r.json())
-      .then((d: { days?: WorkingHours[] }) => {
-        const wh = (d.days ?? []).find((x) => x.day_of_week === dayOfWeek) ?? null;
-        setCurrentWorkingHours(wh);
+      .then((d: { days?: { start_time: string; end_time: string; is_day_off: boolean }[] }) => {
+        const entry = d.days?.[dayOfWeek];
+        if (!entry) return;
+        // Construct a minimal WorkingHours-compatible object
+        setCurrentWorkingHours({
+          ...entry,
+          day_of_week: dayOfWeek,
+          id: `fetched-${dayOfWeek}`,
+          salon_slug: salonSlug,
+          specialist_id: null,
+        } as WorkingHours);
       })
       .catch(() => { /* keep current */ });
-  }, [bookingDate]);
+  }, [bookingDate, salonSlug]);
 
   useEffect(() => {
     if (activeServices.length && !activeServices.some((s) => s.id === serviceId)) {
