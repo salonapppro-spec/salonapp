@@ -52,7 +52,12 @@ export function QuickBooking(props: {
 
   const activeServices = useMemo(() => services.filter((s) => s.is_active), [services]);
 
-  const [bookingDate, setBookingDate] = useState(date);
+  const todayISO = useMemo(() => {
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Sofia" }));
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  }, []);
+
+  const [bookingDate, setBookingDate] = useState(() => date < todayISO ? todayISO : date);
   const [selectedTime, setSelectedTime] = useState<string | null>(() => snapTo15(time));
   const [clientName, setClientName] = useState("");
   const [phone, setPhone] = useState("");
@@ -65,23 +70,37 @@ export function QuickBooking(props: {
   const [error, setError] = useState<string | null>(null);
   const [freeSlots, setFreeSlots] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
+  const [currentWorkingHours, setCurrentWorkingHours] = useState<WorkingHours | null>(workingHours);
 
   const selected = activeServices.find((s) => s.id === serviceId) ?? null;
   const activeSpecs = useMemo(() => specialists.filter((s) => s.is_active), [specialists]);
   const needSpecialist = plan === "premium" && activeSpecs.length > 1;
 
   const allSlots = useMemo(
-    () => (workingHours ? buildAllSlots(workingHours) : []),
-    [workingHours]
+    () => (currentWorkingHours ? buildAllSlots(currentWorkingHours) : []),
+    [currentWorkingHours]
   );
 
   useEffect(() => {
-    setBookingDate(date);
-  }, [date]);
+    setBookingDate(date < todayISO ? todayISO : date);
+  }, [date, todayISO]);
 
   useEffect(() => {
     setSelectedTime(snapTo15(time));
   }, [time]);
+
+  // Re-fetch working hours when the date changes inside the modal
+  useEffect(() => {
+    if (!bookingDate) return;
+    const dayOfWeek = new Date(`${bookingDate}T00:00:00`).getDay();
+    fetch("/api/admin/working-hours")
+      .then((r) => r.json())
+      .then((d: { days?: WorkingHours[] }) => {
+        const wh = (d.days ?? []).find((x) => x.day_of_week === dayOfWeek) ?? null;
+        setCurrentWorkingHours(wh);
+      })
+      .catch(() => { /* keep current */ });
+  }, [bookingDate]);
 
   useEffect(() => {
     if (activeServices.length && !activeServices.some((s) => s.id === serviceId)) {
@@ -198,6 +217,7 @@ export function QuickBooking(props: {
                   type="date"
                   className="input-admin"
                   value={bookingDate}
+                  min={todayISO}
                   onChange={(e) => { setBookingDate(e.target.value); setSelectedTime(null); }}
                   required
                 />
@@ -246,7 +266,7 @@ export function QuickBooking(props: {
                   )}
                 </div>
 
-                {!workingHours || workingHours.is_day_off ? (
+                {!currentWorkingHours || currentWorkingHours.is_day_off ? (
                   <p className="rounded-xl border px-3 py-4 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
                     Почивен ден — няма работно време.
                   </p>
@@ -288,7 +308,7 @@ export function QuickBooking(props: {
                     <p className="mt-2 text-center text-[10px] text-[#1A1A1A]/30">
                       {slotsLoading
                         ? "Проверяване на свободните часове…"
-                        : `${workingHours.start_time} – ${workingHours.end_time} · зачеркнатите са заети`}
+                        : `${currentWorkingHours!.start_time} – ${currentWorkingHours!.end_time} · зачеркнатите са заети`}
                     </p>
                   </div>
                 )}
