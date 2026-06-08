@@ -86,8 +86,8 @@ export default withSentryConfig(nextConfig, {
   silent: !process.env.CI,
   widenClientFileUpload: true,
   hideSourceMaps: true,
-  webpack: {
-    treeshake: { removeDebugLogging: true },
-    automaticVercelMonitors: true,
-  },
+  automaticVercelMonitors: true,
+  // App Router only — no pages/ dir, don't try to instrument _app/_error
+  autoInstrumentServerFunctions: true,
+  disableLogger: true,
 });
