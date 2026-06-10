@@ -14,7 +14,8 @@ function hostOnly(host: string | null): string {
 
 function isAllowedHost(host: string): boolean {
   if (host === "salonapp.pro" || host === "www.salonapp.pro") return true;
-  if (process.env.NODE_ENV !== "production" && (host === "localhost" || host === "127.0.0.1")) return true;
+  if (host.endsWith(".vercel.app")) return true;
+  if (host === "localhost" || host === "127.0.0.1") return true;
   return false;
 }
 

@@ -3,6 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { useRef } from 'react';
+import { CtaTrackerButton } from '@/components/marketing/LandingTracker';
 import {
   motion,
   useMotionValue,
@@ -88,12 +89,12 @@ export default function HeroSection() {
 
           {/* Buttons */}
           <motion.div variants={fromLeft} className="mt-7 flex flex-col gap-3 sm:flex-row">
-            <Link
+            <CtaTrackerButton
               href="/get-started"
               className="btn-pulse inline-flex min-h-[44px] items-center justify-center bg-[#C79A4B] px-6 text-[11px] font-semibold uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
             >
               Заяви безплатна консултация и сайт
-            </Link>
+            </CtaTrackerButton>
             <a
               href="#demo"
               className="inline-flex min-h-[44px] items-center justify-center border border-[#3D1F0A]/30 px-6 text-[11px] font-semibold uppercase tracking-widest text-[#3D1F0A] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"
