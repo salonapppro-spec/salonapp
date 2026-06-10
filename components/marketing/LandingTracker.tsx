@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import type { ReactNode } from "react";
 
 function track(event_type: "visitor" | "cta_click") {
   void fetch("/api/track", {
@@ -17,4 +18,16 @@ export function LandingTracker() {
   }, []);
 
   return null;
+}
+
+export function CtaTrackerButton({ children, className, href }: { children: ReactNode; className?: string; href: string }) {
+  return (
+    <a
+      href={href}
+      className={className}
+      onClick={() => track("cta_click")}
+    >
+      {children}
+    </a>
+  );
 }
