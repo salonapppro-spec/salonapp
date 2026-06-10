@@ -4,7 +4,6 @@ import Link from "next/link";
 import { Playfair_Display, Inter } from "next/font/google";
 import FaqAccordion from "@/components/FaqAccordion";
 import LandingHeader from "@/components/landing/LandingHeader";
-import { LandingTracker, CtaTrackerButton } from "@/components/marketing/LandingTracker";
 import ProblemsSection from "@/components/landing/ProblemsSection";
 import PlansSection from "@/components/landing/PlansSection";
 import TemplatesSection from "@/components/landing/TemplatesSection";
@@ -94,7 +93,6 @@ export default function Home() {
       `}</style>
 
       <LandingHeader />
-      <LandingTracker />
 
       <main className="pt-[57px]">
 
@@ -257,12 +255,12 @@ export default function Home() {
             </div>
 
             <div className="mt-10 text-center">
-              <CtaTrackerButton
+              <Link
                 href="/get-started"
                 className="inline-flex min-h-[52px] items-center justify-center rounded-xl bg-[#C79A4B] px-10 text-[11px] font-black uppercase tracking-widest text-white transition hover:bg-[#A6823A]"
               >
                 Заяви безплатна консултация и сайт
-              </CtaTrackerButton>
+              </Link>
             </div>
           </RevealOnScroll>
         </section>
@@ -326,12 +324,12 @@ export default function Home() {
               Попълни формата сега. Ние ще ти се обадим и до 24 часа ще имаш готов, работещ сайт.
             </p>
             <div className="mt-8 flex justify-center">
-              <CtaTrackerButton
+              <Link
                 href="/get-started"
                 className="btn-pulse inline-flex min-h-[54px] items-center justify-center bg-[linear-gradient(135deg,#C79A4B,#A6823A)] px-14 text-sm font-black uppercase tracking-widest text-white transition hover:opacity-90"
               >
                 ЗАЯВИ БЕЗПЛАТНА КОНСУЛТАЦИЯ И САЙТ
-              </CtaTrackerButton>
+              </Link>
             </div>
             <p className="mt-4 text-xs text-white/25 tracking-wide">
               Без карта. Без обвързване. Данните ти остават при теб.

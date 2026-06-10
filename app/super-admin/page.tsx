@@ -2,8 +2,6 @@ import Link from "next/link";
 
 import { ArchiveTenantSubmitButton } from "./archive-tenant-submit-button";
 import { DeleteTenantSubmitButton } from "./delete-tenant-submit-button";
-import { VisitsChart } from "@/components/super-admin/VisitsChart";
-import type { DailyEvent } from "@/components/super-admin/VisitsChart";
 
 import {
   archiveTenantAction,
@@ -115,36 +113,6 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
   const oldTrials = activeTenants
     .filter((t) => t.status === "trial" && Boolean(t.created_at) && (t.created_at as string).slice(0, 10) < plusDays(today, -7))
     .slice(0, 5);
-
-  const thirtyDaysAgo = new Date();
-  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
-  const { data: events } = await supabase
-    .from("page_events")
-    .select("event_type, created_at")
-    .in("event_type", ["visitor", "cta_click", "form_filled"])
-    .gte("created_at", thirtyDaysAgo.toISOString());
-  const eventRows = (events ?? []) as Array<{ event_type: string; created_at: string }>;
-  const visitors = eventRows.filter((x) => x.event_type === "visitor").length;
-  const ctas = eventRows.filter((x) => x.event_type === "cta_click").length;
-  const forms = eventRows.filter((x) => x.event_type === "form_filled").length;
-
-  // Build daily chart data for last 30 days
-  const dailyMap = new Map<string, DailyEvent>();
-  for (let i = 29; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    dailyMap.set(key, { date: key.slice(5), visitors: 0, cta_click: 0, form_filled: 0 });
-  }
-  for (const row of eventRows) {
-    const key = row.created_at.slice(0, 10);
-    const entry = dailyMap.get(key);
-    if (!entry) continue;
-    if (row.event_type === "visitor") entry.visitors++;
-    else if (row.event_type === "cta_click") entry.cta_click++;
-    else if (row.event_type === "form_filled") entry.form_filled++;
-  }
-  const chartData = Array.from(dailyMap.values());
 
   // Churn risk: last sign-in per owner email
   const { data: authUsersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
@@ -277,35 +245,6 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
         </div>
       </section>
 
-      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 sm:p-5">
-        <div className="mb-1 flex items-center justify-between">
-          <h2 className="text-lg font-semibold">CTR Dashboard</h2>
-          <span className="text-xs text-neutral-500">последните 30 дни</span>
-        </div>
-        <p className="mb-4 text-sm text-neutral-400">Фуния: посетители → CTA click → форма попълнена.</p>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-sky-800/60 bg-neutral-950/60 p-3">
-            <p className="text-xs text-neutral-400">Посетители</p>
-            <p className="text-xl font-semibold tabular-nums text-sky-300">{visitors}</p>
-          </div>
-          <div className="rounded-lg border border-amber-800/60 bg-neutral-950/60 p-3">
-            <p className="text-xs text-neutral-400">CTA клик</p>
-            <p className="text-xl font-semibold tabular-nums text-amber-300">
-              {ctas}{visitors > 0 ? <span className="ml-1 text-sm text-neutral-400">({((ctas / visitors) * 100).toFixed(1)}%)</span> : null}
-            </p>
-          </div>
-          <div className="rounded-lg border border-emerald-800/60 bg-neutral-950/60 p-3">
-            <p className="text-xs text-neutral-400">Форма попълнена</p>
-            <p className="text-xl font-semibold tabular-nums text-emerald-300">
-              {forms}{visitors > 0 ? <span className="ml-1 text-sm text-neutral-400">({((forms / visitors) * 100).toFixed(1)}%)</span> : null}
-            </p>
-          </div>
-        </div>
-        <div className="mt-6">
-          <p className="mb-3 text-xs uppercase tracking-wide text-neutral-500">Посещения по ден</p>
-          <VisitsChart data={chartData} />
-        </div>
-      </section>
 
       <section id="all-tenants" className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 sm:p-5">
         <div className="mb-4 flex items-center justify-between">
