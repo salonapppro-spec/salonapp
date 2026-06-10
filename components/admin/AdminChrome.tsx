@@ -2,19 +2,20 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { LayoutDashboard, CalendarDays, Scissors, Users, BarChart3, Settings2 } from "lucide-react";
 
 import { SignOutButton } from "@/components/admin/SignOutButton";
 
 const primaryTabs = [
-  { href: "/admin/dashboard", label: "Днес", short: "Дн", icon: "✦" },
-  { href: "/admin/calendar", label: "Календар", short: "Кал", icon: "📅" },
-  { href: "/admin/settings/services", label: "Услуги", short: "Ус", icon: "✂️" },
-  { href: "/admin/clients", label: "Клиенти", short: "Кл", icon: "👤" },
-  { href: "/admin/finances", label: "Финанси", short: "Фин", icon: "💰" },
+  { href: "/admin/dashboard", label: "Днес", short: "Дн", Icon: LayoutDashboard },
+  { href: "/admin/calendar", label: "Календар", short: "Кал", Icon: CalendarDays },
+  { href: "/admin/settings/services", label: "Услуги", short: "Ус", Icon: Scissors },
+  { href: "/admin/clients", label: "Клиенти", short: "Кл", Icon: Users },
+  { href: "/admin/finances", label: "Финанси", short: "Фин", Icon: BarChart3 },
 ] as const;
 
 const secondaryLinks = [
-  { href: "/admin/settings", label: "Настройки", icon: "⚙️" },
+  { href: "/admin/settings", label: "Настройки", Icon: Settings2 },
 ] as const;
 
 const mobileHeaderLinks = [
@@ -30,7 +31,7 @@ export function AdminChrome(props: {
 }) {
   const { mobileScheduleQuickLinks } = props;
   const pathname = usePathname() ?? "";
-  const isDashboardOrCalendar = pathname === "/admin/dashboard" || pathname === "/admin/calendar";
+  const isDashboardOrCalendar = pathname === "/admin/dashboard";
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
@@ -82,7 +83,7 @@ export function AdminChrome(props: {
                     style={{ background: "linear-gradient(180deg, #C9A84C, #C8826A)" }}
                   />
                 )}
-                <span className="text-base leading-none">{l.icon}</span>
+                <l.Icon size={17} strokeWidth={1.8} />
                 <span>{l.label}</span>
               </Link>
             );
@@ -114,7 +115,7 @@ export function AdminChrome(props: {
                       style={{ background: "linear-gradient(180deg, #C9A84C, #C8826A)" }}
                     />
                   )}
-                  <span className="text-sm leading-none">{l.icon}</span>
+                  <l.Icon size={16} strokeWidth={1.8} />
                   <span>{l.label}</span>
                 </Link>
               );
@@ -145,14 +146,18 @@ export function AdminChrome(props: {
               className="flex min-h-[44px] flex-1 flex-col items-center justify-center gap-0.5 rounded-xl px-1 py-1 transition-transform duration-100 active:scale-95 md:duration-150"
             >
               <span
-                className="flex h-11 w-11 items-center justify-center rounded-xl text-base transition-all duration-100 md:duration-200"
+                className="flex h-11 w-11 items-center justify-center rounded-xl transition-all duration-100 md:duration-200"
                 style={
                   active
-                    ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", fontSize: "16px" }
+                    ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)" }
                     : {}
                 }
               >
-                {active ? <span className="text-white text-sm">{l.icon}</span> : <span className="text-lg opacity-50">{l.icon}</span>}
+                <l.Icon
+                  size={18}
+                  strokeWidth={active ? 2.2 : 1.7}
+                  color={active ? "#ffffff" : "rgba(26,26,26,0.45)"}
+                />
               </span>
               <span
                 className="max-w-full truncate text-[10px] font-semibold leading-tight"

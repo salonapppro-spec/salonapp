@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { createAdminBooking } from "@/app/actions/admin-booking";
 import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
@@ -17,16 +17,6 @@ const HAIR_DEN: { v: HairDensity; l: string }[] = [
   { v: "thick", l: "Гъста" },
 ];
 
-function snapTo15(raw: string): string {
-  const parts = raw.split(":");
-  let h = parseInt(parts[0] ?? "9", 10);
-  let mi = parseInt((parts[1] ?? "0").replace(/\D.*/, ""), 10);
-  if (!Number.isFinite(h)) h = 9;
-  if (!Number.isFinite(mi)) mi = 0;
-  let snapped = Math.round(mi / 15) * 15;
-  if (snapped === 60) { h = Math.min(23, h + 1); snapped = 0; }
-  return `${String(Math.max(0, Math.min(23, h))).padStart(2, "0")}:${String(snapped).padStart(2, "0")}`;
-}
 
 function buildAllSlots(wh: WorkingHours): string[] {
   if (wh.is_day_off) return [];
@@ -57,8 +47,19 @@ export function QuickBooking(props: {
     return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
   }, []);
 
+  const getNowMinutes = () => {
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Sofia" }));
+    return now.getHours() * 60 + now.getMinutes();
+  };
+  const [nowMinutes, setNowMinutes] = useState(getNowMinutes);
+  useEffect(() => {
+    const id = setInterval(() => setNowMinutes(getNowMinutes()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
+
   const [bookingDate, setBookingDate] = useState(() => date < todayISO ? todayISO : date);
-  const [selectedTime, setSelectedTime] = useState<string | null>(() => snapTo15(time));
+  const [selectedTime, setSelectedTime] = useState<string | null>(null);
   const [clientName, setClientName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -68,6 +69,10 @@ export function QuickBooking(props: {
   const [hairDensity, setHairDensity] = useState<HairDensity>("medium");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [suggestions, setSuggestions] = useState<{ id: string; name: string; phone: string; email: string }[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const suggestRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const justPicked = useRef(false);
   const [freeSlots, setFreeSlots] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
   const [currentWorkingHours, setCurrentWorkingHours] = useState<WorkingHours | null>(workingHours);
@@ -85,8 +90,19 @@ export function QuickBooking(props: {
     setBookingDate(date < todayISO ? todayISO : date);
   }, [date, todayISO]);
 
+  // Clear selected time if it becomes past while modal is open
   useEffect(() => {
-    setSelectedTime(snapTo15(time));
+    if (selectedTime && bookingDate === todayISO && timeToMinutes(selectedTime) <= nowMinutes) {
+      setSelectedTime(null);
+    }
+  }, [nowMinutes, selectedTime, bookingDate, todayISO]);
+
+  const prevTimeRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (prevTimeRef.current !== null && prevTimeRef.current !== time) {
+      setSelectedTime(null);
+    }
+    prevTimeRef.current = time;
   }, [time]);
 
   // Re-fetch working hours when the date changes inside the modal
@@ -133,6 +149,32 @@ export function QuickBooking(props: {
       .catch(() => setFreeSlots([]))
       .finally(() => setSlotsLoading(false));
   }, [bookingDate, serviceId, salonSlug, selected?.is_complex, hairLength, hairDensity]);
+
+  useEffect(() => {
+    if (justPicked.current) { justPicked.current = false; return; }
+    if (suggestRef.current) clearTimeout(suggestRef.current);
+    const q = clientName.trim();
+    if (q.length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
+    suggestRef.current = setTimeout(() => {
+      fetch(`/api/admin/clients/search?q=${encodeURIComponent(q)}`)
+        .then((r) => r.json())
+        .then((d: { id: string; name: string; phone: string; email: string }[]) => {
+          setSuggestions(d);
+          setShowSuggestions(d.length > 0);
+        })
+        .catch(() => { /* ignore */ });
+    }, 280);
+    return () => { if (suggestRef.current) clearTimeout(suggestRef.current); };
+  }, [clientName]);
+
+  function pickSuggestion(s: { name: string; phone: string; email: string }) {
+    justPicked.current = true;
+    setClientName(s.name);
+    if (s.phone) setPhone(s.phone);
+    if (s.email) setEmail(s.email);
+    setSuggestions([]);
+    setShowSuggestions(false);
+  }
 
   const lookupPhone = useCallback(async () => {
     const p = phone.trim();
@@ -190,14 +232,16 @@ export function QuickBooking(props: {
 
   return (
     <div
-      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/50 p-4 backdrop-blur-sm sm:items-center"
+      className="fixed inset-0 z-[100] flex items-end justify-center bg-black/40 backdrop-blur-[2px] sm:items-stretch sm:justify-end"
       role="dialog"
       aria-modal
     >
+      {/* backdrop — click to close */}
       <button type="button" className="absolute inset-0 cursor-default" aria-label="Затвори" onClick={() => { if (!saving) onClose(); }} />
+      {/* drawer panel — bottom sheet on mobile, right drawer on desktop */}
       <div
-        className="relative z-10 w-full max-w-md overflow-hidden rounded-2xl bg-white p-0 shadow-2xl"
-        style={{ border: "1px solid rgba(201,168,76,0.25)" }}
+        className="relative z-10 flex w-full max-w-md flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:h-full sm:rounded-none sm:rounded-l-2xl"
+        style={{ border: "1px solid rgba(201,168,76,0.2)" }}
       >
         {/* Header */}
         <div className="relative shrink-0 overflow-hidden rounded-t-2xl px-5 py-4" style={{ background: "linear-gradient(135deg, rgba(201,168,76,0.12), rgba(200,130,106,0.12))" }}>
@@ -211,8 +255,8 @@ export function QuickBooking(props: {
           </div>
         </div>
 
-        <form onSubmit={(e) => { e.preventDefault(); void save(); }}>
-          <div className="max-h-[min(70vh,560px)] overflow-y-auto overflow-x-hidden p-5 pb-3">
+        <form onSubmit={(e) => { e.preventDefault(); void save(); }} className="flex min-h-0 flex-1 flex-col">
+          <div className="flex-1 overflow-y-auto overflow-x-hidden p-5 pb-3">
             {error ? (
               <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</div>
             ) : null}
@@ -289,7 +333,8 @@ export function QuickBooking(props: {
                   >
                     <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5">
                       {allSlots.map((slot) => {
-                        const isFree = !slotsLoading && freeSlots.includes(slot);
+                        const isPast = bookingDate === todayISO && timeToMinutes(slot) <= nowMinutes;
+                        const isFree = !slotsLoading && freeSlots.includes(slot) && !isPast;
                         const isSelected = slot === selectedTime;
                         return (
                           <button
@@ -325,9 +370,40 @@ export function QuickBooking(props: {
               <div className="border-t" style={{ borderColor: "rgba(201,168,76,0.12)" }} />
 
               {/* Client info */}
-              <div>
+              <div className="relative">
                 <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Клиент *</label>
-                <input className="input-admin" placeholder="Име на клиента" value={clientName} onChange={(e) => setClientName(e.target.value)} autoComplete="name" />
+                <input
+                  className="input-admin"
+                  placeholder="Име на клиента"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
+                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
+                  autoComplete="off"
+                />
+                {showSuggestions && suggestions.length > 0 && (
+                  <ul
+                    className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border bg-white shadow-xl"
+                    style={{ borderColor: "rgba(201,168,76,0.25)" }}
+                  >
+                    {suggestions.map((s) => (
+                      <li key={s.id}>
+                        <button
+                          type="button"
+                          className="flex w-full flex-col gap-0.5 px-3 py-2.5 text-left transition hover:bg-[rgba(201,168,76,0.07)] active:bg-[rgba(201,168,76,0.12)]"
+                          onMouseDown={() => pickSuggestion(s)}
+                        >
+                          <span className="text-sm font-semibold text-[#1A1A1A]">{s.name}</span>
+                          {(s.phone || s.email) && (
+                            <span className="text-[11px] text-[#1A1A1A]/45">
+                              {[s.phone, s.email].filter(Boolean).join(" · ")}
+                            </span>
+                          )}
+                        </button>
+                      </li>
+                    ))}
+                  </ul>
+                )}
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <div>

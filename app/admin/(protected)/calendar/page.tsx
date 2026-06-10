@@ -1,5 +1,7 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { CalendarDays, Clock } from "lucide-react";
+import { CalendarNavClient } from "@/components/admin/CalendarNavClient";
 
 import { CalendarDayShell } from "@/components/admin/CalendarDayShell";
 import { WeekTimeGrid } from "@/components/admin/WeekTimeGrid";
@@ -72,12 +74,12 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
 
     return (
       <>
-        <CalendarNav date={date} view={view} prevDate={prevDate} nextDate={nextDate} />
+        <CalendarNavClient date={date} view={view} prevDate={prevDate} nextDate={nextDate} />
         <div
           className="mt-4 flex items-center gap-2 rounded-xl px-4 py-2.5"
           style={{ background: "rgba(201,168,76,0.08)", border: "1px solid rgba(201,168,76,0.15)" }}
         >
-          <span className="text-sm">🕐</span>
+          <Clock size={15} strokeWidth={1.8} className="shrink-0 text-[#C9A84C]/70" />
           <p className="text-sm text-[#1A1A1A]/55">
             Работно време:{" "}
             <span className="font-semibold text-[#1A1A1A]/75">
@@ -109,7 +111,7 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
 
     return (
       <>
-        <CalendarNav date={date} view={view} prevDate={prevDate} nextDate={nextDate} />
+        <CalendarNavClient date={date} view={view} prevDate={prevDate} nextDate={nextDate} />
         <WeekTimeGrid
           salonSlug={salonSlug}
           date={date}
@@ -137,7 +139,7 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
 
   return (
     <>
-      <CalendarNav date={date} view={view} prevDate={prevDate} nextDate={nextDate} monthLabel={monthLabel} />
+      <CalendarNavClient date={date} view={view} prevDate={prevDate} nextDate={nextDate} monthLabel={monthLabel} />
       <MonthCalendar
         anchorYmd={date}
         bookingsByDate={byDate}
@@ -148,76 +150,6 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
   );
 }
 
-function CalendarNav(props: {
-  date: string;
-  view: ViewType;
-  prevDate: string;
-  nextDate: string;
-  monthLabel?: string;
-}) {
-  const { date, view, prevDate, nextDate, monthLabel } = props;
-
-  const navLabel =
-    view === "month"
-      ? "Месец"
-      : view === "week"
-      ? "Дата в седмицата"
-      : "Дата";
-
-  return (
-    <form className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end" method="get">
-      <input type="hidden" name="view" value={view} />
-      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-end sm:gap-3">
-        <div className="flex w-full items-stretch gap-2 sm:w-auto sm:items-end">
-          <Link
-            href={`/admin/calendar?date=${prevDate}&view=${view}`}
-            className="inline-flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-xl border text-lg font-black transition hover:bg-black/[0.03]"
-            style={{ borderColor: "rgba(201,168,76,0.35)", color: "#C8826A" }}
-            aria-label="Назад"
-          >
-            ←
-          </Link>
-          <div className="min-w-0 flex-1">
-            <label htmlFor="cal-date" className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/45">
-              {navLabel}
-            </label>
-            {view === "month" ? (
-              <div className="input-admin !mt-1 flex w-full items-center sm:min-w-[12rem]" style={{ cursor: "default" }}>
-                <span className="capitalize">{monthLabel}</span>
-                <input type="hidden" name="date" value={date} />
-              </div>
-            ) : (
-              <input
-                id="cal-date"
-                type="date"
-                name="date"
-                defaultValue={date}
-                className="input-admin !mt-1 w-full max-w-full sm:min-w-[12rem]"
-              />
-            )}
-          </div>
-          <Link
-            href={`/admin/calendar?date=${nextDate}&view=${view}`}
-            className="inline-flex min-h-[48px] min-w-[48px] shrink-0 items-center justify-center rounded-xl border text-lg font-black transition hover:bg-black/[0.03]"
-            style={{ borderColor: "rgba(201,168,76,0.35)", color: "#C8826A" }}
-            aria-label="Напред"
-          >
-            →
-          </Link>
-        </div>
-        {view !== "month" && (
-          <button
-            type="submit"
-            className="w-full rounded-xl px-6 py-3 text-sm font-black text-white shadow-sm transition hover:opacity-90 sm:w-auto"
-            style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", minHeight: "44px" }}
-          >
-            Покажи →
-          </button>
-        )}
-      </div>
-    </form>
-  );
-}
 
 type CalendarSearchParams = { date?: string; view?: string };
 
@@ -239,10 +171,11 @@ export default async function AdminCalendarPage(props: { searchParams?: Promise<
       <div className="flex flex-col gap-4 sm:flex-row sm:flex-wrap sm:items-start sm:justify-between">
         <div>
           <span
-            className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white"
+            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white"
             style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
           >
-            📅 Календар
+            <CalendarDays size={11} strokeWidth={2.5} />
+            Календар
           </span>
           <h1
             className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A] sm:text-3xl"

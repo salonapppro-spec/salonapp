@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { Monitor } from "lucide-react";
 
 import {
   type CategorySlice,
@@ -241,21 +242,28 @@ export function FinancesDashboard(props: {
       {/* ── Header ───────────────────────────────── */}
       <div className="mb-8 flex items-start justify-between gap-4">
         <div>
-          <p className="text-2xl font-black text-[#1A1A1A]">Здравей! 👋</p>
-          <p className="text-sm text-slate-500">{props.salonName}</p>
+          <div className="flex items-center gap-2">
+            <span className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white" style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}>
+              Финанси
+            </span>
+          </div>
+          <p className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A]" style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}>
+            {BG_MONTHS[props.month - 1]} {props.year}
+          </p>
+          <p className="mt-0.5 text-sm text-[#1A1A1A]/45">{props.salonName}</p>
         </div>
 
         {/* Month selector */}
-        <div className="flex items-center gap-0.5 rounded-2xl border border-slate-200 bg-white p-1 shadow-sm">
+        <div className="flex items-center gap-0.5 rounded-2xl border border-[#C9A84C]/25 bg-white p-1 shadow-sm">
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-lg text-slate-500 transition hover:bg-slate-100 active:scale-90"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-lg text-[#1A1A1A]/50 transition hover:bg-[#C9A84C]/08 active:scale-90"
             onClick={() => goMonth(-1)}
           >‹</button>
-          <span className="min-w-[90px] text-center text-sm font-bold text-[#1A1A1A]">
-            {BG_MONTHS[props.month - 1].slice(0, 3)} {props.year}
+          <span className="min-w-[80px] text-center text-sm font-bold text-[#1A1A1A]">
+            {BG_MONTHS[props.month - 1].slice(0, 3)}
           </span>
           <button
-            className="flex h-8 w-8 items-center justify-center rounded-xl text-lg text-slate-500 transition hover:bg-slate-100 active:scale-90 disabled:opacity-30"
+            className="flex h-8 w-8 items-center justify-center rounded-xl text-lg text-[#1A1A1A]/50 transition hover:bg-[#C9A84C]/08 active:scale-90 disabled:opacity-25"
             onClick={() => goMonth(1)}
             disabled={isCurrentMonth}
           >›</button>
@@ -266,51 +274,54 @@ export function FinancesDashboard(props: {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
 
         {/* Revenue */}
-        <div className="rounded-3xl bg-emerald-50 p-5 ring-1 ring-emerald-200/70">
-          <div className="flex items-center gap-2 text-emerald-700">
-            <span className="text-lg">💚</span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Приходи</span>
+        <div className="relative overflow-hidden rounded-2xl bg-white p-5" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(201,168,76,0.2)" }}>
+          <div className="absolute left-0 right-0 top-0 h-[3px] rounded-t-2xl" style={{ background: "linear-gradient(90deg, #C9A84C, #C8826A)" }} />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Приходи</span>
+            <span className="rounded-lg bg-[#C9A84C]/10 px-2 py-0.5 text-[10px] font-bold text-[#8B6914]">завършени</span>
           </div>
-          <p className="mt-3 text-[2.4rem] font-black leading-none tabular-nums text-emerald-800">
-            {props.revenue.toFixed(2)}<span className="ml-1 text-xl font-bold">€</span>
+          <p className="mt-3 text-[2rem] font-black leading-none tabular-nums" style={{ color: props.revenue > 0 ? "#8B6914" : "rgba(26,26,26,0.22)" }}>
+            {props.revenue.toFixed(2)}<span className="ml-1 text-base font-bold opacity-60">€</span>
           </p>
-          <p className="mt-2 text-xs text-emerald-600/80">завършени резервации</p>
+          <p className="mt-1.5 text-[11px] text-[#1A1A1A]/35">от резервации за месеца</p>
         </div>
 
         {/* Expenses */}
-        <div className="rounded-3xl bg-rose-50 p-5 ring-1 ring-rose-200/70">
-          <div className="flex items-center gap-2 text-rose-700">
-            <span className="text-lg">🔴</span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Разходи</span>
+        <div className="relative overflow-hidden rounded-2xl bg-white p-5" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(200,130,106,0.2)" }}>
+          <div className="absolute left-0 right-0 top-0 h-[3px] rounded-t-2xl" style={{ background: "linear-gradient(90deg, #C8826A, #C9A84C)" }} />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Разходи</span>
+            {props.overhead > 0 && (
+              <span className="rounded-lg bg-[#C8826A]/10 px-2 py-0.5 text-[10px] font-bold text-[#9B5B42]">
+                {props.overhead.toFixed(0)}€ пост.
+              </span>
+            )}
           </div>
-          <p className="mt-3 text-[2.4rem] font-black leading-none tabular-nums text-rose-800">
-            {totalExpenses.toFixed(2)}<span className="ml-1 text-xl font-bold">€</span>
+          <p className="mt-3 text-[2rem] font-black leading-none tabular-nums" style={{ color: totalExpenses > 0 ? "#9B5B42" : "rgba(26,26,26,0.22)" }}>
+            {totalExpenses.toFixed(2)}<span className="ml-1 text-base font-bold opacity-60">€</span>
           </p>
-          <p className="mt-2 text-xs text-rose-600/80">
-            {props.overhead > 0
-              ? `${props.overhead.toFixed(0)}€ пост. + ${props.variableExpenses.toFixed(0)}€ факт.`
-              : `${props.variableExpenses.toFixed(0)}€ фактури`}
+          <p className="mt-1.5 text-[11px] text-[#1A1A1A]/35">
+            {props.variableExpenses > 0 ? `${props.variableExpenses.toFixed(0)}€ фактури` : "няма въведени фактури"}
           </p>
         </div>
 
         {/* Net profit */}
-        <div className={[
-          "rounded-3xl p-5 ring-1",
-          netProfit >= 0 ? "bg-amber-50 ring-amber-200/70" : "bg-rose-50 ring-rose-300/70",
-        ].join(" ")}>
-          <div className={["flex items-center gap-2", netProfit >= 0 ? "text-amber-700" : "text-rose-700"].join(" ")}>
-            <span className="text-lg">💰</span>
-            <span className="text-[11px] font-semibold uppercase tracking-wider">Чиста печалба</span>
+        <div className="relative overflow-hidden rounded-2xl bg-white p-5" style={{
+          boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06)",
+          border: netProfit >= 0 ? "1px solid rgba(201,168,76,0.25)" : "1px solid rgba(200,130,106,0.3)",
+        }}>
+          <div className="absolute left-0 right-0 top-0 h-[3px] rounded-t-2xl" style={{
+            background: netProfit >= 0 ? "linear-gradient(90deg, #C9A84C, #8B6914)" : "linear-gradient(90deg, #C8826A, #9B5B42)",
+          }} />
+          <div className="flex items-center justify-between">
+            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Чиста печалба</span>
           </div>
-          <p className={[
-            "mt-3 text-[2.4rem] font-black leading-none tabular-nums",
-            netProfit >= 0 ? "text-amber-800" : "text-rose-800",
-          ].join(" ")}>
+          <p className="mt-3 text-[2rem] font-black leading-none tabular-nums" style={{ color: netProfit >= 0 ? "#8B6914" : "#9B5B42" }}>
             {netProfit < 0 ? "−" : ""}
-            {Math.abs(netProfit).toFixed(2)}<span className="ml-1 text-xl font-bold">€</span>
+            {Math.abs(netProfit).toFixed(2)}<span className="ml-1 text-base font-bold opacity-60">€</span>
           </p>
-          <p className={["mt-2 text-xs", netProfit >= 0 ? "text-amber-600/80" : "text-rose-600/80"].join(" ")}>
-            {netProfit >= 0 ? "добра работа! ✨" : "разходите > приходите"}
+          <p className="mt-1.5 text-[11px] text-[#1A1A1A]/35">
+            {netProfit >= 0 ? "приходи − разходи" : "разходите надвишават приходите"}
           </p>
         </div>
       </div>
@@ -372,8 +383,10 @@ export function FinancesDashboard(props: {
         <p className="mb-4 text-sm font-bold text-[#1A1A1A]">Последни движения</p>
         {props.transactions.length === 0 ? (
           <div className="py-10 text-center">
-            <p className="text-3xl">📭</p>
-            <p className="mt-2 text-sm text-slate-400">Няма движения за избрания месец</p>
+            <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#C9A84C]/10">
+              <Monitor size={22} strokeWidth={1.7} color="#C9A84C" />
+            </div>
+            <p className="text-sm text-slate-400">Няма движения за избрания месец</p>
           </div>
         ) : (
           <ul className="divide-y divide-slate-50">

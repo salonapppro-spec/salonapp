@@ -1,5 +1,6 @@
 import { Suspense } from "react";
 import Link from "next/link";
+import { TrendingUp, CalendarCheck, Clock, Sparkles } from "lucide-react";
 
 import {
   getAllServicesAdmin,
@@ -39,7 +40,6 @@ export default function AdminDashboardPage() {
           >
             Дневен преглед
           </h1>
-          <p className="mt-1 text-sm text-[#1A1A1A]/45">Зареждаме данните за деня…</p>
         </div>
       </div>
 
@@ -113,10 +113,10 @@ async function DashboardDataSection() {
         >
           <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
             <div
-              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl text-3xl shadow-sm"
+              className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl shadow-sm"
               style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
             >
-              🌸
+              <Sparkles size={28} strokeWidth={1.8} color="white" />
             </div>
             <div>
               <p className="text-lg font-black text-[#1A1A1A] sm:text-xl">
@@ -125,7 +125,7 @@ async function DashboardDataSection() {
               <p className="mt-1 text-sm leading-relaxed text-[#1A1A1A]/55">
                 Всяко успешно студио е започвало точно от тук. Добави записване с бутона&nbsp;
                 <span className="font-bold" style={{ color: "#C9A84C" }}>+ Бърз час</span>
-                &nbsp;или изчакай резервации от клиентите ти онлайн. 💪
+                &nbsp;или изчакай резервации от клиентите ти онлайн.
               </p>
             </div>
           </div>
@@ -147,7 +147,7 @@ async function DashboardDataSection() {
             <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">
               Оборот днес
             </div>
-            <span className="text-xl">💶</span>
+            <TrendingUp size={18} strokeWidth={1.8} className="text-[#C9A84C]/60" />
           </div>
           <div
             className="mt-2 text-3xl font-black tabular-nums"
@@ -156,7 +156,7 @@ async function DashboardDataSection() {
             {revenue.toFixed(2)}<span className="ml-1 text-lg font-bold opacity-60">€</span>
           </div>
           {revenue === 0 && (
-            <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Завърши час → оборотът ще расте 📈</p>
+            <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Завърши час → оборотът ще расте</p>
           )}
         </div>
 
@@ -173,7 +173,7 @@ async function DashboardDataSection() {
             <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">
               Резервации днес
             </div>
-            <span className="text-xl">📋</span>
+            <CalendarCheck size={18} strokeWidth={1.8} className="text-[#C8826A]/60" />
           </div>
           <div
             className="mt-2 text-3xl font-black tabular-nums"
@@ -183,7 +183,7 @@ async function DashboardDataSection() {
             <span className="ml-1.5 text-sm font-semibold opacity-50">{countToday === 1 ? "час" : "часа"}</span>
           </div>
           {countToday === 0 && (
-            <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Клиентите могат да резервират онлайн ✨</p>
+            <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Клиентите могат да резервират онлайн</p>
           )}
         </div>
 
@@ -200,7 +200,7 @@ async function DashboardDataSection() {
             <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">
               Следващ клиент
             </div>
-            <span className="text-xl">🕐</span>
+            <Clock size={18} strokeWidth={1.8} className="text-[#C9A84C]/60" />
           </div>
           {next ? (
             <div className="mt-2">
@@ -211,7 +211,7 @@ async function DashboardDataSection() {
           ) : (
             <div className="mt-2">
               <div className="text-3xl font-black" style={{ color: "rgba(26,26,26,0.18)" }}>—</div>
-              <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Свободен ден или нови резервации 🌟</p>
+              <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Свободен ден или нови резервации</p>
             </div>
           )}
         </div>

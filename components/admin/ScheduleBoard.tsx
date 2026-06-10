@@ -1,7 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useCallback, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { Plus, MoonStar } from "lucide-react";
 
 import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
 import type { Booking, BookingStatus, Plan, Service, Specialist, WorkingHours } from "@/types";
@@ -57,6 +58,16 @@ export function ScheduleBoard(props: {
   const [quickOpen, setQuickOpen] = useState(false);
   const [quickTime, setQuickTime] = useState("09:00");
 
+  const getNowMinSofia = () => {
+    const now = new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Sofia" }));
+    return now.getHours() * 60 + now.getMinutes();
+  };
+  const [nowMin, setNowMin] = useState(getNowMinSofia);
+  useEffect(() => {
+    const id = setInterval(() => setNowMin(getNowMinSofia()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+
   const { dayStart, dayEnd, totalMin } = useMemo(() => {
     if (!workingHours || workingHours.is_day_off) {
       return { dayStart: DEFAULT_START, dayEnd: DEFAULT_END, totalMin: DEFAULT_END - DEFAULT_START };
@@ -80,7 +91,9 @@ export function ScheduleBoard(props: {
   }, [router]);
 
   function openQuickAtMinutes(mins: number) {
-    const snapped = Math.max(dayStart, Math.min(dayEnd - 15, Math.round(mins / 15) * 15));
+    const isToday = date === new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Sofia" })).toISOString().slice(0, 10);
+    const minAllowed = isToday ? Math.ceil((nowMin + 1) / 15) * 15 : dayStart;
+    const snapped = Math.max(minAllowed, Math.min(dayEnd - 15, Math.round(mins / 15) * 15));
     setQuickTime(minutesToTime(snapped));
     setQuickOpen(true);
   }
@@ -100,7 +113,9 @@ export function ScheduleBoard(props: {
         className="mt-6 rounded-2xl p-8 text-center"
         style={{ border: "1px solid rgba(201,168,76,0.2)", background: "rgba(201,168,76,0.05)" }}
       >
-        <div className="text-3xl mb-3">😴</div>
+        <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#C9A84C]/10">
+          <MoonStar size={22} strokeWidth={1.6} color="#C9A84C" />
+        </div>
         <p className="font-semibold text-[#1A1A1A]/70">Почивен ден по графика.</p>
         {showFab ? (
           <button
@@ -112,7 +127,7 @@ export function ScheduleBoard(props: {
               setQuickOpen(true);
             }}
           >
-            ✦ Бърз час
+            <Plus size={16} strokeWidth={2.5} /> Бърз час
           </button>
         ) : null}
         {quickOpen ? (
@@ -213,6 +228,32 @@ export function ScheduleBoard(props: {
               </div>
             ))}
 
+            {/* Current time indicator — shown only for today */}
+            {date === new Date(new Date().toLocaleString("en-US", { timeZone: "Europe/Sofia" })).toISOString().slice(0, 10) &&
+              nowMin >= dayStart && nowMin <= dayEnd && (
+              <div
+                className="pointer-events-none absolute left-0 right-0 z-20"
+                style={{ top: `${((nowMin - dayStart) / totalMin) * 100}%`, transform: "translateY(-50%)" }}
+              >
+                {/* Glow layer */}
+                <div className="absolute inset-x-0 top-1/2 h-[6px] -translate-y-1/2 rounded-full opacity-20" style={{ background: "linear-gradient(90deg, #C8826A, #C9A84C, transparent)" }} />
+                {/* Main line */}
+                <div className="relative flex items-center gap-0">
+                  {/* Pulse dot */}
+                  <div className="relative shrink-0" style={{ marginLeft: "2px" }}>
+                    <div className="absolute h-4 w-4 -translate-x-1/2 -translate-y-1/2 animate-ping rounded-full opacity-30" style={{ background: "#C8826A" }} />
+                    <div className="h-3 w-3 rounded-full border-2 border-white" style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", boxShadow: "0 0 0 2px rgba(200,130,106,0.4), 0 2px 8px rgba(200,130,106,0.5)" }} />
+                  </div>
+                  {/* Time label */}
+                  <span className="ml-2 shrink-0 rounded-md px-1.5 py-0.5 text-[10px] font-black tabular-nums text-white" style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)", boxShadow: "0 1px 6px rgba(200,130,106,0.4)" }}>
+                    {`${String(Math.floor(nowMin / 60)).padStart(2, "0")}:${String(nowMin % 60).padStart(2, "0")}`}
+                  </span>
+                  {/* Gradient line */}
+                  <div className="ml-1 h-[1.5px] flex-1 rounded-full" style={{ background: "linear-gradient(90deg, #C8826A 0%, #C9A84C 40%, rgba(201,168,76,0.15) 100%)" }} />
+                </div>
+              </div>
+            )}
+
             {/* Booking blocks */}
             {bookings.map((b) => {
               const start = timeToMinutes(b.booking_time);
@@ -273,9 +314,8 @@ export function ScheduleBoard(props: {
           aria-label="Бърз час"
           onClick={() => openQuickAtMinutes(dayStart + 120)}
         >
-          <span className="text-lg leading-none">✦</span>
+          <Plus size={16} strokeWidth={2.5} />
           <span className="hidden text-sm sm:inline">Бърз час</span>
-          <span className="text-xl font-light sm:hidden">+</span>
         </button>
       ) : null}
 
