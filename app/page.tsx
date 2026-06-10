@@ -177,7 +177,7 @@ export default function Home() {
         <RevealOnScroll><AdminShowcase /></RevealOnScroll>
 
         {/* ── TEMPLATES — "Избери своя стил" ── */}
-        <RevealOnScroll><TemplatesSection /></RevealOnScroll>
+        <div id="demo"><RevealOnScroll><TemplatesSection /></RevealOnScroll></div>
 
         {/* ── PROBLEMS — grid cards ── */}
         <section className="px-8 py-10 lg:px-16 md:py-14">
