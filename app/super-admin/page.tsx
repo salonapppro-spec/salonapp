@@ -2,6 +2,8 @@ import Link from "next/link";
 
 import { ArchiveTenantSubmitButton } from "./archive-tenant-submit-button";
 import { DeleteTenantSubmitButton } from "./delete-tenant-submit-button";
+import { VisitsChart } from "@/components/super-admin/VisitsChart";
+import type { DailyEvent } from "@/components/super-admin/VisitsChart";
 
 import {
   archiveTenantAction,
@@ -114,14 +116,43 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
     .filter((t) => t.status === "trial" && Boolean(t.created_at) && (t.created_at as string).slice(0, 10) < plusDays(today, -7))
     .slice(0, 5);
 
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
   const { data: events } = await supabase
     .from("page_events")
-    .select("event_type")
-    .in("event_type", ["visitor", "cta_click", "form_filled"]);
-  const eventRows = (events ?? []) as Array<{ event_type: string }>;
+    .select("event_type, created_at")
+    .in("event_type", ["visitor", "cta_click", "form_filled"])
+    .gte("created_at", thirtyDaysAgo.toISOString());
+  const eventRows = (events ?? []) as Array<{ event_type: string; created_at: string }>;
   const visitors = eventRows.filter((x) => x.event_type === "visitor").length;
   const ctas = eventRows.filter((x) => x.event_type === "cta_click").length;
   const forms = eventRows.filter((x) => x.event_type === "form_filled").length;
+
+  // Build daily chart data for last 30 days
+  const dailyMap = new Map<string, DailyEvent>();
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+    dailyMap.set(key, { date: key.slice(5), visitors: 0, cta_click: 0, form_filled: 0 });
+  }
+  for (const row of eventRows) {
+    const key = row.created_at.slice(0, 10);
+    const entry = dailyMap.get(key);
+    if (!entry) continue;
+    if (row.event_type === "visitor") entry.visitors++;
+    else if (row.event_type === "cta_click") entry.cta_click++;
+    else if (row.event_type === "form_filled") entry.form_filled++;
+  }
+  const chartData = Array.from(dailyMap.values());
+
+  // Churn risk: last sign-in per owner email
+  const { data: authUsersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
+  const lastSignInByEmail = new Map<string, string>();
+  for (const u of authUsersData?.users ?? []) {
+    if (u.email && u.last_sign_in_at) lastSignInByEmail.set(u.email, u.last_sign_in_at);
+  }
+  const sevenDaysAgoISO = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
 
   return (
     <div className="space-y-10">
@@ -171,54 +202,50 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
         )}
       </section>
 
-      <section className="rounded-2xl border border-orange-900/70 bg-orange-950/20 p-4 sm:p-5">
-        <h2 className="text-lg font-semibold text-orange-200">Needs Attention</h2>
-        <p className="mt-1 text-sm text-orange-300/80">Салони, които искат действие днес.</p>
-        <div className="mt-4 grid gap-4 lg:grid-cols-3">
-          <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
-            <p className="text-xs uppercase tracking-wide text-orange-300">Изтичат до 7 дни</p>
-            <div className="mt-2 space-y-2">
-              {expiringSoon.length === 0 ? (
-                <p className="text-xs text-neutral-400">Няма.</p>
-              ) : (
-                expiringSoon.map((t) => (
-                  <p key={t.id} className="text-xs text-neutral-200">
-                    <span className="font-semibold">{t.salon_name}</span> · {t.expiry_date}
-                  </p>
-                ))
-              )}
-            </div>
+      {(expiringSoon.length > 0 || inactiveNeedsArchive.length > 0 || oldTrials.length > 0) && (
+        <section className="rounded-2xl border border-orange-900/70 bg-orange-950/20 p-4 sm:p-5">
+          <h2 className="text-lg font-semibold text-orange-200">Needs Attention</h2>
+          <p className="mt-1 text-sm text-orange-300/80">Салони, които искат действие днес.</p>
+          <div className="mt-4 grid gap-4 lg:grid-cols-3">
+            {expiringSoon.length > 0 && (
+              <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-orange-300">Изтичат до 7 дни</p>
+                <div className="mt-2 space-y-2">
+                  {expiringSoon.map((t) => (
+                    <p key={t.id} className="text-xs text-neutral-200">
+                      <span className="font-semibold">{t.salon_name}</span> · {t.expiry_date}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+            {inactiveNeedsArchive.length > 0 && (
+              <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-orange-300">Inactive, но не архивирани</p>
+                <div className="mt-2 space-y-2">
+                  {inactiveNeedsArchive.map((t) => (
+                    <p key={t.id} className="text-xs text-neutral-200">
+                      <span className="font-semibold">{t.salon_name}</span> · {t.salon_slug}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
+            {oldTrials.length > 0 && (
+              <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
+                <p className="text-xs uppercase tracking-wide text-orange-300">Пробни над 7 дни</p>
+                <div className="mt-2 space-y-2">
+                  {oldTrials.map((t) => (
+                    <p key={t.id} className="text-xs text-neutral-200">
+                      <span className="font-semibold">{t.salon_name}</span> · {t.created_at?.slice(0, 10)}
+                    </p>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
-            <p className="text-xs uppercase tracking-wide text-orange-300">Inactive, но не архивирани</p>
-            <div className="mt-2 space-y-2">
-              {inactiveNeedsArchive.length === 0 ? (
-                <p className="text-xs text-neutral-400">Няма.</p>
-              ) : (
-                inactiveNeedsArchive.map((t) => (
-                  <p key={t.id} className="text-xs text-neutral-200">
-                    <span className="font-semibold">{t.salon_name}</span> · {t.salon_slug}
-                  </p>
-                ))
-              )}
-            </div>
-          </div>
-          <div className="rounded-xl border border-orange-800/60 bg-neutral-950/60 p-3">
-            <p className="text-xs uppercase tracking-wide text-orange-300">Пробни над 7 дни</p>
-            <div className="mt-2 space-y-2">
-              {oldTrials.length === 0 ? (
-                <p className="text-xs text-neutral-400">Няма.</p>
-              ) : (
-                oldTrials.map((t) => (
-                  <p key={t.id} className="text-xs text-neutral-200">
-                    <span className="font-semibold">{t.salon_name}</span> · {t.created_at?.slice(0, 10)}
-                  </p>
-                ))
-              )}
-            </div>
-          </div>
-        </div>
-      </section>
+        </section>
+      )}
 
       <section className="grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-emerald-800/60 bg-emerald-950/30 p-4">
@@ -233,36 +260,50 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
           <p className="text-xs uppercase tracking-wide text-amber-300">MRR</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{mrr.toFixed(2)} €</p>
         </div>
-        <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-4 sm:col-span-3">
+        <div className="rounded-xl border border-violet-800/60 bg-violet-950/30 p-4">
+          <p className="text-xs uppercase tracking-wide text-violet-300">ARPU</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">
+            {activeCount > 0 ? (mrr / activeCount).toFixed(2) : "0.00"} €
+          </p>
+          <p className="mt-1 text-xs text-neutral-500">среден приход / салон</p>
+        </div>
+        <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-4">
           <p className="text-xs uppercase tracking-wide text-red-300">Просрочени (изтекъл период)</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{overdueCount}</p>
         </div>
-        <div className="rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-4 sm:col-span-3">
+        <div className="rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-4">
           <p className="text-xs uppercase tracking-wide text-neutral-300">Архивирани салони</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{archivedCount}</p>
         </div>
       </section>
 
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-4 sm:p-5">
-        <h2 className="text-lg font-semibold">CTR Dashboard</h2>
-        <p className="mt-1 text-sm text-neutral-400">Фуния: посетители → CTA click → форма попълнена.</p>
-        <div className="mt-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-neutral-700 bg-neutral-950/60 p-3">
+        <div className="mb-1 flex items-center justify-between">
+          <h2 className="text-lg font-semibold">CTR Dashboard</h2>
+          <span className="text-xs text-neutral-500">последните 30 дни</span>
+        </div>
+        <p className="mb-4 text-sm text-neutral-400">Фуния: посетители → CTA click → форма попълнена.</p>
+        <div className="grid gap-3 sm:grid-cols-3">
+          <div className="rounded-lg border border-sky-800/60 bg-neutral-950/60 p-3">
             <p className="text-xs text-neutral-400">Посетители</p>
-            <p className="text-xl font-semibold tabular-nums">{visitors}</p>
+            <p className="text-xl font-semibold tabular-nums text-sky-300">{visitors}</p>
           </div>
-          <div className="rounded-lg border border-neutral-700 bg-neutral-950/60 p-3">
-            <p className="text-xs text-neutral-400">CTA click</p>
-            <p className="text-xl font-semibold tabular-nums">
-              {ctas} {visitors > 0 ? <span className="text-sm text-neutral-400">({((ctas / visitors) * 100).toFixed(1)}%)</span> : null}
+          <div className="rounded-lg border border-amber-800/60 bg-neutral-950/60 p-3">
+            <p className="text-xs text-neutral-400">CTA клик</p>
+            <p className="text-xl font-semibold tabular-nums text-amber-300">
+              {ctas}{visitors > 0 ? <span className="ml-1 text-sm text-neutral-400">({((ctas / visitors) * 100).toFixed(1)}%)</span> : null}
             </p>
           </div>
-          <div className="rounded-lg border border-neutral-700 bg-neutral-950/60 p-3">
+          <div className="rounded-lg border border-emerald-800/60 bg-neutral-950/60 p-3">
             <p className="text-xs text-neutral-400">Форма попълнена</p>
-            <p className="text-xl font-semibold tabular-nums">
-              {forms} {ctas > 0 ? <span className="text-sm text-neutral-400">({((forms / ctas) * 100).toFixed(1)}%)</span> : null}
+            <p className="text-xl font-semibold tabular-nums text-emerald-300">
+              {forms}{visitors > 0 ? <span className="ml-1 text-sm text-neutral-400">({((forms / visitors) * 100).toFixed(1)}%)</span> : null}
             </p>
           </div>
+        </div>
+        <div className="mt-6">
+          <p className="mb-3 text-xs uppercase tracking-wide text-neutral-500">Посещения по ден</p>
+          <VisitsChart data={chartData} />
         </div>
       </section>
 
@@ -404,6 +445,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                 <th className="py-2 pr-2">Статус</th>
                 <th className="py-2 pr-2">Собственик</th>
                 <th className="py-2 pr-2">Създаден</th>
+                <th className="py-2 pr-2">Последен вход</th>
                 <th className="py-2 pr-2">Детайли</th>
                 <th className="py-2 pr-2">Архив</th>
                 <th className="py-2 pr-2">Изтрий</th>
@@ -435,6 +477,18 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
                     <span className={overdue ? "ml-2 rounded bg-red-900/70 px-2 py-0.5 text-[10px] uppercase tracking-wide text-red-100" : "ml-2 text-[10px] text-neutral-500"}>
                       {overdue ? `Просрочен (${t.expiry_date})` : t.expiry_date ? `До ${t.expiry_date}` : "без срок"}
                     </span>
+                  </td>
+                  <td className="py-2 pr-2">
+                    {(() => {
+                      const lastSignIn = t.owner_email ? lastSignInByEmail.get(t.owner_email) : undefined;
+                      if (!lastSignIn) return <span className="text-xs text-neutral-500">—</span>;
+                      const isRisky = lastSignIn < sevenDaysAgoISO;
+                      return (
+                        <span className={isRisky ? "text-xs font-semibold text-red-400" : "text-xs text-neutral-400"}>
+                          {isRisky ? "⚠ " : ""}{lastSignIn.slice(0, 10)}
+                        </span>
+                      );
+                    })()}
                   </td>
                   <td className="py-2 pr-2">
                     <Link href={`/super-admin/${t.salon_slug}`} className="text-sky-300 hover:text-sky-200">
@@ -516,7 +570,7 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
               )})}
               {filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={12} className="py-8 text-center text-neutral-400">
+                  <td colSpan={13} className="py-8 text-center text-neutral-400">
                     Няма резултати.
                   </td>
                 </tr>
