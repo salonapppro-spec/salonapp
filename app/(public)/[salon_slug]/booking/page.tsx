@@ -1,9 +1,16 @@
 import { headers } from "next/headers";
+import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { loadPublicSalonData } from "@/lib/data";
 import { BookingFlow } from "@/components/booking/BookingFlow";
+
+// Booking flow е функционален UI без собствено съдържание — дублира главната
+// страница на салона, затова не се индексира (follow остава за линковете).
+export const metadata: Metadata = {
+  robots: { index: false, follow: true },
+};
 
 async function resolveSlug(paramSlug: string): Promise<string> {
   const h = await headers();

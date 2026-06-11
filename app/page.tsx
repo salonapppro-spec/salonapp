@@ -81,6 +81,7 @@ const faqs = [
 const organizationJsonLd = {
   "@context": "https://schema.org",
   "@type": "Organization",
+  "@id": "https://salonapp.pro/#organization",
   name: "SalonApp.pro",
   url: "https://salonapp.pro",
   logo: "https://salonapp.pro/logo.png",
@@ -117,6 +118,15 @@ const softwareApplicationJsonLd = {
     priceCurrency: "EUR",
     offerCount: 4,
   },
+};
+
+const websiteJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  name: "SalonApp.pro",
+  url: "https://salonapp.pro",
+  inLanguage: "bg",
+  publisher: { "@id": "https://salonapp.pro/#organization" },
 };
 
 const faqJsonLd = {
@@ -177,6 +187,12 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(softwareApplicationJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(websiteJsonLd).replace(/</g, "\\u003c"),
         }}
       />
       <script

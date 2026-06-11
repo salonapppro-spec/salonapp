@@ -137,6 +137,15 @@ export async function generateMetadata(props: { params: Promise<{ salon_slug: st
     };
   }
 
+  // "Сайтът е в изграждане" — thin content, не се индексира.
+  // Щом slug-ът влезе в TENANT_SITES, noindex пада автоматично.
+  if (!TENANT_SITES[slug]) {
+    return {
+      title: data.tenant.salon_name,
+      robots: { index: false, follow: false },
+    };
+  }
+
   const base = (process.env.NEXT_PUBLIC_APP_URL ?? "https://salonapp.pro").replace(/\/$/, "");
   const canonical = `${base}/${slug}`;
 
