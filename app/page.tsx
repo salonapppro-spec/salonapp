@@ -28,14 +28,33 @@ const inter = Inter({
 export const metadata: Metadata = {
   title: "SalonApp.pro — Сайт, резервации и бизнес за салони",
   description:
-    "Онлайн резервации по графика, админ панел и публичен сайт за салони. Планове Старт, Standard, Pro и Premium.",
+    "Онлайн резервации 24/7, собствен уебсайт и админ панел за салони. От €19/месец. Без комисионни. Без договори. Безплатен уеб дизайн от екипа.",
+  alternates: {
+    canonical: "https://salonapp.pro",
+  },
   openGraph: {
-    title: "SalonApp.pro — Beauty. Business. Elevated.",
-    description: "Сайт и резервации за салони — без хаоса в чатовете.",
+    title: "SalonApp.pro — Сайт, резервации и бизнес за салони",
+    description:
+      "Онлайн резервации 24/7, собствен уебсайт и админ панел за салони. От €19/месец. Без комисионни. Безплатен уеб дизайн.",
     url: "https://salonapp.pro",
     siteName: "SalonApp.pro",
     locale: "bg_BG",
     type: "website",
+    images: [
+      {
+        url: "https://salonapp.pro/hero-mockup-clean.webp",
+        width: 1200,
+        height: 630,
+        alt: "SalonApp.pro — платформа за салони за красота",
+      },
+    ],
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "SalonApp.pro — Сайт и резервации за салони",
+    description:
+      "Онлайн резервации 24/7, собствен уебсайт и админ панел. От €19/месец.",
+    images: ["https://salonapp.pro/hero-mockup-clean.webp"],
   },
 };
 
@@ -57,6 +76,61 @@ const faqs = [
     a: "Спираш го с един клик. Точка. Няма скрити договори, няма дребен шрифт, няма такси за прекратяване. Ние не искаме да те държим насила. Искаме да ползваш SalonApp, защото виждаш как ти пести нерви и ти носи повече пари. Ако не го прави – просто си тръгваш без въпроси.",
   },
 ];
+
+// ── JSON-LD Schemas ────────────────────────────────────────────────────────────
+const organizationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  name: "SalonApp.pro",
+  url: "https://salonapp.pro",
+  logo: "https://salonapp.pro/logo.png",
+  description:
+    "Мулти-тенант SaaS платформа за управление на салони за красота — онлайн резервации, собствен уебсайт и административен панел.",
+  sameAs: [
+    "https://www.instagram.com/salonappbg",
+    "https://www.facebook.com/salonappbg",
+    "https://www.tiktok.com/@salonappbg",
+  ],
+  contactPoint: [
+    {
+      "@type": "ContactPoint",
+      telephone: "+359889967291",
+      contactType: "sales",
+      availableLanguage: "Bulgarian",
+    },
+  ],
+};
+
+const softwareApplicationJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  name: "SalonApp.pro",
+  applicationCategory: "BusinessApplication",
+  operatingSystem: "Web",
+  url: "https://salonapp.pro",
+  description:
+    "Платформа за онлайн резервации и управление на салони за красота. Собствен уебсайт, клиентска база и финансови отчети.",
+  offers: {
+    "@type": "AggregateOffer",
+    lowPrice: "19",
+    highPrice: "99",
+    priceCurrency: "EUR",
+    offerCount: 4,
+  },
+};
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: faqs.map((f) => ({
+    "@type": "Question",
+    name: f.q,
+    acceptedAnswer: {
+      "@type": "Answer",
+      text: f.a,
+    },
+  })),
+};
 
 export default function Home() {
   return (
@@ -91,6 +165,26 @@ export default function Home() {
         .playfair  { font-family: var(--font-playfair), Georgia, serif; }
         html, body { background-color: #F8EBDD; color-scheme: only light; }
       `}</style>
+
+      {/* ── JSON-LD Structured Data ── */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(organizationJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(softwareApplicationJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
 
       <LandingHeader />
 

@@ -84,8 +84,29 @@ function renderSite(slug: string, data: SalonData) {
 }
 
 function beautyBusinessJsonLd(data: SalonData, canonicalUrl: string) {
-  const { tenant, gallery } = data;
+  const { tenant, gallery, services } = data;
   const brandImage = tenant.logo_url?.trim() || tenant.hero_image_url?.trim() || gallery[0]?.url;
+
+  const hasOfferCatalog =
+    services.length > 0
+      ? {
+          hasOfferCatalog: {
+            "@type": "OfferCatalog",
+            name: "Услуги",
+            itemListElement: services.slice(0, 10).map((s) => ({
+              "@type": "Offer",
+              itemOffered: {
+                "@type": "Service",
+                name: s.name,
+              },
+              ...(s.price_eur != null
+                ? { price: String(s.price_eur), priceCurrency: "EUR" }
+                : {}),
+            })),
+          },
+        }
+      : {};
+
   return {
     "@context": "https://schema.org",
     "@type": "BeautySalon",
@@ -97,22 +118,38 @@ function beautyBusinessJsonLd(data: SalonData, canonicalUrl: string) {
     address: tenant.address
       ? { "@type": "PostalAddress", streetAddress: tenant.address }
       : undefined,
+    ...hasOfferCatalog,
   };
 }
 
 export async function generateMetadata(props: { params: Promise<{ salon_slug: string }> }): Promise<Metadata> {
   const { salon_slug: paramSlug } = await props.params;
   const slug = await resolveSlug(paramSlug);
-  if (!isValidSlug(slug)) return { title: "Салон" };
+  if (!isValidSlug(slug)) return { title: "Салон", robots: { index: false } };
   const data = await loadPublicSalonData(slug);
-  if (!data) return { title: "Салон" };
+  if (!data) return { title: "Салон", robots: { index: false } };
+
+  // Неактивните тенанти не трябва да се индексират
+  if (data.tenant.status === "inactive") {
+    return {
+      title: data.tenant.salon_name,
+      robots: { index: false, follow: false },
+    };
+  }
 
   const base = (process.env.NEXT_PUBLIC_APP_URL ?? "https://salonapp.pro").replace(/\/$/, "");
   const canonical = `${base}/${slug}`;
-  const title = `${data.tenant.salon_name} — онлайн резервации`;
-  const description =
-    data.tenant.description?.slice(0, 160) ??
-    `Запази час в ${data.tenant.salon_name}. Онлайн резервации чрез SalonApp.pro.`;
+
+  // Title: max 60 символа — "Salon Name — онлайн резервации"
+  const suffix = " — онлайн резервации";
+  const maxNameLen = 60 - suffix.length; // 40 chars за name
+  const salonName = data.tenant.salon_name.slice(0, maxNameLen);
+  const title = `${salonName}${suffix}`;
+
+  // Description: 140-160 символа
+  const fallbackDesc = `Запази час онлайн в ${data.tenant.salon_name}. Онлайн резервации 24/7, без телефонни обаждания. Запазете час лесно и бързо чрез SalonApp.pro.`;
+  const description = (data.tenant.description?.slice(0, 160) ?? fallbackDesc).slice(0, 160);
+
   const t = data.tenant;
   const ogImage = t.logo_url?.trim() || t.hero_image_url?.trim() || data.gallery[0]?.url;
   const ogHttps = ogImage && /^https:\/\//i.test(ogImage) ? ogImage : undefined;
@@ -121,19 +158,20 @@ export async function generateMetadata(props: { params: Promise<{ salon_slug: st
     title,
     description,
     alternates: { canonical },
+    robots: { index: true, follow: true },
     ...(ogHttps ? { icons: { icon: [{ url: ogHttps }], apple: [{ url: ogHttps }] } } : {}),
     openGraph: {
-      title: data.tenant.salon_name,
+      title: salonName,
       description,
       url: canonical,
       siteName: "SalonApp.pro",
       locale: "bg_BG",
       type: "website",
-      images: ogHttps ? [{ url: ogHttps }] : undefined,
+      images: ogHttps ? [{ url: ogHttps, alt: `${salonName} — снимка` }] : undefined,
     },
     twitter: {
       card: ogHttps ? "summary_large_image" : "summary",
-      title: data.tenant.salon_name,
+      title: salonName,
       description,
       images: ogHttps ? [ogHttps] : undefined,
     },

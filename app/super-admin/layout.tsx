@@ -1,8 +1,17 @@
+import type { Metadata } from "next";
 import Link from "next/link";
 import { redirect } from "next/navigation";
 
 import { SignOutButton } from "@/components/admin/SignOutButton";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
+
+export const metadata: Metadata = {
+  title: "SalonApp Super Admin",
+  robots: {
+    index: false,
+    follow: false,
+  },
+};
 
 function isSuperAdminRole(user: { app_metadata?: Record<string, unknown>; user_metadata?: Record<string, unknown> }): boolean {
   return user.app_metadata?.role === "super_admin";

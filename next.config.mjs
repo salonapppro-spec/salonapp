@@ -74,6 +74,8 @@ const nextConfig = {
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
           { key: "Content-Security-Policy", value: CSP_POLICY },
+          // HTTP-level noindex — belt-and-suspenders заедно с metadata robots
+          { key: "X-Robots-Tag", value: "noindex, nofollow" },
         ],
       },
     ];

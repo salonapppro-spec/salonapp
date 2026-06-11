@@ -8,6 +8,10 @@ export const metadata: Metadata = {
     title: "SalonApp Admin",
     statusBarStyle: "default",
   },
+  robots: {
+    index: false,
+    follow: false,
+  },
 };
 
 export const viewport: Viewport = {
