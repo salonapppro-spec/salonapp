@@ -113,11 +113,100 @@ const softwareApplicationJsonLd = {
     "Платформа за онлайн резервации и управление на салони за красота. Собствен уебсайт, клиентска база и финансови отчети.",
   offers: {
     "@type": "AggregateOffer",
-    lowPrice: "19",
-    highPrice: "99",
+    lowPrice: "15",
+    highPrice: "49",
     priceCurrency: "EUR",
     offerCount: 4,
   },
+};
+
+const plansJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "ItemList",
+  name: "SalonApp.pro ценови планове",
+  description: "Абонаментни планове за управление на салон за красота",
+  itemListElement: [
+    {
+      "@type": "ListItem",
+      position: 1,
+      item: {
+        "@type": "Offer",
+        name: "СТАРТ",
+        description: "Собствен уебсайт на субдомейн, SEO оптимизация, Google Бизнес профил настройка.",
+        price: "15",
+        priceCurrency: "EUR",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: "15",
+          priceCurrency: "EUR",
+          unitCode: "MON",
+          billingIncrement: 1,
+        },
+        url: "https://salonapp.pro/#plans",
+        seller: { "@id": "https://salonapp.pro/#organization" },
+      },
+    },
+    {
+      "@type": "ListItem",
+      position: 2,
+      item: {
+        "@type": "Offer",
+        name: "СТАНДАРТ",
+        description: "1 специалист, собствен уебсайт, дигитален график, онлайн резервации 24/7, бизнес калкулатор и месечни отчети.",
+        price: "19",
+        priceCurrency: "EUR",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: "19",
+          priceCurrency: "EUR",
+          unitCode: "MON",
+          billingIncrement: 1,
+        },
+        url: "https://salonapp.pro/#plans",
+        seller: { "@id": "https://salonapp.pro/#organization" },
+      },
+    },
+    {
+      "@type": "ListItem",
+      position: 3,
+      item: {
+        "@type": "Offer",
+        name: "ПРО",
+        description: "1 специалист, всичко от СТАНДАРТ, паралелни услуги, Google Бизнес акаунт настройка, SEO и AI оптимизация.",
+        price: "29",
+        priceCurrency: "EUR",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: "29",
+          priceCurrency: "EUR",
+          unitCode: "MON",
+          billingIncrement: 1,
+        },
+        url: "https://salonapp.pro/#plans",
+        seller: { "@id": "https://salonapp.pro/#organization" },
+      },
+    },
+    {
+      "@type": "ListItem",
+      position: 4,
+      item: {
+        "@type": "Offer",
+        name: "ПРЕМИУМ",
+        description: "1 специалист, всичко от ПРО, автоматични SMS & Viber напомняния, имейл след посещение за събиране на отзиви.",
+        price: "49",
+        priceCurrency: "EUR",
+        priceSpecification: {
+          "@type": "UnitPriceSpecification",
+          price: "49",
+          priceCurrency: "EUR",
+          unitCode: "MON",
+          billingIncrement: 1,
+        },
+        url: "https://salonapp.pro/#plans",
+        seller: { "@id": "https://salonapp.pro/#organization" },
+      },
+    },
+  ],
 };
 
 const websiteJsonLd = {
@@ -199,6 +288,12 @@ export default function Home() {
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: JSON.stringify(faqJsonLd).replace(/</g, "\\u003c"),
+        }}
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify(plansJsonLd).replace(/</g, "\\u003c"),
         }}
       />
 
