@@ -99,6 +99,9 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
           specialists={specialists}
           plan={tenant?.plan ?? "standard"}
           minNoticeMinutes={financialSettings?.booking_min_notice_minutes ?? 30}
+          bufferMinutes={financialSettings?.buffer_minutes ?? 10}
+          bookingWindowDays={financialSettings?.booking_window_days ?? 30}
+          magneticScheduling={financialSettings?.magnetic_scheduling ?? true}
         />
       </>
     );

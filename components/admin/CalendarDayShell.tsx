@@ -19,6 +19,9 @@ export function CalendarDayShell(props: {
   specialists: Specialist[];
   plan: Plan;
   minNoticeMinutes: number;
+  bufferMinutes: number;
+  bookingWindowDays: number;
+  magneticScheduling: boolean;
 }) {
   const [blockOpen, setBlockOpen] = useState(false);
 
@@ -56,7 +59,12 @@ export function CalendarDayShell(props: {
           </h2>
           <BlockedSlotsSection blockedDate={props.date} initialSlots={props.blocked} />
         </div>
-        <MinNoticeCard initialMinutes={props.minNoticeMinutes} />
+        <MinNoticeCard
+          initialMinutes={props.minNoticeMinutes}
+          initialBuffer={props.bufferMinutes}
+          initialBookingWindow={props.bookingWindowDays}
+          initialMagnetic={props.magneticScheduling}
+        />
       </ScheduleBoard>
       {blockOpen ? (
         <BlockSlotModal blockedDate={props.date} initialSlots={props.blocked} onClose={() => setBlockOpen(false)} />

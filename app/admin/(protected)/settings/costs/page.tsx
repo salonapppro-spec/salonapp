@@ -1,4 +1,3 @@
-import { FinancialSettingsForm } from "@/components/admin/FinancialSettingsForm";
 import { FixedCostsSettingsForm } from "@/components/admin/FixedCostsSettingsForm";
 import { requireAdminTenantSlugForPage } from "@/lib/admin-tenant-page";
 import { getFinancialSettings } from "@/lib/data";
@@ -10,10 +9,6 @@ export default async function SettingsCostsPage() {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <FinancialSettingsForm
-        settings={financial as FinancialSettings | null}
-        variant="booking"
-      />
       <FixedCostsSettingsForm settings={financial as FinancialSettings | null} />
     </div>
   );
