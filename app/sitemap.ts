@@ -49,10 +49,11 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   try {
     const supabase = createSupabaseServiceRoleClient();
+    // trial тенантите също са живи публични сайтове → индексират се
     const { data: tenants, error } = await supabase
       .from("tenants")
-      .select("salon_slug, updated_at")
-      .eq("status", "active")
+      .select("salon_slug, created_at")
+      .in("status", ["active", "trial"])
       .order("created_at", { ascending: true });
 
     if (error || !tenants || tenants.length === 0) {
@@ -61,7 +62,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const tenantPages: MetadataRoute.Sitemap = tenants.map((t) => ({
       url: `${BASE_URL}/${t.salon_slug}`,
-      lastModified: t.updated_at ? new Date(t.updated_at as string) : new Date(),
+      lastModified: t.created_at ? new Date(t.created_at as string) : new Date(),
       changeFrequency: "weekly" as const,
       priority: 0.9,
     }));
