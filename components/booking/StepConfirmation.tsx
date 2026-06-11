@@ -1,6 +1,7 @@
 "use client";
 
 import type { Service } from "@/types";
+import { suggestEmailFix } from "@/lib/email-typo";
 
 export function StepConfirmation(props: {
   stepLabel: string;
@@ -14,6 +15,7 @@ export function StepConfirmation(props: {
   email: string;
 }) {
   const { stepLabel, salonName, specialistName, service, date, time, name, phone, email } = props;
+  const emailSuggestion = email ? suggestEmailFix(email) : null;
   return (
     <div className="space-y-4">
       <p className="text-sm font-medium text-neutral-800">{stepLabel}</p>
@@ -57,6 +59,16 @@ export function StepConfirmation(props: {
           ) : null}
         </dl>
       </div>
+      {email ? (
+        <p className="text-xs text-neutral-600">
+          Потвърждението ще бъде изпратено на <strong className="text-neutral-900">{email}</strong> — проверете дали е изписан вярно.
+        </p>
+      ) : null}
+      {emailSuggestion ? (
+        <p className="rounded-lg bg-amber-50 px-3 py-2 text-xs font-medium text-amber-800">
+          ⚠ Възможна грешка в имейла — имахте предвид <strong>{emailSuggestion}</strong>? Върнете се назад, за да го коригирате.
+        </p>
+      ) : null}
       <p className="text-xs text-neutral-600">Натиснете „Потвърди записването“, за да изпратите заявката.</p>
     </div>
   );

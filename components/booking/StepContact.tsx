@@ -1,5 +1,8 @@
 "use client";
 
+import { useState } from "react";
+import { suggestEmailFix } from "@/lib/email-typo";
+
 export function StepContact(props: {
   stepLabel: string;
   name: string;
@@ -14,6 +17,10 @@ export function StepContact(props: {
   lookupStatus: "idle" | "loading" | "done" | "error";
 }) {
   const { stepLabel, name, phone, email, notes, onName, onPhone, onEmail, onNotes, onPhoneLookup, lookupStatus } = props;
+
+  // Подсказка при правописна грешка в домейна (abv.bgg → abv.bg).
+  // Проверява се на blur, за да не подсказва докато човекът още пише.
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
 
   return (
     <div className="space-y-4">
@@ -47,9 +54,29 @@ export function StepContact(props: {
           type="email"
           className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
           value={email}
-          onChange={(e) => onEmail(e.target.value)}
+          onChange={(e) => {
+            onEmail(e.target.value);
+            if (emailSuggestion) setEmailSuggestion(null);
+          }}
+          onBlur={() => setEmailSuggestion(suggestEmailFix(email))}
           autoComplete="email"
         />
+        {emailSuggestion ? (
+          <p className="mt-1 text-xs text-amber-700">
+            Имахте предвид{" "}
+            <button
+              type="button"
+              className="font-semibold underline"
+              onClick={() => {
+                onEmail(emailSuggestion);
+                setEmailSuggestion(null);
+              }}
+            >
+              {emailSuggestion}
+            </button>
+            ?
+          </p>
+        ) : null}
       </div>
       <div>
         <label className="text-xs font-medium text-neutral-600">Бележки</label>
