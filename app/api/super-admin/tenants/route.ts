@@ -157,8 +157,7 @@ export async function POST(req: Request) {
     const setPasswordLink = await recoveryActionLinkForEmail(parsed.data.owner_email);
 
     let emailDispatched = false;
-    if (process.env.RESEND_API_KEY) {
-      const welcomeHtml = buildWelcomeEmail(parsed.data.salon_name);
+    if (process.env.RESEND_API_KEY && setPasswordLink) {
       const mailRes = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
@@ -168,8 +167,8 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           from: process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>",
           to: [parsed.data.owner_email],
-          subject: "Добре дошли в SalonApp — какво следва",
-          html: welcomeHtml,
+          subject: "SalonApp — задайте парола за вход",
+          html: `<p>Профилът за <strong>${parsed.data.salon_name}</strong> е създаден.</p><p>Задайте парола от този еднократен линк:</p><p><a href="${setPasswordLink}">Задай парола и влез в админ панела</a></p>`,
         }),
       }).catch(() => null);
       emailDispatched = Boolean(mailRes?.ok);
