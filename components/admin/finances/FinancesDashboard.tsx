@@ -330,7 +330,7 @@ export function FinancesDashboard(props: {
       {props.overheadMissing ? (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           ⚠ Постоянните разходи не са зададени — „Чиста печалба" е непълна.{" "}
-          <Link href="/admin/settings#fixed-costs" className="font-semibold underline underline-offset-2">
+          <Link href="/admin/finances/overhead" className="font-semibold underline underline-offset-2">
             Задай ги в Настройки →
           </Link>
         </div>
@@ -416,7 +416,7 @@ export function FinancesDashboard(props: {
       {/* ── Fixed costs hint ─────────────────────── */}
       <p className="mt-4 text-center text-xs text-slate-400">
         Постоянните разходи може да въведеш или промениш от{" "}
-        <Link href="/admin/settings#fixed-costs" className="underline underline-offset-2 hover:text-slate-600">
+        <Link href="/admin/finances/overhead" className="underline underline-offset-2 hover:text-slate-600">
           тук
         </Link>
       </p>

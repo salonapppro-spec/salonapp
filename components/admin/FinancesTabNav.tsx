@@ -7,24 +7,21 @@ const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
 
 const tabs = [
-  { href: "/admin/settings/logo-images", label: "Лого и снимки", icon: "🖼️" },
-  { href: "/admin/settings/contacts",    label: "Контакти",       icon: "📍" },
-  { href: "/admin/settings/services",    label: "Услуги",         icon: "✂️" },
-  { href: "/admin/settings/hours",       label: "Раб. Време",     icon: "🕐" },
-  { href: "/admin/settings/password",    label: "Парола",         icon: "🔑" },
+  { href: "/admin/finances",          label: "Обзор",               icon: "📊", exact: true },
+  { href: "/admin/finances/overhead", label: "Постоянни разходи",   icon: "🏷️", exact: false },
 ] as const;
 
-export function SettingsTabNav() {
+export function FinancesTabNav() {
   const pathname = usePathname() ?? "";
 
   return (
     <nav
       className="mt-5 flex gap-1.5 overflow-x-auto pb-1"
       style={{ scrollbarWidth: "none" }}
-      aria-label="Настройки навигация"
+      aria-label="Финанси навигация"
     >
       {tabs.map((tab) => {
-        const active = pathname === tab.href || pathname.startsWith(`${tab.href}/`);
+        const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);
         return (
           <Link
             key={tab.href}
