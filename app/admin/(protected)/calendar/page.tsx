@@ -16,6 +16,7 @@ import {
   getAllServicesAdmin,
   getBlockedSlotsForDate,
   getBookingsForDatesAdmin,
+  getFinancialSettings,
   getSpecialistsPublic,
   getTenantBySalonSlug,
   getWorkingHoursForDate,
@@ -66,10 +67,11 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
   // view-specific data
   if (view === "day") {
     const dayOfWeek = new Date(`${date}T12:00:00`).getDay();
-    const [dayBookings, blocked, wh] = await Promise.all([
+    const [dayBookings, blocked, wh, financialSettings] = await Promise.all([
       getBookingsForDatesAdmin({ salonSlug, dates: [date] }),
       getBlockedSlotsForDate({ salonSlug, date }),
       getWorkingHoursForDate({ salonSlug, dayOfWeek }),
+      getFinancialSettings(salonSlug),
     ]);
 
     return (
@@ -96,6 +98,7 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
           services={services}
           specialists={specialists}
           plan={tenant?.plan ?? "standard"}
+          minNoticeMinutes={financialSettings?.booking_min_notice_minutes ?? 30}
         />
       </>
     );

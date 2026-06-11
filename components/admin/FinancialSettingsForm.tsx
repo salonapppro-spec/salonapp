@@ -88,18 +88,6 @@ export function FinancialSettingsForm(props: {
           <label className="text-sm font-medium text-brand-900">Прозорец за резервация (дни напред)</label>
           <input className="input-admin" inputMode="numeric" value={bookingWindow} onChange={(e) => setBookingWindow(e.target.value)} />
         </div>
-        <div>
-          <label className="text-sm font-medium text-brand-900">Минимално предизвестие за онлайн запис</label>
-          <select className="input-admin" value={minNotice} onChange={(e) => setMinNotice(e.target.value)}>
-            <option value="0">Без ограничение — час може да се запази веднага</option>
-            <option value="15">15 минути напред</option>
-            <option value="30">30 минути напред (препоръчително)</option>
-            <option value="60">1 час напред</option>
-          </select>
-          <p className="mt-1 text-xs text-brand-800/70">
-            Колко рано най-късно клиент може да запази час за днес. По-кратко = повече спонтанни клиенти, но по-малко време за реакция.
-          </p>
-        </div>
         <div className="flex items-center gap-2 sm:col-span-2">
           <input id="mag" type="checkbox" checked={magnetic} onChange={(e) => setMagnetic(e.target.checked)} />
           <label htmlFor="mag" className="text-sm text-brand-900">

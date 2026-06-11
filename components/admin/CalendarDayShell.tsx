@@ -7,6 +7,7 @@ import { ScheduleBoard } from "@/components/admin/ScheduleBoard";
 import type { BlockedSlot, Booking, Plan, Service, Specialist, WorkingHours } from "@/types";
 
 import { BlockedSlotsSection } from "@/components/admin/BlockedSlotsSection";
+import { MinNoticeCard } from "@/components/admin/MinNoticeCard";
 
 export function CalendarDayShell(props: {
   salonSlug: string;
@@ -17,6 +18,7 @@ export function CalendarDayShell(props: {
   services: Service[];
   specialists: Specialist[];
   plan: Plan;
+  minNoticeMinutes: number;
 }) {
   const [blockOpen, setBlockOpen] = useState(false);
 
@@ -54,6 +56,7 @@ export function CalendarDayShell(props: {
           </h2>
           <BlockedSlotsSection blockedDate={props.date} initialSlots={props.blocked} />
         </div>
+        <MinNoticeCard initialMinutes={props.minNoticeMinutes} />
       </ScheduleBoard>
       {blockOpen ? (
         <BlockSlotModal blockedDate={props.date} initialSlots={props.blocked} onClose={() => setBlockOpen(false)} />
