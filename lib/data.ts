@@ -11,10 +11,16 @@ export async function getTenantBySalonSlug(salonSlug: string): Promise<Tenant | 
   return getTenant(salonSlug);
 }
 
-export async function getServices(salonSlug: string): Promise<Service[]> {
-  const { data, error } = await tenantDb(salonSlug).services.listActive();
-  if (error) throw error;
-  return (data as Service[]) ?? [];
+export function getServices(salonSlug: string): Promise<Service[]> {
+  return unstable_cache(
+    async () => {
+      const { data, error } = await tenantDb(salonSlug).services.listActive();
+      if (error) throw error;
+      return (data as Service[]) ?? [];
+    },
+    [`services-public-${salonSlug}`],
+    { revalidate: 60, tags: [`services-${salonSlug}`] }
+  )();
 }
 
 export function getAllServicesAdmin(salonSlug: string): Promise<Service[]> {
@@ -55,10 +61,16 @@ export async function getExpensesForMonth(salonSlug: string, year: number, month
   return data ?? [];
 }
 
-export async function getGallery(salonSlug: string): Promise<GalleryItem[]> {
-  const { data, error } = await tenantDb(salonSlug).gallery.listVisible();
-  if (error) throw error;
-  return (data as GalleryItem[]) ?? [];
+export function getGallery(salonSlug: string): Promise<GalleryItem[]> {
+  return unstable_cache(
+    async () => {
+      const { data, error } = await tenantDb(salonSlug).gallery.listVisible();
+      if (error) throw error;
+      return (data as GalleryItem[]) ?? [];
+    },
+    [`gallery-public-${salonSlug}`],
+    { revalidate: 60, tags: [`gallery-${salonSlug}`] }
+  )();
 }
 
 function withFinancialDefaults(row: Record<string, unknown> | null): FinancialSettings | null {
@@ -291,30 +303,36 @@ export async function getSpecialistsAdmin(salonSlug: string): Promise<Specialist
 }
 
 /** Работно време на салона (без per-specialist), 7 реда 0–6. */
-export async function getSalonWorkingHoursPublic(salonSlug: string): Promise<WorkingHours[]> {
-  const { data, error } = await tenantDb(salonSlug).workingHours.listSalonDefaultWeek();
-  if (error) throw error;
-  const rows = (data as WorkingHours[]) ?? [];
-  const byDay = new Map(rows.map((r) => [r.day_of_week, r]));
-  const out: WorkingHours[] = [];
-  for (let d = 0; d < 7; d++) {
-    const existing = byDay.get(d as WorkingHours["day_of_week"]);
-    if (existing) {
-      out.push(existing);
-    } else {
-      const def = DEFAULT_WORKING_HOURS_DAYS[d];
-      out.push({
-        id: `default-${salonSlug}-${d}`,
-        salon_slug: salonSlug,
-        specialist_id: null,
-        day_of_week: d as WorkingHours["day_of_week"],
-        start_time: def.start_time,
-        end_time: def.end_time,
-        is_day_off: def.is_day_off,
-      });
-    }
-  }
-  return out;
+export function getSalonWorkingHoursPublic(salonSlug: string): Promise<WorkingHours[]> {
+  return unstable_cache(
+    async () => {
+      const { data, error } = await tenantDb(salonSlug).workingHours.listSalonDefaultWeek();
+      if (error) throw error;
+      const rows = (data as WorkingHours[]) ?? [];
+      const byDay = new Map(rows.map((r) => [r.day_of_week, r]));
+      const out: WorkingHours[] = [];
+      for (let d = 0; d < 7; d++) {
+        const existing = byDay.get(d as WorkingHours["day_of_week"]);
+        if (existing) {
+          out.push(existing);
+        } else {
+          const def = DEFAULT_WORKING_HOURS_DAYS[d];
+          out.push({
+            id: `default-${salonSlug}-${d}`,
+            salon_slug: salonSlug,
+            specialist_id: null,
+            day_of_week: d as WorkingHours["day_of_week"],
+            start_time: def.start_time,
+            end_time: def.end_time,
+            is_day_off: def.is_day_off,
+          });
+        }
+      }
+      return out;
+    },
+    [`working-hours-public-${salonSlug}`],
+    { revalidate: 60, tags: [`working-hours-${salonSlug}`] }
+  )();
 }
 
 /** Пълен пакет за публична страница на салон. */

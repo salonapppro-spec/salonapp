@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -37,5 +37,6 @@ export async function POST(req: Request) {
   if (error) return NextResponse.json({ error: "DB insert failed" }, { status: 500 });
 
   revalidatePath(`/${salonSlug}`);
+  revalidateTag(`gallery-${salonSlug}`);
   return NextResponse.json({ item: data });
 }

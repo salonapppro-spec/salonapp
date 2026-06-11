@@ -470,7 +470,7 @@ export default function Home() {
           </RevealOnScroll>
         </section>
         {/* ── PLANS ── */}
-        <section className="bg-[#F8EBDD] px-8 py-10 lg:px-16 md:py-14">
+        <section id="plans" className="bg-[#F8EBDD] px-8 py-10 lg:px-16 md:py-14">
           <div>
             <div className="border-b border-[#E8DDD0] pb-8">
               <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#C79A4B]">
@@ -493,7 +493,7 @@ export default function Home() {
         <div className="h-px bg-[#C79A4B]/20" />
 
         {/* ── FAQ ── */}
-        <section className="bg-[#F8EBDD] px-8 py-10 lg:px-16 md:py-14">
+        <section id="faq" className="bg-[#F8EBDD] px-8 py-10 lg:px-16 md:py-14">
           <div>
             <div className="mb-10 border-b border-[#E8DDD0] pb-8">
               <p className="text-[10px] font-semibold uppercase tracking-[0.45em] text-[#C79A4B]">
@@ -623,6 +623,9 @@ export default function Home() {
               {/* Линкове */}
               <nav className="flex flex-wrap justify-center gap-x-6 gap-y-3 sm:justify-end">
                 {[
+                  { label: "Цени", href: "/#plans" },
+                  { label: "FAQ", href: "/#faq" },
+                  { label: "Демо", href: "/#demo" },
                   { label: "salonapppro@gmail.com", href: "mailto:salonapppro@gmail.com" },
                   { label: "Условия", href: "/legal/terms" },
                   { label: "Поверителност", href: "/legal/privacy" },

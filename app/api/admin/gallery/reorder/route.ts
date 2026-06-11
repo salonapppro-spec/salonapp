@@ -1,4 +1,4 @@
-import { revalidatePath } from "next/cache";
+import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
@@ -25,5 +25,6 @@ export async function POST(req: Request) {
   }
 
   revalidatePath(`/${salonSlug}`);
+  revalidateTag(`gallery-${salonSlug}`);
   return NextResponse.json({ ok: true });
 }
