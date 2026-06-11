@@ -461,7 +461,12 @@ export function tenantDb(rawSlug: string) {
     },
     storage: {
       uploadImage(bucket: string, path: string, buffer: Buffer, contentType: string) {
-        return supabase.storage.from(bucket).upload(path, buffer, { contentType, upsert: false });
+        // Файловете са с UUID имена и никога не се променят → кеш 1 година.
+        // Без това Supabase връща Cache-Control: no-cache и браузърът тегли
+        // всяко изображение наново при всяко зареждане.
+        return supabase.storage
+          .from(bucket)
+          .upload(path, buffer, { contentType, upsert: false, cacheControl: "31536000" });
       },
       getPublicUrl(bucket: string, path: string) {
         return supabase.storage.from(bucket).getPublicUrl(path);

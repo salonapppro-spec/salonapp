@@ -217,8 +217,14 @@ export default async function PublicSalonPage(props: {
   const canonicalUrl = `${base}/${slug}`;
   const jsonLd = beautyBusinessJsonLd(data, canonicalUrl);
 
+  // Hero-то е LCP елементът — preload го стартира веднага, преди браузърът
+  // да е стигнал до <img> тага в HTML-а.
+  const heroUrl = data.tenant.hero_image_url?.trim();
+  const heroPreload = heroUrl && /^https:\/\//i.test(heroUrl) ? heroUrl : null;
+
   return (
     <>
+      {heroPreload && <link rel="preload" as="image" href={heroPreload} fetchPriority="high" />}
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}
       <link rel="preconnect" href="https://fonts.googleapis.com" />
       {/* eslint-disable-next-line @next/next/no-page-custom-font */}

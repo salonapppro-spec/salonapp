@@ -58,9 +58,12 @@ export async function sanitizeImageToWebp(input: Buffer): Promise<Buffer> {
     failOn: "error",
     limitInputPixels: 4096 * 4096,
     sequentialRead: true,
-  }).rotate();
+  })
+    .rotate()
+    // Никой публичен сайт не показва над ~1920px — по-големите само тежат.
+    .resize({ width: 1920, height: 1920, fit: "inside", withoutEnlargement: true });
 
-  return pipeline.webp({ quality: 86, effort: 4, smartSubsample: true }).toBuffer();
+  return pipeline.webp({ quality: 82, effort: 4, smartSubsample: true }).toBuffer();
 }
 
 export type ProcessUploadImageResult =
