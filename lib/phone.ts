@@ -32,3 +32,20 @@ export function normalizePhone(raw: string): string {
 
   return p;
 }
+
+/**
+ * Проверка дали телефонът е правдоподобен (за публични форми).
+ * Хваща грешен брой цифри — напр. "08956235659" (11 цифри) е невалиден.
+ * Приема: БГ мобилен (08 + 8 цифри), +359…, 00359…, БГ стационарен (0…),
+ * международен (+ и 8–15 цифри).
+ */
+export function isLikelyValidPhone(raw: string): boolean {
+  const p = raw.replace(/[\s\-().]/g, "").trim();
+  if (!p) return false;
+  if (/^08\d{8}$/.test(p)) return true;          // БГ мобилен: точно 10 цифри
+  if (/^\+3598\d{8}$/.test(p)) return true;      // БГ мобилен E.164
+  if (/^003598\d{8}$/.test(p)) return true;      // БГ мобилен 00359
+  if (/^0[1-7]\d{6,8}$/.test(p)) return true;    // БГ стационарен
+  if (/^\+(?!359)\d{8,15}$/.test(p)) return true; // друг международен
+  return false;
+}

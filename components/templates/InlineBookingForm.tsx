@@ -2,6 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import type { Service } from "@/types/database";
+import { isLikelyValidPhone } from "@/lib/phone";
+import { suggestEmailFix } from "@/lib/email-typo";
 
 function MiniCalendar({ value, min, onChange, primaryColor, textColor, inputStyle }: {
   value: string; min: string; onChange: (d: string) => void;
@@ -207,6 +209,8 @@ export function InlineBookingForm({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null);
@@ -228,7 +232,7 @@ export function InlineBookingForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!service || !date || !time || !name || !phone) return;
+    if (!service || !date || !time || !name || !phone || !isLikelyValidPhone(phone)) return;
     setStatus("loading");
     setErrorMsg("");
     const svc = activeServices.find((s) => s.id === service);
@@ -400,7 +404,7 @@ export function InlineBookingForm({
     );
   }
 
-  const canSubmit = !!(service && date && time && name && phone) && status !== "loading";
+  const canSubmit = !!(service && date && time && name && phone && isLikelyValidPhone(phone)) && status !== "loading";
 
   // All colors flow through CSS variables set on the wrapper div.
   // color-mix() creates transparent variants that update live in the builder.
@@ -535,10 +539,16 @@ export function InlineBookingForm({
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
+              onBlur={() => setPhoneTouched(true)}
               required
               placeholder="+359 88 888 8888"
               style={inputStyle}
             />
+            {phoneTouched && phone.trim() !== "" && !isLikelyValidPhone(phone) ? (
+              <p style={{ color: "#e53e3e", fontSize: "12px", margin: "4px 0 0" }}>
+                Невалиден телефон — проверете броя на цифрите (напр. 0888 123 456).
+              </p>
+            ) : null}
           </div>
         </div>
 
@@ -548,10 +558,30 @@ export function InlineBookingForm({
           <input
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => {
+              setEmail(e.target.value);
+              if (emailSuggestion) setEmailSuggestion(null);
+            }}
+            onBlur={() => setEmailSuggestion(suggestEmailFix(email))}
             placeholder="maria@example.com"
             style={inputStyle}
           />
+          {emailSuggestion ? (
+            <p style={{ fontSize: "12px", color: "#92600a", margin: "4px 0 0" }}>
+              Имахте предвид{" "}
+              <button
+                type="button"
+                style={{ font: "inherit", fontWeight: 700, textDecoration: "underline", background: "none", border: 0, padding: 0, cursor: "pointer", color: "inherit" }}
+                onClick={() => {
+                  setEmail(emailSuggestion);
+                  setEmailSuggestion(null);
+                }}
+              >
+                {emailSuggestion}
+              </button>
+              ?
+            </p>
+          ) : null}
         </div>
 
         {/* Error */}

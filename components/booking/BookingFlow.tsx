@@ -7,6 +7,7 @@ import type { SalonData } from "@/types/database";
 import type { HairDensity, HairLength, Specialist, TimeSlot } from "@/types";
 import { salonPublicLogoUrl } from "@/components/templates/SalonSiteBrand";
 import { CreateBookingSchema } from "@/schemas/booking";
+import { isLikelyValidPhone } from "@/lib/phone";
 import { createBooking } from "@/app/actions/booking";
 import { StepSpecialist } from "@/components/booking/StepSpecialist";
 import { StepService } from "@/components/booking/StepService";
@@ -182,6 +183,10 @@ export function BookingFlow(props: { salonData: SalonData }) {
     if (phase === "contact") {
       if (!name.trim() || !phone.trim()) {
         setError("Име и телефон са задължителни.");
+        return;
+      }
+      if (!isLikelyValidPhone(phone)) {
+        setError("Невалиден телефон — проверете броя на цифрите (напр. 0888 123 456).");
         return;
       }
       setPhase("confirm");

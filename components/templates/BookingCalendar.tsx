@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from "react";
 import type { Service, WorkingHours } from "@/types/database";
+import { isLikelyValidPhone } from "@/lib/phone";
+import { suggestEmailFix } from "@/lib/email-typo";
 
 interface TimeSlot { time: string; magnetic: boolean; endTime?: string; }
 
@@ -29,7 +31,7 @@ function todayStr() {
 }
 
 function isValidPhone(p: string): boolean {
-  return /^[+0-9()[\]\s\-]{7,20}$/.test(p.trim());
+  return isLikelyValidPhone(p);
 }
 
 function nowMinutes(): number {
@@ -115,6 +117,8 @@ export function BookingCalendar({
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [emailSuggestion, setEmailSuggestion] = useState<string | null>(null);
+  const [phoneTouched, setPhoneTouched] = useState(false);
   const [submitStatus, setSubmitStatus] = useState<"idle"|"loading"|"success"|"error">("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const [bookingResult, setBookingResult] = useState<BookingResult | null>(null);
@@ -775,14 +779,40 @@ export function BookingCalendar({
                         placeholder="Телефон *"
                         value={phone}
                         onChange={(e) => setPhone(e.target.value)}
+                        onBlur={() => setPhoneTouched(true)}
                       />
+                      {phoneTouched && phone.trim() !== "" && !isValidPhone(phone) ? (
+                        <p className="bcal-error" style={{ marginTop: "-4px" }}>
+                          Невалиден телефон — проверете броя на цифрите (напр. 0888 123 456).
+                        </p>
+                      ) : null}
                       <input
                         className="bcal-input"
                         type="email"
                         placeholder="Имейл *"
                         value={email}
-                        onChange={(e) => setEmail(e.target.value)}
+                        onChange={(e) => {
+                          setEmail(e.target.value);
+                          if (emailSuggestion) setEmailSuggestion(null);
+                        }}
+                        onBlur={() => setEmailSuggestion(suggestEmailFix(email))}
                       />
+                      {emailSuggestion ? (
+                        <p style={{ fontSize: "12px", color: "#92600a", margin: "-4px 0 4px" }}>
+                          Имахте предвид{" "}
+                          <button
+                            type="button"
+                            style={{ font: "inherit", fontWeight: 700, textDecoration: "underline", background: "none", border: 0, padding: 0, cursor: "pointer", color: "inherit" }}
+                            onClick={() => {
+                              setEmail(emailSuggestion);
+                              setEmailSuggestion(null);
+                            }}
+                          >
+                            {emailSuggestion}
+                          </button>
+                          ?
+                        </p>
+                      ) : null}
                       {submitStatus === "error" && <p className="bcal-error">{errorMsg}</p>}
                       <button className="bcal-submit" onClick={handleSubmit} disabled={!canSubmit}>
                         {submitStatus === "loading" ? "Изпращане…" : "Потвърди резервацията"}
