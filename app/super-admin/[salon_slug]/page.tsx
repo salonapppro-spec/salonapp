@@ -5,7 +5,7 @@ import { CopyButton } from "./copy-button";
 import { ConfirmTenantBasicsSubmitButton } from "./confirm-tenant-basics-submit-button";
 
 import { SuperAdminSalonSlugForm } from "@/components/super-admin/SuperAdminSalonSlugForm";
-import { activateTenantManually, enterSalonAdminContextAction, resendOwnerPasswordLinkAction, sendCredentialsAction, updateTenantBasics } from "@/app/super-admin/actions";
+import { activateTenantManually, enterSalonAdminContextAction, sendCredentialsAction, updateTenantBasics } from "@/app/super-admin/actions";
 import { MARKETING_PLANS, parsePlanId } from "@/lib/marketing-data";
 import { stripePaymentLinkForPlan } from "@/lib/marketing-checkout";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
@@ -282,23 +282,6 @@ export default async function SuperAdminTenantPage({
         </div>
       </section>
 
-      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
-        <h2 className="text-base font-semibold text-neutral-100">🔑 Линк за задаване на парола</h2>
-        <p className="mt-1 text-sm text-neutral-500">
-          Изпраща нов имейл с линк за задаване/смяна на парола на собственика. Линкът е валиден 1 час.
-        </p>
-        {tenant.owner_email ? (
-          <form action={resendOwnerPasswordLinkAction} className="mt-3 flex flex-wrap items-center gap-3">
-            <input type="hidden" name="salon_slug" value={tenant.salon_slug} />
-            <span className="text-sm text-neutral-300">{tenant.owner_email}</span>
-            <button type="submit" className="rounded-lg border border-sky-700 bg-sky-950/50 px-4 py-2 text-sm font-semibold text-sky-300 hover:bg-sky-900/60">
-              Изпрати линк за парола
-            </button>
-          </form>
-        ) : (
-          <p className="mt-2 text-sm text-red-400">Тенантът няма записан имейл — добави го в настройките по-горе.</p>
-        )}
-      </section>
 
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
         <h2 className="text-base font-semibold text-neutral-100">🕘 Timeline (последни действия)</h2>
