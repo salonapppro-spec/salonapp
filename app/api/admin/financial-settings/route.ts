@@ -19,6 +19,7 @@ const DEFAULT_ROW = {
   booking_window_days: 30,
   buffer_minutes: 10,
   magnetic_scheduling: true,
+  booking_min_notice_minutes: 30,
 } as const;
 
 type PatchKeys = keyof typeof DEFAULT_ROW;

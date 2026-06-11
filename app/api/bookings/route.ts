@@ -78,7 +78,9 @@ export async function GET(req: Request) {
     serviceDuration = calculateDuration(service, hl, hd).totalMinutes;
   }
 
-  const minStartMinutes = date === todayDateISOInSofia() ? nowMinutesInSofia() + 30 : undefined;
+  // За днес: минимално предизвестие, настройва се per салон (default 30 мин)
+  const minNotice = Number(settings?.booking_min_notice_minutes ?? 30);
+  const minStartMinutes = date === todayDateISOInSofia() ? nowMinutesInSofia() + minNotice : undefined;
 
   const slots = generateSlots({
     workStart: workingHours.start_time,

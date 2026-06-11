@@ -197,6 +197,8 @@ export interface FinancialSettings {
   booking_window_days: number;
   buffer_minutes: number;
   magnetic_scheduling: boolean;
+  /** Минимално предизвестие за онлайн резервации днес (мин). 0 = без ограничение. */
+  booking_min_notice_minutes: number;
 }
 
 export interface TimeSlot {

@@ -13,5 +13,7 @@ export const FinancialSettingsPatchSchema = z.object({
   vat_enabled: z.boolean().optional(),
   booking_window_days: z.number().int().min(1).max(365).optional(),
   buffer_minutes: z.number().int().min(0).max(120).optional(),
+  /** Минимално предизвестие за онлайн резервации днес (мин). */
+  booking_min_notice_minutes: z.number().int().min(0).max(240).optional(),
   magnetic_scheduling: z.boolean().optional(),
 });

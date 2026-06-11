@@ -98,6 +98,7 @@ export function financialSettingsForUi(salonSlug: string, row: FinancialSettings
     booking_window_days: 30,
     buffer_minutes: 10,
     magnetic_scheduling: true,
+    booking_min_notice_minutes: 30,
   };
 }
 

@@ -71,8 +71,9 @@ export async function GET(req: Request) {
     serviceDuration = calculateDuration(service, hair_length, hair_density).totalMinutes;
   }
 
-  // For today: clients need at least 30 min advance booking time
-  const minStartMinutes = date === todayDateISOInSofia() ? nowMinutesInSofia() + 30 : undefined;
+  // За днес: минимално предизвестие, настройва се per салон (default 30 мин)
+  const minNotice = Number(settings?.booking_min_notice_minutes ?? 30);
+  const minStartMinutes = date === todayDateISOInSofia() ? nowMinutesInSofia() + minNotice : undefined;
 
   const slots = generateSlots({
     workStart: workingHours.start_time,

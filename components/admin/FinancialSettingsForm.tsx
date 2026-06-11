@@ -19,6 +19,7 @@ export function FinancialSettingsForm(props: {
 
   const [buffer, setBuffer] = useState(String(s?.buffer_minutes ?? 10));
   const [bookingWindow, setBookingWindow] = useState(String(s?.booking_window_days ?? 30));
+  const [minNotice, setMinNotice] = useState(String(s?.booking_min_notice_minutes ?? 30));
   const [magnetic, setMagnetic] = useState(Boolean(s?.magnetic_scheduling ?? true));
   const [vat, setVat] = useState(Boolean(s?.vat_enabled ?? false));
   const [workDays, setWorkDays] = useState(String(s?.working_days_per_week ?? 5));
@@ -30,6 +31,7 @@ export function FinancialSettingsForm(props: {
     () => ({
       buffer_minutes: Number(buffer),
       booking_window_days: Number(bookingWindow),
+      booking_min_notice_minutes: Number(minNotice),
       magnetic_scheduling: magnetic,
       vat_enabled: vat,
       working_days_per_week: Number(workDays),
@@ -37,7 +39,7 @@ export function FinancialSettingsForm(props: {
       monthly_expenses: Number(monthlyExp),
       desired_salary: Number(salary),
     }),
-    [buffer, bookingWindow, magnetic, vat, workDays, hoursPerDay, monthlyExp, salary]
+    [buffer, bookingWindow, minNotice, magnetic, vat, workDays, hoursPerDay, monthlyExp, salary]
   );
 
   async function save() {
@@ -85,6 +87,18 @@ export function FinancialSettingsForm(props: {
         <div>
           <label className="text-sm font-medium text-brand-900">Прозорец за резервация (дни напред)</label>
           <input className="input-admin" inputMode="numeric" value={bookingWindow} onChange={(e) => setBookingWindow(e.target.value)} />
+        </div>
+        <div>
+          <label className="text-sm font-medium text-brand-900">Минимално предизвестие за онлайн запис</label>
+          <select className="input-admin" value={minNotice} onChange={(e) => setMinNotice(e.target.value)}>
+            <option value="0">Без ограничение — час може да се запази веднага</option>
+            <option value="15">15 минути напред</option>
+            <option value="30">30 минути напред (препоръчително)</option>
+            <option value="60">1 час напред</option>
+          </select>
+          <p className="mt-1 text-xs text-brand-800/70">
+            Колко рано най-късно клиент може да запази час за днес. По-кратко = повече спонтанни клиенти, но по-малко време за реакция.
+          </p>
         </div>
         <div className="flex items-center gap-2 sm:col-span-2">
           <input id="mag" type="checkbox" checked={magnetic} onChange={(e) => setMagnetic(e.target.checked)} />
