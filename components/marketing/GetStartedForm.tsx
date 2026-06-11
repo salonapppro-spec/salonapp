@@ -28,6 +28,7 @@ export function GetStartedForm() {
   const [fullName, setFullName] = useState("");
   const [phone, setPhone] = useState("");
   const [salonName, setSalonName] = useState("");
+  const [email, setEmail] = useState("");
   const [businessType, setBusinessType] = useState("");
   const [agreed, setAgreed] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -51,6 +52,7 @@ export function GetStartedForm() {
           salon_name: salonName,
           contact_name: fullName,
           phone: phone || undefined,
+          email: email || undefined,
           business_type: businessType || undefined,
           source: "get-started",
           company_website: String(fd.get("company_website") ?? ""),
@@ -208,6 +210,20 @@ export function GetStartedForm() {
                   autoComplete="tel"
                   placeholder="+359 88 888 8888"
                   type="tel"
+                />
+              </div>
+
+              <div>
+                <label style={{ display: "block", fontSize: "11px", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase", color: GOLD, marginBottom: "8px" }}>
+                  Имейл <span style={{ fontWeight: 400, textTransform: "none", letterSpacing: 0, color: MUTED, fontSize: "10px" }}>(незадължително)</span>
+                </label>
+                <input
+                  className={inputCls}
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
+                  placeholder="Напр. maria@example.com"
                 />
               </div>
 
