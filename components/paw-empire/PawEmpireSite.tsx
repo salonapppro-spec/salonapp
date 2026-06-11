@@ -329,7 +329,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
           <div className="pe-hero-right">
             <div className="pe-hero-frame">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={heroImg} alt={tenant.salon_name} className="pe-hero-img" />
+              <img src={heroImg} alt={tenant.salon_name} className="pe-hero-img" fetchPriority="high" />
               <div className="pe-hero-border" />
               <div className="pe-hero-badge">
                 <span className="pe-hero-badge-num">5 ★</span>
@@ -380,7 +380,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
                   style={{ "--pe-delay": "0.15s" } as React.CSSProperties}
                 >
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={aboutImg} alt={soloSpec ? soloSpec.name : tenant.salon_name} className="pe-about-img" />
+                  <img src={aboutImg} alt={soloSpec ? soloSpec.name : tenant.salon_name} className="pe-about-img" loading="lazy" decoding="async" />
                 </div>
               )}
             </div>
@@ -678,7 +678,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
           {tenant.logo_url?.trim() ? (
             <div style={{display:"flex",justifyContent:"center",marginBottom:".5rem"}}>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={tenant.logo_url} alt={tenant.salon_name} style={{height:"56px",width:"auto",objectFit:"contain",mixBlendMode:"screen"}} />
+              <img src={tenant.logo_url} alt={tenant.salon_name} style={{height:"56px",width:"auto",objectFit:"contain",mixBlendMode:"screen"}} loading="lazy" />
             </div>
           ) : (
             <div className="pe-footer-logo">{tenant.salon_name}</div>

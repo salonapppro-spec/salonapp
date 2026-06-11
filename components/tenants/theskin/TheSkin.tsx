@@ -572,7 +572,7 @@ export function TheSkin({ data }: { data: SalonData }) {
         <div className="ts-hero-right">
           {tenant.hero_image_url ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={tenant.hero_image_url} alt={tenant.salon_name} className="ts-hero-img" />
+            <img src={tenant.hero_image_url} alt={tenant.salon_name} className="ts-hero-img" fetchPriority="high" />
           ) : (
             <div className="ts-hero-img" style={{ background: "linear-gradient(160deg, #EDE8E0, #D9D0BC)" }} />
           )}
@@ -588,7 +588,7 @@ export function TheSkin({ data }: { data: SalonData }) {
             <div className="ts-about-img-wrap">
               {tenant.about_image_url ? (
                 // eslint-disable-next-line @next/next/no-img-element
-                <img src={tenant.about_image_url} alt="За мен" className="ts-about-img" />
+                <img src={tenant.about_image_url} alt="За мен" className="ts-about-img" loading="lazy" decoding="async" />
               ) : (
                 <div className="ts-about-img-placeholder">
                   <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1">
