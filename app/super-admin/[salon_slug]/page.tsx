@@ -5,7 +5,7 @@ import { CopyButton } from "./copy-button";
 import { ConfirmTenantBasicsSubmitButton } from "./confirm-tenant-basics-submit-button";
 
 import { SuperAdminSalonSlugForm } from "@/components/super-admin/SuperAdminSalonSlugForm";
-import { activateTenantManually, enterSalonAdminContextAction, resendOwnerPasswordLinkAction, updateTenantBasics } from "@/app/super-admin/actions";
+import { activateTenantManually, enterSalonAdminContextAction, resendOwnerPasswordLinkAction, sendCredentialsAction, updateTenantBasics } from "@/app/super-admin/actions";
 import { MARKETING_PLANS, parsePlanId } from "@/lib/marketing-data";
 import { stripePaymentLinkForPlan } from "@/lib/marketing-checkout";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
@@ -77,6 +77,11 @@ export default async function SuperAdminTenantPage({
           ✓ Линкът за задаване на парола е изпратен на {tenant.owner_email}.
         </div>
       )}
+      {op === "credentials_sent" && (
+        <div className="rounded-xl border border-emerald-700/60 bg-emerald-950/40 px-4 py-3 text-sm font-semibold text-emerald-300">
+          ✓ Данните за вход (имейл + парола) са изпратени на {tenant.owner_email}.
+        </div>
+      )}
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
@@ -98,6 +103,14 @@ export default async function SuperAdminTenantPage({
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          {tenant.owner_email && (
+            <form action={sendCredentialsAction}>
+              <input type="hidden" name="salon_slug" value={tenant.salon_slug} />
+              <button type="submit" className="rounded-lg bg-amber-600 px-4 py-2 text-sm font-semibold text-white hover:bg-amber-500">
+                📧 Изпрати данни за вход
+              </button>
+            </form>
+          )}
           <form action={enterSalonAdminContextAction}>
             <input type="hidden" name="salon_slug" value={tenant.salon_slug} />
             <button type="submit" className="rounded-lg bg-emerald-600 px-4 py-2 text-sm font-semibold text-white hover:bg-emerald-500">
