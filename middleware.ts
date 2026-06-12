@@ -161,6 +161,16 @@ export async function middleware(request: NextRequest) {
   // ── Step 8: Root domain passthrough ──────────────────────────────────────────
   // Must return `response` (not NextResponse.next()) to preserve refreshed cookies.
   if (hostInfo.isRootDomain) {
+    // Redirect /slug and /slug/... → slug.salonapp.pro/... (canonical SEO URL)
+    // Only in production — dev/preview use path-based routing (Step 9).
+    const pathSlugMatch = pathname.match(/^\/([a-z0-9-]+)(\/.*)?$/);
+    if (pathSlugMatch && SLUG_RE.test(pathSlugMatch[1])) {
+      const slug = pathSlugMatch[1];
+      const rest = pathSlugMatch[2] ?? "";
+      const dest = new URL(`https://${slug}.salonapp.pro${rest}`);
+      dest.search = request.nextUrl.search;
+      return NextResponse.redirect(dest, 301);
+    }
     return response;
   }
 
