@@ -133,62 +133,13 @@ export default function NewTenantPage() {
           <p>
             Slug: <span className="font-mono text-amber-100">{created.slug}</span>
           </p>
-
           {created.authError ? (
             <p className="rounded-lg border border-amber-700/60 bg-amber-950/40 px-3 py-2 text-amber-100">{created.authError}</p>
-          ) : null}
-
-          {!created.authError && created.ownerEmail ? (
-            <>
-              <p>
-                Собственикът влиза в админ панела на <span className="font-semibold text-white">същия домейн</span> като приложението, път{" "}
-                <code className="rounded bg-neutral-950 px-1.5 py-0.5 text-xs text-amber-100">/admin/login</code>, с имейл{" "}
-                <strong className="text-white">{created.ownerEmail}</strong>.
-              </p>
-              <p className="text-neutral-400">
-                Паролата се <strong className="text-neutral-200">не знае</strong> нито от теб, нито от тях в началото — генерира се случайно в системата. Трябва да я зададат през{" "}
-                <strong className="text-neutral-200">еднократния линк</strong> (имейл или копие по-долу).
-              </p>
-              {created.setPasswordLink ? (
-                <div className="space-y-2">
-                  <label className="text-xs font-medium uppercase tracking-wide text-neutral-400">Линк за задаване на парола (еднократен)</label>
-                  <div className="flex flex-col gap-2 sm:flex-row">
-                    <input readOnly value={created.setPasswordLink} className="min-w-0 flex-1 rounded-lg border border-neutral-600 bg-neutral-950 px-3 py-2 font-mono text-xs text-neutral-200" />
-                    <button
-                      type="button"
-                      className="shrink-0 rounded-lg bg-amber-500/90 px-4 py-2 text-sm font-semibold text-neutral-950 hover:bg-amber-400"
-                      onClick={() => {
-                        void navigator.clipboard.writeText(created.setPasswordLink!);
-                        setCopied(true);
-                        setTimeout(() => setCopied(false), 2000);
-                      }}
-                    >
-                      {copied ? "Копирано" : "Копирай"}
-                    </button>
-                  </div>
-                </div>
-              ) : (
-                <p className="text-amber-100/90">
-                  Линкът не беше генериран. В Supabase → Authentication → URL configuration добави redirect към{" "}
-                  <code className="rounded bg-neutral-950 px-1">…/admin/login</code> и провери <code className="rounded bg-neutral-950 px-1">NEXT_PUBLIC_APP_URL</code> във Vercel. Алтернатива: задай парола ръчно на потребителя в Authentication → Users.
-                </p>
-              )}
-              {created.resendConfigured ? (
-                <p className="text-neutral-400">
-                  {created.emailDispatched
-                    ? "Покана с линк е изпратена на имейла на собственика (ако Resend прие заявката)."
-                    : "Имейлът може да не е изпратен — провери Resend и използвай копирания линк."}
-                </p>
-              ) : (
-                <p className="text-neutral-400">
-                  Няма настроен <code className="rounded bg-neutral-950 px-1">RESEND_API_KEY</code> — изпрати линка на собственика ръчно (Viber, имейл и т.н.).
-                </p>
-              )}
-            </>
-          ) : null}
-
-          {!created.authError && !created.ownerEmail && created.hint ? <p className="text-neutral-400">{created.hint}</p> : null}
-
+          ) : (
+            <p className="text-neutral-400">
+              Акаунтът е създаден. Когато сайтът е готов, изпрати данните за вход от страницата на тенанта.
+            </p>
+          )}
           <div className="flex flex-wrap gap-3 pt-2">
             <Link href={`/super-admin/${created.slug}`} className="rounded-lg bg-white px-4 py-2 text-sm font-semibold text-neutral-900">
               Към тенанта
@@ -196,10 +147,7 @@ export default function NewTenantPage() {
             <button
               type="button"
               className="rounded-lg border border-neutral-600 px-4 py-2 text-sm font-medium text-neutral-200 hover:bg-neutral-800"
-              onClick={() => {
-                setCreated(null);
-                setCopied(false);
-              }}
+              onClick={() => setCreated(null)}
             >
               Създай друг тенант
             </button>
