@@ -18,6 +18,20 @@ function injectFbPixel(pixelId: string) {
   document.head.appendChild(script);
 }
 
+function injectGA4(ga4Id: string) {
+  if (typeof window === "undefined") return;
+  const existing = document.querySelector(`script[data-ga4="${ga4Id}"]`);
+  if (existing) return;
+  const s1 = document.createElement("script");
+  s1.setAttribute("data-ga4", ga4Id);
+  s1.async = true;
+  s1.src = `https://www.googletagmanager.com/gtag/js?id=${ga4Id}`;
+  document.head.appendChild(s1);
+  const s2 = document.createElement("script");
+  s2.innerHTML = `window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','${ga4Id}');`;
+  document.head.appendChild(s2);
+}
+
 function injectGtm(gtmId: string) {
   if (typeof window === "undefined") return;
   const existing = document.querySelector(`script[data-gtm="${gtmId}"]`);
@@ -42,10 +56,12 @@ export function ConsentAnalytics(props: {
   facebookPixelId?: string | null;
   gtmId?: string | null;
   clarityId?: string | null;
+  ga4MeasurementId?: string | null;
 }) {
   const pixelId = safeId(props.facebookPixelId);
   const gtmId = safeId(props.gtmId);
   const clarityId = safeId(props.clarityId);
+  const ga4Id = safeId(props.ga4MeasurementId);
 
   const [consent, setConsent] = useState<CookieConsent | null>(null);
 
@@ -65,6 +81,7 @@ export function ConsentAnalytics(props: {
     if (!consent) return;
 
     if (consent.analytics) {
+      if (ga4Id) injectGA4(ga4Id);
       if (gtmId) injectGtm(gtmId);
       if (clarityId) injectClarity(clarityId);
     }
@@ -72,7 +89,7 @@ export function ConsentAnalytics(props: {
     if (consent.marketing) {
       if (pixelId) injectFbPixel(pixelId);
     }
-  }, [consent, pixelId, gtmId, clarityId]);
+  }, [consent, pixelId, gtmId, clarityId, ga4Id]);
 
   return null;
 }

@@ -199,10 +199,12 @@ export async function updateTenantBasics(formData: FormData): Promise<void> {
     plan,
     template,
     ...(salonName ? { salon_name: salonName } : {}),
-    facebook_pixel_id: String(formData.get("facebook_pixel_id") ?? "") || null,
-    gtm_id:            String(formData.get("gtm_id") ?? "")            || null,
-    owner_email:       String(formData.get("owner_email") ?? "")       || null,
-    owner_phone:       String(formData.get("owner_phone") ?? "")       || null,
+    facebook_pixel_id:      String(formData.get("facebook_pixel_id") ?? "")      || null,
+    gtm_id:                 String(formData.get("gtm_id") ?? "")                 || null,
+    ga4_measurement_id:     String(formData.get("ga4_measurement_id") ?? "")     || null,
+    gsc_verification_token: String(formData.get("gsc_verification_token") ?? "") || null,
+    owner_email:            String(formData.get("owner_email") ?? "")            || null,
+    owner_phone:            String(formData.get("owner_phone") ?? "")            || null,
   };
 
   const supabase = createSupabaseServiceRoleClient();
