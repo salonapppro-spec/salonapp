@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
+import Script from "next/script";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -51,6 +52,13 @@ export default function RootLayout({
       >
         {children}
         <Analytics />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-PXV7BT1S03"
+          strategy="afterInteractive"
+        />
+        <Script id="ga4-init" strategy="afterInteractive">
+          {`window.dataLayer=window.dataLayer||[];function gtag(){dataLayer.push(arguments);}gtag('js',new Date());gtag('config','G-PXV7BT1S03');`}
+        </Script>
       </body>
     </html>
   );
