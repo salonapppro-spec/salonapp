@@ -16,6 +16,7 @@ const DEMO_DATA: Record<string, SalonData> = {
       hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
       email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
       owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+      ga4_measurement_id: null, gsc_verification_token: null,
     },
     services: [
       { id: "1", salon_slug: "demo-bloom", specialist_id: null, name: "Маникюр", price_eur: 18, duration_minutes: 60, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
@@ -47,6 +48,7 @@ const DEMO_DATA: Record<string, SalonData> = {
       hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
       email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
       owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+      ga4_measurement_id: null, gsc_verification_token: null,
     },
     services: [
       { id: "1", salon_slug: "demo-luxe", specialist_id: null, name: "Маникюр", price_eur: 25, duration_minutes: 60, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
@@ -77,6 +79,7 @@ const DEMO_DATA: Record<string, SalonData> = {
       hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
       email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
       owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+      ga4_measurement_id: null, gsc_verification_token: null,
     },
     services: [
       { id: "1", salon_slug: "demo-luxe2", specialist_id: null, name: "Дамско подстригване", price_eur: 40, duration_minutes: 60, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
@@ -107,6 +110,7 @@ const DEMO_DATA: Record<string, SalonData> = {
       hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
       email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
       owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+      ga4_measurement_id: null, gsc_verification_token: null,
     },
     services: [
       { id: "1", salon_slug: "demo-bold", specialist_id: null, name: "Мъжко подстригване", price_eur: 15, duration_minutes: 30, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
@@ -137,6 +141,7 @@ const DEMO_DATA: Record<string, SalonData> = {
       hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
       email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
       owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+      ga4_measurement_id: null, gsc_verification_token: null,
     },
     services: [
       { id: "1", salon_slug: "demo-zen", specialist_id: null, name: "Класически масаж", price_eur: 40, duration_minutes: 60, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
@@ -167,6 +172,7 @@ const DEMO_DATA: Record<string, SalonData> = {
       hero_image_url: null, about_text1: null, about_text2: null, about_image_url: null,
       email: "demo@salonapp.pro", tiktok_url: null, google_maps_embed: null,
       owner_email: null, owner_phone: null, expiry_date: null, grace_until_date: null,
+      ga4_measurement_id: null, gsc_verification_token: null,
     },
     services: [
       { id: "1", salon_slug: "demo-groom", specialist_id: null, name: "Пълен груминг (малка порода)", price_eur: 25, duration_minutes: 90, is_complex: false, active_start_min: null, active_start_max: null, waiting_min: null, waiting_max: null, active_finish_min: null, active_finish_max: null, is_active: true, created_at: null },
