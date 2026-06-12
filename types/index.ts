@@ -59,6 +59,8 @@ export interface Tenant {
   capi_token: string | null;
   clarity_id: string | null;
   gtm_id: string | null;
+  ga4_measurement_id: string | null;
+  gsc_verification_token: string | null;
   owner_email: string | null;
   owner_phone: string | null;
   expiry_date?: string | null;

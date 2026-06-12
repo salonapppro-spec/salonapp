@@ -252,6 +252,15 @@ export default async function SuperAdminTenantPage({
             <input name="gtm_id" defaultValue={tenant.gtm_id ?? ""} className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm" />
           </div>
 
+          <div>
+            <label className="text-xs text-neutral-400">GA4 Measurement ID</label>
+            <input name="ga4_measurement_id" defaultValue={tenant.ga4_measurement_id ?? ""} placeholder="G-XXXXXXXXXX" className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm font-mono" />
+          </div>
+          <div>
+            <label className="text-xs text-neutral-400">GSC Verification Token</label>
+            <input name="gsc_verification_token" defaultValue={tenant.gsc_verification_token ?? ""} placeholder="Google Search Console token" className="mt-1 w-full rounded-lg border border-neutral-700 bg-neutral-950 px-3 py-2 text-sm font-mono" />
+          </div>
+
           <div className="sm:col-span-2">
             <ConfirmTenantBasicsSubmitButton
               tenantName={tenant.salon_name}
