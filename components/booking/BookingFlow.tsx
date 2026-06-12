@@ -189,6 +189,17 @@ export function BookingFlow(props: { salonData: SalonData }) {
         setError("Невалиден телефон — проверете броя на цифрите (напр. 0888 123 456).");
         return;
       }
+      if (email.trim()) {
+        const domain = email.trim().split("@")[1] ?? "";
+        if (domain.includes(".xn--") || domain.startsWith("xn--")) {
+          setError("Имейлът изглежда написан с грешна клавиатурна подредба — проверете дали .com е на латиница.");
+          return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+          setError("Невалиден имейл адрес.");
+          return;
+        }
+      }
       setPhase("confirm");
     }
   }
