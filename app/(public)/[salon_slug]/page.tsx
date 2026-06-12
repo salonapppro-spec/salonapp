@@ -146,8 +146,7 @@ export async function generateMetadata(props: { params: Promise<{ salon_slug: st
     };
   }
 
-  const base = (process.env.NEXT_PUBLIC_APP_URL ?? "https://salonapp.pro").replace(/\/$/, "");
-  const canonical = `${base}/${slug}`;
+  const canonical = `https://${slug}.salonapp.pro`;
 
   // Title: max 60 символа — "Salon Name — онлайн резервации"
   const suffix = " — онлайн резервации";
@@ -213,8 +212,7 @@ export default async function PublicSalonPage(props: {
 
   const designVarStyle = tokensToCssVars(tokens) as CSSProperties;
 
-  const base = (process.env.NEXT_PUBLIC_APP_URL ?? "https://salonapp.pro").replace(/\/$/, "");
-  const canonicalUrl = `${base}/${slug}`;
+  const canonicalUrl = `https://${slug}.salonapp.pro`;
   const jsonLd = beautyBusinessJsonLd(data, canonicalUrl);
 
   // Hero-то е LCP елементът — preload го стартира веднага, преди браузърът
