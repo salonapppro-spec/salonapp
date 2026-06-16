@@ -103,17 +103,32 @@ export async function POST(_req: Request, ctx: { params: Promise<{ token: string
     );
   }
 
+  // Атомарен conditional UPDATE — in("status", [...]) гарантира, че token-ът
+  // прави прехода само от активни статуси (race-safe: ако статусът се е
+  // променил между SELECT-а по-горе и тук, update-ът просто не пипа ред).
   const supabase = createSupabaseServiceRoleClient();
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("bookings")
     .update({ status: "cancelled" })
-    .eq("id", booking.id);
+    .eq("id", booking.id)
+    .in("status", ["pending", "confirmed"])
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     return new NextResponse(htmlPage("Грешка", "<p>Неуспешен отказ. Опитайте отново.</p>"), {
       status: 500,
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });
+  }
+
+  if (!updated) {
+    // Между SELECT и UPDATE статусът се е променил (race) — третираме като
+    // "вече обработено", не като грешка.
+    return new NextResponse(
+      htmlPage("Статус", "<p>Тази резервация вече не може да бъде променена от този линк.</p>"),
+      { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+    );
   }
 
   return new NextResponse(

@@ -45,7 +45,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
     );
   }
 
-  if (booking.status === "cancelled" || booking.status === "no_show") {
+  if (booking.status === "cancelled" || booking.status === "no_show" || booking.status === "completed") {
     return new NextResponse(
       htmlPage("Отказана резервация", "<p>Тази резервация вече не е активна.</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
@@ -86,24 +86,46 @@ export async function POST(_req: Request, ctx: { params: Promise<{ token: string
     });
   }
 
-  if (booking.status === "cancelled" || booking.status === "no_show") {
+  if (booking.status === "confirmed") {
+    return new NextResponse(
+      htmlPage("Вече потвърдено", "<p>Присъствието ви вече е потвърдено. Благодарим!</p>"),
+      { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+    );
+  }
+
+  if (booking.status === "cancelled" || booking.status === "no_show" || booking.status === "completed") {
     return new NextResponse(
       htmlPage("Отказана резервация", "<p>Тази резервация вече не е активна.</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
 
+  // Атомарен conditional UPDATE — eq("status", "pending") гарантира, че
+  // token-ът прави прехода само веднъж (race-safe: ако статусът се е
+  // променил между SELECT-а по-горе и тук, update-ът просто не пипа ред).
   const supabase = createSupabaseServiceRoleClient();
-  const { error } = await supabase
+  const { data: updated, error } = await supabase
     .from("bookings")
     .update({ status: "confirmed", confirmed_at: new Date().toISOString() })
-    .eq("id", booking.id);
+    .eq("id", booking.id)
+    .eq("status", "pending")
+    .select("id")
+    .maybeSingle();
 
   if (error) {
     return new NextResponse(htmlPage("Грешка", "<p>Неуспешно потвърждение. Опитайте отново.</p>"), {
       status: 500,
       headers: { "Content-Type": "text/html; charset=utf-8" },
     });
+  }
+
+  if (!updated) {
+    // Между SELECT и UPDATE статусът се е променил (race) — третираме като
+    // "вече обработено", не като грешка.
+    return new NextResponse(
+      htmlPage("Вече обработено", "<p>Тази резервация вече е обработена.</p>"),
+      { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
+    );
   }
 
   return new NextResponse(
