@@ -37,7 +37,7 @@
 - [x] **Super-admin FormData Zod** (2026-06-16) — `UpdateTenantBasicsSchema` добавена за най-рисковата action (`updateTenantBasics`); останалите actions взимат само `salon_slug` + 1 numeric поле, по-нисък риск
 - [x] **Phone enumeration на `/api/clients/lookup`** (2026-06-16) — добавен per-phone rate limit (5/10мин) върху съществуващия per-IP лимит
 - [ ] **`googleIntegration.listActive()`** — НЕ СЕ ПИПА без изрично разрешение от Лина (Правило 5); latent, не извикан никъде в момента
-- [ ] **Standardize tenant sites на `BookingFlow`** — съзнателно пропуснато: root cause (root domain header) вече фикснат на middleware ниво, защитава всичките 4 сайта (`paw-empire`, `magnetic-eyes`, `lindy`, `euphoria`) без рефакторинг; самият рефакторинг е инвазивна промяна на живи тенанти без visual QA възможност оттук — изисква отделен sprint с реален browser testing на всеки сайт
+- [x] **Standardize tenant sites на `BookingFlow`** (2026-06-16) — `InlineBookingForm.tsx`/`BookingCalendar.tsx` мигрирани от `fetch('/api/bookings')` към `createBooking()` server action; верифицирано end-to-end с preview на всичките 4 сайта (`paw-empire`, `magnetic-eyes` — пълен submit + booking в DB; `lindynails`, `euphoria` — визуална проверка), без UI/CSS промени
 
 ---
 
@@ -59,6 +59,8 @@
 
 ## ✅ ЗАВЪРШЕНО
 
+- [x] **Fix: TheBeastSite booking frame contrast** (2026-06-16) — `.tb-booking-frame` нямаше фон, светло-тематичният `BookingFlow` текст се губеше на черния fон; добавен `var(--beast-cream)` фон, верифицирано визуално
+- [x] **BookingFlow standardization на 4 тенант сайта** (2026-06-16) — виж P1 секцията по-горе
 - [x] **Security/database audit fix sprint** (2026-06-16) — 10 P0 (RLS, migration 026 drift + нов constraint bug, Stripe webhook status tracking + grace policy, confirm/cancel token reuse, cron reminders batching, root domain booking 400 fix, booking_min_notice/window enforcement, phone "00000" reject, CI scripts wiring) + 5 follow-up gaps (migration 029 missing CREATE TABLE, QuickBooking phone + specialist_id, impersonation cookie re-verify + audit log) + trial >30 дни dashboard tracking; пълен database backup преди старт; виж HANDOFF.md за детайли
 - [x] **Fix: mobile forced dark mode on landing** (2026-06-03) — `app/globals.css`, `app/layout.tsx` и `app/page.tsx` заключват public landing-а в light color scheme, за да не се обръща в тъмен фон на Samsung/Android браузъри
 - [x] **Redesign: desktop AdminShowcase section** (2026-06-03) — `components/landing/AdminShowcase.tsx` вече е центриран two-column product showcase с голям phone mockup, изнесени floating cards, email reminders copy и desktop/mobile проверка без horizontal scroll

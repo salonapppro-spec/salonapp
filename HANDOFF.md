@@ -2,6 +2,23 @@
 
 ---
 
+## 2026-06-16 — TheBeast contrast fix + BookingFlow standardization (4 сайта)
+
+**Контекст:** Лина пратила screenshot на `thebeast` booking стъпка 5/6 — текст почти невидим (тъмен текст на тъмен фон).
+
+**Fix 1 — TheBeastSite contrast:** `.tb-booking-frame` (wrapper около shared `BookingFlow` компонента в `components/tenants/TheBeastSite.tsx`) нямаше зададен `background` — наследяваше черния фон на секцията. `BookingFlow.tsx` ползва тъмносив текст (`text-neutral-900` и т.н.), писан за светла тема. Fix: `background: var(--beast-cream)` + `border-radius` на самата рамка (без да се пипа shared компонента, ползван от други тенанти със светли теми). Верифицирано визуално през preview — текстът се чете перфектно, пасва на black/gold/cream естетиката.
+
+**Fix 2 — BookingFlow standardization (от TODO):** След обяснение на разликата между двата booking механизма (`BookingFlow` server action vs директен `fetch('/api/bookings')`), потребителят поиска унификация. Мигрирани `InlineBookingForm.tsx` (paw-empire) и `BookingCalendar.tsx` (magnetic-eyes, lindynails, euphoria) от `fetch('/api/bookings', {method:'POST'})` към `createBooking()` server action — само submit логиката, без UI/CSS промени, без пипане на slot-fetching GET заявката.
+
+**Verification — пълен end-to-end тест на всичките 4 сайта чрез preview:**
+- `paw-empire` (InlineBookingForm): пълен flow (избор услуга → дата → час → данни → submit) → реален booking създаден в production DB (`success:true, booking_id:...`) → изтрит след проверка
+- `magnetic-eyes` (BookingCalendar): същото, отделен реален booking създаден и изтрит
+- `lindynails`, `euphoria` (BookingCalendar, светли теми): визуална проверка — perfect contrast, без console грешки
+
+`tsc --noEmit`, `npm run test` (84/84), `npm run lint` — всички минават. И двата fix-а merge-нати в `main` (commits `3490362`, `c65ce85`).
+
+---
+
 ## 2026-06-16 — PR #63 (Section A hardening) review + merge
 
 **Контекст:** Лина/Cursor разработиха PR #63 (`feature/security-section-a-hardening`) паралелно — RBAC capabilities, confirm/cancel `?salon=` IDOR fix, finance scope fix, admin middleware guard, migration 035. Поискан пълен code review преди merge заради разминаващ се "progress audit" доклад.
