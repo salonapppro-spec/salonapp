@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import type { Service, WorkingHours } from "@/types/database";
 import { isLikelyValidPhone } from "@/lib/phone";
 import { suggestEmailFix } from "@/lib/email-typo";
+import { createBooking } from "@/app/actions/booking";
 
 interface TimeSlot { time: string; magnetic: boolean; endTime?: string; }
 
@@ -169,25 +170,22 @@ export function BookingCalendar({
       return;
     }
     try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          salon_slug: salonSlug,
-          service_id: serviceId,
-          booking_date: selectedDate,
-          booking_time: selectedTime,
-          client_name: name.trim(),
-          client_phone: phone.trim(),
-          client_email: email.trim(),
-          specialist_id: initialSpecialistId ?? undefined,
-        }),
+      const bookingResultData = await createBooking({
+        salon_slug: salonSlug,
+        service_id: serviceId,
+        booking_date: selectedDate,
+        booking_time: selectedTime,
+        client_name: name.trim(),
+        client_phone: phone.trim(),
+        client_email: email.trim(),
+        specialist_id: initialSpecialistId ?? undefined,
       });
-      if (res.ok) { setBookingResult(result); setSubmitStatus("success"); }
-      else {
-        const j = (await res.json().catch(() => ({}))) as { error?: string };
-        setErrorMsg(j.error ?? "Грешка. Опитайте пак.");
+      if ("error" in bookingResultData) {
+        setErrorMsg(bookingResultData.error);
         setSubmitStatus("error");
+      } else {
+        setBookingResult(result);
+        setSubmitStatus("success");
       }
     } catch {
       setErrorMsg("Проблем с връзката.");

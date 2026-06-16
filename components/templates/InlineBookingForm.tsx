@@ -4,6 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import type { Service } from "@/types/database";
 import { isLikelyValidPhone } from "@/lib/phone";
 import { suggestEmailFix } from "@/lib/email-typo";
+import { createBooking } from "@/app/actions/booking";
 
 function MiniCalendar({ value, min, onChange, primaryColor, textColor, inputStyle }: {
   value: string; min: string; onChange: (d: string) => void;
@@ -249,26 +250,21 @@ export function InlineBookingForm({
       return;
     }
     try {
-      const res = await fetch("/api/bookings", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          salon_slug: salonSlug,
-          service_id: service,
-          booking_date: date,
-          booking_time: time,
-          client_name: name,
-          client_phone: phone,
-          client_email: email || undefined,
-        }),
+      const bookingResultData = await createBooking({
+        salon_slug: salonSlug,
+        service_id: service,
+        booking_date: date,
+        booking_time: time,
+        client_name: name,
+        client_phone: phone,
+        client_email: email || undefined,
       });
-      if (res.ok) {
+      if ("error" in bookingResultData) {
+        setErrorMsg(bookingResultData.error);
+        setStatus("error");
+      } else {
         setBookingResult(result);
         setStatus("success");
-      } else {
-        const json = (await res.json().catch(() => ({}))) as { error?: string };
-        setErrorMsg(json.error ?? "Възникна грешка. Опитайте пак.");
-        setStatus("error");
       }
     } catch {
       setErrorMsg("Проблем с връзката. Опитайте пак.");
