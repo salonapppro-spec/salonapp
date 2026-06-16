@@ -39,5 +39,6 @@ test("root domain: GET /api/services with referer returns tenant-scoped data", a
     { headers: { Referer: referer } }
   );
   assert.equal(res.status, 200, res.bodyText.slice(0, 240));
-  assert.ok(Array.isArray(res.json), "Expected services array");
+  const payload = res.json as { services?: unknown } | null;
+  assert.ok(Array.isArray(payload?.services), "Expected { services: [] } payload");
 });
