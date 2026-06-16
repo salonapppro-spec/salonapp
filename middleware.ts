@@ -243,6 +243,10 @@ export async function middleware(request: NextRequest) {
 
   // ── Step 10: Subdomain / custom-domain — resolve tenant ──────────────────────
   if (!supabaseUrl || !supabaseAnonKey) {
+    const isTenantHost = Boolean(hostInfo.subdomainSlug) || hostInfo.isLegacyCustomHost;
+    if (isTenantHost) {
+      return NextResponse.rewrite(new URL("/temporarily-unavailable", request.url));
+    }
     return response;
   }
 

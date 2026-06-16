@@ -29,6 +29,9 @@
 
 ## 🟢 ПО-КЪСНО (след launch, при растеж)
 
+- [x] **Migration drift — RLS sync в repo** (2026-06-16) — `034_sync_production_rls.sql`; apply в Supabase след deploy
+- [x] **Unsubscribe tenant scope** (2026-06-16) — `salon_slug` в линка + scoped query/update
+
 - [ ] **Google Calendar** — НЕ СЕ ПИПА без изрично разрешение от Лина (кодът е готов, тест при нужда)
 - [ ] **Статистика в салонския админ** — графики по месец, топ услуги
 - [ ] **Клиентски портал** — клиентът да вижда/отменя резервациите си
