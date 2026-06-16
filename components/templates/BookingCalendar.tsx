@@ -135,7 +135,7 @@ export function BookingCalendar({
     if (!selectedDate || !serviceId) { setSlots([]); return; }
     if (isDemo) { setSlots(DEMO_SLOTS); return; }
     setSlotsLoading(true);
-    fetch(`/api/bookings?salon_slug=${encodeURIComponent(salonSlug)}&service_id=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(selectedDate)}`)
+    fetch(`/api/availability?salon_slug=${encodeURIComponent(salonSlug)}&service_id=${encodeURIComponent(serviceId)}&date=${encodeURIComponent(selectedDate)}`)
       .then((r) => r.json())
       .then((d: { slots?: TimeSlot[] }) => {
         let fetched = d.slots ?? [];

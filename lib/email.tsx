@@ -110,6 +110,9 @@ export async function sendConfirmationEmail(booking: Booking, tenant: Tenant): P
   const isComplex = await loadServiceIsComplex(booking.service_id ?? null, booking.salon_slug);
   const hairDetails = hairDetailsText(booking, isComplex);
   const token = booking.confirmation_token ?? "";
+  const salonQuery = `salon=${encodeURIComponent(booking.salon_slug)}`;
+  const confirmUrl = `${baseUrl}/api/confirm/${token}?${salonQuery}`;
+  const cancelUrl = `${baseUrl}/api/cancel/${token}?${salonQuery}`;
   const unsubscribeUrl = `${baseUrl}/api/unsubscribe?salon=${encodeURIComponent(booking.salon_slug)}&booking=${encodeURIComponent(booking.id)}&token=${encodeURIComponent(token)}`;
   const bookingDateLabel = DateTime.fromISO(booking.booking_date, { zone: "Europe/Sofia" })
     .setLocale("bg")
@@ -126,6 +129,8 @@ export async function sendConfirmationEmail(booking: Booking, tenant: Tenant): P
       bookingTime={bookingTimeLabel}
       priceEur={Number(booking.service_price_eur).toFixed(2)}
       googleCalendarUrl={buildGoogleCalendarUrl(booking, tenant)}
+      confirmUrl={confirmUrl}
+      cancelUrl={cancelUrl}
       contactLines={contactLines(tenant)}
       unsubscribeUrl={unsubscribeUrl}
       messageRef={booking.id}
@@ -175,6 +180,40 @@ export async function sendSalonBookingNotification(booking: Booking, tenant: Ten
   await sendResendHtml(to, `Нова резервация: ${booking.client_name} — ${date} ${time}`, html);
 }
 
+export async function sendSalonBookingTokenNotification(
+  booking: Booking,
+  tenant: Tenant,
+  action: "confirmed" | "cancelled"
+): Promise<void> {
+  const to = (tenant.owner_email ?? tenant.email)?.trim();
+  if (!to) return;
+
+  const date = DateTime.fromISO(booking.booking_date, { zone: "Europe/Sofia" })
+    .setLocale("bg")
+    .toFormat("d MMMM yyyy");
+  const time = formatTime(booking.booking_time);
+  const title = action === "confirmed" ? "Клиентът потвърди присъствието си" : "Клиентът отказа резервацията";
+  const emoji = action === "confirmed" ? "✅" : "❌";
+
+  const html = `
+<!DOCTYPE html>
+<html lang="bg">
+<body style="font-family:Arial,sans-serif;color:#222;max-width:520px;margin:0 auto;padding:24px">
+  <h2 style="color:#1a1a1a;margin-bottom:4px">${emoji} ${title}</h2>
+  <p style="color:#555;margin-top:0">${tenant.salon_name}</p>
+  <table style="width:100%;border-collapse:collapse;margin:16px 0">
+    <tr><td style="padding:8px 0;color:#666;width:130px">Клиент</td><td style="padding:8px 0;font-weight:600">${booking.client_name}</td></tr>
+    <tr><td style="padding:8px 0;color:#666">Телефон</td><td style="padding:8px 0">${booking.client_phone}</td></tr>
+    <tr><td style="padding:8px 0;color:#666">Услуга</td><td style="padding:8px 0">${booking.service_name}</td></tr>
+    <tr><td style="padding:8px 0;color:#666">Дата и час</td><td style="padding:8px 0;font-weight:600">${date} в ${time}</td></tr>
+  </table>
+  <p style="font-size:12px;color:#999;margin-top:32px">SalonApp.pro — автоматично известие</p>
+</body>
+</html>`;
+
+  await sendResendHtml(to, `${title}: ${booking.client_name} — ${date} ${time}`, html);
+}
+
 export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promise<void> {
   const baseUrl = getPublicAppUrl();
   const token = booking.confirmation_token ?? "";
@@ -220,20 +259,4 @@ export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promi
     type: "reminder",
     status: "sent",
   });
-}
-
-export async function sendCancellationEmailFromGoogle(booking: Booking, tenant: Tenant): Promise<void> {
-  const to = booking.client_email?.trim();
-  if (!to) return;
-  const subject = `Резервацията е отменена — ${tenant.salon_name}`;
-  const html = `
-    <div style="font-family:system-ui,sans-serif;max-width:560px;margin:0 auto;padding:20px;line-height:1.5;color:#1a1a1a">
-      <h2 style="margin:0 0 12px 0;">Резервацията е отменена</h2>
-      <p>Здравейте, ${booking.client_name},</p>
-      <p>Вашата резервация за <strong>${booking.service_name}</strong> на <strong>${booking.booking_date}</strong> в <strong>${formatTime(booking.booking_time)}</strong> беше отменена от календара на специалиста.</p>
-      <p>Ако желаете нов час, можете да направите нова резервация през сайта на салона.</p>
-      <p style="margin-top:16px;">${contactLines(tenant).join("<br/>")}</p>
-    </div>
-  `;
-  await sendResendHtml(to, subject, html);
 }

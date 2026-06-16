@@ -179,6 +179,18 @@ export function getWorkingHoursForDate(params: {
   )();
 }
 
+/** Uncached read for booking validation — avoids stale day-off/hours during slot creation. */
+export async function getWorkingHoursForDateLive(params: {
+  salonSlug: string;
+  specialistId?: string;
+  dayOfWeek: number;
+}): Promise<WorkingHours | null> {
+  const { salonSlug, specialistId, dayOfWeek } = params;
+  const { data, error } = await tenantDb(salonSlug).workingHours.getForDay(dayOfWeek, specialistId);
+  if (error) throw error;
+  return (data as WorkingHours | null) ?? null;
+}
+
 export async function getBookingsForDate(params: {
   salonSlug: string;
   specialistId?: string;

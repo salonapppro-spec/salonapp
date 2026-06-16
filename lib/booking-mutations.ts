@@ -1,13 +1,14 @@
 import type { Booking, HairDensity, HairLength, Service } from "@/types";
 import type { CreateBookingInput } from "@/schemas/booking";
-import { getBlockedSlotsForDate, getFinancialSettings, getWorkingHoursForDate } from "@/lib/data";
+import { getBlockedSlotsForDate, getFinancialSettings, getWorkingHoursForDateLive } from "@/lib/data";
 import { getTenant } from "@/lib/get-tenant";
 import { tenantDb } from "@/lib/tenant-db";
 import { normalizePhone } from "@/lib/phone";
 import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 import { calculateDuration, timeToMinutes } from "@/lib/scheduling";
 import { sendConfirmationEmail, sendSalonBookingNotification } from "@/lib/email";
-import { todayDateISOInSofia, nowMinutesInSofia, addCalendarDaysInSofia } from "@/lib/booking-datetime";
+import { todayDateISOInSofia, nowMinutesInSofia } from "@/lib/booking-datetime";
+import { rejectIfOutsideScheduleLimits } from "@/lib/booking-schedule-limits";
 
 function isMissingBookingEndTimeColumnError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -173,22 +174,15 @@ export async function runCreateBooking(
     return { ok: false, error: "Не може да се запази час за вече минал час." };
   }
 
-  // Min notice — преди само в GET /api/availability (UI hint); директен
-  // POST можеше да заобиколи (audit 2026-06-15/16). Същата семантика като
-  // availability route: прилага се само за днешна дата.
-  const minNoticeMinutes = opts.minNoticeMinutes ?? 30;
-  if (data.booking_date === todayStr && start < nowMinutesInSofia() + minNoticeMinutes) {
-    return { ok: false, error: `Резервацията изисква поне ${minNoticeMinutes} минути предизвестие.` };
-  }
-
-  // Booking window — преди само в admin UI hint, никога enforced server-side.
-  const bookingWindowDays = opts.bookingWindowDays;
-  if (typeof bookingWindowDays === "number" && bookingWindowDays > 0) {
-    const maxDateStr = addCalendarDaysInSofia(todayStr, bookingWindowDays);
-    if (data.booking_date > maxDateStr) {
-      return { ok: false, error: `Резервации се приемат най-много ${bookingWindowDays} дни напред.` };
-    }
-  }
+  const scheduleReject = rejectIfOutsideScheduleLimits({
+    bookingDate: data.booking_date,
+    bookingStartMinutes: start,
+    todayStr,
+    nowMinutes: nowMinutesInSofia(),
+    minNoticeMinutes: opts.minNoticeMinutes ?? 30,
+    bookingWindowDays: opts.bookingWindowDays,
+  });
+  if (scheduleReject) return scheduleReject;
 
   const [yy, mm, dd] = data.booking_date.split("-").map(Number);
   const dayOfWeek = Number.isFinite(yy) && Number.isFinite(mm) && Number.isFinite(dd)
@@ -198,7 +192,7 @@ export async function runCreateBooking(
     return { ok: false, error: "Невалидна дата за резервация." };
   }
 
-  const dayRow = await getWorkingHoursForDate({
+  const dayRow = await getWorkingHoursForDateLive({
     salonSlug: data.salon_slug,
     specialistId: bookingSpecialistId ?? undefined,
     dayOfWeek,

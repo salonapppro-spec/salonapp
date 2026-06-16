@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { hoursUntilBooking } from "@/lib/booking-datetime";
 import { findBookingByToken, parseBookingTokenSalonSlug } from "@/lib/booking-token-action";
+import { afterBookingTokenCancel } from "@/lib/booking-token-side-effects";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -124,6 +125,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ token: string 
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
+
+  await afterBookingTokenCancel(salonSlug, bookingId);
 
   return new NextResponse(
     htmlPage("Отказана ✓", "<p>Резервацията ви е отменена успешно.</p>"),
