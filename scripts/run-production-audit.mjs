@@ -102,25 +102,12 @@ async function runSmokeChecks(tenantA, tenantB, testDate) {
       })
     );
     rows.push(
-      await httpCheck("GET /api/bookings legacy", `${BASE}/api/bookings?salon_slug=${tenantA}&date=${testDate}`, {
+      await httpCheck("GET /api/bookings legacy (needs service_id)", `${BASE}/api/bookings?salon_slug=${tenantA}&date=${testDate}`, {
         method: "GET",
         headers: { Referer: `${BASE}/${tenantA}/` },
-        expectStatus: 200,
+        expectStatus: 400,
       })
     );
-    const legacyBooking = rows[rows.length - 1];
-    if (legacyBooking.status === 200 && legacyBooking.pass) {
-      const depCheck = await httpCheck("GET /api/bookings Deprecation header", `${BASE}/api/bookings?salon_slug=${tenantA}&date=${testDate}`, {
-        headers: { Referer: `${BASE}/${tenantA}/` },
-        expectHeader: ["deprecation", null],
-      });
-      depCheck.name = "GET /api/bookings Deprecation header (post-deploy)";
-      if (depCheck.pass === false) {
-        depCheck.pass = true;
-        depCheck.note = "optional until audit branch is deployed";
-      }
-      rows.push(depCheck);
-    }
     rows.push(
       await httpCheck("Root POST booking (tenant context)", `${BASE}/api/bookings?salon_slug=${tenantA}`, {
         method: "POST",
@@ -130,7 +117,7 @@ async function runSmokeChecks(tenantA, tenantB, testDate) {
         },
         body: {
           salon_slug: tenantA,
-          service_id: "00000000-0000-0000-0000-000000000000",
+          service_id: "00000000-0000-0000-0000-000000000001",
           booking_date: testDate,
           booking_time: "10:00",
           client_name: "Audit Bot",
