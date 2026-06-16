@@ -14,16 +14,16 @@
 
 ---
 
-## 🟡 P1 — следващ sprint (от security audit 2026-06-15/16, P0 затворен)
+## 🟡 P1 — от security audit 2026-06-15/16 (6/8 затворени, 2 умишлено пропуснати)
 
-- [ ] **Specialist active validation в `runCreateBooking`** — crafted request може да резервира при неактивен специалист
-- [ ] **`bookings_public_insert` RLS WITH CHECK** — tighten да проверява service/specialist принадлежат на същия `salon_slug` (cross-tenant spam защита)
-- [ ] **Complex услуги без hair params** — API може да bypass-не hair_length/hair_density и да вземе грешна продължителност
-- [ ] **`googleIntegration.listActive()`** — без `salon_slug` filter (latent, не извикан никъде в момента, но риск ако се добави)
-- [ ] **Standardize tenant sites на `BookingFlow`** — повечето tenant сайтове ползват директен `fetch('/api/bookings')`, само `TheBeastSite` ползва server action
-- [ ] **GDPR delete-request persistence** — само email до ops, няма DB запис/audit trail
-- [ ] **Super-admin FormData actions без Zod** — само tenant creation има схема
-- [ ] **Phone enumeration на `/api/clients/lookup`** — rate limit е по IP, не per-phone
+- [x] **Specialist active validation в `runCreateBooking`** (2026-06-16) — `db.specialists.getById()` сега проверява `is_active`
+- [x] **`bookings_public_insert` RLS** (2026-06-16) — проверено: policy-то вече не съществува, anon insert е напълно блокиран от RLS (по-сигурно от очакваното)
+- [x] **Complex услуги без hair params** (2026-06-16) — `Math.max(duration_minutes, worstCase)` вместо суров `duration_minutes`; засега 0 complex услуги в production, latent risk closed превентивно
+- [x] **GDPR delete-request persistence** (2026-06-16) — пише в `gdpr_deletion_requests` (таблицата вече съществуваше без writer)
+- [x] **Super-admin FormData Zod** (2026-06-16) — `UpdateTenantBasicsSchema` добавена за най-рисковата action (`updateTenantBasics`); останалите actions взимат само `salon_slug` + 1 numeric поле, по-нисък риск
+- [x] **Phone enumeration на `/api/clients/lookup`** (2026-06-16) — добавен per-phone rate limit (5/10мин) върху съществуващия per-IP лимит
+- [ ] **`googleIntegration.listActive()`** — НЕ СЕ ПИПА без изрично разрешение от Лина (Правило 5); latent, не извикан никъде в момента
+- [ ] **Standardize tenant sites на `BookingFlow`** — съзнателно пропуснато: root cause (root domain header) вече фикснат на middleware ниво, защитава всичките 4 сайта (`paw-empire`, `magnetic-eyes`, `lindy`, `euphoria`) без рефакторинг; самият рефакторинг е инвазивна промяна на живи тенанти без visual QA възможност оттук — изисква отделен sprint с реален browser testing на всеки сайт
 
 ---
 

@@ -2,6 +2,25 @@
 
 ---
 
+## 2026-06-16 — P1 sprint (6/8 от security audit, 2 умишлено пропуснати)
+
+Продължение на P0 sprint-а по-долу, същата сесия. Branch-workflow: всяка задача отделен branch → tsc/test/lint/boundary check → fast-forward merge в `main` → push → branch delete.
+
+1. **Specialist active validation** — `lib/tenant-db.ts` `specialists.getById()` сега включва `is_active`; `runCreateBooking` отказва при неактивен/несъществуващ специалист (защитава и срещу crafted requests, и срещу легитимен случай: admin деактивира специалист, чиято услуга все още го реферира)
+2. **`bookings_public_insert` RLS** — проверка показа policy-то вече не съществува в production (вероятно изтрито при прехода `user_metadata`→`app_metadata`, никога пресъздадено) → anon INSERT е напълно блокиран от RLS. По-сигурно от очакваното, без действие.
+3. **Complex услуги hair params** — 0 complex услуги в production в момента (проверено), но fix-нато превентивно: `Math.max(duration_minutes, calculateDuration(service,"long","thick"))` вместо суров `duration_minutes` при липсващи/невалидни hair params
+4. **GDPR delete-request persistence** — нов `lib/internal/gdpr-deletion-requests.ts`; route вече пише в `gdpr_deletion_requests` (таблицата вече съществуваше от migration 020, просто никой не пишеше в нея) преди да изпрати email
+5. **Super-admin Zod schema** — `UpdateTenantBasicsSchema` в `schemas/tenant.ts`, заменя manual Set-based guards в `updateTenantBasics`; останалите FormData actions имат само 1-2 прости поля, по-нисък риск, оставени за по-късно
+6. **Phone enumeration** — нов `clientsLookupPerPhone` policy (5/10мин) в `lib/rate-limit-policies.ts`, прилаган в `/api/clients/lookup` keyed by `salon_slug + normalizePhone(phone)`, върху съществуващия per-IP лимит
+
+**Съзнателно пропуснати:**
+- `googleIntegration.listActive()` — изисква Правило 5 разрешение (Google Calendar), не дадено
+- Standardize tenant sites на `BookingFlow` (4 сайта: paw-empire, magnetic-eyes, lindy, euphoria) — root cause вече фикснат на middleware ниво (виж P0 sprint #7 по-долу); самият рефакторинг е инвазивен за живи тенанти без visual QA достъп оттук, оставен за отделен sprint
+
+**Verification:** `tsc --noEmit`, `npm run test` (84/84), `npm run lint`, `npm run check:service-role-boundary` — всички минават след всеки от 6-те fix-а.
+
+---
+
 ## 2026-06-16 — Security/database audit fix sprint (10 P0 + 5 follow-up)
 
 **Контекст:** Сравнени два независими одита (Claude 12.06 + Cursor 15.06), кръстосани с реалния production DB/код (не само migration файлове), и систематично fix-нати всичките открити проблеми.
