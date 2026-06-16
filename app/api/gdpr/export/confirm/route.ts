@@ -1,6 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import {
+  getGdprExportToken,
+  markGdprExportTokenUsed,
+  listBookingsByEmailAcrossTenants,
+} from "@/lib/internal/gdpr-export";
 
 export const dynamic = "force-dynamic";
 
@@ -12,15 +16,9 @@ export async function GET(req: Request) {
     return NextResponse.json({ error: "Невалиден линк" }, { status: 400 });
   }
 
-  const supabase = createSupabaseServiceRoleClient();
+  const tokenRow = await getGdprExportToken(token);
 
-  const { data: tokenRow, error: tokenError } = await supabase
-    .from("gdpr_export_tokens")
-    .select("id, email, phone, expires_at, used_at")
-    .eq("token", token)
-    .maybeSingle();
-
-  if (tokenError || !tokenRow) {
+  if (!tokenRow) {
     return NextResponse.json({ error: "Невалиден или изтекъл линк" }, { status: 400 });
   }
 
@@ -33,26 +31,14 @@ export async function GET(req: Request) {
   }
 
   // Mark token as used (single-use)
-  await supabase
-    .from("gdpr_export_tokens")
-    .update({ used_at: new Date().toISOString() })
-    .eq("id", tokenRow.id);
+  await markGdprExportTokenUsed(tokenRow.id);
 
   const { email } = tokenRow;
 
-  // Query by verified email only. Phone is NOT verified (the token was sent to the email,
-  // not the phone), so using OR client_phone would allow an attacker to supply a victim's
-  // phone number and receive the victim's bookings after verifying their own email.
-  const query = supabase
-    .from("bookings")
-    .select(
-      "id, salon_slug, booking_date, booking_time, service_name, service_price_eur, status, client_name, client_email, client_phone, notes, created_at"
-    )
-    .eq("client_email", email);
-
-  const { data: bookings, error: dbError } = await query.order("booking_date", { ascending: false });
-
-  if (dbError) {
+  let bookings;
+  try {
+    bookings = await listBookingsByEmailAcrossTenants(email);
+  } catch {
     return NextResponse.json({ error: "Грешка при извличане на данни" }, { status: 500 });
   }
 
