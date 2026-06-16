@@ -4,7 +4,6 @@ import {
   Container,
   Head,
   Heading,
-  Hr,
   Html,
   Link,
   Preview,
@@ -23,6 +22,8 @@ export type BookingConfirmationProps = {
   googleCalendarUrl: string;
   contactLines: string[];
   unsubscribeUrl: string;
+  /** Уникален ref — Gmail не сгъва повторяем HTML в нишка */
+  messageRef: string;
   /** Показва се при сложна услуга */
   hairDetails?: string | null;
 };
@@ -37,15 +38,21 @@ export default function BookingConfirmationEmail({
   googleCalendarUrl,
   contactLines,
   unsubscribeUrl,
+  messageRef,
   hairDetails,
 }: BookingConfirmationProps) {
   return (
     <Html>
       <Head />
-      <Preview>Резервацията ви в {salonName} е потвърдена</Preview>
+      <Preview>
+        {bookingDate} · {bookingTime} — потвърдена резервация в {salonName}
+      </Preview>
       <Body style={main}>
         <Container style={container}>
-          <Heading style={h1}>Резервацията ви е потвърдена!</Heading>
+          <Text style={preheader}>{messageRef}</Text>
+          <Heading style={h1}>
+            Резервацията ви е потвърдена! {bookingDate} · {bookingTime}
+          </Heading>
           <Text style={text}>Здравейте, {clientName},</Text>
           <Text style={text}>
             Вашата резервация в <strong>{salonName}</strong> е приета. Детайли:
@@ -69,19 +76,19 @@ export default function BookingConfirmationEmail({
               </Text>
             ) : null}
           </Section>
-          <Section style={{ textAlign: "center" as const, marginTop: 24 }}>
+          <Section style={{ textAlign: "center" as const, marginTop: 24, marginBottom: 24 }}>
             <Button href={googleCalendarUrl} style={btn}>
               Добави в Google Calendar
             </Button>
           </Section>
-          <Hr style={hr} />
-          <Text style={footerTitle}>Контакти</Text>
-          {contactLines.map((line) => (
-            <Text key={line} style={footerText}>
-              {line}
-            </Text>
-          ))}
-          <Hr style={hr} />
+          <Section style={contactsBox}>
+            <Text style={footerTitle}>Контакти</Text>
+            {contactLines.map((line) => (
+              <Text key={line} style={footerText}>
+                {line}
+              </Text>
+            ))}
+          </Section>
           <Text style={muted}>
             <Link href={unsubscribeUrl}>Отписване от имейли за тази резервация</Link>
           </Text>
@@ -113,7 +120,22 @@ const btn = {
   display: "inline-block",
   padding: "12px 24px",
 };
-const hr = { borderColor: "#e8e8e8", margin: "24px 0" };
+const preheader = {
+  display: "none",
+  maxHeight: "0px",
+  overflow: "hidden",
+  fontSize: "1px",
+  lineHeight: "1px",
+  color: "#f6f6f6",
+  margin: 0,
+};
+const contactsBox = {
+  backgroundColor: "#ffffff",
+  borderRadius: "12px",
+  padding: "16px 20px",
+  border: "1px solid #e8e8e8",
+  marginBottom: "16px",
+};
 const footerTitle = { color: "#555", fontSize: "13px", fontWeight: "600", margin: "0 0 8px" };
 const footerText = { color: "#666", fontSize: "13px", lineHeight: "20px", margin: "4px 0" };
 const muted = { color: "#888", fontSize: "12px", lineHeight: "18px", margin: "16px 0 0" };

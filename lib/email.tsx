@@ -63,7 +63,12 @@ async function logEmail(params: {
   });
 }
 
-async function sendResendHtml(to: string, subject: string, html: string): Promise<boolean> {
+async function sendResendHtml(
+  to: string,
+  subject: string,
+  html: string,
+  extraHeaders?: Record<string, string>
+): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
   const res = await fetch("https://api.resend.com/emails", {
@@ -77,6 +82,7 @@ async function sendResendHtml(to: string, subject: string, html: string): Promis
       to: [to],
       subject,
       html,
+      ...(extraHeaders ? { headers: extraHeaders } : {}),
     }),
   }).catch(() => null);
   return Boolean(res && res.ok);
@@ -105,23 +111,32 @@ export async function sendConfirmationEmail(booking: Booking, tenant: Tenant): P
   const hairDetails = hairDetailsText(booking, isComplex);
   const token = booking.confirmation_token ?? "";
   const unsubscribeUrl = `${baseUrl}/api/unsubscribe?salon=${encodeURIComponent(booking.salon_slug)}&booking=${encodeURIComponent(booking.id)}&token=${encodeURIComponent(token)}`;
+  const bookingDateLabel = DateTime.fromISO(booking.booking_date, { zone: "Europe/Sofia" })
+    .setLocale("bg")
+    .toFormat("d MMMM yyyy");
+  const bookingTimeLabel = formatTime(booking.booking_time);
+  const subject = `Резервацията ви е потвърдена! ${bookingDateLabel} · ${bookingTimeLabel} — ${tenant.salon_name}`;
 
   const html = await render(
     <BookingConfirmationEmail
       salonName={tenant.salon_name}
       clientName={booking.client_name}
       serviceName={booking.service_name}
-      bookingDate={booking.booking_date}
-      bookingTime={formatTime(booking.booking_time)}
+      bookingDate={bookingDateLabel}
+      bookingTime={bookingTimeLabel}
       priceEur={Number(booking.service_price_eur).toFixed(2)}
       googleCalendarUrl={buildGoogleCalendarUrl(booking, tenant)}
       contactLines={contactLines(tenant)}
       unsubscribeUrl={unsubscribeUrl}
+      messageRef={booking.id}
       hairDetails={hairDetails}
     />
   );
 
-  const ok = await sendResendHtml(to, `Резервацията ви е потвърдена! — ${tenant.salon_name}`, html);
+  const ok = await sendResendHtml(to, subject, html, {
+    "X-Entity-Ref-ID": booking.id,
+    "List-Unsubscribe": `<${unsubscribeUrl}>`,
+  });
   await logEmail({
     salon_slug: booking.salon_slug,
     booking_id: booking.id,
