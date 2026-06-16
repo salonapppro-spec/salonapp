@@ -1,4 +1,27 @@
-# HANDOFF — последна актуализация: 2026-06-15
+# HANDOFF — последна актуализация: 2026-06-16
+
+---
+
+## 2026-06-16 — PR #63 (Section A hardening) review + merge
+
+**Контекст:** Лина/Cursor разработиха PR #63 (`feature/security-section-a-hardening`) паралелно — RBAC capabilities, confirm/cancel `?salon=` IDOR fix, finance scope fix, admin middleware guard, migration 035. Поискан пълен code review преди merge заради разминаващ се "progress audit" доклад.
+
+**Какво проверих ред по ред:**
+- `lib/admin-rbac.ts` — capability модел (owner/technical_admin пълен достъп, specialist_staff само `clients_write`+`schedule_write`) — коректно
+- `app/api/confirm/[token]/route.ts`, `app/api/cancel/[token]/route.ts` — потвърдено: запазват atomic conditional UPDATE паттерна от по-ранния P0 sprint, добавят `salon_slug` scope отгоре (IDOR fix) — добра еволюция, не регресия
+- `lib/admin-finance-scope.ts` — важен fix: премахнат `user_metadata.specialist_id` fallback (client-settable от самия потребител през Supabase Auth SDK — privilege escalation risk); сега само `app_metadata`
+- `lib/email.tsx` — confirm/cancel линкове в reminder имейли вече носят `?salon=`; потвърдих няма други stale референции без него
+- Всичките 18 admin API routes — консистентен паттерн: GET (read) = `requireAdminTenantSlugForApi()`, write = `requireAdminCapabilityForApi(capability)`
+- Migration 034 + 035 — **потвърдено реално приложени в production** (директна SQL проверка): RLS policies, `bookings_public_insert`/`specialists_public_read` premahнати, `design_tokens` колона, `tenant_google_integrations` таблица
+- `middleware.ts` Step 10 (silent fail fix) — вече merge-нат по-рано (PR #61), потвърден правилен
+
+**Намерени и поправени 2 реални проблема (преди merge):**
+1. 🔴 **`npm run check:service-role-boundary` щеше да fail-не CI** — нов shared helper `lib/booking-token-action.ts` не беше в allowlist-а, въпреки че routes-ите, от които е extracted (`confirm/[token]`, `cancel/[token]`) вече са. Добавен в `ALLOWED_EXACT`.
+2. 🟡 Dead import (`requireAdminTenantSlugForApi`) в `app/api/admin/clients/route.ts`, останал след RBAC рефакторинга — премахнат.
+
+**Дребна находка, без действие:** `tenant_activity_logs`/`tenant_call_tasks`/`lead_call_tasks` имат по 2-3 редундантни super_admin policies (стари + от migration 034) — функционално безвредно (multiple permissive policies просто се OR-ват), само cosmetic cleanup за по-късно.
+
+**Merge:** Fast-forward в `main` (`eb7c23a`), PR #63 автоматично маркиран MERGED от GitHub. Verification: `tsc --noEmit`, `npm run test` (84/84), `npm run lint`, `npm run check:service-role-boundary` — всички минават.
 
 ---
 

@@ -4,26 +4,27 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-06-15
+> Актуализирай след всяка задача. Последна промяна: 2026-06-16
 
 ---
 
 ## 🔴 КРИТИЧНО (сега)
 
-- [ ] **Deploy + QA Section A** — PR #63 merge → Vercel; smoke test owner login + confirm `?salon=` link
+Няма. ✅ PR #63 (Section A) merge-нат в `main` (2026-06-16), code-reviewed ред по ред, 2 пропуска (CI boundary allowlist, dead import) намерени и поправени преди merge. Migrations 034+035 потвърдени реално приложени в production.
 
 ---
 
-## 🟡 P1 — Section A security hardening (код готов, чака deploy + migration)
+## 🟡 P1 — Section A security hardening (merge-нато в `main`, 2026-06-16)
 
-- [x] **A1 Backend RBAC** — `lib/admin-rbac.ts` + capability checks на admin write API + `createAdminBooking`
-- [x] **A2 Finance scope** — `specialist_id` само от `app_metadata`
-- [x] **A3 Confirm/cancel tenant scope** — `?salon=` в имейл линкове + scoped lookup/update
+- [x] **A1 Backend RBAC** — `lib/admin-rbac.ts` + capability checks на admin write API + `createAdminBooking`; проверени всичките 18 admin routes — консистентен GET=tenant-only / write=capability паттерн
+- [x] **A2 Finance scope** — `specialist_id` само от `app_metadata` (премахнат `user_metadata` fallback — client-settable, privilege escalation risk)
+- [x] **A3 Confirm/cancel tenant scope** — `?salon=` в имейл линкове + scoped lookup/update; потвърдено запазва atomic-update паттерна от по-ранния P0 sprint
 - [x] **A4 Admin booking debug** — премахнат `debugDbErrors`
 - [x] **A5 Admin middleware** — salon admin access (owner/specialist provisioned), не само logged-in
 - [ ] **A6 Google listActive** — пропуснато (Правило 5)
-- [x] **A7 page_events** — migration 035 drop anon insert (tracking вече service role)
-- [x] **A8 Schema drift** — migration 035 `design_tokens` + `tenant_google_integrations`
+- [x] **A7 page_events** — migration 035 drop anon insert (tracking вече service role) — потвърдено приложено в production
+- [x] **A8 Schema drift** — migration 035 `design_tokens` + `tenant_google_integrations` — потвърдено приложено в production
+- [x] **PR review fix: service-role boundary allowlist** (2026-06-16) — `lib/booking-token-action.ts` липсваше от `ALLOWED_EXACT`, щеше да fail-не CI
 
 ---
 
@@ -47,6 +48,7 @@
 ---
 - [x] **Unsubscribe tenant scope** (2026-06-16) — `salon_slug` в линка + scoped query/update
 
+- [ ] **Cosmetic: redundant RLS policies** — `tenant_activity_logs`/`tenant_call_tasks`/`lead_call_tasks` имат по 2-3 препокриващи се super_admin policies (стари + migration 034 версия); функционално безвредно, чисто cleanup
 - [ ] **Google Calendar** — НЕ СЕ ПИПА без изрично разрешение от Лина (кодът е готов, тест при нужда)
 - [ ] **Статистика в салонския админ** — графики по месец, топ услуги
 - [ ] **Клиентски портал** — клиентът да вижда/отменя резервациите си
