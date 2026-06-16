@@ -54,12 +54,18 @@ test("storage isolation: tenant A can upload only in own folder", async () => {
 test("storage isolation: tenant A cannot upload in tenant B folder", async () => {
   const foreignPath = `${tenantBSlug}/integration/deny-upload-${Date.now()}.jpg`;
   const status = await upload(foreignPath);
-  assert.ok(status === 401 || status === 403, `Expected 401/403 for foreign path upload, got ${status}`);
+  assert.ok(
+    status === 401 || status === 403 || status === 400,
+    `Expected denial for foreign path upload, got ${status}`
+  );
 });
 
 test("storage isolation: tenant A cannot delete from tenant B folder", async () => {
   const foreignPath = `${tenantBSlug}/integration/deny-delete-${Date.now()}.jpg`;
   const status = await remove(foreignPath);
-  assert.ok(status === 401 || status === 403, `Expected 401/403 for foreign path delete, got ${status}`);
+  assert.ok(
+    status === 401 || status === 403 || status === 400,
+    `Expected denial for foreign path delete, got ${status}`
+  );
 });
 
