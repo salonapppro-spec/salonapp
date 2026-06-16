@@ -24,8 +24,16 @@ export async function createAdminBooking(input: unknown): Promise<AdminBookingAc
     return { error: msg };
   }
 
-  const phone = parsed.data.client_phone?.trim() || "00000";
-  const data = { ...parsed.data, client_phone: phone.length >= 5 ? phone : "00000" };
+  // Zod regex разрешава whitespace (\s), затова низ от само празни символи
+  // минава валидацията — но след .trim() остава празен. Преди фиксa това
+  // тихо падаше към "00000", сливайки различни клиенти в един фантомен
+  // запис (виж audit 2026-06-15/16). Сега отказваме вместо да гадаем.
+  const phone = parsed.data.client_phone.trim();
+  const digitCount = (phone.match(/\d/g) ?? []).length;
+  if (digitCount < 5) {
+    return { error: "Невалиден телефон — въведете поне 5 цифри." };
+  }
+  const data = { ...parsed.data, client_phone: phone };
 
   const ctx = await loadCreateBookingContext(slug);
   if (!ctx) {

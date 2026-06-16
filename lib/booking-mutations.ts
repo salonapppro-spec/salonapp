@@ -65,8 +65,16 @@ export async function runCreateBooking(
   const db = tenantDb(data.salon_slug);
   const bufferMinutes = opts.bufferMinutes;
 
-  // Normalize phone once at entry so bookings and clients share the same key
-  const rawPhone = data.client_phone ?? "00000";
+  // Normalize phone once at entry so bookings and clients share the same key.
+  // Defense-in-depth: schema validation upstream should already reject this,
+  // but a missing/whitespace-only phone must never silently fall back to a
+  // placeholder like "00000" — that merges unrelated clients into one
+  // phantom record (audit 2026-06-15/16).
+  const rawPhone = (data.client_phone ?? "").trim();
+  const phoneDigitCount = (rawPhone.match(/\d/g) ?? []).length;
+  if (phoneDigitCount < 5) {
+    return { ok: false, error: "Невалиден телефон." };
+  }
   data = { ...data, client_phone: normalizePhone(rawPhone) || rawPhone };
 
   const { data: serviceRow, error: serviceErr } = await db.services.getActiveById(data.service_id);
