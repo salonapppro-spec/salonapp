@@ -12,7 +12,10 @@ SET plan = CASE plan
 END
 WHERE plan IN ('collective', 'premium', 'pro', 'standard');
 
-UPDATE leads
+-- NOTE: original version of this migration referenced the legacy "leads"
+-- table, which has no "plan" column (audit 2026-06-15/16). The plan field
+-- lives on "platform_leads". Fixed to target the correct table.
+UPDATE platform_leads
 SET plan = CASE plan
   WHEN 'collective' THEN 'premium'
   WHEN 'premium'    THEN 'pro'
