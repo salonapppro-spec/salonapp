@@ -4,7 +4,7 @@
 
 ## 2026-06-15 — Security Section A hardening (audit comparison)
 
-**Branch:** `feature/security-section-a-hardening` (локално, без commit/push освен ако Лина поиска)
+**Branch:** `feature/security-section-a-hardening` — pushed, **PR #63** (чака merge → Vercel)
 
 ### Какво е направено
 

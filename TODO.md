@@ -10,7 +10,7 @@
 
 ## 🔴 КРИТИЧНО (сега)
 
-- [ ] **Deploy + QA Section A** — branch `feature/security-section-a-hardening`: RBAC, confirm/cancel `?salon=`, admin middleware provisioning
+- [ ] **Deploy + QA Section A** — PR #63 merge → Vercel; smoke test owner login + confirm `?salon=` link
 
 ---
 
