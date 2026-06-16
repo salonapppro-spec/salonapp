@@ -80,6 +80,15 @@ export function QuickBooking(props: {
   const selected = activeServices.find((s) => s.id === serviceId) ?? null;
   const activeSpecs = useMemo(() => specialists.filter((s) => s.is_active), [specialists]);
   const needSpecialist = plan === "premium" && activeSpecs.length > 1;
+  // Used both for slot availability fetching and for the final booking save —
+  // previously duplicated (and the slots fetch never included it at all, so
+  // premium multi-specialist salons saw salon-wide free slots instead of the
+  // selected specialist's actual availability — audit 2026-06-15/16).
+  const effectiveSpecialistId = needSpecialist
+    ? specialistId || undefined
+    : plan === "premium" && activeSpecs.length === 1
+      ? activeSpecs[0]!.id
+      : undefined;
 
   const allSlots = useMemo(
     () => (currentWorkingHours ? buildAllSlots(currentWorkingHours) : []),
@@ -137,6 +146,9 @@ export function QuickBooking(props: {
     if (!bookingDate || !serviceId) { setFreeSlots([]); setSlotsLoading(false); return; }
     setSlotsLoading(true);
     const qs = new URLSearchParams({ service_id: serviceId, date: bookingDate });
+    if (effectiveSpecialistId) {
+      qs.set("specialist_id", effectiveSpecialistId);
+    }
     if (selected?.is_complex) {
       qs.set("hair_length", hairLength);
       qs.set("hair_density", hairDensity);
@@ -148,7 +160,7 @@ export function QuickBooking(props: {
       })
       .catch(() => setFreeSlots([]))
       .finally(() => setSlotsLoading(false));
-  }, [bookingDate, serviceId, salonSlug, selected?.is_complex, hairLength, hairDensity]);
+  }, [bookingDate, serviceId, salonSlug, selected?.is_complex, hairLength, hairDensity, effectiveSpecialistId]);
 
   useEffect(() => {
     if (justPicked.current) { justPicked.current = false; return; }
@@ -199,19 +211,17 @@ export function QuickBooking(props: {
     }
     if (needSpecialist && !specialistId) { setError("Изберете специалист."); return; }
 
-    const resolvedSpecialistId = needSpecialist
-      ? specialistId
-      : plan === "premium" && activeSpecs.length === 1
-        ? activeSpecs[0]!.id
-        : undefined;
-
     setSaving(true);
     setError(null);
     try {
-      const normalizedPhone = phone.trim().length >= 5 ? phone.trim() : "00000";
+      // Без литерален "00000" placeholder — той сливаше различни анонимни
+      // клиенти в един фантомен запис чрез clients.upsertByPhone (audit
+      // 2026-06-15/16). Уникален синтетичен "телефон" за всеки booking без
+      // реален номер, така че никога не колидира с друг клиент.
+      const normalizedPhone = phone.trim().length >= 5 ? phone.trim() : `anon-${crypto.randomUUID()}`;
       const result = await createAdminBooking({
         salon_slug: salonSlug,
-        specialist_id: resolvedSpecialistId,
+        specialist_id: effectiveSpecialistId,
         service_id: selected.id,
         booking_date: bookingDate,
         booking_time: selectedTime,

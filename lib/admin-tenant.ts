@@ -63,7 +63,14 @@ export async function resolveAdminTenantSlug(): Promise<string | null> {
   if (data.user.app_metadata?.role === "super_admin") {
     const cookieStore = await cookies();
     const raw = cookieStore.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim();
-    if (raw && SLUG_RE.test(raw)) return raw;
+    if (raw && SLUG_RE.test(raw)) {
+      // enterSalonAdminContextAction verifies the tenant exists when the
+      // cookie is first set, but the cookie can outlive that tenant (renamed
+      // or deleted salon, cookie maxAge) — re-check here so a stale cookie
+      // resolves to "no tenant" instead of a ghost slug (audit 2026-06-15/16).
+      const tenant = await getTenant(raw);
+      if (tenant) return raw;
+    }
   }
 
   // Owner-only self-heal path: if JWT slug is stale/missing, restore from tenants.owner_email.

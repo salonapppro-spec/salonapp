@@ -2,9 +2,10 @@
 
 import { randomBytes } from "crypto";
 import { revalidatePath, revalidateTag } from "next/cache";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
+import { clientIpFromHeaders } from "@/lib/rate-limit";
 import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
 import { recoveryActionLinkForEmail } from "@/lib/owner-recovery-link";
 import { CreateTenantSchema } from "@/schemas/tenant";
@@ -45,7 +46,7 @@ async function logTenantActivity(params: {
 
 /** Задава httpOnly контекст и отваря салонския админ (данните се четат със service role по slug). */
 export async function enterSalonAdminContextAction(formData: FormData): Promise<void> {
-  await requireSuperAdminUser();
+  const user = await requireSuperAdminUser();
   const salonSlug = String(formData.get("salon_slug") ?? "").trim();
   if (!ADMIN_SLUG_RE.test(salonSlug)) throw new Error("Невалиден slug");
 
@@ -61,6 +62,16 @@ export async function enterSalonAdminContextAction(formData: FormData): Promise<
     path: "/",
     maxAge: IMPERSONATION_MAX_AGE_SECONDS,
   });
+
+  // Audit trail for impersonation — previously unlogged (audit 2026-06-15/16).
+  const h = await headers();
+  await logTenantActivity({
+    salonSlug,
+    eventType: "super_admin_impersonation_start",
+    actorUserId: user.id,
+    payload: { ip: clientIpFromHeaders(h) },
+  });
+
   redirect("/admin/dashboard");
 }
 
