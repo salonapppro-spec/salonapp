@@ -11,6 +11,8 @@ export const RATE = {
   availabilityGet: { limit: 60, windowMs: 60_000 },
   servicesGet: { limit: 30, windowMs: 60_000 },
   clientsLookupGet: { limit: 10, windowMs: 60_000 },
+  /** Per phone+salon (not just per IP) — defeats enumeration via rotating IPs (audit 2026-06-15/16) */
+  clientsLookupPerPhone: { limit: 5, windowMs: 600_000 },
   gdprDeletePost: { limit: 3, windowMs: 60_000 },
   /** POST /api/gdpr/export — изпраща verification email; строго ограничен */
   gdprExportPost: { limit: 3, windowMs: 600_000 },
