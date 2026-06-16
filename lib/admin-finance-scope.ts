@@ -31,11 +31,9 @@ export async function resolveFinanceScope(): Promise<FinanceScope | null> {
     if (!user) return { salonSlug, specialistIdFilter: null, canSeeReports };
 
     const sid =
-      typeof user.user_metadata?.specialist_id === "string"
-        ? user.user_metadata.specialist_id
-        : typeof user.app_metadata?.specialist_id === "string"
-          ? user.app_metadata.specialist_id
-          : null;
+      typeof user.app_metadata?.specialist_id === "string"
+        ? user.app_metadata.specialist_id
+        : null;
 
     if (sid) {
       const { data: spec } = await tenantDb(salonSlug).specialists.getById(sid);

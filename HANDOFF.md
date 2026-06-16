@@ -1,4 +1,33 @@
-# HANDOFF — последна актуализация: 2026-06-16
+# HANDOFF — последна актуализация: 2026-06-15
+
+---
+
+## 2026-06-15 — Security Section A hardening (audit comparison)
+
+**Branch:** `feature/security-section-a-hardening` (локално, без commit/push освен ако Лина поиска)
+
+### Какво е направено
+
+| ID | Задача | Статус |
+|----|--------|--------|
+| A1 | Backend RBAC (`owner` / `technical_admin` / `specialist_staff`) на admin write API | ✅ |
+| A2 | Finance scope — `specialist_id` само от `app_metadata` (не `user_metadata`) | ✅ |
+| A3 | Confirm/cancel линкове — задължителен `?salon=` + lookup по slug+token | ✅ (breaking за стари имейли) |
+| A4 | Премахнат `debugDbErrors: true` от admin booking | ✅ |
+| A5 | Admin middleware — не само session, изисква salon admin access | ✅ |
+| A6 | `googleIntegration.listActive()` без slug | ⏭ пропуснато (Правило 5) |
+| A7 | `page_events` anon INSERT | ✅ migration `035` — **applied в Supabase (Лина)** |
+| A8 | Schema drift: `design_tokens`, `tenant_google_integrations` | ✅ migration `035` — **applied в Supabase (Лина)** |
+
+**Нови файлове:** `lib/admin-rbac.ts`, `lib/booking-token-action.ts`, `supabase/migrations/035_security_section_a_hardening.sql`
+
+**RBAC capabilities:** `settings_write`, `finances_write`, `clients_export`, `specialists_manage`, `services_write`, `gallery_write`, `clients_write`, `schedule_write` — specialist_staff получава само последните две.
+
+**Засегнати API:** settings, working-hours, upload, financial-settings, expenses, clients (+ export, GDPR delete), specialists, services, gallery (+ upload/reorder/[id]), bookings, blocked-slots; server action `createAdminBooking` → `schedule_write`.
+
+**Verification:** `npx tsc --noEmit`.
+
+**След deploy на код:** тествай confirm/cancel с `?salon=`; admin owner login нормален достъп. Migration `035` — applied в Supabase.
 
 ---
 

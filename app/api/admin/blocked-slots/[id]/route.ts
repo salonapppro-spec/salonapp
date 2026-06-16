@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { tenantDb } from "@/lib/tenant-db";
 
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("schedule_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const { id } = await ctx.params;

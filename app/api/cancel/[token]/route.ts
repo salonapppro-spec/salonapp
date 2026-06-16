@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { hoursUntilBooking } from "@/lib/booking-datetime";
+import { findBookingByToken, parseBookingTokenSalonSlug } from "@/lib/booking-token-action";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -9,29 +10,26 @@ function htmlPage(title: string, body: string) {
   return `<!DOCTYPE html><html lang="bg"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>${title}</title></head><body style="font-family:system-ui,sans-serif;padding:2rem;max-width:32rem;margin:0 auto;line-height:1.5">${body}</body></html>`;
 }
 
-async function findBooking(token: string) {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("id,status,booking_date,booking_time")
-    .eq("confirmation_token", token)
-    .maybeSingle();
-  if (error || !data) return null;
-  return data as { id: string; status: string; booking_date: string; booking_time: string };
+function invalidLinkResponse() {
+  return new NextResponse(htmlPage("Грешка", "<p>Невалиден линк.</p>"), {
+    status: 400,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
+
+function tokenAndSalonFromRequest(req: Request, rawToken: string | undefined) {
+  const token = decodeURIComponent(rawToken ?? "").trim();
+  const salonSlug = parseBookingTokenSalonSlug(new URL(req.url).searchParams.get("salon"));
+  return { token, salonSlug };
 }
 
 // GET — показва страница с бутон за отказ
-export async function GET(_req: Request, ctx: { params: Promise<{ token: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ token: string }> }) {
   const { token: rawToken } = await ctx.params;
-  const token = decodeURIComponent(rawToken ?? "").trim();
-  if (!token) {
-    return new NextResponse(htmlPage("Грешка", "<p>Невалиден линк.</p>"), {
-      status: 400,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
-  }
+  const { token, salonSlug } = tokenAndSalonFromRequest(req, rawToken);
+  if (!token || !salonSlug) return invalidLinkResponse();
 
-  const booking = await findBooking(token);
+  const booking = await findBookingByToken(token, salonSlug, "id,status,booking_date,booking_time");
   if (!booking) {
     return new NextResponse(htmlPage("Не е намерено", "<p>Резервацията не е намерена.</p>"), {
       status: 404,
@@ -39,14 +37,15 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
     });
   }
 
-  if (booking.status === "cancelled" || booking.status === "completed" || booking.status === "no_show") {
+  const status = String(booking.status ?? "");
+  if (status === "cancelled" || status === "completed" || status === "no_show") {
     return new NextResponse(
       htmlPage("Статус", "<p>Тази резервация вече не може да бъде променена от този линк.</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
 
-  const hours = hoursUntilBooking(booking.booking_date, booking.booking_time);
+  const hours = hoursUntilBooking(String(booking.booking_date), String(booking.booking_time));
   if (hours < 24) {
     return new NextResponse(
       htmlPage("Твърде късно за отказ", "<p>Отказът е възможен най-малко <strong>24 часа</strong> преди часа. Моля, свържете се със салона.</p>"),
@@ -70,17 +69,12 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
 }
 
 // POST — извършва реалния отказ
-export async function POST(_req: Request, ctx: { params: Promise<{ token: string }> }) {
+export async function POST(req: Request, ctx: { params: Promise<{ token: string }> }) {
   const { token: rawToken } = await ctx.params;
-  const token = decodeURIComponent(rawToken ?? "").trim();
-  if (!token) {
-    return new NextResponse(htmlPage("Грешка", "<p>Невалиден линк.</p>"), {
-      status: 400,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
-  }
+  const { token, salonSlug } = tokenAndSalonFromRequest(req, rawToken);
+  if (!token || !salonSlug) return invalidLinkResponse();
 
-  const booking = await findBooking(token);
+  const booking = await findBookingByToken(token, salonSlug, "id,status,booking_date,booking_time");
   if (!booking) {
     return new NextResponse(htmlPage("Не е намерено", "<p>Резервацията не е намерена.</p>"), {
       status: 404,
@@ -88,14 +82,17 @@ export async function POST(_req: Request, ctx: { params: Promise<{ token: string
     });
   }
 
-  if (booking.status === "cancelled" || booking.status === "completed" || booking.status === "no_show") {
+  const status = String(booking.status ?? "");
+  const bookingId = String(booking.id ?? "");
+
+  if (status === "cancelled" || status === "completed" || status === "no_show") {
     return new NextResponse(
       htmlPage("Статус", "<p>Тази резервация вече не може да бъде променена от този линк.</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
 
-  const hours = hoursUntilBooking(booking.booking_date, booking.booking_time);
+  const hours = hoursUntilBooking(String(booking.booking_date), String(booking.booking_time));
   if (hours < 24) {
     return new NextResponse(
       htmlPage("Твърде късно за отказ", "<p>Отказът е възможен най-малко <strong>24 часа</strong> преди часа. Моля, свържете се със салона.</p>"),
@@ -103,14 +100,13 @@ export async function POST(_req: Request, ctx: { params: Promise<{ token: string
     );
   }
 
-  // Атомарен conditional UPDATE — in("status", [...]) гарантира, че token-ът
-  // прави прехода само от активни статуси (race-safe: ако статусът се е
-  // променил между SELECT-а по-горе и тук, update-ът просто не пипа ред).
   const supabase = createSupabaseServiceRoleClient();
   const { data: updated, error } = await supabase
     .from("bookings")
     .update({ status: "cancelled" })
-    .eq("id", booking.id)
+    .eq("id", bookingId)
+    .eq("salon_slug", salonSlug)
+    .eq("confirmation_token", token)
     .in("status", ["pending", "confirmed"])
     .select("id")
     .maybeSingle();
@@ -123,8 +119,6 @@ export async function POST(_req: Request, ctx: { params: Promise<{ token: string
   }
 
   if (!updated) {
-    // Между SELECT и UPDATE статусът се е променил (race) — третираме като
-    // "вече обработено", не като грешка.
     return new NextResponse(
       htmlPage("Статус", "<p>Тази резервация вече не може да бъде променена от този линк.</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }

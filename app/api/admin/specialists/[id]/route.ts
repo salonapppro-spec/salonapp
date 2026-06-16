@@ -2,7 +2,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { tenantDb } from "@/lib/tenant-db";
 
 const PatchSpecialistSchema = z.object({
@@ -14,7 +14,7 @@ const PatchSpecialistSchema = z.object({
 });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("specialists_manage");
   if (!a.ok) return a.response;
 
   const { id } = await ctx.params;
@@ -39,7 +39,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 }
 
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("specialists_manage");
   if (!a.ok) return a.response;
 
   const { id } = await ctx.params;

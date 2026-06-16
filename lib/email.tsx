@@ -178,8 +178,9 @@ export async function sendSalonBookingNotification(booking: Booking, tenant: Ten
 export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promise<void> {
   const baseUrl = getPublicAppUrl();
   const token = booking.confirmation_token ?? "";
-  const confirmUrl = `${baseUrl}/api/confirm/${token}`;
-  const cancelUrl = `${baseUrl}/api/cancel/${token}`;
+  const salonQuery = `salon=${encodeURIComponent(booking.salon_slug)}`;
+  const confirmUrl = `${baseUrl}/api/confirm/${token}?${salonQuery}`;
+  const cancelUrl = `${baseUrl}/api/cancel/${token}?${salonQuery}`;
 
   const to = booking.client_email?.trim();
   let emailSent = false;

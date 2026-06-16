@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { tenantDb } from "@/lib/tenant-db";
 import { normalizePhone } from "@/lib/phone";
@@ -13,7 +14,7 @@ const CreateSchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("clients_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
 

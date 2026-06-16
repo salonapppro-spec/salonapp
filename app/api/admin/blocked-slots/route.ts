@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { tenantDb } from "@/lib/tenant-db";
 import { BlockedSlotCreateSchema } from "@/schemas/blocked-slot-admin";
@@ -19,7 +20,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("schedule_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const body = (await req.json().catch(() => null)) as unknown;

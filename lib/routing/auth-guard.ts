@@ -11,6 +11,8 @@
  */
 
 import { type NextRequest, NextResponse } from "next/server";
+
+import { SLUG_RE } from "./constants";
 import type { HostInfo } from "./host";
 
 type AuthUser = {
@@ -22,6 +24,30 @@ export function isSuperAdminRole(
   user: NonNullable<AuthUser>
 ): boolean {
   return user.app_metadata?.role === "super_admin";
+}
+
+function salonSlugFromAppMetadata(user: NonNullable<AuthUser>): string | null {
+  const raw = user.app_metadata?.salon_slug;
+  if (typeof raw !== "string") return null;
+  const slug = raw.trim();
+  return slug && SLUG_RE.test(slug) ? slug : null;
+}
+
+/** Salon admin panel: owner, collective specialist, or super_admin only. */
+export function hasSalonAdminAccess(user: NonNullable<AuthUser>): boolean {
+  if (isSuperAdminRole(user)) return true;
+  if (user.app_metadata?.role === "owner" && salonSlugFromAppMetadata(user)) return true;
+
+  const specialistId = user.app_metadata?.specialist_id;
+  if (
+    typeof specialistId === "string" &&
+    specialistId.trim().length > 0 &&
+    salonSlugFromAppMetadata(user)
+  ) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -102,6 +128,11 @@ export function applyAuthGuard(params: {
     if (!user) {
       const login = new URL("/admin/login", request.url);
       login.searchParams.set("next", pathname + request.nextUrl.search);
+      return redirectWithCookies(login, request, response);
+    }
+    if (!hasSalonAdminAccess(user)) {
+      const login = new URL("/admin/login", request.url);
+      login.searchParams.set("tenant_required", "1");
       return redirectWithCookies(login, request, response);
     }
   }

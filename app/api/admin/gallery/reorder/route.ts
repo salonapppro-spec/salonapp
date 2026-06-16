@@ -2,7 +2,7 @@ import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { tenantDb } from "@/lib/tenant-db";
 
 const BodySchema = z.object({
@@ -10,7 +10,7 @@ const BodySchema = z.object({
 });
 
 export async function POST(req: Request) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("gallery_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const body = (await req.json().catch(() => null)) as unknown;

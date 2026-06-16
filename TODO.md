@@ -4,13 +4,26 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-06-16
+> Актуализирай след всяка задача. Последна промяна: 2026-06-15
 
 ---
 
 ## 🔴 КРИТИЧНО (сега)
 
-Няма. ✅ (всичките 10 P0 от security/database одита 2026-06-16 са затворени — виж HANDOFF.md)
+- [ ] **Deploy + QA Section A** — branch `feature/security-section-a-hardening`: RBAC, confirm/cancel `?salon=`, admin middleware provisioning
+
+---
+
+## 🟡 P1 — Section A security hardening (код готов, чака deploy + migration)
+
+- [x] **A1 Backend RBAC** — `lib/admin-rbac.ts` + capability checks на admin write API + `createAdminBooking`
+- [x] **A2 Finance scope** — `specialist_id` само от `app_metadata`
+- [x] **A3 Confirm/cancel tenant scope** — `?salon=` в имейл линкове + scoped lookup/update
+- [x] **A4 Admin booking debug** — премахнат `debugDbErrors`
+- [x] **A5 Admin middleware** — salon admin access (owner/specialist provisioned), не само logged-in
+- [ ] **A6 Google listActive** — пропуснато (Правило 5)
+- [x] **A7 page_events** — migration 035 drop anon insert (tracking вече service role)
+- [x] **A8 Schema drift** — migration 035 `design_tokens` + `tenant_google_integrations`
 
 ---
 
@@ -29,7 +42,9 @@
 
 ## 🟢 ПО-КЪСНО (след launch, при растеж)
 
-- [x] **Migration drift — RLS sync в repo** (2026-06-16) — `034_sync_production_rls.sql`; apply в Supabase след deploy
+- [x] **Migration 035 в Supabase** (2026-06-15) — `page_events` anon insert off + `design_tokens` + `tenant_google_integrations`
+
+---
 - [x] **Unsubscribe tenant scope** (2026-06-16) — `salon_slug` в линка + scoped query/update
 
 - [ ] **Google Calendar** — НЕ СЕ ПИПА без изрично разрешение от Лина (кодът е готов, тест при нужда)

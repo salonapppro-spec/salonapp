@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 
+import { findBookingByToken, parseBookingTokenSalonSlug } from "@/lib/booking-token-action";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -8,29 +9,26 @@ function htmlPage(title: string, body: string) {
   return `<!DOCTYPE html><html lang="bg"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width"/><title>${title}</title></head><body style="font-family:system-ui,sans-serif;padding:2rem;max-width:32rem;margin:0 auto;line-height:1.5">${body}</body></html>`;
 }
 
-async function findBooking(token: string) {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data, error } = await supabase
-    .from("bookings")
-    .select("id,status")
-    .eq("confirmation_token", token)
-    .maybeSingle();
-  if (error || !data) return null;
-  return data as { id: string; status: string };
+function invalidLinkResponse() {
+  return new NextResponse(htmlPage("Грешка", "<p>Невалиден линк.</p>"), {
+    status: 400,
+    headers: { "Content-Type": "text/html; charset=utf-8" },
+  });
+}
+
+function tokenAndSalonFromRequest(req: Request, rawToken: string | undefined) {
+  const token = decodeURIComponent(rawToken ?? "").trim();
+  const salonSlug = parseBookingTokenSalonSlug(new URL(req.url).searchParams.get("salon"));
+  return { token, salonSlug };
 }
 
 // GET — показва страница с бутон за потвърждение
-export async function GET(_req: Request, ctx: { params: Promise<{ token: string }> }) {
+export async function GET(req: Request, ctx: { params: Promise<{ token: string }> }) {
   const { token: rawToken } = await ctx.params;
-  const token = decodeURIComponent(rawToken ?? "").trim();
-  if (!token) {
-    return new NextResponse(htmlPage("Грешка", "<p>Невалиден линк.</p>"), {
-      status: 400,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
-  }
+  const { token, salonSlug } = tokenAndSalonFromRequest(req, rawToken);
+  if (!token || !salonSlug) return invalidLinkResponse();
 
-  const booking = await findBooking(token);
+  const booking = await findBookingByToken(token, salonSlug, "id,status");
   if (!booking) {
     return new NextResponse(htmlPage("Не е намерено", "<p>Резервацията не е намерена.</p>"), {
       status: 404,
@@ -38,14 +36,15 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
     });
   }
 
-  if (booking.status === "confirmed") {
+  const status = String(booking.status ?? "");
+  if (status === "confirmed") {
     return new NextResponse(
       htmlPage("Вече потвърдено", "<p>Присъствието ви вече е потвърдено. Благодарим!</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
 
-  if (booking.status === "cancelled" || booking.status === "no_show" || booking.status === "completed") {
+  if (status === "cancelled" || status === "no_show" || status === "completed") {
     return new NextResponse(
       htmlPage("Отказана резервация", "<p>Тази резервация вече не е активна.</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
@@ -68,17 +67,12 @@ export async function GET(_req: Request, ctx: { params: Promise<{ token: string 
 }
 
 // POST — извършва реалното потвърждение
-export async function POST(_req: Request, ctx: { params: Promise<{ token: string }> }) {
+export async function POST(req: Request, ctx: { params: Promise<{ token: string }> }) {
   const { token: rawToken } = await ctx.params;
-  const token = decodeURIComponent(rawToken ?? "").trim();
-  if (!token) {
-    return new NextResponse(htmlPage("Грешка", "<p>Невалиден линк.</p>"), {
-      status: 400,
-      headers: { "Content-Type": "text/html; charset=utf-8" },
-    });
-  }
+  const { token, salonSlug } = tokenAndSalonFromRequest(req, rawToken);
+  if (!token || !salonSlug) return invalidLinkResponse();
 
-  const booking = await findBooking(token);
+  const booking = await findBookingByToken(token, salonSlug, "id,status");
   if (!booking) {
     return new NextResponse(htmlPage("Не е намерено", "<p>Резервацията не е намерена.</p>"), {
       status: 404,
@@ -86,28 +80,30 @@ export async function POST(_req: Request, ctx: { params: Promise<{ token: string
     });
   }
 
-  if (booking.status === "confirmed") {
+  const status = String(booking.status ?? "");
+  const bookingId = String(booking.id ?? "");
+
+  if (status === "confirmed") {
     return new NextResponse(
       htmlPage("Вече потвърдено", "<p>Присъствието ви вече е потвърдено. Благодарим!</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
 
-  if (booking.status === "cancelled" || booking.status === "no_show" || booking.status === "completed") {
+  if (status === "cancelled" || status === "no_show" || status === "completed") {
     return new NextResponse(
       htmlPage("Отказана резервация", "<p>Тази резервация вече не е активна.</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
 
-  // Атомарен conditional UPDATE — eq("status", "pending") гарантира, че
-  // token-ът прави прехода само веднъж (race-safe: ако статусът се е
-  // променил между SELECT-а по-горе и тук, update-ът просто не пипа ред).
   const supabase = createSupabaseServiceRoleClient();
   const { data: updated, error } = await supabase
     .from("bookings")
     .update({ status: "confirmed", confirmed_at: new Date().toISOString() })
-    .eq("id", booking.id)
+    .eq("id", bookingId)
+    .eq("salon_slug", salonSlug)
+    .eq("confirmation_token", token)
     .eq("status", "pending")
     .select("id")
     .maybeSingle();
@@ -120,8 +116,6 @@ export async function POST(_req: Request, ctx: { params: Promise<{ token: string
   }
 
   if (!updated) {
-    // Между SELECT и UPDATE статусът се е променил (race) — третираме като
-    // "вече обработено", не като грешка.
     return new NextResponse(
       htmlPage("Вече обработено", "<p>Тази резервация вече е обработена.</p>"),
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }

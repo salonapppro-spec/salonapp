@@ -1,6 +1,7 @@
 "use server";
 
 import { CreateBookingSchema } from "@/schemas/booking";
+import { adminActorHasCapability, resolveAdminActor } from "@/lib/admin-rbac";
 import { resolveAdminTenantSlug } from "@/lib/admin-tenant";
 import { loadCreateBookingContext, runCreateBooking } from "@/lib/booking-mutations";
 
@@ -13,6 +14,11 @@ export async function createAdminBooking(input: unknown): Promise<AdminBookingAc
   const slug = await resolveAdminTenantSlug();
   if (!slug) {
     return { error: "Нямате достъп до салона." };
+  }
+
+  const actor = await resolveAdminActor(slug);
+  if (!actor || !adminActorHasCapability(actor, "schedule_write")) {
+    return { error: "Нямате право за тази операция." };
   }
 
   const body = typeof input === "object" && input !== null ? { ...(input as Record<string, unknown>) } : {};
@@ -40,7 +46,7 @@ export async function createAdminBooking(input: unknown): Promise<AdminBookingAc
     return { error: "Салонът не е намерен." };
   }
 
-  const result = await runCreateBooking(data, { ...ctx, debugDbErrors: true });
+  const result = await runCreateBooking(data, ctx);
   if (!result.ok) {
     return { error: result.error };
   }

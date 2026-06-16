@@ -1,13 +1,13 @@
 import { revalidatePath, revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { normalizeTenantSettingsPatch } from "@/lib/settings-normalization";
 import { UpdateTenantPublicFieldsSchema } from "@/schemas/settings";
 import { tenantDb } from "@/lib/tenant-db";
 
 export async function POST(req: Request) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("settings_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
 

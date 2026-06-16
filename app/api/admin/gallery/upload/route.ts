@@ -2,7 +2,7 @@ import { randomUUID } from "crypto";
 
 import { NextResponse } from "next/server";
 
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { processAdminImageUpload } from "@/lib/safe-image-upload";
 import { tenantDb } from "@/lib/tenant-db";
 
@@ -12,7 +12,7 @@ const BUCKET = process.env.ADMIN_GALLERY_BUCKET ?? "gallery";
  * Multipart: поле `file` — качва в Supabase Storage (публичен bucket `gallery` или ADMIN_GALLERY_BUCKET).
  */
 export async function POST(req: Request) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("gallery_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
 

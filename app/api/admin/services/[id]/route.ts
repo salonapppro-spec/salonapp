@@ -2,7 +2,7 @@ import { revalidateTag } from "next/cache";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { tenantDb } from "@/lib/tenant-db";
 
 const PatchSchema = z.object({
@@ -20,7 +20,7 @@ const PatchSchema = z.object({
 });
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("services_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const { id } = await ctx.params;
@@ -37,7 +37,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
 /** Премахване на услуга — само ако вече е неактивна (защита от случайно триене). */
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("services_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const { id } = await ctx.params;

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { getBookingsForClientPhoneAdmin, getClientByIdAdmin } from "@/lib/data";
 import { tenantDb } from "@/lib/tenant-db";
@@ -50,7 +51,7 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
 }
 
 export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("clients_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const { id } = await ctx.params;
@@ -72,7 +73,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
 /** GDPR: анонимизира резервации по телефон, изтрива клиента. */
 export async function DELETE(_req: Request, ctx: { params: Promise<{ id: string }> }) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("settings_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const { id } = await ctx.params;

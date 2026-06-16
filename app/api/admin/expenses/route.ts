@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { getExpensesBetween } from "@/lib/data";
 import { tenantDb } from "@/lib/tenant-db";
@@ -27,7 +28,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("finances_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const body = (await req.json().catch(() => null)) as unknown;

@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server";
 
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
+import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { getClientsAdmin } from "@/lib/data";
 
 export async function GET() {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("clients_export");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
 
