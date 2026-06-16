@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { tenantDb } from "@/lib/tenant-db";
 import { normalizePhone } from "@/lib/phone";
 

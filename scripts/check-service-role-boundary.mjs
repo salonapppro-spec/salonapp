@@ -25,6 +25,7 @@ const ALLOWED_EXACT = new Set([
   "app/api/track/route.ts",
   "app/api/confirm/[token]/route.ts",
   "app/api/cancel/[token]/route.ts",
+  "lib/booking-token-action.ts",
   "scripts/set-app-metadata.ts",
 ]);
 const ALLOWED_PREFIXES = ["lib/internal/"];
