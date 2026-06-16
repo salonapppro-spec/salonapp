@@ -42,13 +42,24 @@ export async function GET(req: Request) {
 
   const already = new Set((existingLogs ?? []).map((r: { booking_id: string }) => r.booking_id));
 
+  const toSend = list.filter((b) => !already.has(b.id));
+
+  // Изпращаме на батчове, не последователно — при растеж на платформата
+  // (повече салони/bookings) последователен await per booking рискува да
+  // удари Vercel function timeout. Кеш на вече зареден tenant по salon_slug,
+  // защото няколко booking-а могат да са от един и същ салон.
+  const CONCURRENCY = 10;
+  const tenantCache = new Map<string, Awaited<ReturnType<typeof getTenant>>>();
   let processed = 0;
   let failed = 0;
-  for (const b of list) {
-    if (already.has(b.id)) continue;
 
-    const tenant = await getTenant(b.salon_slug);
-    if (!tenant || (tenant.status !== "active" && tenant.status !== "trial")) continue;
+  async function sendOne(b: Booking): Promise<void> {
+    let tenant = tenantCache.get(b.salon_slug);
+    if (tenant === undefined) {
+      tenant = await getTenant(b.salon_slug);
+      tenantCache.set(b.salon_slug, tenant);
+    }
+    if (!tenant || (tenant.status !== "active" && tenant.status !== "trial")) return;
 
     try {
       await sendReminderEmail(b, tenant);
@@ -56,6 +67,11 @@ export async function GET(req: Request) {
     } catch {
       failed += 1;
     }
+  }
+
+  for (let i = 0; i < toSend.length; i += CONCURRENCY) {
+    const batch = toSend.slice(i, i + CONCURRENCY);
+    await Promise.all(batch.map(sendOne));
   }
 
   return NextResponse.json({ ok: true, processed, failed, date: tomorrow });
