@@ -2,6 +2,37 @@
 
 ---
 
+## 2026-06-16 — Phone lookup masking + CI integration enforcement
+
+**Контекст:** От `MASTER_AUDIT_REPORT.md` оставаха 2 security items — public `/api/clients/lookup` връщаше пълен имейл при hit; integration tests в CI се skip-ваха без secrets.
+
+**Fix 1 — Lookup masking:**
+- Нов `lib/mask-pii.ts` → `maskEmailForPublicHint()` (маскира local + domain част)
+- `app/api/clients/lookup/route.ts` вече връща `{ name, email_hint }` — **без** raw `email`
+- `BookingFlow` / `StepContact` — autofill само на **име**; masked hint като UX съобщение
+- Unit tests: `tests/mask-pii.test.ts`
+
+**Fix 2 — CI integration tests:**
+- `scripts/run-integration-tests.mjs` — в CI (`GITHUB_ACTIONS` / `INTEGRATION_REQUIRED=1`) **fail** ако липсват base env vars (не silent skip)
+- `.github/workflows/ci.yml` — `INTEGRATION_REQUIRED: "1"`
+- Bugfix: `host-bound-public-api-enforcement.test.ts` clients lookup → **GET** с query params (беше грешен POST)
+
+**Branch:** `feature/lookup-mask-integration-ci`
+
+**Fix 3 — CI unit test glob (Linux):**
+- `scripts/run-unit-tests.mjs` — explicit file list вместо `tests/*.test.ts` glob (fail-ваше в GitHub Actions)
+- `package.json` → `"test": "node scripts/run-unit-tests.mjs"`
+
+**Fix 4 — CI integration auto-hydrate + GitHub secrets:**
+- `scripts/integration-env-hydrate.mjs` — от Supabase service role: tenant slugs, client/booking IDs, CI admin user JWT
+- `scripts/bootstrap-github-integration-secrets.mjs` — еднократно push на secrets от `.env.local` via `gh secret set`
+- `ci.yml` — `INTEGRATION_SUPABASE_SERVICE_ROLE_KEY` + `INTEGRATION_CI_USER_PASSWORD`; bearer/JWT се генерират в CI run
+- GitHub secrets зададени на `salonapppro-spec/salonapp` (2026-06-16)
+
+**За green CI:** минимум 3 secrets (+ optional static tenant IDs) — hydrate попълва останалото на всеки run.
+
+---
+
 ## 2026-06-16 — TheBeast contrast fix + BookingFlow standardization (4 сайта)
 
 **Контекст:** Лина пратила screenshot на `thebeast` booking стъпка 5/6 — текст почти невидим (тъмен текст на тъмен фон).

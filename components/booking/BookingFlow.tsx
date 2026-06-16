@@ -66,6 +66,7 @@ export function BookingFlow(props: { salonData: SalonData }) {
   const [email, setEmail] = useState("");
   const [notes, setNotes] = useState("");
   const [lookupStatus, setLookupStatus] = useState<"idle" | "loading" | "done" | "error">("idle");
+  const [emailHint, setEmailHint] = useState<string | null>(null);
 
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -134,13 +135,14 @@ export function BookingFlow(props: { salonData: SalonData }) {
     const p = phone.trim();
     if (p.length < 5) return;
     setLookupStatus("loading");
+    setEmailHint(null);
     try {
       const qs = new URLSearchParams({ salon_slug: salonSlug, phone: p });
       const res = await fetch(`/api/clients/lookup?${qs.toString()}`);
-      const json = (await res.json()) as { name: string | null; email: string | null; error?: string };
+      const json = (await res.json()) as { name: string | null; email_hint?: string | null; error?: string };
       if (!res.ok) throw new Error(json?.error ?? "lookup failed");
       if (json.name) setName(json.name);
-      if (json.email) setEmail(json.email);
+      setEmailHint(json.email_hint ?? null);
       setLookupStatus("done");
     } catch {
       setLookupStatus("error");
@@ -344,6 +346,7 @@ export function BookingFlow(props: { salonData: SalonData }) {
             onNotes={setNotes}
             onPhoneLookup={lookupClient}
             lookupStatus={lookupStatus}
+            emailHint={emailHint}
           />
         ) : null}
         {phase === "confirm" ? (

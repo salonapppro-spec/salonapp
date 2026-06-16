@@ -20,7 +20,11 @@ test("admin boundary: tenant admin cannot open /super-admin page", async () => {
 });
 
 test("admin boundary: tenant admin cannot call super-admin tenants API", async () => {
-  const res = await requestJson(`${baseUrl}/api/super-admin/tenants`, { headers: tenantAAuth });
+  const res = await requestJson(`${baseUrl}/api/super-admin/tenants`, {
+    method: "POST",
+    headers: tenantAAuth,
+    body: {},
+  });
   assert.ok(
     res.status === 401 || res.status === 403,
     `Expected 401/403 for super-admin API, got status=${res.status}, body=${res.bodyText.slice(0, 240)}`

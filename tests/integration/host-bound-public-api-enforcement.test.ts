@@ -42,13 +42,9 @@ test("host-bound enforcement: bookings rejects host/slug mismatch", async () => 
 });
 
 test("host-bound enforcement: clients lookup rejects host/slug mismatch", async () => {
-  const res = await requestJson(`${tenantPublicBaseUrl}/api/clients/lookup`, {
-    method: "POST",
-    body: {
-      salon_slug: tenantBSlug,
-      phone: "+359111111111",
-    },
-  });
+  const res = await requestJson(
+    `${tenantPublicBaseUrl}/api/clients/lookup?salon_slug=${encodeURIComponent(tenantBSlug)}&phone=${encodeURIComponent("+359111111111")}`
+  );
   assertMismatchRejected(res.status, res.bodyText);
 });
 

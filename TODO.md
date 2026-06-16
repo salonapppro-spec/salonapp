@@ -35,7 +35,8 @@
 - [x] **Complex услуги без hair params** (2026-06-16) — `Math.max(duration_minutes, worstCase)` вместо суров `duration_minutes`; засега 0 complex услуги в production, latent risk closed превентивно
 - [x] **GDPR delete-request persistence** (2026-06-16) — пише в `gdpr_deletion_requests` (таблицата вече съществуваше без writer)
 - [x] **Super-admin FormData Zod** (2026-06-16) — `UpdateTenantBasicsSchema` добавена за най-рисковата action (`updateTenantBasics`); останалите actions взимат само `salon_slug` + 1 numeric поле, по-нисък риск
-- [x] **Phone enumeration на `/api/clients/lookup`** (2026-06-16) — добавен per-phone rate limit (5/10мин) върху съществуващия per-IP лимит
+- [x] **Phone enumeration на `/api/clients/lookup`** (2026-06-16) — per-phone rate limit (5/10мин) + masked `email_hint` вместо full email в public response
+- [x] **CI integration tests enforcement** (2026-06-16) — `INTEGRATION_REQUIRED=1` в CI; fail при липсващи secrets; fix GET clients/lookup host-bound test
 - [ ] **`googleIntegration.listActive()`** — НЕ СЕ ПИПА без изрично разрешение от Лина (Правило 5); latent, не извикан никъде в момента
 - [x] **Standardize tenant sites на `BookingFlow`** (2026-06-16) — `InlineBookingForm.tsx`/`BookingCalendar.tsx` мигрирани от `fetch('/api/bookings')` към `createBooking()` server action; верифицирано end-to-end с preview на всичките 4 сайта (`paw-empire`, `magnetic-eyes` — пълен submit + booking в DB; `lindynails`, `euphoria` — визуална проверка), без UI/CSS промени
 
