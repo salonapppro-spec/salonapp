@@ -224,7 +224,7 @@ export function InlineBookingForm({
     if (!service || !date) { setSlots([]); return; }
     if (isDemo) { setSlots(DEMO_SLOTS); return; }
     setSlotsLoading(true);
-    fetch(`/api/bookings?salon_slug=${encodeURIComponent(salonSlug)}&service_id=${encodeURIComponent(service)}&date=${encodeURIComponent(date)}`)
+    fetch(`/api/availability?salon_slug=${encodeURIComponent(salonSlug)}&service_id=${encodeURIComponent(service)}&date=${encodeURIComponent(date)}`)
       .then((r) => r.json())
       .then((json: { slots?: TimeSlot[] }) => setSlots(json.slots ?? []))
       .catch(() => setSlots([]))

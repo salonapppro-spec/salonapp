@@ -18,7 +18,7 @@ export function FinancesTabNav() {
     <nav
       className="mt-5 flex gap-1.5 overflow-x-auto pb-1"
       style={{ scrollbarWidth: "none" }}
-      aria-label="Финанси навигация"
+      aria-label="Бизнес калкулатор навигация"
     >
       {tabs.map((tab) => {
         const active = tab.exact ? pathname === tab.href : pathname.startsWith(tab.href);

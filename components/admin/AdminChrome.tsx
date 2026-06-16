@@ -11,7 +11,7 @@ const primaryTabs = [
   { href: "/admin/calendar", label: "Календар", short: "Кал", Icon: CalendarDays },
   { href: "/admin/settings/services", label: "Услуги", short: "Ус", Icon: Scissors },
   { href: "/admin/clients", label: "Клиенти", short: "Кл", Icon: Users },
-  { href: "/admin/finances", label: "Финанси", short: "Фин", Icon: BarChart3 },
+  { href: "/admin/finances", label: "Калкулатор", short: "Кал", Icon: BarChart3 },
 ] as const;
 
 const secondaryLinks = [

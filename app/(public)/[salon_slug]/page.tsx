@@ -3,30 +3,11 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import type { CSSProperties } from "react";
 
-import type { ComponentType } from "react";
 import type { SalonData } from "@/types/database";
 import { loadPublicSalonData } from "@/lib/data";
 import { mergeTokens, tokensToCssVars } from "@/lib/design-tokens";
+import { getTenantSite, hasTenantSite } from "@/lib/tenant-sites";
 import { ConsentAnalytics } from "@/components/ConsentAnalytics";
-import { PawEmpire } from "@/components/paw-empire/PawEmpireSite";
-import { TheBeastSite } from "@/components/tenants/TheBeastSite";
-import { EuphoriaSite } from "@/components/tenants/euphoria/Page";
-import { LindySite } from "@/components/tenants/lindy/Page";
-import { TheSkinSite } from "@/components/tenants/theskin/Page";
-import { MagneticEyesSite } from "@/components/tenants/magnetic-eyes/Page";
-
-// ── Per-tenant site registry ───────────────────────────────────────────────────
-// Each tenant has its own unique component. To add a new tenant:
-// 1. Create components/tenants/[slug]/Page.tsx
-// 2. Import it here and add to TENANT_SITES
-const TENANT_SITES: Record<string, ComponentType<{ data: SalonData }>> = {
-  "paw-empire":    PawEmpire,
-  "thebeast":      TheBeastSite,
-  "euphoria":      EuphoriaSite,
-  "lindynails":    LindySite,
-  "theskin":       TheSkinSite,
-  "magnetic-eyes": MagneticEyesSite,
-};
 
 const SLUG_RE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
@@ -77,7 +58,7 @@ function UnderConstruction({ data }: { data: SalonData }) {
 }
 
 function renderSite(slug: string, data: SalonData) {
-  const Site = TENANT_SITES[slug];
+  const Site = getTenantSite(slug);
   if (Site) return <Site data={data} />;
   // Сайтът е в изграждане — ще бъде построен от SalonApp екипа
   return <UnderConstruction data={data} />;
@@ -138,8 +119,8 @@ export async function generateMetadata(props: { params: Promise<{ salon_slug: st
   }
 
   // "Сайтът е в изграждане" — thin content, не се индексира.
-  // Щом slug-ът влезе в TENANT_SITES, noindex пада автоматично.
-  if (!TENANT_SITES[slug]) {
+  // Щом slug-ът влезе в tenant site registry, noindex пада автоматично.
+  if (!hasTenantSite(slug)) {
     return {
       title: data.tenant.salon_name,
       robots: { index: false, follow: false },

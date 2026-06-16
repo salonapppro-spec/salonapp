@@ -8,7 +8,7 @@ import type { BookingStatus } from "@/types";
 const labels: Record<BookingStatus, string> = {
   pending: "Изчаква",
   confirmed: "Потвърдена",
-  completed: "Приключена",
+  completed: "Яви се",
   cancelled: "Отказана",
   no_show: "Не се яви",
 };

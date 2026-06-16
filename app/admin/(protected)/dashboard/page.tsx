@@ -145,7 +145,7 @@ async function DashboardDataSection() {
           />
           <div className="flex items-start justify-between">
             <div className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">
-              Оборот днес
+              Прогнозна стойност днес
             </div>
             <TrendingUp size={18} strokeWidth={1.8} className="text-[#C9A84C]/60" />
           </div>
@@ -156,7 +156,7 @@ async function DashboardDataSection() {
             {revenue.toFixed(2)}<span className="ml-1 text-lg font-bold opacity-60">€</span>
           </div>
           {revenue === 0 && (
-            <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Завърши час → оборотът ще расте</p>
+            <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Маркирай „Яви се“ → стойността ще расте</p>
           )}
         </div>
 

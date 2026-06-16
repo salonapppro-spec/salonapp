@@ -20,6 +20,8 @@ export type BookingConfirmationProps = {
   bookingTime: string;
   priceEur: string;
   googleCalendarUrl: string;
+  confirmUrl: string;
+  cancelUrl: string;
   contactLines: string[];
   unsubscribeUrl: string;
   /** Уникален ref — Gmail не сгъва повторяем HTML в нишка */
@@ -36,6 +38,8 @@ export default function BookingConfirmationEmail({
   bookingTime,
   priceEur,
   googleCalendarUrl,
+  confirmUrl,
+  cancelUrl,
   contactLines,
   unsubscribeUrl,
   messageRef,
@@ -76,9 +80,19 @@ export default function BookingConfirmationEmail({
               </Text>
             ) : null}
           </Section>
-          <Section style={{ textAlign: "center" as const, marginTop: 24, marginBottom: 24 }}>
+          <Section style={{ textAlign: "center" as const, marginTop: 24, marginBottom: 12 }}>
             <Button href={googleCalendarUrl} style={btn}>
               Добави в Google Calendar
+            </Button>
+          </Section>
+          <Section style={{ textAlign: "center" as const, marginTop: 8, marginBottom: 8 }}>
+            <Button href={confirmUrl} style={btnConfirm}>
+              Потвърди присъствие
+            </Button>
+          </Section>
+          <Section style={{ textAlign: "center" as const, marginBottom: 24 }}>
+            <Button href={cancelUrl} style={btnGhost}>
+              Откажи резервацията
             </Button>
           </Section>
           <Section style={contactsBox}>
@@ -119,6 +133,28 @@ const btn = {
   textAlign: "center" as const,
   display: "inline-block",
   padding: "12px 24px",
+};
+const btnConfirm = {
+  backgroundColor: "#3D2B1F",
+  borderRadius: "10px",
+  color: "#fff",
+  fontSize: "15px",
+  fontWeight: "600",
+  textDecoration: "none",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "12px 24px",
+};
+const btnGhost = {
+  backgroundColor: "transparent",
+  borderRadius: "10px",
+  color: "#888",
+  fontSize: "14px",
+  fontWeight: "500",
+  textDecoration: "underline",
+  textAlign: "center" as const,
+  display: "inline-block",
+  padding: "8px 16px",
 };
 const preheader = {
   display: "none",

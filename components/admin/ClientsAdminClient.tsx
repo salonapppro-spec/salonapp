@@ -24,7 +24,7 @@ function statusBg(status: string) {
   switch (status) {
     case "pending": return { bg: "rgba(251,191,36,0.12)", color: "#78350f", label: "Изчаква" };
     case "confirmed": return { bg: "rgba(96,165,250,0.12)", color: "#1e3a5f", label: "Потвърден" };
-    case "completed": return { bg: "rgba(52,211,153,0.12)", color: "#064e3b", label: "Завършен" };
+    case "completed": return { bg: "rgba(52,211,153,0.12)", color: "#064e3b", label: "Яви се" };
     case "no_show": return { bg: "rgba(248,113,113,0.12)", color: "#7f1d1d", label: "Не се яви" };
     default: return { bg: "rgba(209,213,219,0.2)", color: "#6b7280", label: "Отказан" };
   }
@@ -313,9 +313,9 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {[
-                    { label: "Оборот", value: detail.stats.totalRevenue === null ? "—" : `${detail.stats.totalRevenue.toFixed(0)} €`, color: GOLD },
+                    { label: "Прогнозна стойност", value: detail.stats.totalRevenue === null ? "—" : `${detail.stats.totalRevenue.toFixed(0)} €`, color: GOLD },
                     { label: "Резервации", value: String(detail.stats.bookingCount), color: ROSE },
-                    { label: "Завършени", value: String(detail.stats.completedCount), color: "#34d399" },
+                    { label: "Явили се", value: String(detail.stats.completedCount), color: "#34d399" },
                     { label: "No-show", value: String(detail.stats.noShowCount), color: "#f87171" },
                   ].map((s) => (
                     <div key={s.label} className="rounded-xl p-3 text-center" style={{ background: "rgba(201,168,76,0.06)", border: "1px solid rgba(201,168,76,0.1)" }}>

@@ -70,7 +70,7 @@ function DonutChart({ slices, total }: { slices: CategorySlice[]; total: number 
         {total.toFixed(0)}€
       </text>
       <text x={cx} y={cy + 8} textAnchor="middle" fontSize={9} fill="#94a3b8">
-        фактури
+        разходи
       </text>
     </svg>
   );
@@ -244,7 +244,7 @@ export function FinancesDashboard(props: {
         <div>
           <div className="flex items-center gap-2">
             <span className="inline-block rounded-lg px-2 py-0.5 text-[10px] font-black uppercase tracking-[0.2em] text-white" style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}>
-              Финанси
+              Бизнес калкулатор
             </span>
           </div>
           <p className="mt-2 text-2xl font-black tracking-tight text-[#1A1A1A]" style={{ fontFamily: "var(--font-playfair, Georgia, serif)" }}>
@@ -277,7 +277,7 @@ export function FinancesDashboard(props: {
         <div className="relative overflow-hidden rounded-2xl bg-white p-5" style={{ boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06)", border: "1px solid rgba(201,168,76,0.2)" }}>
           <div className="absolute left-0 right-0 top-0 h-[3px] rounded-t-2xl" style={{ background: "linear-gradient(90deg, #C9A84C, #C8826A)" }} />
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Приходи</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Прогнозна стойност</span>
             <span className="rounded-lg bg-[#C9A84C]/10 px-2 py-0.5 text-[10px] font-bold text-[#8B6914]">завършени</span>
           </div>
           <p className="mt-3 text-[2rem] font-black leading-none tabular-nums" style={{ color: props.revenue > 0 ? "#8B6914" : "rgba(26,26,26,0.22)" }}>
@@ -301,7 +301,7 @@ export function FinancesDashboard(props: {
             {totalExpenses.toFixed(2)}<span className="ml-1 text-base font-bold opacity-60">€</span>
           </p>
           <p className="mt-1.5 text-[11px] text-[#1A1A1A]/35">
-            {props.variableExpenses > 0 ? `${props.variableExpenses.toFixed(0)}€ фактури` : "няма въведени фактури"}
+            {props.variableExpenses > 0 ? `${props.variableExpenses.toFixed(0)}€ разходи` : "няма въведени разходи"}
           </p>
         </div>
 
@@ -314,14 +314,14 @@ export function FinancesDashboard(props: {
             background: netProfit >= 0 ? "linear-gradient(90deg, #C9A84C, #8B6914)" : "linear-gradient(90deg, #C8826A, #9B5B42)",
           }} />
           <div className="flex items-center justify-between">
-            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Чиста печалба</span>
+            <span className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Ориентировъчен резултат</span>
           </div>
           <p className="mt-3 text-[2rem] font-black leading-none tabular-nums" style={{ color: netProfit >= 0 ? "#8B6914" : "#9B5B42" }}>
             {netProfit < 0 ? "−" : ""}
             {Math.abs(netProfit).toFixed(2)}<span className="ml-1 text-base font-bold opacity-60">€</span>
           </p>
           <p className="mt-1.5 text-[11px] text-[#1A1A1A]/35">
-            {netProfit >= 0 ? "приходи − разходи" : "разходите надвишават приходите"}
+            {netProfit >= 0 ? "прогнозна стойност − разходи" : "разходите надвишават прогнозната стойност"}
           </p>
         </div>
       </div>
@@ -329,7 +329,7 @@ export function FinancesDashboard(props: {
       {/* Overhead warning */}
       {props.overheadMissing ? (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
-          ⚠ Постоянните разходи не са зададени — „Чиста печалба" е непълна.{" "}
+          ⚠ Постоянните разходи не са зададени — „Ориентировъчен резултат" е непълен.{" "}
           <Link href="/admin/finances/overhead" className="font-semibold underline underline-offset-2">
             Задай ги в Настройки →
           </Link>
@@ -357,7 +357,7 @@ export function FinancesDashboard(props: {
                 </div>
               ))}
               {props.categorySlices.every((s) => s.amount === 0) ? (
-                <p className="text-xs text-slate-400">Няма въведени фактури</p>
+                <p className="text-xs text-slate-400">Няма въведени разходи</p>
               ) : null}
             </div>
           </div>
@@ -368,7 +368,7 @@ export function FinancesDashboard(props: {
           <p className="mb-3 text-sm font-bold text-[#1A1A1A]">Последни 6 месеца</p>
           <div className="mb-4 flex gap-4">
             <span className="flex items-center gap-1.5 text-xs text-slate-500">
-              <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />Приходи
+              <span className="h-2.5 w-2.5 rounded-sm bg-emerald-500" />Прогнозна стойност
             </span>
             <span className="flex items-center gap-1.5 text-xs text-slate-500">
               <span className="h-2.5 w-2.5 rounded-sm bg-rose-500" />Разходи

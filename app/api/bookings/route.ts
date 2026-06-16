@@ -94,7 +94,16 @@ export async function GET(req: Request) {
     minStartMinutes,
   });
 
-  return NextResponse.json({ slots });
+  return NextResponse.json(
+    { slots },
+    {
+      headers: {
+        Deprecation: "true",
+        Link: '</api/availability>; rel="successor-version"',
+        Sunset: "2027-01-01",
+      },
+    }
+  );
 }
 
 export async function POST(req: Request) {

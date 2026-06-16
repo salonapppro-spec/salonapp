@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { findBookingByToken, parseBookingTokenSalonSlug } from "@/lib/booking-token-action";
+import { afterBookingTokenConfirm } from "@/lib/booking-token-side-effects";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 export const dynamic = "force-dynamic";
@@ -121,6 +122,8 @@ export async function POST(req: Request, ctx: { params: Promise<{ token: string 
       { status: 200, headers: { "Content-Type": "text/html; charset=utf-8" } }
     );
   }
+
+  await afterBookingTokenConfirm(salonSlug, bookingId);
 
   return new NextResponse(
     htmlPage("Потвърдено ✓", "<p><strong>Благодарим!</strong> Присъствието ви е потвърдено.</p>"),
