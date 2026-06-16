@@ -184,6 +184,37 @@ async function activateTenant(
   }
 }
 
+/**
+ * Съкращава grace_until_date (никога не го удължава) при отказано плащане
+ * или прекратен абонамент — за да не чакаме до 30 дни естествен изтек,
+ * след като Stripe вече е сигнализирал проблем с абонамента.
+ *
+ * maxDaysFromNow ограничава колко далеко в бъдещето може да остане grace:
+ *   - payment_failed (Stripe още retry-ва картата, ~седмица-две): 7 дни
+ *   - subscription.deleted (окончателно прекратяване): 3 дни
+ */
+async function shortenGrace(tenant: ResolvedTenant, maxDaysFromNow: number): Promise<void> {
+  if (!tenant.grace_until_date) return; // няма зададен grace — нищо за съкращаване
+
+  const cap = new Date();
+  cap.setDate(cap.getDate() + maxDaysFromNow);
+  const capIso = isoDate(cap);
+
+  if (tenant.grace_until_date <= capIso) return; // вече по-кратък от cap-а — не пипаме
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase
+    .from("tenants")
+    .update({ grace_until_date: capIso })
+    .eq("salon_slug", tenant.salon_slug);
+
+  if (error) throw new Error(`shortenGrace(${tenant.salon_slug}): ${error.message}`);
+
+  console.log(
+    `[stripe-webhook] Grace съкратен за ${tenant.salon_slug}: ${tenant.grace_until_date} → ${capIso}`,
+  );
+}
+
 async function deactivateTenant(customerId: string | null, subscriptionId: string | null, email: string): Promise<void> {
   const found = await findTenant(customerId, subscriptionId, email);
   const tenant = found.tenant;
@@ -201,7 +232,10 @@ async function deactivateTenant(customerId: string | null, subscriptionId: strin
       detail: msg,
     });
   }
-  // Не деактивираме веднага — оставяме grace периода да изтече естествено.
+  // Не деактивираме веднага (тенантът е платил за текущия период), но
+  // съкращаваме 30-дневния grace до 3 дни — окончателно прекратен абонамент
+  // не трябва да чака пълния естествен grace период.
+  await shortenGrace(tenant, 3);
   console.log(
     `[stripe-webhook] Абонаментът е прекратен за ${tenant.salon_slug}.`,
   );
@@ -211,13 +245,40 @@ async function deactivateTenant(customerId: string | null, subscriptionId: strin
 
 async function claimEvent(eventId: string, eventType: string): Promise<boolean> {
   const supabase = createSupabaseServiceRoleClient();
-  const { error } = await supabase
+  const { error: insertError } = await supabase
     .from("stripe_events")
-    .insert({ stripe_event_id: eventId, event_type: eventType });
+    .insert({ stripe_event_id: eventId, event_type: eventType, status: "processing" });
 
-  if (!error) return true; // claimed
-  if (error.code === "23505") return false; // duplicate — already processed
-  throw new Error(`stripe_events INSERT: ${error.message}`);
+  if (!insertError) return true; // claimed — fresh event
+
+  if (insertError.code !== "23505") {
+    throw new Error(`stripe_events INSERT: ${insertError.message}`);
+  }
+
+  // Вече има запис за този event_id — провери дали предишен опит е failed
+  // (тогава позволяваме reclaim) или completed (тогава пропускаме — duplicate).
+  const { data: existing, error: selectError } = await supabase
+    .from("stripe_events")
+    .select("status")
+    .eq("stripe_event_id", eventId)
+    .maybeSingle();
+
+  if (selectError) throw new Error(`stripe_events SELECT: ${selectError.message}`);
+  if (existing?.status !== "failed") return false; // completed/processing — duplicate, skip
+
+  const { error: updateError } = await supabase
+    .from("stripe_events")
+    .update({ status: "processing" })
+    .eq("stripe_event_id", eventId);
+  if (updateError) throw new Error(`stripe_events reclaim UPDATE: ${updateError.message}`);
+
+  return true; // reclaim-нат след предишен failed опит
+}
+
+async function markEventStatus(eventId: string, status: "completed" | "failed"): Promise<void> {
+  const supabase = createSupabaseServiceRoleClient();
+  const { error } = await supabase.from("stripe_events").update({ status }).eq("stripe_event_id", eventId);
+  if (error) console.error(`[stripe-webhook] markEventStatus(${eventId}, ${status}):`, error.message);
 }
 
 // ── Webhook handler ───────────────────────────────────────────────────────────
@@ -293,6 +354,9 @@ export async function POST(req: Request) {
             : null;
         console.warn(`[stripe-webhook] ⚠️ Неуспешно плащане за ${email}`);
         const found = await findTenant(customerId, subscriptionId, email);
+        // Stripe retry-ва картата автоматично ~1-2 седмици — не прекратяваме
+        // веднага, но не оставяме пълните 30 дни grace да текат необезпокоявано.
+        if (found.tenant) await shortenGrace(found.tenant, 7);
         const notifyEmail = found.tenant?.owner_email ?? (email || null);
         if (notifyEmail && process.env.RESEND_API_KEY) {
           const salonName = found.tenant?.salon_name ?? found.tenant?.salon_slug ?? email;
@@ -335,14 +399,14 @@ export async function POST(req: Request) {
         break;
     }
   } catch (err) {
-    // Връщаме 500 — Stripe ще retry-ва. Събитието вече е в stripe_events,
-    // затова следващият retry ще мине claimEvent и ще пробва отново.
+    // Връщаме 500 — Stripe ще retry-ва. Записът остава в stripe_events с
+    // status='failed' (audit trail), а не се трие — следващият retry минава
+    // през claimEvent(), вижда status='failed' и reclaim-ва събитието.
     console.error("[stripe-webhook] Грешка при обработка:", err);
-    // Изтриваме записа за да може retry-ят да го reclaim-не
-    const supabase = createSupabaseServiceRoleClient();
-    await supabase.from("stripe_events").delete().eq("stripe_event_id", event.id);
+    await markEventStatus(event.id, "failed");
     return NextResponse.json({ error: "Processing error" }, { status: 500 });
   }
 
+  await markEventStatus(event.id, "completed");
   return NextResponse.json({ received: true });
 }
