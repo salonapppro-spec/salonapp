@@ -1,4 +1,37 @@
-# HANDOFF — последна актуализация: 2026-05-14
+# HANDOFF — последна актуализация: 2026-06-16
+
+---
+
+## 2026-06-16 — Security/database audit fix sprint (10 P0 + 5 follow-up)
+
+**Контекст:** Сравнени два независими одита (Claude 12.06 + Cursor 15.06), кръстосани с реалния production DB/код (не само migration файлове), и систематично fix-нати всичките открити проблеми.
+
+**Backup преди всичко:** git tag `backup-pre-audit-fixes-2026-06-16` (push-нат на GitHub) + пълен `pg_dump` на production база в `backups/` (локално, в `.gitignore`, никога не commit-ва се — съдържа PII).
+
+### Какво е направено (всичко merge-нато в `main`, push-нато, deploy-нато)
+
+1. **RLS на `tenant_activity_logs`/`tenant_call_tasks`/`lead_call_tasks`** — оказа се вече оправено в production (одитите четяха само .sql файлове, не живата база)
+2. **`specialists_public_read` cross-tenant leak** — вече оправено в production
+3. **Migration 026** — грешна таблица (`leads` вместо `platform_leads`); + `platform_leads_plan_check` constraint никога не бил обновен да позволява `'starter'` — нов bug, открит и поправен (corrective migration 032, applied директно в production)
+4. **Stripe webhook** — `DELETE` на failed event → `UPDATE status='failed'` (запазва audit trail); `shortenGrace()` при `payment_failed` (7 дни) и `subscription.deleted` (3 дни) вместо да чака пълните 30 дни grace
+5. **Confirm/cancel token reuse** — atomic conditional UPDATE вместо SELECT-then-UPDATE; вече не може token да presъздаде `confirmed`/`completed` статус
+6. **Cron reminders** — batch+parallelize (`Promise.all`, concurrency=10) вместо последователен loop; премахнат dead `google-watch-renew` cron entry (route не съществувал)
+7. **Root domain booking break** (`salonapp.pro/{slug}` → 400 "Missing tenant context") — `middleware.ts` Step 8 сега инферира `x-salon-slug` за `/api/*` от query/Referer; **потвърдено работещо в production от Лина**
+8. **`booking_min_notice_minutes`/`booking_window_days`** — вече enforced server-side в `runCreateBooking`, не само UI hint
+9. **Phone `"00000"` placeholder** — server (`admin-booking.ts`, `runCreateBooking`) вече отказва вместо да default-ва; после открито и фиксирано същото в `QuickBooking.tsx` (client-side fallback все още пращал `"00000"`) → уникален `anon-<uuid>` per booking
+10. **CI scripts** — `check:service-role-boundary`/`test`/`test:integration` бяха referenced в `.github/workflows/ci.yml`, но не съществували в `package.json`; добавени + `tsx` devDependency; 2 реални boundary violations (GDPR confirm, sitemap) поправени чрез `lib/internal/gdpr-export.ts` + `lib/internal/sitemap-tenants.ts`
+
+**Follow-up gaps (намерени при втори review pass):**
+- Migration 029 пипа `public.leads`, но таблицата никога не се `CREATE TABLE`-ва в migration history — добавен `CREATE TABLE IF NOT EXISTS` (no-op в production, fix за fresh deploy)
+- `QuickBooking.tsx` slots fetch никога не пращал `specialist_id` → грешни free slots на premium multi-specialist салони — извлечена shared `effectiveSpecialistId` логика
+- Super-admin impersonation cookie slug никога не се re-verify-вал срещу базата при четене (само при писане) — добавена проверка + activity log при impersonation start
+- **Съзнателно пропуснато:** HMAC-signing на impersonation cookie — `httpOnly` вече блокира основния risk vector, ROI нисък
+
+**Bonus:** Trial >30 дни tracking в Super Admin dashboard (нова red urgent секция + stat card).
+
+**Verification:** `npx tsc --noEmit` чисто през цялата сесия; `npm run test` 84/84; `npm run lint` само pre-existing warnings; `npm run check:service-role-boundary` passed.
+
+**Важно техническо откритие:** Local migration файлове и remote Supabase migration history са значително разминати (различни имена при същи timestamp версии) — вероятно от ръчни промени през SQL Editor без проследяване. Не пипано систематично (риск > полза), но `leads`/`platform_leads` drift-ът конкретно е closed.
 
 ---
 

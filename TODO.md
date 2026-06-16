@@ -4,13 +4,26 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-06-02
+> Актуализирай след всяка задача. Последна промяна: 2026-06-16
 
 ---
 
 ## 🔴 КРИТИЧНО (сега)
 
-Няма. ✅
+Няма. ✅ (всичките 10 P0 от security/database одита 2026-06-16 са затворени — виж HANDOFF.md)
+
+---
+
+## 🟡 P1 — следващ sprint (от security audit 2026-06-15/16, P0 затворен)
+
+- [ ] **Specialist active validation в `runCreateBooking`** — crafted request може да резервира при неактивен специалист
+- [ ] **`bookings_public_insert` RLS WITH CHECK** — tighten да проверява service/specialist принадлежат на същия `salon_slug` (cross-tenant spam защита)
+- [ ] **Complex услуги без hair params** — API може да bypass-не hair_length/hair_density и да вземе грешна продължителност
+- [ ] **`googleIntegration.listActive()`** — без `salon_slug` filter (latent, не извикан никъде в момента, но риск ако се добави)
+- [ ] **Standardize tenant sites на `BookingFlow`** — повечето tenant сайтове ползват директен `fetch('/api/bookings')`, само `TheBeastSite` ползва server action
+- [ ] **GDPR delete-request persistence** — само email до ops, няма DB запис/audit trail
+- [ ] **Super-admin FormData actions без Zod** — само tenant creation има схема
+- [ ] **Phone enumeration на `/api/clients/lookup`** — rate limit е по IP, не per-phone
 
 ---
 
@@ -26,6 +39,7 @@
 
 ## ✅ ЗАВЪРШЕНО
 
+- [x] **Security/database audit fix sprint** (2026-06-16) — 10 P0 (RLS, migration 026 drift + нов constraint bug, Stripe webhook status tracking + grace policy, confirm/cancel token reuse, cron reminders batching, root domain booking 400 fix, booking_min_notice/window enforcement, phone "00000" reject, CI scripts wiring) + 5 follow-up gaps (migration 029 missing CREATE TABLE, QuickBooking phone + specialist_id, impersonation cookie re-verify + audit log) + trial >30 дни dashboard tracking; пълен database backup преди старт; виж HANDOFF.md за детайли
 - [x] **Fix: mobile forced dark mode on landing** (2026-06-03) — `app/globals.css`, `app/layout.tsx` и `app/page.tsx` заключват public landing-а в light color scheme, за да не се обръща в тъмен фон на Samsung/Android браузъри
 - [x] **Redesign: desktop AdminShowcase section** (2026-06-03) — `components/landing/AdminShowcase.tsx` вече е центриран two-column product showcase с голям phone mockup, изнесени floating cards, email reminders copy и desktop/mobile проверка без horizontal scroll
 - [x] **Fix: landing hero композиция** (2026-06-03) — `hero-mockup-new.png` е по-близо до текста, центриран вертикално и дръпнат навътре от десния край; същият mockup се използва и на mobile; desktop/mobile viewport проверени без horizontal scroll
