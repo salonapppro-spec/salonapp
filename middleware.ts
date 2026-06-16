@@ -34,6 +34,29 @@ import {
   isSuperAdminRole,
 } from "@/lib/routing/auth-guard";
 
+/**
+ * Infers the tenant slug for a flat /api/* request that has no slug in its
+ * own path — from the `salon_slug` query param (GET) or, failing that, from
+ * the Referer header's path (POST bodies can't be read in middleware).
+ * Used for both dev/Vercel-preview (Step 9b) and production root domain
+ * (Step 8) — in both cases the page itself is served at /{slug}/... but the
+ * API route underneath it is flat (/api/bookings, not /api/{slug}/bookings).
+ */
+function inferApiSlugFromRequest(request: NextRequest): string | null {
+  const qpSlug = request.nextUrl.searchParams.get("salon_slug")?.trim() ?? "";
+  if (SLUG_RE.test(qpSlug)) return qpSlug;
+
+  const referer = request.headers.get("referer") ?? "";
+  if (referer) {
+    try {
+      return resolvePreviewSlug(new URL(referer).pathname);
+    } catch {
+      /* invalid referer — ignore */
+    }
+  }
+  return null;
+}
+
 export async function middleware(request: NextRequest) {
   // ── Step 1 ───────────────────────────────────────────────────────────────────
   const pathname = request.nextUrl.pathname;
@@ -161,6 +184,31 @@ export async function middleware(request: NextRequest) {
   // ── Step 8: Root domain passthrough ──────────────────────────────────────────
   // Must return `response` (not NextResponse.next()) to preserve refreshed cookies.
   if (hostInfo.isRootDomain) {
+    // Public pages at salonapp.pro/{slug} carry the slug in the path, so Next.js
+    // routing resolves them fine without help. But /api/* routes are flat
+    // (e.g. /api/bookings) — the slug isn't in that path — and
+    // requireTenantFromHeaders() requires x-salon-slug to be set, or every
+    // booking API call here 400s with "Missing tenant context". Infer it the
+    // same way Step 9b does for dev/preview hosts: from the request's own
+    // salon_slug query param, or from the Referer path (POST bodies can't be
+    // read in middleware). requireTenantFromHeaders() still cross-checks this
+    // against the client-claimed slug in the body/query, so this doesn't
+    // weaken the anti-spoofing guarantee — it just makes the header exist.
+    if (pathname.startsWith("/api/")) {
+      const inferredSlug = inferApiSlugFromRequest(request);
+      if (inferredSlug) {
+        requestHeaders.set("x-salon-slug", inferredSlug);
+        requestHeaders.set("x-pathname", pathname);
+        const apiResponse = NextResponse.next({ request: { headers: requestHeaders } });
+        // `response` (built in Step 6) may carry refreshed Supabase session
+        // cookies from Step 7 — NextResponse.next() here creates a *new*
+        // response object, so those cookies must be copied over explicitly.
+        for (const cookie of response.cookies.getAll()) {
+          apiResponse.cookies.set(cookie);
+        }
+        return apiResponse;
+      }
+    }
     return response;
   }
 
@@ -178,22 +226,9 @@ export async function middleware(request: NextRequest) {
 
     // ── Step 9b: API routes in dev/preview ──────────────────────────────────
     // /api/* paths are reserved so resolvePreviewSlug returns null above.
-    // Infer tenant slug from the `salon_slug` query param (GET) or the
-    // Referer header (POST — body can't be read in middleware).
-    // This only affects dev/preview — production always uses subdomain routing.
+    // Infer tenant slug the same way Step 8 does for production root domain.
     if (pathname.startsWith("/api/")) {
-      const qpSlug = request.nextUrl.searchParams.get("salon_slug")?.trim() ?? "";
-      let inferredSlug = SLUG_RE.test(qpSlug) ? qpSlug : null;
-
-      if (!inferredSlug) {
-        // Fallback: parse tenant slug from Referer path (e.g. http://localhost:3000/paw-empire)
-        const referer = request.headers.get("referer") ?? "";
-        if (referer) {
-          try {
-            inferredSlug = resolvePreviewSlug(new URL(referer).pathname);
-          } catch { /* invalid referer — ignore */ }
-        }
-      }
+      const inferredSlug = inferApiSlugFromRequest(request);
 
       if (inferredSlug) {
         const h = new Headers(request.headers);
