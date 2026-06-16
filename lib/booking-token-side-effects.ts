@@ -2,7 +2,7 @@ import { revalidatePath } from "next/cache";
 
 import { sendSalonBookingTokenNotification } from "@/lib/email";
 import { getTenant } from "@/lib/get-tenant";
-import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { tenantDb } from "@/lib/tenant-db";
 import type { Booking } from "@/types";
 
 async function notifySalonTokenUpdate(
@@ -10,13 +10,7 @@ async function notifySalonTokenUpdate(
   bookingId: string,
   action: "confirmed" | "cancelled"
 ): Promise<void> {
-  const supabase = createSupabaseServiceRoleClient();
-  const { data } = await supabase
-    .from("bookings")
-    .select("*")
-    .eq("id", bookingId)
-    .eq("salon_slug", salonSlug)
-    .maybeSingle();
+  const { data } = await tenantDb(salonSlug).bookings.getById(bookingId);
   if (!data) return;
 
   const tenant = await getTenant(salonSlug);
