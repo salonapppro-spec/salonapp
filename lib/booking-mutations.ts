@@ -7,7 +7,7 @@ import { normalizePhone } from "@/lib/phone";
 import { DEFAULT_WORKING_HOURS_DAYS } from "@/lib/working-hours-defaults";
 import { calculateDuration, timeToMinutes } from "@/lib/scheduling";
 import { sendConfirmationEmail, sendSalonBookingNotification } from "@/lib/email";
-import { todayDateISOInSofia, nowMinutesInSofia } from "@/lib/booking-datetime";
+import { todayDateISOInSofia, nowMinutesInSofia, addCalendarDaysInSofia } from "@/lib/booking-datetime";
 
 function isMissingBookingEndTimeColumnError(error: unknown): boolean {
   if (!error || typeof error !== "object") return false;
@@ -60,7 +60,13 @@ export type CreateBookingResult =
 
 export async function runCreateBooking(
   data: CreateBookingInput,
-  opts: { salonName: string; bufferMinutes: number; debugDbErrors?: boolean }
+  opts: {
+    salonName: string;
+    bufferMinutes: number;
+    minNoticeMinutes?: number;
+    bookingWindowDays?: number | null;
+    debugDbErrors?: boolean;
+  }
 ): Promise<CreateBookingResult> {
   const db = tenantDb(data.salon_slug);
   const bufferMinutes = opts.bufferMinutes;
@@ -139,6 +145,23 @@ export async function runCreateBooking(
   }
   if (data.booking_date === todayStr && start < nowMinutesInSofia()) {
     return { ok: false, error: "Не може да се запази час за вече минал час." };
+  }
+
+  // Min notice — преди само в GET /api/availability (UI hint); директен
+  // POST можеше да заобиколи (audit 2026-06-15/16). Същата семантика като
+  // availability route: прилага се само за днешна дата.
+  const minNoticeMinutes = opts.minNoticeMinutes ?? 30;
+  if (data.booking_date === todayStr && start < nowMinutesInSofia() + minNoticeMinutes) {
+    return { ok: false, error: `Резервацията изисква поне ${minNoticeMinutes} минути предизвестие.` };
+  }
+
+  // Booking window — преди само в admin UI hint, никога enforced server-side.
+  const bookingWindowDays = opts.bookingWindowDays;
+  if (typeof bookingWindowDays === "number" && bookingWindowDays > 0) {
+    const maxDateStr = addCalendarDaysInSofia(todayStr, bookingWindowDays);
+    if (data.booking_date > maxDateStr) {
+      return { ok: false, error: `Резервации се приемат най-много ${bookingWindowDays} дни напред.` };
+    }
   }
 
   const [yy, mm, dd] = data.booking_date.split("-").map(Number);
@@ -319,11 +342,16 @@ export async function runCreateBooking(
 export async function loadCreateBookingContext(salonSlug: string): Promise<{
   salonName: string;
   bufferMinutes: number;
+  minNoticeMinutes: number;
+  bookingWindowDays: number | null;
 } | null> {
   const { data: tenantRaw } = await tenantDb(salonSlug).tenant.getSalonName();
   const tenant = tenantRaw as { salon_name?: string | null } | null;
   if (!tenant?.salon_name) return null;
   const settings = await getFinancialSettings(salonSlug);
   const bufferMinutes = Number(settings?.buffer_minutes ?? 10);
-  return { salonName: tenant.salon_name, bufferMinutes };
+  const minNoticeMinutes = Number(settings?.booking_min_notice_minutes ?? 30);
+  const bookingWindowDays =
+    settings?.booking_window_days != null ? Number(settings.booking_window_days) : null;
+  return { salonName: tenant.salon_name, bufferMinutes, minNoticeMinutes, bookingWindowDays };
 }
