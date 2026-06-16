@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
+import { insertGdprDeletionRequest } from "@/lib/internal/gdpr-deletion-requests";
+
 const Schema = z.object({
   name: z.string().min(2).max(100),
   email: z.string().email(),
@@ -14,6 +16,14 @@ export async function POST(req: Request) {
   if (!parsed.success) return NextResponse.json({ error: "Invalid data" }, { status: 400 });
 
   const { name, email, phone, details } = parsed.data;
+
+  // Persist before emailing — previously email-only, no audit trail
+  // (audit 2026-06-15/16). gdpr_deletion_requests already existed in
+  // production with no writer.
+  const persisted = await insertGdprDeletionRequest({ name, email, phone, details });
+  if (!persisted.ok) {
+    console.error("[gdpr-delete-request] insert failed:", persisted.error);
+  }
 
   const resendKey = process.env.RESEND_API_KEY;
   const from = process.env.RESEND_FROM ?? "SalonApp <no-reply@salonapp.pro>";
