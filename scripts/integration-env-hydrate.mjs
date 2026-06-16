@@ -137,7 +137,7 @@ export async function hydrateIntegrationEnvFromDatabase() {
 
   process.env.INTEGRATION_BASE_URL ??= "https://salonapp.pro";
   process.env.INTEGRATION_PUBLIC_TENANT_BASE_URL ??= `https://${tenantASlug}.salonapp.pro`;
-  process.env.INTEGRATION_STORAGE_BUCKET ??= "salon-assets";
+  process.env.INTEGRATION_STORAGE_BUCKET ??= "gallery";
 
   if (!process.env.INTEGRATION_TEST_DATE?.trim()) {
     const d = new Date();
