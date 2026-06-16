@@ -15,8 +15,9 @@ export function StepContact(props: {
   onNotes: (v: string) => void;
   onPhoneLookup: () => void;
   lookupStatus: "idle" | "loading" | "done" | "error";
+  emailHint?: string | null;
 }) {
-  const { stepLabel, name, phone, email, notes, onName, onPhone, onEmail, onNotes, onPhoneLookup, lookupStatus } = props;
+  const { stepLabel, name, phone, email, notes, onName, onPhone, onEmail, onNotes, onPhoneLookup, lookupStatus, emailHint } = props;
 
   // Подсказка при правописна грешка в домейна (abv.bgg → abv.bg).
   // Проверява се на blur, за да не подсказва докато човекът още пише.
@@ -37,7 +38,13 @@ export function StepContact(props: {
           autoComplete="tel"
         />
         {lookupStatus === "loading" ? <p className="mt-1 text-xs text-neutral-500">Търсене на клиент…</p> : null}
-        {lookupStatus === "done" ? <p className="mt-1 text-xs text-emerald-700">Заредени запазени данни (ако има).</p> : null}
+        {lookupStatus === "done" ? (
+          <p className="mt-1 text-xs text-emerald-700">
+            {emailHint
+              ? `Познат клиент — запазен имейл: ${emailHint}. Въведете пълния адрес, ако искате потвърждение по имейл.`
+              : "Заредено запазено име (ако има)."}
+          </p>
+        ) : null}
       </div>
       <div>
         <label className="text-xs font-medium text-neutral-600">Име *</label>

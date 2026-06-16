@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { lookupClientByPhone } from "@/lib/data";
+import { maskEmailForPublicHint } from "@/lib/mask-pii";
 import { normalizePhone } from "@/lib/phone";
 import { applyRateLimit } from "@/lib/rate-limit";
 import { RATE } from "@/lib/rate-limit-policies";
@@ -47,5 +48,8 @@ export async function GET(req: Request) {
   }
 
   const result = await lookupClientByPhone(salonSlug, parsed.data.phone);
-  return NextResponse.json({ name: result.name, email: result.email });
+  return NextResponse.json({
+    name: result.name,
+    email_hint: maskEmailForPublicHint(result.email),
+  });
 }

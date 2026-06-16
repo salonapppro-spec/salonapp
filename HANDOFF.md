@@ -2,6 +2,27 @@
 
 ---
 
+## 2026-06-16 — Phone lookup masking + CI integration enforcement
+
+**Контекст:** От `MASTER_AUDIT_REPORT.md` оставаха 2 security items — public `/api/clients/lookup` връщаше пълен имейл при hit; integration tests в CI се skip-ваха без secrets.
+
+**Fix 1 — Lookup masking:**
+- Нов `lib/mask-pii.ts` → `maskEmailForPublicHint()` (маскира local + domain част)
+- `app/api/clients/lookup/route.ts` вече връща `{ name, email_hint }` — **без** raw `email`
+- `BookingFlow` / `StepContact` — autofill само на **име**; masked hint като UX съобщение
+- Unit tests: `tests/mask-pii.test.ts`
+
+**Fix 2 — CI integration tests:**
+- `scripts/run-integration-tests.mjs` — в CI (`GITHUB_ACTIONS` / `INTEGRATION_REQUIRED=1`) **fail** ако липсват base env vars (не silent skip)
+- `.github/workflows/ci.yml` — `INTEGRATION_REQUIRED: "1"`
+- Bugfix: `host-bound-public-api-enforcement.test.ts` clients lookup → **GET** с query params (беше грешен POST)
+
+**Branch:** `feature/lookup-mask-integration-ci`
+
+**За green CI:** GitHub repo secrets трябва да имат `INTEGRATION_BASE_URL`, `INTEGRATION_PUBLIC_TENANT_BASE_URL`, `INTEGRATION_SUPABASE_URL`, `INTEGRATION_SUPABASE_ANON_KEY` (+ optional suite vars от ci.yml).
+
+---
+
 ## 2026-06-16 — TheBeast contrast fix + BookingFlow standardization (4 сайта)
 
 **Контекст:** Лина пратила screenshot на `thebeast` booking стъпка 5/6 — текст почти невидим (тъмен текст на тъмен фон).

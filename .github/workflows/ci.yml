@@ -20,6 +20,7 @@ jobs:
       - run: npm run test
       - run: npm run test:integration
         env:
+          INTEGRATION_REQUIRED: "1"
           INTEGRATION_BASE_URL: ${{ secrets.INTEGRATION_BASE_URL }}
           INTEGRATION_PUBLIC_TENANT_BASE_URL: ${{ secrets.INTEGRATION_PUBLIC_TENANT_BASE_URL }}
           INTEGRATION_TEST_DATE: ${{ secrets.INTEGRATION_TEST_DATE }}
