@@ -184,16 +184,33 @@ export async function middleware(request: NextRequest) {
   // ── Step 8: Root domain passthrough ──────────────────────────────────────────
   // Must return `response` (not NextResponse.next()) to preserve refreshed cookies.
   if (hostInfo.isRootDomain) {
-    // Public pages at salonapp.pro/{slug} carry the slug in the path, so Next.js
-    // routing resolves them fine without help. But /api/* routes are flat
-    // (e.g. /api/bookings) — the slug isn't in that path — and
-    // requireTenantFromHeaders() requires x-salon-slug to be set, or every
-    // booking API call here 400s with "Missing tenant context". Infer it the
-    // same way Step 9b does for dev/preview hosts: from the request's own
-    // salon_slug query param, or from the Referer path (POST bodies can't be
-    // read in middleware). requireTenantFromHeaders() still cross-checks this
-    // against the client-claimed slug in the body/query, so this doesn't
-    // weaken the anti-spoofing guarantee — it just makes the header exist.
+    // Public pages at salonapp.pro/{slug} carry the slug in the path, so
+    // Next.js routing (the [salon_slug] param) resolves them fine without
+    // help — but Server Actions invoked from those pages (createBooking(),
+    // used by BookingFlow and the 4 tenant sites migrated to it) read
+    // headers() at request time, not the URL. The action's POST goes to the
+    // page's own path (e.g. /paw-empire), not /api/*, so the old API-only
+    // branch below never covered it — booking submission 400'd with
+    // "Невалиден салон." on root-domain path access (audit 2026-06-16,
+    // Agent 1 finding #1; regression introduced by this session's own
+    // BookingFlow migration for non-API submit paths).
+    // Cover BOTH cases: tenant page paths (incl. their Server Actions) via
+    // resolvePreviewSlug (same RESERVED_PATHS-safe logic Step 9 already uses
+    // for dev/preview), and flat /api/* routes via Referer/query inference.
+    const pageSlug = resolvePreviewSlug(pathname);
+    if (pageSlug) {
+      requestHeaders.set("x-salon-slug", pageSlug);
+      requestHeaders.set("x-pathname", pathname);
+      const pageResponse = NextResponse.next({ request: { headers: requestHeaders } });
+      for (const cookie of response.cookies.getAll()) {
+        pageResponse.cookies.set(cookie);
+      }
+      return pageResponse;
+    }
+
+    // requireTenantFromHeaders() still cross-checks this inferred slug
+    // against the client-claimed slug in the body/query, so the anti-spoofing
+    // guarantee is unchanged — this only makes the header exist.
     if (pathname.startsWith("/api/")) {
       const inferredSlug = inferApiSlugFromRequest(request);
       if (inferredSlug) {
