@@ -2,41 +2,38 @@ import { readdir } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import path from "node:path";
 
+import { hydrateIntegrationEnvFromDatabase } from "./integration-env-hydrate.mjs";
+
 const REQUIRED_ENV_FOR_INTEGRATION = [
   "INTEGRATION_BASE_URL",
   "INTEGRATION_PUBLIC_TENANT_BASE_URL",
   "INTEGRATION_SUPABASE_URL",
   "INTEGRATION_SUPABASE_ANON_KEY",
-];
-
-const OPTIONAL_ENV_FOR_FULL_SUITE = [
-  "INTEGRATION_TEST_DATE",
-  "INTEGRATION_TENANT_A_BEARER",
-  "INTEGRATION_TENANT_A_COOKIE",
   "INTEGRATION_TENANT_A_SLUG",
   "INTEGRATION_TENANT_B_SLUG",
   "INTEGRATION_TENANT_B_CLIENT_ID",
   "INTEGRATION_TENANT_B_BOOKING_ID",
-  "INTEGRATION_TENANT_A_SUPABASE_JWT",
+  "INTEGRATION_TEST_DATE",
   "INTEGRATION_STORAGE_BUCKET",
 ];
+
+const AUTH_ENV_ONE_OF = ["INTEGRATION_TENANT_A_BEARER", "INTEGRATION_TENANT_A_COOKIE"];
 
 function isIntegrationRequired() {
   return process.env.INTEGRATION_REQUIRED === "1" || process.env.CI === "true" || process.env.GITHUB_ACTIONS === "true";
 }
 
-function hasIntegrationConfig() {
-  return REQUIRED_ENV_FOR_INTEGRATION.every((key) => {
-    const v = process.env[key];
-    return typeof v === "string" && v.trim().length > 0;
-  });
+function hasValue(key) {
+  const v = process.env[key];
+  return typeof v === "string" && v.trim().length > 0;
 }
 
 function missingRequiredEnvKeys() {
-  return REQUIRED_ENV_FOR_INTEGRATION.filter((key) => {
-    const v = process.env[key];
-    return !(typeof v === "string" && v.trim().length > 0);
-  });
+  const missing = REQUIRED_ENV_FOR_INTEGRATION.filter((key) => !hasValue(key));
+  const hasAuth = AUTH_ENV_ONE_OF.some((key) => hasValue(key));
+  if (!hasAuth) missing.push("INTEGRATION_TENANT_A_BEARER|INTEGRATION_TENANT_A_COOKIE");
+  if (!hasValue("INTEGRATION_TENANT_A_SUPABASE_JWT")) missing.push("INTEGRATION_TENANT_A_SUPABASE_JWT");
+  return missing;
 }
 
 async function listIntegrationTests() {
@@ -54,15 +51,32 @@ async function main() {
     return;
   }
 
-  if (!hasIntegrationConfig()) {
-    const missing = missingRequiredEnvKeys();
+  const canHydrate =
+    hasValue("INTEGRATION_SUPABASE_URL") &&
+    hasValue("INTEGRATION_SUPABASE_ANON_KEY") &&
+    (hasValue("INTEGRATION_SUPABASE_SERVICE_ROLE_KEY") || hasValue("SUPABASE_SERVICE_ROLE_KEY"));
+
+  if (canHydrate) {
+    try {
+      await hydrateIntegrationEnvFromDatabase();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      if (isIntegrationRequired()) {
+        console.error(`Integration env hydrate failed: ${message}`);
+        process.exit(1);
+      }
+      console.warn(`Integration env hydrate skipped: ${message}`);
+    }
+  }
+
+  const missing = missingRequiredEnvKeys();
+  if (missing.length > 0) {
     if (isIntegrationRequired()) {
       console.error(
         [
-          "Integration tests are required in CI but env vars are missing.",
+          "Integration tests are required in CI but env is incomplete.",
           `Missing: ${missing.join(", ")}`,
-          "Configure GitHub Actions secrets (see .github/workflows/ci.yml).",
-          `Optional for full suite: ${OPTIONAL_ENV_FOR_FULL_SUITE.join(", ")}`,
+          "Minimum GitHub secrets: INTEGRATION_SUPABASE_URL, INTEGRATION_SUPABASE_ANON_KEY, INTEGRATION_SUPABASE_SERVICE_ROLE_KEY",
         ].join("\n")
       );
       process.exit(1);

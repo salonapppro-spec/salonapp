@@ -19,7 +19,17 @@
 
 **Branch:** `feature/lookup-mask-integration-ci`
 
-**За green CI:** GitHub repo secrets трябва да имат `INTEGRATION_BASE_URL`, `INTEGRATION_PUBLIC_TENANT_BASE_URL`, `INTEGRATION_SUPABASE_URL`, `INTEGRATION_SUPABASE_ANON_KEY` (+ optional suite vars от ci.yml).
+**Fix 3 — CI unit test glob (Linux):**
+- `scripts/run-unit-tests.mjs` — explicit file list вместо `tests/*.test.ts` glob (fail-ваше в GitHub Actions)
+- `package.json` → `"test": "node scripts/run-unit-tests.mjs"`
+
+**Fix 4 — CI integration auto-hydrate + GitHub secrets:**
+- `scripts/integration-env-hydrate.mjs` — от Supabase service role: tenant slugs, client/booking IDs, CI admin user JWT
+- `scripts/bootstrap-github-integration-secrets.mjs` — еднократно push на secrets от `.env.local` via `gh secret set`
+- `ci.yml` — `INTEGRATION_SUPABASE_SERVICE_ROLE_KEY` + `INTEGRATION_CI_USER_PASSWORD`; bearer/JWT се генерират в CI run
+- GitHub secrets зададени на `salonapppro-spec/salonapp` (2026-06-16)
+
+**За green CI:** минимум 3 secrets (+ optional static tenant IDs) — hydrate попълва останалото на всеки run.
 
 ---
 
