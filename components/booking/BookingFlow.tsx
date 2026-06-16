@@ -15,6 +15,7 @@ import { StepComplexFactors } from "@/components/booking/StepComplexFactors";
 import { StepDateTime } from "@/components/booking/StepDateTime";
 import { StepContact } from "@/components/booking/StepContact";
 import { StepConfirmation } from "@/components/booking/StepConfirmation";
+import { tenantPublicPath } from "@/lib/routing/public-paths";
 
 type Phase = "specialist" | "service" | "complex" | "datetime" | "contact" | "confirm";
 
@@ -267,7 +268,7 @@ export function BookingFlow(props: { salonData: SalonData }) {
       <div className="mx-auto max-w-md px-4 py-12 text-center">
         <h1 className="text-2xl font-semibold text-emerald-900">Готово!</h1>
         <p className="mt-3 text-sm text-neutral-700">Часът е заявен. Ще получите потвърждение по имейл, ако сте го въвели.</p>
-        <Link href={`/${salonSlug}`} className="mt-8 inline-block text-sm font-semibold text-brand-700 underline">
+        <Link href={tenantPublicPath(salonSlug)} className="mt-8 inline-block text-sm font-semibold text-brand-700 underline">
           Към сайта на салона
         </Link>
       </div>
@@ -277,7 +278,7 @@ export function BookingFlow(props: { salonData: SalonData }) {
   return (
     <div className="mx-auto max-w-md px-4 py-8">
       <div className="flex items-center justify-between gap-2">
-        <Link href={`/${salonSlug}`} className="text-sm text-brand-700 hover:underline">
+        <Link href={tenantPublicPath(salonSlug)} className="text-sm text-brand-700 hover:underline">
           ← Назад
         </Link>
         <span className="text-xs text-neutral-500">

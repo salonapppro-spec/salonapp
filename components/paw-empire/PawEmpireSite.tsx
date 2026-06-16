@@ -3,6 +3,7 @@
 import "./paw-empire.css";
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import { tenantPublicPath } from "@/lib/routing/public-paths";
 
 import type { SalonData, Service } from "@/types/database";
 import {
@@ -689,7 +690,7 @@ export function PawEmpire({ data }: { data: SalonData }) {
             <a href="#services">Услуги</a>
             <a href="#gallery">Галерия</a>
             <a href="#contact">Контакти</a>
-            <Link href={`/${tenant.salon_slug}/booking`}>Запиши се</Link>
+            <Link href={tenantPublicPath(tenant.salon_slug, "booking")}>Запиши се</Link>
           </nav>
           <div className="pe-footer-bottom">
             <span>© {new Date().getFullYear()} {tenant.salon_name}</span>

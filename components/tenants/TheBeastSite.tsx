@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
 import Link from "next/link";
+import { tenantPublicPath } from "@/lib/routing/public-paths";
 
 import type { SalonData } from "@/types/database";
 import { mergeTokens, tokensToCssVars } from "@/lib/design-tokens";
@@ -1067,7 +1068,7 @@ export function TheBeastSite({ data }: { data: SalonData }) {
             {hasGallery && <li><a href="#gallery">Галерия</a></li>}
             <li><a href="#booking">Резервация</a></li>
             <li><a href="#contact">Контакти</a></li>
-            <li><Link href={`/${tenant.salon_slug}/booking`}>Онлайн резервация</Link></li>
+            <li><Link href={tenantPublicPath(tenant.salon_slug, "booking")}>Онлайн резервация</Link></li>
           </ul>
           <p className="tb-footer-copy">
             © {new Date().getFullYear()} {tenant.salon_name} · Всички права запазени
