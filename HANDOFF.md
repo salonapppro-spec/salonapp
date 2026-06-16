@@ -29,7 +29,7 @@
 - `ci.yml` — `INTEGRATION_SUPABASE_SERVICE_ROLE_KEY` + `INTEGRATION_CI_USER_PASSWORD`; bearer/JWT се генерират в CI run
 - GitHub secrets зададени на `salonapppro-spec/salonapp` (2026-06-16)
 
-**За green CI:** минимум 3 secrets (+ optional static tenant IDs) — hydrate попълва останалото на всеки run.
+**Merge:** PR #65 merge-нат в `main` (2026-06-16). Branch protection: `build` check задължителен.
 
 ---
 
