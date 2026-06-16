@@ -584,6 +584,8 @@ export function TheBeastSite({ data }: { data: SalonData }) {
           padding: 6rem 0;
         }
         .tb-booking-frame {
+          background: var(--beast-cream);
+          border-radius: 16px;
           border: 1px solid rgba(212,175,55,.3);
           box-shadow: inset 0 0 0 1px rgba(212,175,55,.08), 0 0 60px rgba(212,175,55,.05);
           padding: 3rem;
