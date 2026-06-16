@@ -2,7 +2,21 @@
 
 ---
 
-## 2026-06-16 — Migration drift sync + unsubscribe hardening
+## 2026-06-16 — Gmail: потвърдителен имейл — пълна видимост
+
+**Branch:** `feature/email-gmail-full-visibility`
+
+Gmail сгъваше Calendar/контакти/отписване при повторни тестове с един subject (threading). Fix:
+
+1. **Уникален subject** — дата + час + салон (`lib/email.tsx`)
+2. **Уникален HTML ref** — `messageRef={booking.id}` + preview с дата/час (`emails/BookingConfirmation.tsx`)
+3. **Layout** — контакти в бяла карта, без `<Hr>` преди footer (по-малко „quoted text“)
+4. **Headers** — `X-Entity-Ref-ID`, `List-Unsubscribe`
+5. **Дата в имейла** — `d MMMM yyyy` вместо ISO `2026-06-17`
+
+**Verification:** `npx tsc --noEmit`.
+
+---
 
 **Branch:** `feature/migration-034-rls-sync`
 
