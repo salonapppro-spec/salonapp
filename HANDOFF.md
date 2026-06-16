@@ -2,6 +2,23 @@
 
 ---
 
+## 2026-06-16 — Migration drift sync + unsubscribe hardening
+
+**Branch:** `feature/migration-034-rls-sync`
+
+1. **`034_sync_production_rls.sql`** — документира production security state в repo migrations:
+   - RLS + `super_admin` policies на `tenant_activity_logs`, `tenant_call_tasks`, `lead_call_tasks`
+   - `DROP bookings_public_insert` (sync с production — anon INSERT блокиран)
+   - `DROP specialists_public_read` (публичните сайтове четат specialists през server/service role, не anon PostgREST)
+2. **Unsubscribe IDOR fix** — линкът в имейла вече включва `salon=`; route валидира `salon_slug + booking_id + token` и scoped UPDATE
+3. **Middleware** — при липсващ Supabase env на tenant subdomain/custom domain → `/temporarily-unavailable` вместо silent passthrough
+
+**След deploy на код:** пусни migration `034` в Supabase SQL Editor (idempotent, no-op ако production вече е sync-нат).
+
+**Verification:** `npx tsc --noEmit`, `npm run test` (84/84).
+
+---
+
 ## 2026-06-16 — P1 sprint (6/8 от security audit, 2 умишлено пропуснати)
 
 Продължение на P0 sprint-а по-долу, същата сесия. Branch-workflow: всяка задача отделен branch → tsc/test/lint/boundary check → fast-forward merge в `main` → push → branch delete.

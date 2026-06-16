@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
+import { SLUG_RE } from "@/lib/routing/constants";
 
 export const dynamic = "force-dynamic";
 
@@ -10,10 +11,11 @@ function html(title: string, body: string) {
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
+  const salonSlug = url.searchParams.get("salon")?.trim() ?? "";
   const bookingId = url.searchParams.get("booking")?.trim() ?? "";
   const token = url.searchParams.get("token")?.trim() ?? "";
 
-  if (!bookingId || !token) {
+  if (!salonSlug || !SLUG_RE.test(salonSlug) || !bookingId || !token) {
     return new NextResponse(html("Грешка", "<p>Невалиден линк за отписване.</p>"), {
       status: 400,
       headers: { "Content-Type": "text/html; charset=utf-8" },
@@ -23,7 +25,8 @@ export async function GET(req: Request) {
   const supabase = createSupabaseServiceRoleClient();
   const { data: booking, error } = await supabase
     .from("bookings")
-    .select("id, email_unsubscribed, confirmation_token")
+    .select("id, salon_slug, email_unsubscribed, confirmation_token")
+    .eq("salon_slug", salonSlug)
     .eq("id", bookingId)
     .eq("confirmation_token", token)
     .maybeSingle();
@@ -45,7 +48,9 @@ export async function GET(req: Request) {
   const { error: updateError } = await supabase
     .from("bookings")
     .update({ email_unsubscribed: true })
-    .eq("id", bookingId);
+    .eq("salon_slug", salonSlug)
+    .eq("id", bookingId)
+    .eq("confirmation_token", token);
 
   if (updateError) {
     return new NextResponse(html("Грешка", "<p>Неуспешно отписване. Опитайте отново.</p>"), {
