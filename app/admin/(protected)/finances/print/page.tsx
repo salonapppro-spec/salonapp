@@ -35,7 +35,7 @@ export default async function FinancePrintPage({
         <h1 className="text-xl font-semibold text-brand-900">Няма достъп</h1>
         <p className="mt-2 text-sm text-brand-800">Отчетите са налични за Pro, Premium и Колектив.</p>
         <Link href="/admin/finances" className="mt-4 inline-block text-sm font-medium text-brand-700 underline print:hidden">
-          Към финанси
+          Към калкулатора
         </Link>
       </div>
     );
@@ -59,12 +59,12 @@ export default async function FinancePrintPage({
       <div className="print:hidden mb-6 flex flex-wrap items-center gap-3">
         <FinancePrintActions />
         <Link href="/admin/finances" className="text-sm font-medium text-brand-800 underline">
-          Назад към финанси
+          Назад към калкулатора
         </Link>
       </div>
 
       <header className="border-b border-brand-200 pb-4">
-        <p className="text-xs uppercase tracking-wide text-brand-600">Финансов отчет (ориентировъчен)</p>
+        <p className="text-xs uppercase tracking-wide text-brand-600">Бизнес отчет (ориентировъчен)</p>
         <h1 className="mt-1 text-2xl font-semibold tracking-tight text-brand-900">
           {isMonthly ? "Месечен отчет" : "Годишен отчет"} — {tenant?.salon_name ?? salonSlug}
         </h1>
@@ -78,11 +78,11 @@ export default async function FinancePrintPage({
 
       <section className="mt-6 grid gap-4 sm:grid-cols-3">
         <div className="rounded-xl border border-brand-200/80 bg-white px-4 py-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/85">Оборот (completed)</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/85">Прогнозна стойност (явил се)</div>
           <div className="mt-1 text-xl font-semibold tabular-nums text-brand-900">{revenue.toFixed(2)} €</div>
         </div>
         <div className="rounded-xl border border-brand-200/80 bg-white px-4 py-3">
-          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/85">Разходни фактури</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/85">Разходи (въведени)</div>
           <div className="mt-1 text-xl font-semibold tabular-nums text-brand-900">{expenseTotal.toFixed(2)} €</div>
         </div>
         <div className="rounded-xl border border-brand-200/80 bg-white px-4 py-3">
@@ -117,7 +117,7 @@ export default async function FinancePrintPage({
 
       <p className="mt-10 text-xs leading-relaxed text-brand-700">
         Задължителна бележка за СУПТО: документът е само за вътрешна информация и не замества счетоводен одит, НСС или
-        изисквания на НАП. Оборотът е от резервации със статус „completed“.
+        изисквания на НАП. Прогнозната стойност е от резервации със статус „явил се“.
       </p>
     </div>
   );

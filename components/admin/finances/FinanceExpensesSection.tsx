@@ -103,7 +103,7 @@ export function FinanceExpensesSection(props: { defaultFrom: string; defaultTo: 
 
   return (
     <section className="admin-card space-y-4">
-      <h2 className="text-lg font-semibold tracking-tight text-brand-900">Разходни фактури</h2>
+      <h2 className="text-lg font-semibold tracking-tight text-brand-900">Разходи и отчети</h2>
       <p className="text-sm text-brand-800/85">
         Филтър по период за списъка. Месечният и годишният сбор са за календарния месец и годината на крайната дата
         (&quot;до&quot;).

@@ -30,7 +30,7 @@ function statusLabel(s: BookingStatus): string {
   switch (s) {
     case "pending":   return "Изчаква";
     case "confirmed": return "Потвърден";
-    case "completed": return "Завършен";
+    case "completed": return "Яви се";
     case "no_show":   return "Не се яви";
     default:          return "Отказан";
   }

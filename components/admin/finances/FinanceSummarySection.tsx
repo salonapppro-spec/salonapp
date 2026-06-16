@@ -52,7 +52,7 @@ export function FinanceSummarySection(props: {
           <div className="mt-1 text-2xl font-semibold tabular-nums text-brand-900">{weekRev.toFixed(2)} €</div>
         </div>
         <div className={["admin-card py-5 ring-2", revenueRing].join(" ")}>
-          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/80">Оборот месец</div>
+          <div className="text-xs font-medium uppercase tracking-wide text-brand-700/80">Прогнозна стойност — месец</div>
           <div className="mt-1 text-2xl font-semibold tabular-nums text-brand-900">{monthRev.toFixed(2)} €</div>
           {revenueGoal > 0 ? (
             <p className="mt-2 text-xs text-brand-800/90">
@@ -68,10 +68,10 @@ export function FinanceSummarySection(props: {
         </div>
       </div>
 
-      {/* Разбивка: оборот − постоянни − фактури = чиста печалба */}
+      {/* Разбивка: прогнозна стойност − постоянни − разходи = ориентировъчен резултат */}
       <div className="admin-card divide-y divide-brand-100">
         <div className="flex items-center justify-between py-3">
-          <span className="text-sm text-brand-800">Оборот (завършени резервации)</span>
+          <span className="text-sm text-brand-800">Прогнозна стойност (завършени резервации)</span>
           <span className="tabular-nums font-medium text-brand-900">{monthRev.toFixed(2)} €</span>
         </div>
 
@@ -99,12 +99,12 @@ export function FinanceSummarySection(props: {
         </div>
 
         <div className="flex items-center justify-between py-3">
-          <span className="text-sm text-brand-800">− Разходни фактури (въведени)</span>
+          <span className="text-sm text-brand-800">− Разходи (въведени)</span>
           <span className="tabular-nums font-medium text-brand-700">− {monthExpenses.toFixed(2)} €</span>
         </div>
 
         <div className="flex items-center justify-between pt-4 pb-2">
-          <span className="text-base font-semibold text-brand-900">Чиста печалба</span>
+          <span className="text-base font-semibold text-brand-900">Ориентировъчен резултат</span>
           <span
             className={[
               "text-xl font-bold tabular-nums",
@@ -130,7 +130,7 @@ export function FinanceSummarySection(props: {
       {/* Графика оборот по дни */}
       <div className="admin-card">
         <h3 className="text-sm font-semibold text-brand-900">
-          Оборот по дни — {formatCalendarMonthBg(props.year, props.month)}
+          Прогнозна стойност по дни — {formatCalendarMonthBg(props.year, props.month)}
         </h3>
         <div className="mt-4 flex h-40 items-end gap-0.5 overflow-x-auto pb-1">
           {daily.map((d) => (

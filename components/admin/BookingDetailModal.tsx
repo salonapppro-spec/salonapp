@@ -6,7 +6,7 @@ function statusLabel(s: BookingStatus): string {
   const map: Record<BookingStatus, string> = {
     pending: "Чакащо",
     confirmed: "Потвърдено",
-    completed: "Завършено",
+    completed: "Яви се",
     cancelled: "Отказано",
     no_show: "Неявил се",
   };

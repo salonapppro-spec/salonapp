@@ -161,7 +161,7 @@ export function FixedCostsSettingsForm({ settings }: { settings: FinancialSettin
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-brand-900">Месечна цел — оборот (€)</label>
+          <label className="text-sm font-medium text-brand-900">Месечна цел — прогнозна стойност (€)</label>
           <input
             className="input-admin tabular-nums"
             inputMode="decimal"
