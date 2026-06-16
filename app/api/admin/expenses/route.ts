@@ -2,7 +2,6 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 
 import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
-import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { getExpensesBetween } from "@/lib/data";
 import { tenantDb } from "@/lib/tenant-db";
 
@@ -13,8 +12,11 @@ const PostSchema = z.object({
   supplier: z.string().max(200).optional(),
 });
 
+// Business overhead expenses — owner-only, same capability as POST below
+// (audit 2026-06-16: GET previously only checked tenant context, no
+// capability — specialist_staff could read all expenses).
 export async function GET(req: Request) {
-  const a = await requireAdminTenantSlugForApi();
+  const a = await requireAdminCapabilityForApi("finances_write");
   if (!a.ok) return a.response;
   const salonSlug = a.slug;
   const url = new URL(req.url);

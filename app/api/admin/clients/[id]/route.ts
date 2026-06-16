@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
+import { adminActorHasCapability, requireAdminCapabilityForApi, resolveAdminActor } from "@/lib/admin-rbac";
 import { requireAdminTenantSlugForApi } from "@/lib/admin-tenant";
 import { getBookingsForClientPhoneAdmin, getClientByIdAdmin } from "@/lib/data";
 import { tenantDb } from "@/lib/tenant-db";
@@ -37,11 +37,19 @@ export async function GET(_req: Request, ctx: { params: Promise<{ id: string }> 
     .slice(0, 5)
     .map(([name, count]) => ({ name, count }));
 
+  // GET stays open to any provisioned admin (specialist_staff needs the
+  // client/booking history to manage scheduling — clients_write capability
+  // already covers that), but the revenue aggregate is business-financial
+  // data outside that scope (audit 2026-06-16) — only show it to
+  // owner/technical_admin (finances_write).
+  const actor = await resolveAdminActor(salonSlug);
+  const canSeeRevenue = Boolean(actor && adminActorHasCapability(actor, "finances_write"));
+
   return NextResponse.json({
     client,
     bookings,
     stats: {
-      totalRevenue,
+      totalRevenue: canSeeRevenue ? totalRevenue : null,
       bookingCount: bookings.length,
       completedCount: completed.length,
       noShowCount: bookings.filter((b) => b.status === "no_show").length,

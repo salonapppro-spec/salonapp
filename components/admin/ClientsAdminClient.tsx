@@ -8,7 +8,8 @@ type DetailJson = {
   client: Client;
   bookings: Booking[];
   stats: {
-    totalRevenue: number;
+    /** null когато ролята няма finances_write (audit 2026-06-16) */
+    totalRevenue: number | null;
     bookingCount: number;
     completedCount: number;
     noShowCount: number;
@@ -312,7 +313,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
                 {/* Stats */}
                 <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                   {[
-                    { label: "Оборот", value: `${detail.stats.totalRevenue.toFixed(0)} €`, color: GOLD },
+                    { label: "Оборот", value: detail.stats.totalRevenue === null ? "—" : `${detail.stats.totalRevenue.toFixed(0)} €`, color: GOLD },
                     { label: "Резервации", value: String(detail.stats.bookingCount), color: ROSE },
                     { label: "Завършени", value: String(detail.stats.completedCount), color: "#34d399" },
                     { label: "No-show", value: String(detail.stats.noShowCount), color: "#f87171" },
