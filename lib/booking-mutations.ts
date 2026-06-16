@@ -131,9 +131,19 @@ export async function runCreateBooking(
       hairDensity = hd;
       const calc = calculateDuration(service, hl as HairLength, hd as HairDensity);
       serviceDuration = calc.totalMinutes;
+    } else {
+      // Hair fields absent/invalid — either the admin has encoded the
+      // variation in the service name itself (e.g. "Балеаж дълга коса", a
+      // separate service row with its own fixed duration_minutes), or an
+      // API caller bypassed the hair-param step entirely (audit
+      // 2026-06-15/16). Can't tell which from here, so use the matrix's
+      // worst case (long+thick) instead of trusting duration_minutes
+      // as-is — never under-allocates the schedule. Harmless for
+      // name-encoded services since long+thick is always >= their fixed
+      // duration_minutes when the matrix is configured consistently.
+      const worstCase = calculateDuration(service, "long", "thick");
+      serviceDuration = Math.max(serviceDuration, worstCase.totalMinutes);
     }
-    // When hair fields are absent the admin has encoded the variation in the
-    // service name itself (e.g. "Балеаж дълга коса"). Use duration_minutes as-is.
   }
 
   if (serviceDuration <= 0) {
