@@ -391,7 +391,7 @@ export function tenantDb(rawSlug: string) {
       },
       getById(id: string) {
         return q("specialists")
-          .select("id,is_technical_admin")
+          .select("id,is_technical_admin,is_active")
           .eq("salon_slug", salonSlug)
           .eq("id", id)
           .maybeSingle();

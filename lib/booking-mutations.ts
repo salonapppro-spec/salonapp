@@ -99,6 +99,22 @@ export async function runCreateBooking(
   }
 
   const bookingSpecialistId = data.specialist_id ?? service.specialist_id ?? null;
+
+  // Specialist not validated on server (audit 2026-06-15/16) — a crafted
+  // request could book a deactivated specialist by id. Also catches the
+  // legitimate case where an admin deactivates a specialist who still has
+  // services pointing at them via service.specialist_id.
+  if (bookingSpecialistId) {
+    const { data: specialistRow, error: specialistErr } = await db.specialists.getById(bookingSpecialistId);
+    if (specialistErr) {
+      return { ok: false, error: "Грешка при проверка на специалиста." };
+    }
+    const specialist = specialistRow as { is_active?: boolean } | null;
+    if (!specialist || !specialist.is_active) {
+      return { ok: false, error: "Специалистът не е активен или не съществува." };
+    }
+  }
+
   let serviceDuration = service.duration_minutes ?? 0;
 
   const hairLenAllowed = new Set<string>(["short", "medium", "long"]);
