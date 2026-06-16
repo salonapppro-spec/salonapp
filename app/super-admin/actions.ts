@@ -8,7 +8,7 @@ import { redirect } from "next/navigation";
 import { clientIpFromHeaders } from "@/lib/rate-limit";
 import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
 import { recoveryActionLinkForEmail } from "@/lib/owner-recovery-link";
-import { CreateTenantSchema } from "@/schemas/tenant";
+import { CreateTenantSchema, UpdateTenantBasicsSchema } from "@/schemas/tenant";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
@@ -185,37 +185,54 @@ export async function restoreTenantAction(formData: FormData): Promise<void> {
   revalidatePath(`/super-admin/${salonSlug}`);
 }
 
-const VALID_TEMPLATES = new Set(["bloom", "luxe", "luxe2", "clean", "bold", "zen", "groom"]);
-const VALID_STATUSES  = new Set(["trial", "active", "inactive"]);
-const VALID_PLANS     = new Set(["starter", "standard", "pro", "premium"]);
-
 export async function updateTenantBasics(formData: FormData): Promise<void> {
   const user = await requireSuperAdminUser();
-  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
-  if (!salonSlug) throw new Error("Missing salon_slug");
 
-  const template = String(formData.get("template") ?? "bloom");
-  const status   = String(formData.get("status") ?? "active");
-  const plan     = String(formData.get("plan") ?? "starter");
-
-  // Guard against invalid values that would break DB CHECK constraints
-  if (!VALID_TEMPLATES.has(template)) throw new Error(`Невалиден шаблон: ${template}`);
-  if (!VALID_STATUSES.has(status))   throw new Error(`Невалиден статус: ${status}`);
-  if (!VALID_PLANS.has(plan))        throw new Error(`Невалиден план: ${plan}`);
-
-  const salonName = String(formData.get("salon_name") ?? "").trim();
+  // Zod schema instead of manual Set-based guards (audit 2026-06-15/16:
+  // most super-admin FormData actions only did manual string parsing —
+  // this one has the most free-text fields, so the highest risk of
+  // partial/invalid writes hitting the DB CHECK constraints).
+  const parsed = UpdateTenantBasicsSchema.safeParse({
+    salon_slug: String(formData.get("salon_slug") ?? "").trim(),
+    template: String(formData.get("template") ?? "bloom"),
+    status: String(formData.get("status") ?? "active"),
+    plan: String(formData.get("plan") ?? "starter"),
+    salon_name: String(formData.get("salon_name") ?? ""),
+    facebook_pixel_id: String(formData.get("facebook_pixel_id") ?? ""),
+    gtm_id: String(formData.get("gtm_id") ?? ""),
+    ga4_measurement_id: String(formData.get("ga4_measurement_id") ?? ""),
+    gsc_verification_token: String(formData.get("gsc_verification_token") ?? ""),
+    owner_email: String(formData.get("owner_email") ?? ""),
+    owner_phone: String(formData.get("owner_phone") ?? ""),
+  });
+  if (!parsed.success) {
+    throw new Error(parsed.error.issues[0]?.message ?? "Невалидни данни");
+  }
+  const {
+    salon_slug: salonSlug,
+    template,
+    status,
+    plan,
+    salon_name: salonName,
+    facebook_pixel_id,
+    gtm_id,
+    ga4_measurement_id,
+    gsc_verification_token,
+    owner_email,
+    owner_phone,
+  } = parsed.data;
 
   const patch = {
     status,
     plan,
     template,
     ...(salonName ? { salon_name: salonName } : {}),
-    facebook_pixel_id:      String(formData.get("facebook_pixel_id") ?? "")      || null,
-    gtm_id:                 String(formData.get("gtm_id") ?? "")                 || null,
-    ga4_measurement_id:     String(formData.get("ga4_measurement_id") ?? "")     || null,
-    gsc_verification_token: String(formData.get("gsc_verification_token") ?? "") || null,
-    owner_email:            String(formData.get("owner_email") ?? "")            || null,
-    owner_phone:            String(formData.get("owner_phone") ?? "")            || null,
+    facebook_pixel_id: facebook_pixel_id || null,
+    gtm_id: gtm_id || null,
+    ga4_measurement_id: ga4_measurement_id || null,
+    gsc_verification_token: gsc_verification_token || null,
+    owner_email: owner_email || null,
+    owner_phone: owner_phone || null,
   };
 
   const supabase = createSupabaseServiceRoleClient();
