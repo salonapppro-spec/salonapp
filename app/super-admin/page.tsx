@@ -110,9 +110,15 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
     .filter((t) => Boolean(t.expiry_date) && t.status === "active" && (t.expiry_date as string) >= today && (t.expiry_date as string) <= inSevenDays)
     .slice(0, 5);
   const inactiveNeedsArchive = tenants.filter((t) => t.status === "inactive" && !t.archived_at).slice(0, 5);
+  // Trial "started" е created_at — статусът не се reset-ва обратно в trial
+  // след активация, затова created_at е надежден маркер без нужда от
+  // отделна колона.
   const oldTrials = activeTenants
     .filter((t) => t.status === "trial" && Boolean(t.created_at) && (t.created_at as string).slice(0, 10) < plusDays(today, -7))
     .slice(0, 5);
+  const staleTrials = activeTenants.filter(
+    (t) => t.status === "trial" && Boolean(t.created_at) && (t.created_at as string).slice(0, 10) < plusDays(today, -30)
+  );
 
   // Churn risk: last sign-in per owner email
   const { data: authUsersData } = await supabase.auth.admin.listUsers({ perPage: 1000 });
@@ -169,6 +175,29 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
           </div>
         )}
       </section>
+
+      {staleTrials.length > 0 && (
+        <section className="rounded-2xl border border-red-900/70 bg-red-950/20 p-4 sm:p-5">
+          <h2 className="text-lg font-semibold text-red-200">⚠ Trial над 30 дни — изпрати Stripe линк</h2>
+          <p className="mt-1 text-sm text-red-300/80">
+            Тези салони са в пробен режим повече от 30 дни без зададен срок. Генерирай Stripe линк от страницата на
+            тенанта и го изпрати на собственика, или ги маркирай ръчно като активни/неактивни.
+          </p>
+          <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+            {staleTrials.map((t) => (
+              <Link
+                key={t.id}
+                href={`/super-admin/${t.salon_slug}`}
+                className="rounded-xl border border-red-800/60 bg-neutral-950/60 p-3 hover:border-red-600"
+              >
+                <p className="font-medium text-neutral-100">{t.salon_name}</p>
+                <p className="mt-1 text-xs text-neutral-400">{t.owner_email ?? "без имейл"}</p>
+                <p className="mt-1 text-xs text-red-300">От {t.created_at?.slice(0, 10)}</p>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {(expiringSoon.length > 0 || inactiveNeedsArchive.length > 0 || oldTrials.length > 0) && (
         <section className="rounded-2xl border border-orange-900/70 bg-orange-950/20 p-4 sm:p-5">
@@ -238,6 +267,10 @@ export default async function SuperAdminHomePage({ searchParams }: { searchParam
         <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-4">
           <p className="text-xs uppercase tracking-wide text-red-300">Просрочени (изтекъл период)</p>
           <p className="mt-1 text-2xl font-semibold tabular-nums">{overdueCount}</p>
+        </div>
+        <div className="rounded-xl border border-red-800/60 bg-red-950/30 p-4">
+          <p className="text-xs uppercase tracking-wide text-red-300">Trial &gt; 30 дни</p>
+          <p className="mt-1 text-2xl font-semibold tabular-nums">{staleTrials.length}</p>
         </div>
         <div className="rounded-xl border border-neutral-700/60 bg-neutral-900/60 p-4">
           <p className="text-xs uppercase tracking-wide text-neutral-300">Архивирани салони</p>
