@@ -6,7 +6,7 @@ import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 
 import { clientIpFromHeaders } from "@/lib/rate-limit";
-import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
+import { SUPER_ADMIN_SALON_COOKIE, signImpersonationSlug } from "@/lib/admin-tenant";
 import { recoveryActionLinkForEmail } from "@/lib/owner-recovery-link";
 import { CreateTenantSchema, UpdateTenantBasicsSchema } from "@/schemas/tenant";
 import { createSupabaseServerClient } from "@/lib/supabase-server";
@@ -55,7 +55,7 @@ export async function enterSalonAdminContextAction(formData: FormData): Promise<
   if (!data) throw new Error("Няма такъв тенант");
 
   const cookieStore = await cookies();
-  cookieStore.set(SUPER_ADMIN_SALON_COOKIE, salonSlug, {
+  cookieStore.set(SUPER_ADMIN_SALON_COOKIE, signImpersonationSlug(salonSlug), {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "lax",

@@ -1,3 +1,4 @@
+﻿import { createHmac, timingSafeEqual } from "crypto";
 import { cookies, headers } from "next/headers";
 import { NextResponse } from "next/server";
 
@@ -7,10 +8,39 @@ import { createSupabaseServerClient } from "@/lib/supabase-server";
 import { SLUG_RE } from "@/lib/routing/constants";
 
 /**
- * HttpOnly контекст: супер админ без salon_slug в JWT може да „влезе“ в салонски админ
+ * HttpOnly контекст: супер админ без salon_slug в JWT може да „влезе" в салонски админ
  * след server action (виж `enterSalonAdminContextAction`).
  */
 export const SUPER_ADMIN_SALON_COOKIE = "salonapp_super_admin_salon";
+
+function hmacSecret(): string | null {
+  return process.env.IMPERSONATION_HMAC_SECRET ?? null;
+}
+
+export function signImpersonationSlug(slug: string): string {
+  const secret = hmacSecret();
+  if (!secret) return slug;
+  const mac = createHmac('sha256', secret).update(slug).digest('hex');
+  return slug + '.' + mac;
+}
+
+export function verifyImpersonationSlug(value: string): string | null {
+  const secret = hmacSecret();
+  if (!secret) {
+    return SLUG_RE.test(value) ? value : null;
+  }
+  const dot = value.lastIndexOf('.');
+  if (dot === -1) return null;
+  const slug = value.slice(0, dot);
+  const mac = value.slice(dot + 1);
+  if (!SLUG_RE.test(slug)) return null;
+  const expected = createHmac('sha256', secret).update(slug).digest('hex');
+  if (mac.length !== expected.length) return null;
+  const a = Buffer.from(mac, 'hex');
+  const b = Buffer.from(expected, 'hex');
+  if (a.length !== b.length) return null;
+  return timingSafeEqual(a, b) ? slug : null;
+}
 
 function isProductionRuntime(): boolean {
   return process.env.NODE_ENV === "production" || process.env.VERCEL_ENV === "production";
@@ -32,8 +62,8 @@ export function salonSlugFromAuthUser(user: { user_metadata?: Record<string, unk
 export async function readSuperAdminSalonCookieSlug(): Promise<string | null> {
   const cookieStore = await cookies();
   const raw = cookieStore.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim();
-  if (raw && SLUG_RE.test(raw)) return raw;
-  return null;
+  if (!raw) return null;
+  return verifyImpersonationSlug(raw);
 }
 
 /**
@@ -63,13 +93,16 @@ export async function resolveAdminTenantSlug(): Promise<string | null> {
   if (data.user.app_metadata?.role === "super_admin") {
     const cookieStore = await cookies();
     const raw = cookieStore.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim();
-    if (raw && SLUG_RE.test(raw)) {
-      // enterSalonAdminContextAction verifies the tenant exists when the
-      // cookie is first set, but the cookie can outlive that tenant (renamed
-      // or deleted salon, cookie maxAge) — re-check here so a stale cookie
-      // resolves to "no tenant" instead of a ghost slug (audit 2026-06-15/16).
-      const tenant = await getTenant(raw);
-      if (tenant) return raw;
+    if (raw) {
+      const slug = verifyImpersonationSlug(raw);
+      if (slug) {
+        // enterSalonAdminContextAction verifies the tenant exists when the
+        // cookie is first set, but the cookie can outlive that tenant (renamed
+        // or deleted salon, cookie maxAge) — re-check here so a stale cookie
+        // resolves to "no tenant" instead of a ghost slug (audit 2026-06-15/16).
+        const tenant = await getTenant(slug);
+        if (tenant) return slug;
+      }
     }
   }
 
