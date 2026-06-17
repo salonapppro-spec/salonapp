@@ -27,12 +27,6 @@ type RouteRateRule = {
  */
 const RULES: RouteRateRule[] = [
   {
-    test: (p, m) => p === "/api/bookings" && m === "GET",
-    key: (ip) => `bookings-get:${ip}`,
-    policy: RATE.bookingGet,
-    label: "bookings_get",
-  },
-  {
     test: (p, m) => p === "/api/bookings" && m === "POST",
     key: (ip) => `bookings-post:${ip}`,
     policy: RATE.bookingPost,

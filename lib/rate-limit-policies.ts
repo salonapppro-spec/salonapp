@@ -4,8 +4,6 @@
  */
 export const RATE = {
   bookingPost: { limit: 40, windowMs: 60_000 },
-  /** GET /api/bookings (slot data) — same class as availability polling */
-  bookingGet: { limit: 60, windowMs: 60_000 },
   leadsPost: { limit: 15, windowMs: 60_000 },
   consultationPost: { limit: 10, windowMs: 60_000 },
   availabilityGet: { limit: 60, windowMs: 60_000 },
