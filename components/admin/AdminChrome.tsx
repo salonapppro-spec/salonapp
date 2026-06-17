@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, CalendarDays, Scissors, Users, BarChart3, Settings2 } from "lucide-react";
+import { LayoutDashboard, CalendarDays, Scissors, Users, BarChart3, Settings2, MessageCircle } from "lucide-react";
 
 import { SignOutButton } from "@/components/admin/SignOutButton";
 
@@ -123,8 +123,15 @@ export function AdminChrome(props: {
           </div>
         </nav>
 
-        {/* Sign out */}
-        <div className="shrink-0 border-t border-[#C9A84C]/15 p-3">
+        {/* Support + Sign out */}
+        <div className="shrink-0 border-t border-[#C9A84C]/15 p-3 flex flex-col gap-2">
+          <a
+            href="viber://chat?number=359897834243"
+            className="flex items-center gap-2.5 rounded-xl border border-[#C9A84C]/25 bg-white/70 px-3 py-2.5 text-sm font-semibold text-[#1A1A1A]/70 shadow-sm transition active:scale-[0.98] md:hover:border-[#C9A84C]/40 md:hover:bg-white md:hover:text-[#1A1A1A] md:active:scale-100"
+          >
+            <MessageCircle size={16} strokeWidth={1.8} />
+            Техническа поддръжка
+          </a>
           <SignOutButton className="w-full rounded-xl border border-[#C9A84C]/25 bg-white/70 px-3 py-2.5 text-sm font-semibold text-[#1A1A1A]/70 shadow-sm transition active:scale-[0.98] md:hover:border-[#C9A84C]/40 md:hover:bg-white md:hover:text-[#1A1A1A] md:active:scale-100">
             Изход от акаунта
           </SignOutButton>
@@ -200,6 +207,13 @@ export function AdminChrome(props: {
                 {l.label.split(" ")[0]}
               </Link>
             ))}
+            <a
+              href="viber://chat?number=359897834243"
+              className="shrink-0 rounded-lg px-2.5 py-2 text-xs font-medium text-[#1A1A1A]/55 transition active:scale-95 md:hover:bg-black/5 md:hover:text-[#1A1A1A] md:active:scale-100"
+              title="Техническа поддръжка"
+            >
+              <MessageCircle size={14} strokeWidth={1.8} />
+            </a>
             <SignOutButton className="shrink-0 rounded-lg px-2.5 py-2 text-xs font-medium text-[#1A1A1A]/55 transition active:scale-95 md:hover:bg-black/5 md:hover:text-[#1A1A1A] md:active:scale-100">
               Изход
             </SignOutButton>
