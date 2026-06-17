@@ -37,6 +37,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
   const [detail, setDetail] = useState<DetailJson | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const prefetchCache = useState<Map<string, DetailJson>>(() => new Map())[0];
 
   // Edit fields
   const [name, setName] = useState("");
@@ -54,13 +55,24 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
   const [addOk, setAddOk] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
+  const fetchDetail = useCallback(async (id: string): Promise<DetailJson> => {
+    if (prefetchCache.has(id)) return prefetchCache.get(id)!;
+    const res = await fetch(`/api/admin/clients/${id}`);
+    const json = (await res.json()) as DetailJson & { error?: string };
+    if (!res.ok) throw new Error(json?.error ?? "Грешка");
+    prefetchCache.set(id, json);
+    return json;
+  }, [prefetchCache]);
+
+  const prefetchDetail = useCallback((id: string) => {
+    if (!prefetchCache.has(id)) void fetchDetail(id).catch(() => {});
+  }, [fetchDetail, prefetchCache]);
+
   const loadDetail = useCallback(async (id: string) => {
     setLoading(true);
     setError(null);
     try {
-      const res = await fetch(`/api/admin/clients/${id}`);
-      const json = (await res.json()) as DetailJson & { error?: string };
-      if (!res.ok) throw new Error(json?.error ?? "Грешка");
+      const json = await fetchDetail(id);
       setDetail(json);
       setName(json.client.name);
       setPhone(json.client.phone ?? "");
@@ -72,7 +84,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [fetchDetail]);
 
   useEffect(() => {
     if (selectedId) void loadDetail(selectedId);
@@ -91,6 +103,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
       });
       const json = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(json?.error ?? "Грешка");
+      prefetchCache.delete(selectedId);
       await loadDetail(selectedId);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Грешка");
@@ -106,6 +119,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
     setError(null);
     try {
       const res = await fetch(`/api/admin/clients/${selectedId}`, { method: "DELETE" });
+      prefetchCache.delete(selectedId);
       const json = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(json?.error ?? "Грешка");
       setSelectedId(null);
@@ -246,7 +260,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
                     onClick={() => setSelectedId(c.id)}
                     className="w-full px-6 py-3.5 text-left transition"
                     style={selectedId === c.id ? { background: "rgba(201,168,76,0.08)" } : {}}
-                    onMouseEnter={(e) => { if (selectedId !== c.id) (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,0.04)"; }}
+                    onMouseEnter={(e) => { prefetchDetail(c.id); if (selectedId !== c.id) (e.currentTarget as HTMLButtonElement).style.background = "rgba(201,168,76,0.04)"; }}
                     onMouseLeave={(e) => { if (selectedId !== c.id) (e.currentTarget as HTMLButtonElement).style.background = "transparent"; }}
                   >
                     <div className="flex items-center gap-3">
