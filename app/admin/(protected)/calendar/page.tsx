@@ -10,11 +10,13 @@ import {
   getWeekDateStrings,
   getMonthDateStrings,
   groupBookingsByDateRecord,
+  groupBlockedSlotsByDateRecord,
   addMonths,
 } from "@/lib/calendar-week";
 import {
   getAllServicesAdmin,
   getBlockedSlotsForDate,
+  getBlockedSlotsForDates,
   getBookingsForDatesAdmin,
   getFinancialSettings,
   getSpecialistsPublic,
@@ -109,11 +111,13 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
 
   if (view === "week") {
     const weekDates = getWeekDateStrings(date);
-    const [weekBookings, weekWH] = await Promise.all([
+    const [weekBookings, weekWH, weekBlocked] = await Promise.all([
       getBookingsForDatesAdmin({ salonSlug, dates: weekDates }),
       getWorkingHoursWeekMerged(salonSlug),
+      getBlockedSlotsForDates({ salonSlug, dates: weekDates }),
     ]);
     const byDate = groupBookingsByDateRecord(weekBookings);
+    const blockedByDate = groupBlockedSlotsByDateRecord(weekBlocked);
 
     return (
       <>
@@ -123,6 +127,7 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
           date={date}
           weekDates={weekDates}
           bookingsByDate={byDate}
+          blockedByDate={blockedByDate}
           workingHoursByDow={weekWH}
           services={services}
           specialists={specialists}
@@ -134,11 +139,13 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
 
   // month view
   const monthDates = getMonthDateStrings(date);
-  const [monthBookings, monthWH] = await Promise.all([
+  const [monthBookings, monthWH, monthBlocked] = await Promise.all([
     getBookingsForDatesAdmin({ salonSlug, dates: monthDates }),
     getWorkingHoursWeekMerged(salonSlug),
+    getBlockedSlotsForDates({ salonSlug, dates: monthDates }),
   ]);
   const byDate = groupBookingsByDateRecord(monthBookings);
+  const blockedByDate = groupBlockedSlotsByDateRecord(monthBlocked);
 
   // month label for heading
   const monthLabel = new Date(`${date}T12:00:00`).toLocaleDateString("bg-BG", { month: "long", year: "numeric" });
@@ -149,6 +156,7 @@ async function CalendarDataSection(props: { date: string; view: ViewType }) {
       <MonthCalendar
         anchorYmd={date}
         bookingsByDate={byDate}
+        blockedByDate={blockedByDate}
         workingHoursByDow={monthWH}
         todayStr={todayStr}
       />

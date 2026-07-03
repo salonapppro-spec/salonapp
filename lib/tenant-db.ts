@@ -269,6 +269,15 @@ export function tenantDb(rawSlug: string) {
           .is("specialist_id", null)
           .order("start_time", { ascending: true });
       },
+      listDefaultForDates(dates: string[]) {
+        return q("blocked_slots")
+          .select("*")
+          .eq("salon_slug", salonSlug)
+          .in("blocked_date", dates)
+          .is("specialist_id", null)
+          .order("blocked_date", { ascending: true })
+          .order("start_time", { ascending: true });
+      },
       createDefault(values: AnyRow) {
         return q("blocked_slots")
           .insert(withTenantSlug({ ...values, specialist_id: null }, salonSlug))

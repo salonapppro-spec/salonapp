@@ -134,6 +134,7 @@ export function BlockSlotModal(props: {
       const json = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(json?.error ?? "Грешка");
       setReason("");
+      router.push(`/admin/calendar?date=${selectedDate}&view=day`);
       router.refresh();
       onClose();
     } catch (e) {
