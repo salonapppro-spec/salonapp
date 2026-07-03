@@ -5,7 +5,7 @@ import { useCallback, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
 import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
-import type { Booking, BookingStatus, Plan, Service, Specialist, WorkingHours } from "@/types";
+import type { BlockedSlot, Booking, BookingStatus, Plan, Service, Specialist, WorkingHours } from "@/types";
 import { BookingDetailModal } from "@/components/admin/BookingDetailModal";
 import { QuickBooking } from "@/components/admin/QuickBooking";
 
@@ -13,6 +13,13 @@ const PX_PER_HOUR = 68;
 const DEFAULT_GRID_START = 8 * 60;
 const DEFAULT_GRID_END = 21 * 60;
 const DOW_LABELS = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"];
+
+const BLOCKED_STYLE: React.CSSProperties = {
+  borderColor: "#f87171",
+  background:
+    "repeating-linear-gradient(135deg, rgba(248,113,113,0.14) 0px, rgba(248,113,113,0.14) 4px, rgba(254,226,226,0.45) 4px, rgba(254,226,226,0.45) 8px)",
+  color: "#991b1b",
+};
 
 type SimpleWH = { start_time: string; end_time: string; is_day_off: boolean };
 
@@ -44,12 +51,13 @@ export function WeekTimeGrid(props: {
   date: string;
   weekDates: string[];
   bookingsByDate: Record<string, Booking[]>;
+  blockedByDate?: Record<string, BlockedSlot[]>;
   workingHoursByDow: SimpleWH[];
   services: Service[];
   specialists: Specialist[];
   plan: Plan;
 }) {
-  const { salonSlug, date, weekDates, bookingsByDate, workingHoursByDow, services, specialists, plan } = props;
+  const { salonSlug, date, weekDates, bookingsByDate, blockedByDate = {}, workingHoursByDow, services, specialists, plan } = props;
   const router = useRouter();
   const [, startTransition] = useTransition();
 
@@ -100,7 +108,7 @@ export function WeekTimeGrid(props: {
   }
 
   function onColClick(e: React.MouseEvent<HTMLDivElement>, d: string, wh: SimpleWH) {
-    if ((e.target as HTMLElement).closest("[data-booking-block]")) return;
+    if ((e.target as HTMLElement).closest("[data-booking-block], [data-blocked-slot]")) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const mins = gridStart + ((e.clientY - rect.top) / gridHeightPx) * totalMin;
     openQuick(d, mins, wh);
@@ -127,11 +135,15 @@ export function WeekTimeGrid(props: {
             const isToday = d === todayStr;
             const dt = new Date(`${d}T12:00:00`);
             const wh = colWH[i];
+            const hasBlocked = (blockedByDate[d] ?? []).length > 0;
             return (
               <div
                 key={d}
                 className="flex flex-1 flex-col items-center justify-center border-r py-2 px-1 last:border-r-0"
-                style={{ borderColor: "rgba(201,168,76,0.12)", background: isToday ? "rgba(201,168,76,0.07)" : "transparent" }}
+                style={{
+                  borderColor: "rgba(201,168,76,0.12)",
+                  background: isToday ? "rgba(201,168,76,0.07)" : hasBlocked ? "rgba(254,226,226,0.25)" : "transparent",
+                }}
               >
                 <span className="text-[9px] font-black uppercase tracking-wider" style={{ color: isToday ? "#C9A84C" : "rgba(26,26,26,0.4)" }}>
                   {DOW_LABELS[dowOf(i)]}
@@ -144,6 +156,8 @@ export function WeekTimeGrid(props: {
                 </span>
                 {wh.is_day_off ? (
                   <span className="mt-0.5 text-[8px]" style={{ color: "rgba(26,26,26,0.25)" }}>почивен</span>
+                ) : hasBlocked ? (
+                  <span className="mt-0.5 text-[8px] font-bold" style={{ color: "#991b1b" }}>🚫 блок.</span>
                 ) : (
                   <Link
                     href={`/admin/calendar?date=${d}&view=day`}
@@ -185,6 +199,7 @@ export function WeekTimeGrid(props: {
                 const wh = colWH[colIdx];
                 const isToday = d === todayStr;
                 const active = (bookingsByDate[d] ?? []).filter((b) => b.status !== "cancelled");
+                const dayBlocked = blockedByDate[d] ?? [];
                 const colDayStart = wh.is_day_off ? gridStart : timeToMinutes(wh.start_time);
                 const colDayEnd   = wh.is_day_off ? gridEnd   : timeToMinutes(wh.end_time);
 
@@ -254,6 +269,33 @@ export function WeekTimeGrid(props: {
                         </span>
                       </div>
                     )}
+
+                    {/* blocked intervals */}
+                    {dayBlocked.map((bl) => {
+                      const startMin = timeToMinutes(bl.start_time);
+                      const endMin = timeToMinutes(bl.end_time);
+                      if (endMin <= gridStart || startMin >= gridEnd) return null;
+                      const clampStart = Math.max(startMin, gridStart);
+                      const clampEnd = Math.min(endMin, gridEnd);
+                      const topPx = ((clampStart - gridStart) / totalMin) * gridHeightPx;
+                      const heightPx = Math.max(18, ((clampEnd - clampStart) / totalMin) * gridHeightPx - 2);
+                      const short = heightPx < 34;
+                      return (
+                        <div
+                          key={bl.id}
+                          data-blocked-slot
+                          className="pointer-events-none absolute left-0.5 right-0.5 z-[6] overflow-hidden rounded-lg border-l-[3px]"
+                          style={{ top: `${topPx}px`, height: `${heightPx}px`, padding: short ? "1px 4px" : "3px 5px", ...BLOCKED_STYLE }}
+                        >
+                          <div className="text-[8px] font-black leading-tight">🚫</div>
+                          {!short && (
+                            <div className="truncate text-[9px] font-bold leading-tight tabular-nums">
+                              {bl.start_time.slice(0, 5)}–{bl.end_time.slice(0, 5)}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
 
                     {/* booking blocks */}
                     {active.map((b) => {

@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState, useTransition } from "react"
 import { Plus, MoonStar } from "lucide-react";
 
 import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
-import type { Booking, BookingStatus, Plan, Service, Specialist, WorkingHours } from "@/types";
+import type { BlockedSlot, Booking, BookingStatus, Plan, Service, Specialist, WorkingHours } from "@/types";
 
 import { BookingDetailModal } from "@/components/admin/BookingDetailModal";
 import { QuickBooking } from "@/components/admin/QuickBooking";
@@ -39,10 +39,18 @@ function statusLabel(status: BookingStatus): string {
 const DEFAULT_START = 8 * 60;
 const DEFAULT_END = 21 * 60;
 
+const BLOCKED_STYLE: React.CSSProperties = {
+  borderColor: "#f87171",
+  background:
+    "repeating-linear-gradient(135deg, rgba(248,113,113,0.14) 0px, rgba(248,113,113,0.14) 4px, rgba(254,226,226,0.45) 4px, rgba(254,226,226,0.45) 8px)",
+  color: "#991b1b",
+};
+
 export function ScheduleBoard(props: {
   salonSlug: string;
   date: string;
   bookings: Booking[];
+  blockedSlots?: BlockedSlot[];
   workingHours: WorkingHours | null;
   services: Service[];
   specialists: Specialist[];
@@ -50,7 +58,7 @@ export function ScheduleBoard(props: {
   showFab: boolean;
   children?: React.ReactNode;
 }) {
-  const { salonSlug, date, bookings, workingHours, services, specialists, plan, showFab, children } = props;
+  const { salonSlug, date, bookings, blockedSlots = [], workingHours, services, specialists, plan, showFab, children } = props;
   const router = useRouter();
   const [, startTransition] = useTransition();
 
@@ -99,7 +107,7 @@ export function ScheduleBoard(props: {
   }
 
   function onGridClick(e: React.MouseEvent<HTMLDivElement>) {
-    if (e.target !== e.currentTarget && (e.target as HTMLElement).closest("[data-booking-block]")) return;
+    if (e.target !== e.currentTarget && (e.target as HTMLElement).closest("[data-booking-block], [data-blocked-slot]")) return;
     const rect = e.currentTarget.getBoundingClientRect();
     const y = e.clientY - rect.top;
     const ratio = Math.max(0, Math.min(1, y / rect.height));
@@ -253,6 +261,37 @@ export function ScheduleBoard(props: {
                 </div>
               </div>
             )}
+
+            {/* Blocked intervals */}
+            {blockedSlots.map((bl) => {
+              const start = timeToMinutes(bl.start_time);
+              const end = timeToMinutes(bl.end_time);
+              if (end <= dayStart || start >= dayEnd) return null;
+              const visStart = Math.max(start, dayStart);
+              const visEnd = Math.min(end, dayEnd);
+              const top = ((visStart - dayStart) / totalMin) * 100;
+              const height = ((visEnd - visStart) / totalMin) * 100;
+              if (height <= 0) return null;
+              return (
+                <div
+                  key={bl.id}
+                  data-blocked-slot
+                  className="pointer-events-none absolute left-2 right-2 z-[8] overflow-hidden rounded-xl border-l-[3px] px-2.5 py-1.5 shadow-sm"
+                  style={{
+                    top: `${top}%`,
+                    height: `${height}%`,
+                    minHeight: "28px",
+                    ...BLOCKED_STYLE,
+                  }}
+                >
+                  <div className="text-[10px] font-black leading-tight">🚫 Блокиран</div>
+                  <div className="truncate text-[10px] font-semibold leading-tight tabular-nums opacity-80">
+                    {bl.start_time.slice(0, 5)} – {bl.end_time.slice(0, 5)}
+                  </div>
+                  {bl.reason ? <div className="truncate text-[9px] opacity-70">{bl.reason}</div> : null}
+                </div>
+              );
+            })}
 
             {/* Booking blocks */}
             {bookings.map((b) => {

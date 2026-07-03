@@ -114,7 +114,7 @@ export function financialSettingsForUi(salonSlug: string, row: FinancialSettings
   };
 }
 
-/** Оборот (completed) за период [from,to] по дати. */
+/** Прогнозна стойност (completed) за период [from,to] по дати. */
 export async function getCompletedRevenueBetween(
   salonSlug: string,
   from: string,
@@ -245,6 +245,17 @@ export async function getBlockedSlotsForDate(params: {
 }): Promise<BlockedSlot[]> {
   const { salonSlug, specialistId, date } = params;
   const { data, error } = await tenantDb(salonSlug).blockedSlots.listForPublicDate(date, specialistId);
+  if (error) throw error;
+  return (data as BlockedSlot[]) ?? [];
+}
+
+export async function getBlockedSlotsForDates(params: {
+  salonSlug: string;
+  dates: string[];
+}): Promise<BlockedSlot[]> {
+  const { salonSlug, dates } = params;
+  if (dates.length === 0) return [];
+  const { data, error } = await tenantDb(salonSlug).blockedSlots.listDefaultForDates(dates);
   if (error) throw error;
   return (data as BlockedSlot[]) ?? [];
 }

@@ -38,6 +38,14 @@ export function groupBookingsByDateRecord(bookings: Booking[]): Record<string, B
   return rec;
 }
 
+export function groupBlockedSlotsByDateRecord<T extends { blocked_date: string }>(slots: T[]): Record<string, T[]> {
+  const rec: Record<string, T[]> = {};
+  for (const slot of slots) {
+    (rec[slot.blocked_date] ??= []).push(slot);
+  }
+  return rec;
+}
+
 /** All YYYY-MM-DD strings for the month containing anchorYmd. */
 export function getMonthDateStrings(anchorYmd: string): string[] {
   const d = new Date(`${anchorYmd}T12:00:00`);

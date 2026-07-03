@@ -41,6 +41,7 @@ export function CalendarDayShell(props: {
         salonSlug={props.salonSlug}
         date={props.date}
         bookings={props.bookings}
+        blockedSlots={props.blocked}
         workingHours={props.workingHours}
         services={props.services}
         specialists={props.specialists}

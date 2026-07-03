@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 import { getMonthWeeks } from "@/lib/calendar-week";
-import type { Booking, BookingStatus } from "@/types";
+import type { BlockedSlot, Booking, BookingStatus } from "@/types";
 
 const DOW_HEADERS = ["Пн", "Вт", "Ср", "Чт", "Пт", "Сб", "Нд"];
 
@@ -21,10 +21,11 @@ function dowOf(i: number): number { return i === 6 ? 0 : i + 1; }
 export function MonthCalendar(props: {
   anchorYmd: string;
   bookingsByDate: Record<string, Booking[]>;
+  blockedByDate?: Record<string, BlockedSlot[]>;
   workingHoursByDow: SimpleWH[];
   todayStr: string;
 }) {
-  const { anchorYmd, bookingsByDate, workingHoursByDow, todayStr } = props;
+  const { anchorYmd, bookingsByDate, blockedByDate = {}, workingHoursByDow, todayStr } = props;
   const weeks = getMonthWeeks(anchorYmd);
   const anchorDate = new Date(`${anchorYmd}T12:00:00`);
   const anchorMonth = anchorDate.getMonth();
@@ -57,6 +58,8 @@ export function MonthCalendar(props: {
             const wh = workingHoursByDow[dowOf(di)];
             const dayBookings = bookingsByDate[d] ?? [];
             const active = dayBookings.filter((b) => b.status !== "cancelled");
+            const dayBlocked = blockedByDate[d] ?? [];
+            const hasBlocked = dayBlocked.length > 0;
 
             return (
               <Link
@@ -67,6 +70,8 @@ export function MonthCalendar(props: {
                   borderColor: "rgba(201,168,76,0.08)",
                   background: isToday
                     ? "rgba(201,168,76,0.07)"
+                    : hasBlocked && isThisMonth
+                    ? "rgba(254,226,226,0.35)"
                     : wh?.is_day_off && isThisMonth
                     ? "rgba(0,0,0,0.015)"
                     : "transparent",
@@ -88,6 +93,15 @@ export function MonthCalendar(props: {
                 {wh?.is_day_off && isThisMonth && (
                   <span className="mt-0.5 text-[8px] font-medium" style={{ color: "rgba(26,26,26,0.25)" }}>
                     почивен
+                  </span>
+                )}
+
+                {hasBlocked && isThisMonth && (
+                  <span
+                    className="mt-0.5 inline-flex max-w-full items-center gap-0.5 truncate rounded-md px-1 py-0.5 text-[8px] font-bold"
+                    style={{ color: "#991b1b", background: "rgba(248,113,113,0.15)" }}
+                  >
+                    🚫 {dayBlocked.length === 1 ? "блок." : `${dayBlocked.length} блок.`}
                   </span>
                 )}
 
