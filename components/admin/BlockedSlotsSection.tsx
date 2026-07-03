@@ -1,22 +1,38 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
+import { AdminTimeSelect, buildTimeOptions } from "@/components/admin/AdminTimeSelect";
+import { timeToMinutes } from "@/lib/scheduling";
 import type { BlockedSlot } from "@/types";
 
 export function BlockedSlotsSection(props: { blockedDate: string; initialSlots: BlockedSlot[] }) {
   const router = useRouter();
   const [slots, setSlots] = useState(props.initialSlots);
+  const allTimes = useMemo(() => buildTimeOptions("06:00", "22:00"), []);
 
   useEffect(() => {
     setSlots(props.initialSlots);
   }, [props.initialSlots]);
+
   const [start, setStart] = useState("12:00");
   const [end, setEnd] = useState("13:00");
   const [reason, setReason] = useState("");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const endOptions = useMemo(
+    () => allTimes.filter((t) => timeToMinutes(t) > timeToMinutes(start)),
+    [allTimes, start],
+  );
+
+  useEffect(() => {
+    if (endOptions.length === 0) return;
+    if (!endOptions.includes(end)) {
+      setEnd(endOptions[0]!);
+    }
+  }, [end, endOptions]);
 
   async function add() {
     setLoading(true);
@@ -78,28 +94,39 @@ export function BlockedSlotsSection(props: { blockedDate: string; initialSlots: 
         ))}
       </ul>
 
-      <div className="mt-4 flex flex-col gap-3 rounded-xl border border-brand-200/70 bg-brand-50/50 p-4 sm:flex-row sm:flex-wrap sm:items-end">
-        <div>
-          <label className="text-xs font-medium text-brand-800">От</label>
-          <input type="time" className="input-admin !mt-1 max-w-[9rem]" value={start} onChange={(e) => setStart(e.target.value)} />
+      <form
+        className="mt-4 rounded-xl border border-brand-200/70 bg-brand-50/50 p-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          void add();
+        }}
+      >
+        <div className="grid grid-cols-2 gap-3">
+          <AdminTimeSelect id="blocked-start" label="От" value={start} options={allTimes} onChange={setStart} />
+          <AdminTimeSelect
+            id="blocked-end"
+            label="До"
+            value={end}
+            options={endOptions.length > 0 ? endOptions : allTimes}
+            onChange={setEnd}
+          />
         </div>
-        <div>
-          <label className="text-xs font-medium text-brand-800">До</label>
-          <input type="time" className="input-admin !mt-1 max-w-[9rem]" value={end} onChange={(e) => setEnd(e.target.value)} />
-        </div>
-        <div className="min-w-0 flex-1 sm:max-w-xs">
-          <label className="text-xs font-medium text-brand-800">Причина (по желание)</label>
+        <div className="mt-3">
+          <label htmlFor="blocked-reason" className="text-xs font-semibold text-brand-800">
+            Причина (по желание)
+          </label>
           <input
-            className="input-admin !mt-1"
+            id="blocked-reason"
+            className="input-admin !mt-1.5 py-3 text-base"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             placeholder="Обяд, почивка…"
           />
         </div>
-        <button type="button" className="btn-admin-primary w-full sm:w-auto" disabled={loading} onClick={() => void add()}>
-          {loading ? "Добавяне…" : "Блокирай"}
+        <button type="submit" className="btn-admin-primary mt-4 min-h-12 w-full text-base font-semibold" disabled={loading}>
+          {loading ? "Запазване…" : "Запази"}
         </button>
-      </div>
+      </form>
     </div>
   );
 }
