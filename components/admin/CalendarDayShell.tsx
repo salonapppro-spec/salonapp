@@ -71,6 +71,7 @@ export function CalendarDayShell(props: {
           blockedDate={props.date}
           initialSlots={props.blocked}
           workingHours={props.workingHours}
+          bookingWindowDays={props.bookingWindowDays}
           onClose={() => setBlockOpen(false)}
         />
       ) : null}
