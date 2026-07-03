@@ -9,7 +9,7 @@ export async function GET(req: Request) {
   if (!a.ok) return a.response;
 
   const q = new URL(req.url).searchParams.get("q") ?? "";
-  if (q.trim().length < 2) return NextResponse.json([]);
+  if (q.trim().length < 1) return NextResponse.json([]);
 
   const { data, error } = await tenantDb(a.slug).clients.list(q.trim());
   if (error) return NextResponse.json([], { status: 500 });
