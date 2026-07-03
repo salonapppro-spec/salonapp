@@ -1,10 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { createAdminBooking } from "@/app/actions/admin-booking";
-import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
+import { AdminTimeSelect } from "@/components/admin/AdminTimeSelect";
+import { addCalendarDaysInSofia } from "@/lib/booking-datetime";
+import { timeToMinutes } from "@/lib/scheduling";
 import type { HairDensity, HairLength, Plan, Service, Specialist, WorkingHours } from "@/types";
+
+type ClientSuggestion = { id: string; name: string; phone: string; email: string };
 
 const HAIR_LEN: { v: HairLength; l: string }[] = [
   { v: "short", l: "Къса" },
@@ -17,16 +22,6 @@ const HAIR_DEN: { v: HairDensity; l: string }[] = [
   { v: "thick", l: "Гъста" },
 ];
 
-
-function buildAllSlots(wh: WorkingHours): string[] {
-  if (wh.is_day_off) return [];
-  const slots: string[] = [];
-  let t = timeToMinutes(wh.start_time);
-  const end = timeToMinutes(wh.end_time);
-  while (t < end) { slots.push(minutesToTime(t)); t += 15; }
-  return slots;
-}
-
 export function QuickBooking(props: {
   salonSlug: string;
   date: string;
@@ -35,10 +30,11 @@ export function QuickBooking(props: {
   specialists: Specialist[];
   plan: Plan;
   workingHours: WorkingHours | null;
+  bookingWindowDays?: number;
   onClose: () => void;
   onSaved: () => void;
 }) {
-  const { salonSlug, date, time, services, specialists, plan, workingHours, onClose, onSaved } = props;
+  const { salonSlug, date, time, services, specialists, plan, workingHours, bookingWindowDays = 30, onClose, onSaved } = props;
 
   const activeServices = useMemo(() => services.filter((s) => s.is_active), [services]);
 
@@ -58,8 +54,15 @@ export function QuickBooking(props: {
   }, []);
 
 
-  const [bookingDate, setBookingDate] = useState(() => date < todayISO ? todayISO : date);
-  const [selectedTime, setSelectedTime] = useState<string | null>(null);
+  const maxBookingDate = useMemo(() => addCalendarDaysInSofia(todayISO, bookingWindowDays), [todayISO, bookingWindowDays]);
+
+  const normalizeTime = (t: string) => t.slice(0, 5);
+
+  const [bookingDate, setBookingDate] = useState(() => {
+    const d = date < todayISO ? todayISO : date;
+    return d > maxBookingDate ? maxBookingDate : d;
+  });
+  const [selectedTime, setSelectedTime] = useState<string | null>(() => (time ? normalizeTime(time) : null));
   const [clientName, setClientName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
@@ -69,10 +72,13 @@ export function QuickBooking(props: {
   const [hairDensity, setHairDensity] = useState<HairDensity>("medium");
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [suggestions, setSuggestions] = useState<{ id: string; name: string; phone: string; email: string }[]>([]);
+  const [suggestions, setSuggestions] = useState<ClientSuggestion[]>([]);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const suggestRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const justPicked = useRef(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+  const [suggestRect, setSuggestRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const [freeSlots, setFreeSlots] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
   const [currentWorkingHours, setCurrentWorkingHours] = useState<WorkingHours | null>(workingHours);
@@ -90,14 +96,10 @@ export function QuickBooking(props: {
       ? activeSpecs[0]!.id
       : undefined;
 
-  const allSlots = useMemo(
-    () => (currentWorkingHours ? buildAllSlots(currentWorkingHours) : []),
-    [currentWorkingHours]
-  );
-
   useEffect(() => {
-    setBookingDate(date < todayISO ? todayISO : date);
-  }, [date, todayISO]);
+    const d = date < todayISO ? todayISO : date;
+    setBookingDate(d > maxBookingDate ? maxBookingDate : d);
+  }, [date, todayISO, maxBookingDate]);
 
   // Clear selected time if it becomes past while modal is open
   useEffect(() => {
@@ -106,13 +108,12 @@ export function QuickBooking(props: {
     }
   }, [nowMinutes, selectedTime, bookingDate, todayISO]);
 
-  const prevTimeRef = useRef<string | null>(null);
-  useEffect(() => {
-    if (prevTimeRef.current !== null && prevTimeRef.current !== time) {
-      setSelectedTime(null);
-    }
-    prevTimeRef.current = time;
-  }, [time]);
+  const updateSuggestRect = useCallback(() => {
+    const el = nameInputRef.current;
+    if (!el) return;
+    const r = el.getBoundingClientRect();
+    setSuggestRect({ top: r.bottom + 4, left: r.left, width: r.width });
+  }, []);
 
   // Re-fetch working hours when the date changes inside the modal
   useEffect(() => {
@@ -160,26 +161,57 @@ export function QuickBooking(props: {
       })
       .catch(() => setFreeSlots([]))
       .finally(() => setSlotsLoading(false));
-  }, [bookingDate, serviceId, salonSlug, selected?.is_complex, hairLength, hairDensity, effectiveSpecialistId]);
+  }, [bookingDate, serviceId, selected?.is_complex, hairLength, hairDensity, effectiveSpecialistId]);
+
+  // Pre-select clicked slot from calendar when it is still free
+  useEffect(() => {
+    if (!time || slotsLoading) return;
+    const t = normalizeTime(time);
+    const isPast = bookingDate === todayISO && timeToMinutes(t) <= nowMinutes;
+    if (!isPast && freeSlots.includes(t)) {
+      setSelectedTime((prev) => prev ?? t);
+    }
+  }, [time, freeSlots, slotsLoading, bookingDate, todayISO]);
+
+  // Drop time if service/date change made it unavailable
+  useEffect(() => {
+    if (!selectedTime || slotsLoading) return;
+    const isPast = bookingDate === todayISO && timeToMinutes(selectedTime) <= nowMinutes;
+    if (isPast || !freeSlots.includes(selectedTime)) {
+      setSelectedTime(null);
+    }
+  }, [freeSlots, slotsLoading, selectedTime, bookingDate, todayISO]);
 
   useEffect(() => {
     if (justPicked.current) { justPicked.current = false; return; }
     if (suggestRef.current) clearTimeout(suggestRef.current);
     const q = clientName.trim();
-    if (q.length < 2) { setSuggestions([]); setShowSuggestions(false); return; }
+    if (q.length < 1) {
+      setSuggestions([]);
+      setShowSuggestions(false);
+      setSuggestionsLoading(false);
+      return;
+    }
+    setSuggestionsLoading(true);
     suggestRef.current = setTimeout(() => {
       fetch(`/api/admin/clients/search?q=${encodeURIComponent(q)}`)
         .then((r) => r.json())
-        .then((d: { id: string; name: string; phone: string; email: string }[]) => {
-          setSuggestions(d);
-          setShowSuggestions(d.length > 0);
+        .then((d: unknown) => {
+          const list = Array.isArray(d) ? d : [];
+          setSuggestions(list as ClientSuggestion[]);
+          setShowSuggestions(list.length > 0);
+          if (list.length > 0) updateSuggestRect();
         })
-        .catch(() => { /* ignore */ });
-    }, 280);
+        .catch(() => {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        })
+        .finally(() => setSuggestionsLoading(false));
+    }, 220);
     return () => { if (suggestRef.current) clearTimeout(suggestRef.current); };
-  }, [clientName]);
+  }, [clientName, updateSuggestRect]);
 
-  function pickSuggestion(s: { name: string; phone: string; email: string }) {
+  function pickSuggestion(s: ClientSuggestion) {
     justPicked.current = true;
     setClientName(s.name);
     if (s.phone) setPhone(s.phone);
@@ -200,6 +232,56 @@ export function QuickBooking(props: {
       if (json.email && !email.trim()) setEmail(json.email);
     } catch { /* ignore */ }
   }, [phone, clientName, email]);
+
+  const selectableTimes = useMemo(() => {
+    if (!currentWorkingHours || currentWorkingHours.is_day_off) return [];
+    return freeSlots.filter((slot) => {
+      if (bookingDate === todayISO && timeToMinutes(slot) <= nowMinutes) return false;
+      return true;
+    });
+  }, [freeSlots, currentWorkingHours, bookingDate, todayISO, nowMinutes]);
+
+  const timeSelectValue = selectedTime && selectableTimes.includes(selectedTime)
+    ? selectedTime
+    : "";
+
+  const suggestionPortal =
+    showSuggestions && suggestRect && typeof document !== "undefined"
+      ? createPortal(
+          <ul
+            className="overflow-hidden rounded-xl border bg-white shadow-xl"
+            style={{
+              position: "fixed",
+              top: suggestRect.top,
+              left: suggestRect.left,
+              width: suggestRect.width,
+              zIndex: 200,
+              borderColor: "rgba(201,168,76,0.25)",
+              maxHeight: "min(240px, 40vh)",
+              overflowY: "auto",
+            }}
+            onMouseDown={(e) => e.preventDefault()}
+          >
+            {suggestions.map((s) => (
+              <li key={s.id}>
+                <button
+                  type="button"
+                  className="flex w-full flex-col gap-0.5 px-3 py-2.5 text-left transition hover:bg-[rgba(201,168,76,0.07)] active:bg-[rgba(201,168,76,0.12)]"
+                  onMouseDown={() => pickSuggestion(s)}
+                >
+                  <span className="text-sm font-semibold text-[#1A1A1A]">{s.name}</span>
+                  {(s.phone || s.email) && (
+                    <span className="text-[11px] text-[#1A1A1A]/45">
+                      {[s.phone, s.email].filter(Boolean).join(" · ")}
+                    </span>
+                  )}
+                </button>
+              </li>
+            ))}
+          </ul>,
+          document.body
+        )
+      : null;
 
   async function save() {
     if (!selected) { setError("Изберете услуга."); return; }
@@ -271,177 +353,141 @@ export function QuickBooking(props: {
               <div className="mb-4 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-900">{error}</div>
             ) : null}
 
-            <div className="space-y-4">
-              {/* Date */}
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Дата *</label>
-                <input
-                  type="date"
-                  className="input-admin"
-                  value={bookingDate}
-                  min={todayISO}
-                  onChange={(e) => { setBookingDate(e.target.value); setSelectedTime(null); }}
-                  required
-                />
-              </div>
+            <div className="space-y-5">
+              {/* 1. Кога */}
+              <section className="space-y-3 rounded-xl border p-4" style={{ borderColor: "rgba(201,168,76,0.2)", background: "rgba(201,168,76,0.03)" }}>
+                <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>1. Кога</p>
 
-              {/* Service — shown before slots so slot fetch uses the right duration */}
-              <div>
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Услуга</label>
-                <select
-                  className="input-admin"
-                  value={serviceId}
-                  onChange={(e) => { setServiceId(e.target.value); setSelectedTime(null); }}
-                >
-                  {activeServices.map((s) => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} — {Number(s.price_eur).toFixed(0)} €
-                    </option>
-                  ))}
-                </select>
-              </div>
-
-              {/* Hair options for complex services */}
-              {selected?.is_complex ? (
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Дължина</label>
-                    <select className="input-admin" value={hairLength} onChange={(e) => setHairLength(e.target.value as HairLength)}>
-                      {HAIR_LEN.map((x) => <option key={x.v} value={x.v}>{x.l}</option>)}
-                    </select>
-                  </div>
-                  <div>
-                    <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Гъстота</label>
-                    <select className="input-admin" value={hairDensity} onChange={(e) => setHairDensity(e.target.value as HairDensity)}>
-                      {HAIR_DEN.map((x) => <option key={x.v} value={x.v}>{x.l}</option>)}
-                    </select>
-                  </div>
-                </div>
-              ) : null}
-
-              {/* Time slot grid */}
-              <div>
-                <div className="mb-2 flex items-center justify-between">
-                  <label className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>Час *</label>
-                  {selectedTime && (
-                    <span className="text-xs font-black tabular-nums" style={{ color: "#C9A84C" }}>{selectedTime}</span>
-                  )}
-                </div>
-
-                {!currentWorkingHours || currentWorkingHours.is_day_off ? (
-                  <p className="rounded-xl border px-3 py-4 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
-                    Почивен ден — няма работно време.
-                  </p>
-                ) : allSlots.length === 0 ? (
-                  <p className="rounded-xl border px-3 py-4 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
-                    Няма зададено работно време.
-                  </p>
-                ) : (
-                  <div
-                    className="rounded-xl border p-2"
-                    style={{ borderColor: "rgba(201,168,76,0.2)", background: "rgba(201,168,76,0.02)", opacity: slotsLoading ? 0.5 : 1, transition: "opacity 0.15s" }}
-                  >
-                    <div className="grid grid-cols-4 gap-1.5 sm:grid-cols-5">
-                      {allSlots.map((slot) => {
-                        const isPast = bookingDate === todayISO && timeToMinutes(slot) <= nowMinutes;
-                        const isFree = !slotsLoading && freeSlots.includes(slot) && !isPast;
-                        const isSelected = slot === selectedTime;
-                        return (
-                          <button
-                            key={slot}
-                            type="button"
-                            disabled={slotsLoading || !isFree}
-                            onClick={() => setSelectedTime(slot)}
-                            className="rounded-lg py-2 text-xs font-semibold tabular-nums transition"
-                            style={
-                              isSelected
-                                ? { background: "linear-gradient(135deg, #C9A84C, #C8826A)", color: "#fff", border: "1.5px solid transparent" }
-                                : slotsLoading
-                                  ? { background: "transparent", color: "rgba(26,26,26,0.35)", border: "1.5px solid rgba(26,26,26,0.1)", cursor: "default" }
-                                  : isFree
-                                    ? { background: "transparent", color: "#1A1A1A", border: "1.5px solid rgba(201,168,76,0.35)", cursor: "pointer" }
-                                    : { background: "transparent", color: "rgba(26,26,26,0.2)", border: "1.5px solid rgba(26,26,26,0.07)", cursor: "not-allowed", textDecoration: "line-through" }
-                            }
-                          >
-                            {slot}
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <p className="mt-2 text-center text-[10px] text-[#1A1A1A]/30">
-                      {slotsLoading
-                        ? "Проверяване на свободните часове…"
-                        : `${currentWorkingHours!.start_time} – ${currentWorkingHours!.end_time} · зачеркнатите са заети`}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              <div className="border-t" style={{ borderColor: "rgba(201,168,76,0.12)" }} />
-
-              {/* Client info */}
-              <div className="relative">
-                <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Клиент *</label>
-                <input
-                  className="input-admin"
-                  placeholder="Име на клиента"
-                  value={clientName}
-                  onChange={(e) => setClientName(e.target.value)}
-                  onFocus={() => { if (suggestions.length > 0) setShowSuggestions(true); }}
-                  onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
-                  autoComplete="off"
-                />
-                {showSuggestions && suggestions.length > 0 && (
-                  <ul
-                    className="absolute left-0 right-0 top-full z-50 mt-1 overflow-hidden rounded-xl border bg-white shadow-xl"
-                    style={{ borderColor: "rgba(201,168,76,0.25)" }}
-                  >
-                    {suggestions.map((s) => (
-                      <li key={s.id}>
-                        <button
-                          type="button"
-                          className="flex w-full flex-col gap-0.5 px-3 py-2.5 text-left transition hover:bg-[rgba(201,168,76,0.07)] active:bg-[rgba(201,168,76,0.12)]"
-                          onMouseDown={() => pickSuggestion(s)}
-                        >
-                          <span className="text-sm font-semibold text-[#1A1A1A]">{s.name}</span>
-                          {(s.phone || s.email) && (
-                            <span className="text-[11px] text-[#1A1A1A]/45">
-                              {[s.phone, s.email].filter(Boolean).join(" · ")}
-                            </span>
-                          )}
-                        </button>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-              </div>
-              <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Телефон</label>
+                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Дата *</label>
                   <input
+                    type="date"
                     className="input-admin"
-                    placeholder="+359 88..."
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    onBlur={() => void lookupPhone()}
-                    inputMode="tel"
+                    value={bookingDate}
+                    min={todayISO}
+                    max={maxBookingDate}
+                    onChange={(e) => { setBookingDate(e.target.value); setSelectedTime(null); }}
+                    required
                   />
                 </div>
-                <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Имейл</label>
-                  <input className="input-admin" type="email" placeholder="mail@..." value={email} onChange={(e) => setEmail(e.target.value)} />
-                </div>
-              </div>
 
-              {needSpecialist ? (
                 <div>
-                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Специалист *</label>
-                  <select className="input-admin" value={specialistId} onChange={(e) => setSpecialistId(e.target.value)}>
-                    <option value="">—</option>
-                    {activeSpecs.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Услуга</label>
+                  <select
+                    className="input-admin"
+                    value={serviceId}
+                    onChange={(e) => { setServiceId(e.target.value); setSelectedTime(null); }}
+                  >
+                    {activeServices.map((s) => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} — {Number(s.price_eur).toFixed(0)} €
+                      </option>
+                    ))}
                   </select>
                 </div>
-              ) : null}
+
+                {selected?.is_complex ? (
+                  <div className="grid gap-3 sm:grid-cols-2">
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Дължина</label>
+                      <select className="input-admin" value={hairLength} onChange={(e) => { setHairLength(e.target.value as HairLength); setSelectedTime(null); }}>
+                        {HAIR_LEN.map((x) => <option key={x.v} value={x.v}>{x.l}</option>)}
+                      </select>
+                    </div>
+                    <div>
+                      <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Гъстота</label>
+                      <select className="input-admin" value={hairDensity} onChange={(e) => { setHairDensity(e.target.value as HairDensity); setSelectedTime(null); }}>
+                        {HAIR_DEN.map((x) => <option key={x.v} value={x.v}>{x.l}</option>)}
+                      </select>
+                    </div>
+                  </div>
+                ) : null}
+
+                {needSpecialist ? (
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Специалист *</label>
+                    <select
+                      className="input-admin"
+                      value={specialistId}
+                      onChange={(e) => { setSpecialistId(e.target.value); setSelectedTime(null); }}
+                    >
+                      <option value="">—</option>
+                      {activeSpecs.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                ) : null}
+
+                <div>
+                  {!currentWorkingHours || currentWorkingHours.is_day_off ? (
+                    <p className="rounded-xl border px-3 py-3 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
+                      Почивен ден — няма работно време.
+                    </p>
+                  ) : slotsLoading ? (
+                    <p className="text-sm text-[#1A1A1A]/45">Проверяване на свободните часове…</p>
+                  ) : selectableTimes.length === 0 ? (
+                    <p className="rounded-xl border px-3 py-3 text-center text-sm text-[#1A1A1A]/40" style={{ borderColor: "rgba(201,168,76,0.2)" }}>
+                      Няма свободни часове за тази дата.
+                    </p>
+                  ) : (
+                    <AdminTimeSelect
+                      id="quick-booking-time"
+                      label="Час *"
+                      value={timeSelectValue}
+                      placeholder="— Избери час —"
+                      options={selectableTimes}
+                      onChange={(v) => setSelectedTime(v || null)}
+                    />
+                  )}
+                  {currentWorkingHours && !currentWorkingHours.is_day_off && !slotsLoading && selectableTimes.length > 0 ? (
+                    <p className="mt-1.5 text-[10px] text-[#1A1A1A]/30">
+                      {currentWorkingHours.start_time} – {currentWorkingHours.end_time} · само свободни часове
+                    </p>
+                  ) : null}
+                </div>
+              </section>
+
+              {/* 2. Клиент */}
+              <section className="space-y-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.15em]" style={{ color: "#C9A84C" }}>2. Клиент</p>
+
+                <div>
+                  <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Име *</label>
+                  <input
+                    ref={nameInputRef}
+                    className="input-admin"
+                    placeholder="Започни да пишеш — ще видиш клиенти от базата"
+                    value={clientName}
+                    onChange={(e) => setClientName(e.target.value)}
+                    onFocus={() => {
+                      updateSuggestRect();
+                      if (suggestions.length > 0) setShowSuggestions(true);
+                    }}
+                    onBlur={() => setTimeout(() => setShowSuggestions(false), 180)}
+                    autoComplete="off"
+                  />
+                  {suggestionsLoading ? (
+                    <p className="mt-1 text-[11px] text-[#1A1A1A]/35">Търсене в клиенти…</p>
+                  ) : null}
+                </div>
+
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Телефон</label>
+                    <input
+                      className="input-admin"
+                      placeholder="+359 88..."
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      onBlur={() => void lookupPhone()}
+                      inputMode="tel"
+                    />
+                  </div>
+                  <div>
+                    <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Имейл</label>
+                    <input className="input-admin" type="email" placeholder="mail@..." value={email} onChange={(e) => setEmail(e.target.value)} />
+                  </div>
+                </div>
+              </section>
             </div>
           </div>
 
@@ -470,6 +516,7 @@ export function QuickBooking(props: {
             </div>
           </div>
         </form>
+        {suggestionPortal}
       </div>
     </div>
   );

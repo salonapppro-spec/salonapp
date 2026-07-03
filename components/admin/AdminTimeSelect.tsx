@@ -22,6 +22,7 @@ export function AdminTimeSelect(props: {
   label: string;
   value: string;
   options: string[];
+  placeholder?: string;
   onChange: (value: string) => void;
   className?: string;
 }) {
@@ -36,6 +37,7 @@ export function AdminTimeSelect(props: {
         value={props.value}
         onChange={(e) => props.onChange(e.target.value)}
       >
+        {props.placeholder ? <option value="">{props.placeholder}</option> : null}
         {props.options.map((time) => (
           <option key={time} value={time}>
             {time}
