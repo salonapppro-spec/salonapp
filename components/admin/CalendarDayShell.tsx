@@ -67,7 +67,12 @@ export function CalendarDayShell(props: {
         />
       </ScheduleBoard>
       {blockOpen ? (
-        <BlockSlotModal blockedDate={props.date} initialSlots={props.blocked} onClose={() => setBlockOpen(false)} />
+        <BlockSlotModal
+          blockedDate={props.date}
+          initialSlots={props.blocked}
+          workingHours={props.workingHours}
+          onClose={() => setBlockOpen(false)}
+        />
       ) : null}
     </>
   );
