@@ -89,6 +89,9 @@ test(
           booking_time: slotTime,
           client_name: TEST_NAME,
           client_phone: TEST_PHONE,
+          // Задължителен в публичната схема; @no-email.salonapp.pro е
+          // недоставим — потвърждението bounce-ва безвредно.
+          client_email: "integration-test@no-email.salonapp.pro",
           notes: "integration booking-race test",
         },
       });
@@ -147,6 +150,7 @@ test(
       booking_time: slotTime,
       client_name: TEST_NAME,
       client_phone: TEST_PHONE,
+      client_email: "integration-test@no-email.salonapp.pro",
       notes: "integration double-booking test",
     };
 

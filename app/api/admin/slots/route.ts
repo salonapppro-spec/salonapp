@@ -52,8 +52,11 @@ export async function GET(req: Request) {
   const service = services.find((s) => s.id === service_id);
   if (!service) return NextResponse.json({ error: "Service not found" }, { status: 404 });
 
-  // Admin endpoint — no buffer so admins see all truly free slots without artificial gaps
-  const bufferMinutes = 0;
+  // Същият буфер като публичния /api/availability и като conflict проверката
+  // в runCreateBooking. Преди беше 0 ("покажи всичко истински свободно"), но
+  // така се показваха слотове, които записът после отказваше като заети —
+  // разминаване UI ↔ сървър (audit 2026-07-06).
+  const bufferMinutes = Number(settings?.buffer_minutes ?? 10);
   const magneticEnabled = Boolean(settings?.magnetic_scheduling ?? true);
 
   const fallback = DEFAULT_WORKING_HOURS_DAYS[dayOfWeek] ?? { start_time: "09:00", end_time: "18:00", is_day_off: false };

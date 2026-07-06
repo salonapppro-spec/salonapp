@@ -76,8 +76,12 @@ export function QuickBooking(props: {
   const [showSuggestions, setShowSuggestions] = useState(false);
   const [suggestionsLoading, setSuggestionsLoading] = useState(false);
   const suggestRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const justPicked = useRef(false);
+  const justPickedName = useRef(false);
+  const justPickedPhone = useRef(false);
   const nameInputRef = useRef<HTMLInputElement>(null);
+  const phoneInputRef = useRef<HTMLInputElement>(null);
+  /** Кое поле е "котва" на отворения dropdown — име или телефон. */
+  const suggestAnchorRef = useRef<"name" | "phone">("name");
   const [suggestRect, setSuggestRect] = useState<{ top: number; left: number; width: number } | null>(null);
   const [freeSlots, setFreeSlots] = useState<string[]>([]);
   const [slotsLoading, setSlotsLoading] = useState(true);
@@ -108,11 +112,43 @@ export function QuickBooking(props: {
     }
   }, [nowMinutes, selectedTime, bookingDate, todayISO]);
 
-  const updateSuggestRect = useCallback(() => {
-    const el = nameInputRef.current;
+  const updateSuggestRect = useCallback((field: "name" | "phone") => {
+    const el = field === "name" ? nameInputRef.current : phoneInputRef.current;
     if (!el) return;
+    suggestAnchorRef.current = field;
     const r = el.getBoundingClientRect();
     setSuggestRect({ top: r.bottom + 4, left: r.left, width: r.width });
+  }, []);
+
+  /** Общ debounced fetch за подсказки — от името или от телефона. */
+  const fetchSuggestions = useCallback(
+    (query: string, field: "name" | "phone") => {
+      if (suggestRef.current) clearTimeout(suggestRef.current);
+      setSuggestionsLoading(true);
+      suggestRef.current = setTimeout(() => {
+        fetch(`/api/admin/clients/search?q=${encodeURIComponent(query)}`)
+          .then((r) => r.json())
+          .then((d: unknown) => {
+            const list = Array.isArray(d) ? d : [];
+            setSuggestions(list as ClientSuggestion[]);
+            setShowSuggestions(list.length > 0);
+            if (list.length > 0) updateSuggestRect(field);
+          })
+          .catch(() => {
+            setSuggestions([]);
+            setShowSuggestions(false);
+          })
+          .finally(() => setSuggestionsLoading(false));
+      }, 220);
+    },
+    [updateSuggestRect]
+  );
+
+  const clearSuggestionsFor = useCallback((field: "name" | "phone") => {
+    if (suggestAnchorRef.current !== field) return;
+    setSuggestions([]);
+    setShowSuggestions(false);
+    setSuggestionsLoading(false);
   }, []);
 
   // Re-fetch working hours when the date changes inside the modal
@@ -171,7 +207,7 @@ export function QuickBooking(props: {
     if (!isPast && freeSlots.includes(t)) {
       setSelectedTime((prev) => prev ?? t);
     }
-  }, [time, freeSlots, slotsLoading, bookingDate, todayISO]);
+  }, [time, freeSlots, slotsLoading, bookingDate, todayISO, nowMinutes]);
 
   // Drop time if service/date change made it unavailable
   useEffect(() => {
@@ -180,41 +216,41 @@ export function QuickBooking(props: {
     if (isPast || !freeSlots.includes(selectedTime)) {
       setSelectedTime(null);
     }
-  }, [freeSlots, slotsLoading, selectedTime, bookingDate, todayISO]);
+  }, [freeSlots, slotsLoading, selectedTime, bookingDate, todayISO, nowMinutes]);
 
+  // Подсказки при писане на име
   useEffect(() => {
-    if (justPicked.current) { justPicked.current = false; return; }
-    if (suggestRef.current) clearTimeout(suggestRef.current);
+    if (justPickedName.current) { justPickedName.current = false; return; }
     const q = clientName.trim();
     if (q.length < 1) {
-      setSuggestions([]);
-      setShowSuggestions(false);
-      setSuggestionsLoading(false);
+      clearSuggestionsFor("name");
       return;
     }
-    setSuggestionsLoading(true);
-    suggestRef.current = setTimeout(() => {
-      fetch(`/api/admin/clients/search?q=${encodeURIComponent(q)}`)
-        .then((r) => r.json())
-        .then((d: unknown) => {
-          const list = Array.isArray(d) ? d : [];
-          setSuggestions(list as ClientSuggestion[]);
-          setShowSuggestions(list.length > 0);
-          if (list.length > 0) updateSuggestRect();
-        })
-        .catch(() => {
-          setSuggestions([]);
-          setShowSuggestions(false);
-        })
-        .finally(() => setSuggestionsLoading(false));
-    }, 220);
+    fetchSuggestions(q, "name");
     return () => { if (suggestRef.current) clearTimeout(suggestRef.current); };
-  }, [clientName, updateSuggestRect]);
+  }, [clientName, fetchSuggestions, clearSuggestionsFor]);
+
+  // Подсказки при писане на телефон — от ≥3 цифри търси клиент в базата,
+  // независимо дали номерът е въведен като 0888… или +359888… (сървърът
+  // генерира вариантите).
+  useEffect(() => {
+    if (justPickedPhone.current) { justPickedPhone.current = false; return; }
+    const digits = phone.replace(/\D+/g, "");
+    if (digits.length < 3) {
+      clearSuggestionsFor("phone");
+      return;
+    }
+    fetchSuggestions(phone.trim(), "phone");
+    return () => { if (suggestRef.current) clearTimeout(suggestRef.current); };
+  }, [phone, fetchSuggestions, clearSuggestionsFor]);
 
   function pickSuggestion(s: ClientSuggestion) {
-    justPicked.current = true;
+    justPickedName.current = true;
     setClientName(s.name);
-    if (s.phone) setPhone(s.phone);
+    if (s.phone) {
+      justPickedPhone.current = true;
+      setPhone(s.phone);
+    }
     if (s.email) setEmail(s.email);
     setSuggestions([]);
     setShowSuggestions(false);
@@ -296,11 +332,10 @@ export function QuickBooking(props: {
     setSaving(true);
     setError(null);
     try {
-      // Без литерален "00000" placeholder — той сливаше различни анонимни
-      // клиенти в един фантомен запис чрез clients.upsertByPhone (audit
-      // 2026-06-15/16). Уникален синтетичен "телефон" за всеки booking без
-      // реален номер, така че никога не колидира с друг клиент.
-      const normalizedPhone = phone.trim().length >= 5 ? phone.trim() : `anon-${crypto.randomUUID()}`;
+      // Празен телефон е позволен за админ (walk-in) — сървърът тогава НЕ
+      // създава клиентски запис, така че няма фантомни дубликати. Никакви
+      // синтетични placeholder-и (старият `anon-uuid` така или иначе падаше
+      // на схемата — audit 2026-07-06).
       const result = await createAdminBooking({
         salon_slug: salonSlug,
         specialist_id: effectiveSpecialistId,
@@ -308,7 +343,7 @@ export function QuickBooking(props: {
         booking_date: bookingDate,
         booking_time: selectedTime,
         client_name: clientName.trim(),
-        client_phone: normalizedPhone,
+        client_phone: phone.trim(),
         client_email: email.trim() || undefined,
         hair_length: selected.is_complex ? hairLength : undefined,
         hair_density: selected.is_complex ? hairDensity : undefined,
@@ -459,7 +494,7 @@ export function QuickBooking(props: {
                     value={clientName}
                     onChange={(e) => setClientName(e.target.value)}
                     onFocus={() => {
-                      updateSuggestRect();
+                      updateSuggestRect("name");
                       if (suggestions.length > 0) setShowSuggestions(true);
                     }}
                     onBlur={() => setTimeout(() => setShowSuggestions(false), 180)}
@@ -474,17 +509,29 @@ export function QuickBooking(props: {
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Телефон</label>
                     <input
+                      ref={phoneInputRef}
                       className="input-admin"
-                      placeholder="+359 88..."
+                      placeholder="+359 88... — търси клиент"
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
-                      onBlur={() => void lookupPhone()}
+                      onFocus={() => {
+                        updateSuggestRect("phone");
+                        if (suggestions.length > 0) setShowSuggestions(true);
+                      }}
+                      onBlur={() => {
+                        setTimeout(() => setShowSuggestions(false), 180);
+                        void lookupPhone();
+                      }}
                       inputMode="tel"
+                      autoComplete="off"
                     />
                   </div>
                   <div>
                     <label className="text-[10px] font-black uppercase tracking-[0.15em] text-[#1A1A1A]/40">Имейл</label>
                     <input className="input-admin" type="email" placeholder="mail@..." value={email} onChange={(e) => setEmail(e.target.value)} />
+                    {!email.trim() ? (
+                      <p className="mt-1 text-[11px] text-amber-700/80">Без имейл клиентът няма да получи потвърждение и напомняне.</p>
+                    ) : null}
                   </div>
                 </div>
               </section>

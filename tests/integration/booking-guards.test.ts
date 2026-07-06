@@ -31,6 +31,9 @@ function bookingBody(overrides: Record<string, unknown> = {}): Record<string, un
     booking_time: "10:00",
     client_name: "Integration Guard Test",
     client_phone: "+359888123456",
+    // Имейлът е задължителен в публичната схема (2026-07-06) — без него
+    // заявката пада на валидацията ПРЕДИ tenant проверките, които тестваме.
+    client_email: "integration-test@no-email.salonapp.pro",
     ...overrides,
   };
 }

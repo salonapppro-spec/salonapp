@@ -19,6 +19,9 @@ test("root domain: POST /api/bookings resolves tenant from query + referer (not 
       booking_time: "10:00",
       client_name: "Integration Root Domain",
       client_phone: "+359888123456",
+      // Задължителен в публичната схема — без него 400-ката идва от Zod,
+      // а тестът проверява tenant контекста, не валидацията.
+      client_email: "integration-test@no-email.salonapp.pro",
     },
   });
 

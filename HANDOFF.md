@@ -2,6 +2,36 @@
 
 ---
 
+## 2026-07-06 — QuickBooking: телефон autocomplete, имейл правила, клиентска дедупликация (fix пакет №1+№2 от одита)
+
+**Контекст:** Одит 2026-07-06 + изисквания на Поли: (1) бързият букинг да разпознава клиент още при писане на телефона; (2) имейлът е задължителен на публичните сайтове, опционален в админа; (3) никакви дублирани клиенти.
+
+**Схеми (`schemas/booking.ts`):**
+- `CreateBookingSchema` (публична): `client_email` **задължителен** (Zod `z.email()`, не "няколко букви"); `booking_date`/`booking_time` с regex + реална календарна валидация (одит B3 — todo тестът стана зелен); max дължини на име/бележки
+- Нова `AdminCreateBookingSchema`: телефон и имейл опционални (walk-in); празен низ → undefined
+
+**Admin booking (`app/actions/admin-booking.ts` + `lib/booking-mutations.ts`):**
+- `allowEmptyPhone` (само админ): без телефон → `client_phone=""` и **не** се създава клиентски запис (няма ключ за дедуп → няма фантоми; старият `anon-uuid` падаше на схемата и правеше записа без телефон невъзможен)
+- `minNoticeMinutes: 0` за админ — walk-in "сега" вече е възможен (публичното предизвестие остава)
+
+**Дедупликация (`lib/tenant-db.ts`):**
+- `upsertByPhone`: премахнат fallback `"00000"` (одит B7); **недеструктивен** update — резервация без имейл вече НЕ трие имейла на клиента; празно име не презаписва
+- Нов `clients.searchSuggest(term, phoneVariants)` за autocomplete
+
+**QuickBooking UI (`components/admin/QuickBooking.tsx`):**
+- Autocomplete и по телефон (≥3 цифри, debounce 220ms) — сървърът генерира вариантите `0888…` ⇄ `+359888…` (`app/api/admin/clients/search`), защото клиентите са записани нормализирано
+- Избор от списъка попълва име+телефон+имейл; hint под празен имейл ("няма да получи потвърждение")
+
+**Admin slots (`app/api/admin/slots/route.ts`):** буферът вече е от настройките (беше 0) — админът вижда само слотове, които записът реално приема (одит: разминаване UI ↔ сървър)
+
+**Публични форми:** имейл задължителен + `isLikelyValidEmail` (нов в `lib/email-typo.ts`) в `BookingFlow`/`StepContact`, `InlineBookingForm`, `BookingCalendar`
+
+**Тестове:** `booking-schema.test.ts` обновен (публичен имейл задължителен; нови admin-schema тестове; B3 todo → реален pass); integration booking payload-ите вече пращат `client_email` (иначе падат на схемата преди tenant проверките). `npm test` → 170 tests, 168 pass, 0 fail, 2 todo (M4, C1). `tsc` чист, lint чист, service-role boundary pass.
+
+**Branch:** `fix/quick-booking-client-dedup-email`
+
+---
+
 ## 2026-07-06 — Регресионни тестове по одитите (bookings / payments / calendar / auth)
 
 **Контекст:** Два одита от 2026-07-06 (пълен codebase одит + `SECURITY_AUDIT_2026-07-06.md`). Целта: тестове, които се пускат преди всяко deploy (`npm test` + `npm run test:integration`), за да не регресират критичните пътища.

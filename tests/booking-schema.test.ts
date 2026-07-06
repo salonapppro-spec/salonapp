@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import test from "node:test";
 
-import { CreateBookingSchema, UpdateBookingStatusSchema } from "../schemas/booking";
+import { AdminCreateBookingSchema, CreateBookingSchema, UpdateBookingStatusSchema } from "../schemas/booking";
 
 // ---------------------------------------------------------------------------
 // Регресионни тестове за входната валидация на резервации (одит 2026-07-06).
@@ -17,6 +17,7 @@ function validInput(overrides: Record<string, unknown> = {}): Record<string, unk
     booking_time: "10:00",
     client_name: "Мария Иванова",
     client_phone: "+359888123456",
+    client_email: "maria@example.com",
     ...overrides,
   };
 }
@@ -62,10 +63,28 @@ test("CreateBookingSchema: телефон без нито една цифра М
   assert.ok(r.success, "Ако това започне да пада, digit-guard-ът в runCreateBooking вече не е единствената защита — обнови коментара.");
 });
 
-test("CreateBookingSchema: невалиден имейл се отхвърля, липсващ имейл е ок", () => {
+// Публичните форми: имейлът е задължителен — на него отиват потвърждението,
+// напомнянето и confirm/cancel линковете (решение 2026-07-06).
+test("CreateBookingSchema: невалиден или липсващ имейл се отхвърля (публична форма)", () => {
   assert.equal(CreateBookingSchema.safeParse(validInput({ client_email: "not-an-email" })).success, false);
-  assert.ok(CreateBookingSchema.safeParse(validInput()).success);
+  assert.equal(CreateBookingSchema.safeParse(validInput({ client_email: "абв" })).success, false);
+  assert.equal(CreateBookingSchema.safeParse(validInput({ client_email: "" })).success, false);
+  assert.equal(CreateBookingSchema.safeParse(validInput({ client_email: undefined })).success, false);
   assert.ok(CreateBookingSchema.safeParse(validInput({ client_email: "x@y.bg" })).success);
+});
+
+// Админ (QuickBooking): телефон и имейл са опционални за walk-in клиент;
+// празният низ се нормализира до undefined и не стига до базата.
+test("AdminCreateBookingSchema: празни/липсващи телефон и имейл са ок, невалидни се отхвърлят", () => {
+  const empty = AdminCreateBookingSchema.safeParse(validInput({ client_phone: "", client_email: "" }));
+  assert.ok(empty.success);
+  if (empty.success) {
+    assert.equal(empty.data.client_phone, undefined);
+    assert.equal(empty.data.client_email, undefined);
+  }
+  assert.ok(AdminCreateBookingSchema.safeParse(validInput({ client_phone: undefined, client_email: undefined })).success);
+  assert.equal(AdminCreateBookingSchema.safeParse(validInput({ client_email: "not-an-email" })).success, false);
+  assert.equal(AdminCreateBookingSchema.safeParse(validInput({ client_phone: "088abc4567" })).success, false);
 });
 
 test("CreateBookingSchema: празни hair полета стават undefined (не стигат до CHECK в Postgres)", () => {
@@ -87,14 +106,16 @@ test("CreateBookingSchema: валидни hair стойности минават
   assert.ok(r.success);
 });
 
-// Одит 2026-07-06, находка B3: booking_date/booking_time са само .min(1) —
-// боклук като "zz:zz" минава схемата, дава NaN в timeToMinutes и пропуска
-// всички проверки до DB грешка. Когато схемата се затегне с regex + реална
-// валидация на датата, махни { todo } и остави assert-ите.
-test("CreateBookingSchema: невалиден формат на дата/час трябва да се отхвърля", { todo: "audit B3: добави regex/date валидация в schemas/booking.ts" }, () => {
+// Одит 2026-07-06, находка B3 (оправена): booking_date/booking_time вече имат
+// regex + реална календарна валидация — "zz:zz" и 31 февруари не минават и не
+// стигат до NaN пътя в timeToMinutes.
+test("CreateBookingSchema: невалиден формат на дата/час се отхвърля", () => {
   assert.equal(CreateBookingSchema.safeParse(validInput({ booking_time: "zz:zz" })).success, false);
+  assert.equal(CreateBookingSchema.safeParse(validInput({ booking_time: "25:00" })).success, false);
   assert.equal(CreateBookingSchema.safeParse(validInput({ booking_date: "31.12.2026" })).success, false);
   assert.equal(CreateBookingSchema.safeParse(validInput({ booking_date: "2026-02-31" })).success, false);
+  assert.ok(CreateBookingSchema.safeParse(validInput({ booking_time: "10:15:00" })).success);
+  assert.ok(CreateBookingSchema.safeParse(validInput({ booking_date: "2028-02-29" })).success); // високосна
 });
 
 // ---------------------------------------------------------------------------

@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { Service } from "@/types/database";
 import { isLikelyValidPhone } from "@/lib/phone";
-import { suggestEmailFix } from "@/lib/email-typo";
+import { isLikelyValidEmail, suggestEmailFix } from "@/lib/email-typo";
 import { createBooking } from "@/app/actions/booking";
 
 function MiniCalendar({ value, min, onChange, primaryColor, textColor, inputStyle }: {
@@ -233,7 +233,7 @@ export function InlineBookingForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!service || !date || !time || !name || !phone || !isLikelyValidPhone(phone)) return;
+    if (!service || !date || !time || !name || !phone || !isLikelyValidPhone(phone) || !isLikelyValidEmail(email)) return;
     setStatus("loading");
     setErrorMsg("");
     const svc = activeServices.find((s) => s.id === service);
@@ -257,7 +257,7 @@ export function InlineBookingForm({
         booking_time: time,
         client_name: name,
         client_phone: phone,
-        client_email: email || undefined,
+        client_email: email.trim(),
       });
       if ("error" in bookingResultData) {
         setErrorMsg(bookingResultData.error);
@@ -400,7 +400,9 @@ export function InlineBookingForm({
     );
   }
 
-  const canSubmit = !!(service && date && time && name && phone && isLikelyValidPhone(phone)) && status !== "loading";
+  const canSubmit =
+    !!(service && date && time && name && phone && isLikelyValidPhone(phone) && isLikelyValidEmail(email)) &&
+    status !== "loading";
 
   // All colors flow through CSS variables set on the wrapper div.
   // color-mix() creates transparent variants that update live in the builder.
@@ -548,11 +550,12 @@ export function InlineBookingForm({
           </div>
         </div>
 
-        {/* Email */}
+        {/* Email — задължителен: на него отиват потвърждението и напомнянето */}
         <div>
-          <label style={labelStyle}>Имейл</label>
+          <label style={labelStyle}>Имейл *</label>
           <input
             type="email"
+            required
             value={email}
             onChange={(e) => {
               setEmail(e.target.value);
@@ -562,6 +565,11 @@ export function InlineBookingForm({
             placeholder="maria@example.com"
             style={inputStyle}
           />
+          {email.trim() !== "" && !isLikelyValidEmail(email) ? (
+            <p style={{ color: "#e53e3e", fontSize: "12px", margin: "4px 0 0" }}>
+              Невалиден имейл адрес — проверете изписването.
+            </p>
+          ) : null}
           {emailSuggestion ? (
             <p style={{ fontSize: "12px", color: "#92600a", margin: "4px 0 0" }}>
               Имахте предвид{" "}

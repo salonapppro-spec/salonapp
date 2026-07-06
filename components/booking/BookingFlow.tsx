@@ -192,16 +192,20 @@ export function BookingFlow(props: { salonData: SalonData }) {
         setError("Невалиден телефон — проверете броя на цифрите (напр. 0888 123 456).");
         return;
       }
-      if (email.trim()) {
-        const domain = email.trim().split("@")[1] ?? "";
-        if (domain.includes(".xn--") || domain.startsWith("xn--")) {
-          setError("Имейлът изглежда написан с грешна клавиатурна подредба — проверете дали .com е на латиница.");
-          return;
-        }
-        if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
-          setError("Невалиден имейл адрес.");
-          return;
-        }
+      // Имейлът е задължителен — на него отиват потвърждението, напомнянето
+      // и линковете за потвърждение/отказ на часа.
+      if (!email.trim()) {
+        setError("Въведете имейл — на него ще получите потвърждение на резервацията.");
+        return;
+      }
+      const domain = email.trim().split("@")[1] ?? "";
+      if (domain.includes(".xn--") || domain.startsWith("xn--")) {
+        setError("Имейлът изглежда написан с грешна клавиатурна подредба — проверете дали .com е на латиница.");
+        return;
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email.trim())) {
+        setError("Невалиден имейл адрес.");
+        return;
       }
       setPhase("confirm");
     }
@@ -243,7 +247,7 @@ export function BookingFlow(props: { salonData: SalonData }) {
       booking_time: time,
       client_name: name.trim(),
       client_phone: phone.trim(),
-      client_email: email.trim() || undefined,
+      client_email: email.trim(),
       notes: notes.trim() || undefined,
       hair_length: selectedService.is_complex && hairLength ? hairLength : undefined,
       hair_density: selectedService.is_complex && hairDensity ? hairDensity : undefined,

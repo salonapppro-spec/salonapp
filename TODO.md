@@ -19,12 +19,12 @@
 - [x] **Регресионни тестове bookings/payments/calendar/auth** (2026-07-06) — 7 нови unit + 4 нови integration файла; 3 `todo` теста маркират неоправените находки и стават зелени при фикс
 - [ ] **A1+A3 Reminders: двойни имейли** — провери `error` на dedup заявката в `app/api/cron/reminders/route.ts:36`; уникален индекс `email_logs(booking_id,type) WHERE status='sent'` + claim-преди-send
 - [ ] **C1 Миграция за `tenants_plan_check`** — поправен само в production; чиста среда гърми на plan='starter' (todo тест в `tests/plan-consistency.test.ts` ще светне зелен)
-- [ ] **B7 `upsertByPhone`** — махни fallback „00000“ (`lib/tenant-db.ts:116`); update да не трие email/specialist при празни стойности
+- [x] **B7 `upsertByPhone`** (2026-07-06) — премахнат fallback „00000“; недеструктивен update (празен имейл/име не трият записаните); branch `fix/quick-booking-client-dedup-email`
 - [ ] **D1 `listUsers()` пагинация** — `app/super-admin/actions.ts:341,478`; чупи се след 50-ия auth потребител
 - [ ] **A2 Resend throttle/retry** — CONCURRENCY 10 > Resend 2 req/s; провалено напомняне не се повтаря никога
 - [ ] **A5 Unsubscribe на GET** — мейл скенери отписват клиенти; направи GET=страница, POST=действие
 - [ ] **M4 `IMPERSONATION_HMAC_SECRET` задължителен в prod** (todo тест в `tests/admin-impersonation.test.ts`)
-- [ ] **B3 Формат-валидация на `booking_date`/`booking_time`** в `schemas/booking.ts` (todo тест в `tests/booking-schema.test.ts`)
+- [x] **B3 Формат-валидация на `booking_date`/`booking_time`** (2026-07-06) — regex + реална календарна дата в `schemas/booking.ts`; todo тестът стана зелен; branch `fix/quick-booking-client-dedup-email`
 - [ ] **M1 `.gitignore`: добави `.env*`** (5 мин)
 - [ ] **M2 `npm audit fix`** за `ws` + `qs`
 

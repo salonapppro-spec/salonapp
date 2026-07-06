@@ -109,22 +109,28 @@ export function tenantDb(rawSlug: string) {
        * Слива клиент по уникален ключ (salon_slug, phone).
        * Използваме SELECT + UPDATE/INSERT вместо PostgREST `upsert(onConflict: …)`,
        * защото при някои инсталации composite upsert не се прилага надеждно и грешката остава скрита.
+       *
+       * Недеструктивен: при съществуващ клиент празни/липсващи стойности НЕ
+       * презаписват записаните (резервация без имейл не трие имейла на
+       * клиента). Без телефон операцията отказва — телефонът е ключът за
+       * дедупликация; никакви placeholder-и като "00000" (audit 2026-06-15/16).
        */
       upsertByPhone(values: AnyRow) {
-        const phoneRaw = normalizePhone(String((values as { phone?: unknown }).phone ?? "")) ||
+        const phone =
+          normalizePhone(String((values as { phone?: unknown }).phone ?? "")) ||
           String((values as { phone?: unknown }).phone ?? "").trim();
-        const phone = phoneRaw.length > 0 ? phoneRaw : "00000";
-        const row = withTenantSlug(
-          {
-            phone,
-            name: String((values as { name?: unknown }).name ?? "").trim() || "Клиент",
-            email: (values as { email?: string | null }).email ?? null,
-            specialist_id: (values as { specialist_id?: string | null }).specialist_id ?? null,
-            notes: (values as { notes?: string | null }).notes ?? null,
-          } as AnyRow,
-          salonSlug
-        );
         return (async () => {
+          if (!phone) {
+            return {
+              data: null,
+              error: { message: "upsertByPhone: липсва телефон — клиент без телефон не се записва." },
+            };
+          }
+          const name = String((values as { name?: unknown }).name ?? "").trim();
+          const email = String((values as { email?: unknown }).email ?? "").trim();
+          const specialistId = (values as { specialist_id?: string | null }).specialist_id ?? null;
+          const notes = (values as { notes?: string | null }).notes ?? null;
+
           const { data: exist, error: findErr } = await q("clients")
             .select("id")
             .eq("salon_slug", salonSlug)
@@ -134,19 +140,54 @@ export function tenantDb(rawSlug: string) {
           const existingId =
             exist && typeof exist === "object" && "id" in exist ? String((exist as { id: string }).id) : null;
           if (existingId) {
+            const patch: AnyRow = {};
+            if (name) patch.name = name;
+            if (email) patch.email = email;
+            if (specialistId) patch.specialist_id = specialistId;
+            if (Object.keys(patch).length === 0) {
+              return { data: { id: existingId }, error: null };
+            }
             return q("clients")
-              .update({
-                name: row.name,
-                email: row.email ?? null,
-                specialist_id: row.specialist_id ?? null,
-              })
+              .update(patch)
               .eq("id", existingId)
               .eq("salon_slug", salonSlug)
               .select("id")
               .maybeSingle();
           }
+          const row = withTenantSlug(
+            {
+              phone,
+              name: name || "Клиент",
+              email: email || null,
+              specialist_id: specialistId,
+              notes,
+            } as AnyRow,
+            salonSlug
+          );
           return q("clients").insert(row).select("id").maybeSingle();
         })();
+      },
+      /**
+       * Autocomplete за QuickBooking: търси по име/имейл (ilike) и по телефон
+       * чрез предварително изчислени цифрови варианти (виж
+       * /api/admin/clients/search) — клиентите са записани нормализирано
+       * (+359…), а админът пише "0888…". PostgREST-резервираните знаци се
+       * чистят от термина, за да не чупят .or() синтаксиса.
+       */
+      searchSuggest(term: string, phoneDigitVariants: string[], limit = 8) {
+        const safe = term.replace(/[,()]/g, " ").trim();
+        const parts: string[] = [];
+        if (safe) {
+          parts.push(`name.ilike.%${safe}%`, `email.ilike.%${safe}%`, `phone.ilike.%${safe}%`);
+        }
+        for (const digits of phoneDigitVariants) {
+          if (/^\d{3,}$/.test(digits)) parts.push(`phone.ilike.%${digits}%`);
+        }
+        let query = q("clients")
+          .select("id,name,phone,email")
+          .eq("salon_slug", salonSlug);
+        if (parts.length > 0) query = query.or(parts.join(","));
+        return query.order("name", { ascending: true }).limit(limit);
       },
     },
     bookings: {
