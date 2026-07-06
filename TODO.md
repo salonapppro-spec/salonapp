@@ -4,13 +4,29 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-06-16
+> Актуализирай след всяка задача. Последна промяна: 2026-07-06
 
 ---
 
 ## 🔴 КРИТИЧНО (сега)
 
-Няма. ✅ PR #63 (Section A) merge-нат в `main` (2026-06-16), code-reviewed ред по ред, 2 пропуска (CI boundary allowlist, dead import) намерени и поправени преди merge. Migrations 034+035 потвърдени реално приложени в production.
+Няма директно експлоатируемо. Одитите от 2026-07-06 (пълен codebase + security) намериха проблеми с приоритет по-долу; регресионните тестове за критичните пътища са добавени (branch `feature/audit-regression-tests`).
+
+---
+
+## 🟠 P1 — Находки от одитите 2026-07-06 (виж HANDOFF + SECURITY_AUDIT_2026-07-06.md)
+
+- [x] **Регресионни тестове bookings/payments/calendar/auth** (2026-07-06) — 7 нови unit + 4 нови integration файла; 3 `todo` теста маркират неоправените находки и стават зелени при фикс
+- [ ] **A1+A3 Reminders: двойни имейли** — провери `error` на dedup заявката в `app/api/cron/reminders/route.ts:36`; уникален индекс `email_logs(booking_id,type) WHERE status='sent'` + claim-преди-send
+- [ ] **C1 Миграция за `tenants_plan_check`** — поправен само в production; чиста среда гърми на plan='starter' (todo тест в `tests/plan-consistency.test.ts` ще светне зелен)
+- [ ] **B7 `upsertByPhone`** — махни fallback „00000“ (`lib/tenant-db.ts:116`); update да не трие email/specialist при празни стойности
+- [ ] **D1 `listUsers()` пагинация** — `app/super-admin/actions.ts:341,478`; чупи се след 50-ия auth потребител
+- [ ] **A2 Resend throttle/retry** — CONCURRENCY 10 > Resend 2 req/s; провалено напомняне не се повтаря никога
+- [ ] **A5 Unsubscribe на GET** — мейл скенери отписват клиенти; направи GET=страница, POST=действие
+- [ ] **M4 `IMPERSONATION_HMAC_SECRET` задължителен в prod** (todo тест в `tests/admin-impersonation.test.ts`)
+- [ ] **B3 Формат-валидация на `booking_date`/`booking_time`** в `schemas/booking.ts` (todo тест в `tests/booking-schema.test.ts`)
+- [ ] **M1 `.gitignore`: добави `.env*`** (5 мин)
+- [ ] **M2 `npm audit fix`** за `ws` + `qs`
 
 ---
 

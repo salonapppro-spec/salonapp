@@ -1,4 +1,33 @@
-# HANDOFF — последна актуализация: 2026-06-16
+# HANDOFF — последна актуализация: 2026-07-06
+
+---
+
+## 2026-07-06 — Регресионни тестове по одитите (bookings / payments / calendar / auth)
+
+**Контекст:** Два одита от 2026-07-06 (пълен codebase одит + `SECURITY_AUDIT_2026-07-06.md`). Целта: тестове, които се пускат преди всяко deploy (`npm test` + `npm run test:integration`), за да не регресират критичните пътища.
+
+**Нови unit тестове (`tests/`):**
+- `booking-schema.test.ts` — CreateBookingSchema/UpdateBookingStatusSchema guard-ове; документира, че телефон без цифри минава схемата (пази се от digit-guard в мутацията); `todo`: формат-валидация на дата/час (одит B3)
+- `scheduling-conflicts.test.ts` — `booking_end_time` има превес над duration+buffer (одит B1), сливане на застъпени интервали, plan gating на `generateParallelSlots` (starter/legacy `collective` → без паралелен прозорец)
+- `booking-datetime.test.ts` — Europe/Sofia конверсии (лятно/зимно време), календарна аритметика през DST, 24ч граница за отказ
+- `admin-impersonation.test.ts` — HMAC sign/verify на super-admin cookie (tamper, чужд секрет, невалиден slug); `todo`: fail-closed без секрет (security одит M4)
+- `stripe-webhook-auth.test.ts` — вика реалния `POST` handler: липсващ secret → 500, липсващ/фалшив/чужд подпис → 400, валиден подпис минава и спира на DB слоя (без мрежа)
+- `plan-consistency.test.ts` — код ↔ схеми ↔ миграции за plan стойностите; `todo`: липсващата миграция за `tenants_plan_check` (одит C1)
+- `booking-mutations-unit.test.ts` — `normalizeTimeForDb` + import-sanity на booking мутациите
+
+**Нови integration тестове (`tests/integration/`), верифицирани срещу production (32/32 pass):**
+- `booking-guards.test.ts` — tenant mismatch 403, missing context 400, digit guard, минала дата, несъществуваща услуга, availability shape/дедупликация (read-only, не създава резервации)
+- `auth-guards.test.ts` — 8 admin endpoint-а без сесия → 401; ГРЕШЕН cron Bearer → 401; confirm/cancel/unsubscribe с фалшиви токени → 400/404
+- `stripe-webhook-security.test.ts` — live webhook отхвърля всичко без валиден подпис
+- `booking-race.test.ts` — **opt-in** (`INTEGRATION_ALLOW_BOOKING_WRITES=1` + service role env): 2 паралелни POST-а за един слот → точно 1 успех + 1×409 (exclusion constraint); double-booking след успех → 409; чисти след себе си. Пускай само срещу тестов тенант (праща реален имейл до owner-а).
+
+**Важни уроци от verify срещу production:**
+- Zod 4 валидира UUID version/variant битове — all-zero „фалшив“ UUID пада на схемата, не на бизнес слоя; тестовите UUID-та са валидни v4 по формат
+- `/api/admin/clients` и `/api/super-admin/tenants` са POST-only (GET → 405)
+
+**Резултат:** `npm test` → 169 tests, 166 pass, 3 todo (документирани одит находки B3/M4/C1 — стават зелени при фикс), exit 0. `npx tsc --noEmit` чист. Google Calendar sync НЕ е покрит — код за него няма в repo-то (одит F3), файловете от Правило 5 не съществуват.
+
+**Branch:** `feature/audit-regression-tests`
 
 ---
 
