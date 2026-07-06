@@ -1,6 +1,6 @@
 "use server";
 
-import { CreateBookingSchema } from "@/schemas/booking";
+import { AdminCreateBookingSchema } from "@/schemas/booking";
 import { adminActorHasCapability, resolveAdminActor } from "@/lib/admin-rbac";
 import { resolveAdminTenantSlug } from "@/lib/admin-tenant";
 import { loadCreateBookingContext, runCreateBooking } from "@/lib/booking-mutations";
@@ -9,6 +9,11 @@ export type AdminBookingActionResult = { success: true; booking_id: string } | {
 
 /**
  * Резервация от админ панела — без `x-salon-slug`; salon_slug идва от JWT metadata.
+ *
+ * Разлики спрямо публичния createBooking:
+ *  - телефон и имейл са опционални (walk-in клиент на място / по телефона);
+ *  - без минимално предизвестие — иначе салонът не може да запише клиент,
+ *    който стои на вратата "сега" (audit 2026-07-06).
  */
 export async function createAdminBooking(input: unknown): Promise<AdminBookingActionResult> {
   const slug = await resolveAdminTenantSlug();
@@ -24,7 +29,7 @@ export async function createAdminBooking(input: unknown): Promise<AdminBookingAc
   const body = typeof input === "object" && input !== null ? { ...(input as Record<string, unknown>) } : {};
   body.salon_slug = slug;
 
-  const parsed = CreateBookingSchema.safeParse(body);
+  const parsed = AdminCreateBookingSchema.safeParse(body);
   if (!parsed.success) {
     const msg = parsed.error.issues[0]?.message ?? "Невалидни данни";
     return { error: msg };
@@ -33,11 +38,14 @@ export async function createAdminBooking(input: unknown): Promise<AdminBookingAc
   // Zod regex разрешава whitespace (\s), затова низ от само празни символи
   // минава валидацията — но след .trim() остава празен. Преди фиксa това
   // тихо падаше към "00000", сливайки различни клиенти в един фантомен
-  // запис (виж audit 2026-06-15/16). Сега отказваме вместо да гадаем.
-  const phone = parsed.data.client_phone.trim();
-  const digitCount = (phone.match(/\d/g) ?? []).length;
-  if (digitCount < 5) {
-    return { error: "Невалиден телефон — въведете поне 5 цифри." };
+  // запис (виж audit 2026-06-15/16). Подаден телефон изисква ≥5 цифри;
+  // липсващ е позволен (allowEmptyPhone) и тогава клиентски запис не се създава.
+  const phone = parsed.data.client_phone?.trim() ?? "";
+  if (phone) {
+    const digitCount = (phone.match(/\d/g) ?? []).length;
+    if (digitCount < 5) {
+      return { error: "Невалиден телефон — въведете поне 5 цифри или го оставете празен." };
+    }
   }
   const data = { ...parsed.data, client_phone: phone };
 
@@ -46,7 +54,11 @@ export async function createAdminBooking(input: unknown): Promise<AdminBookingAc
     return { error: "Салонът не е намерен." };
   }
 
-  const result = await runCreateBooking(data, ctx);
+  const result = await runCreateBooking(data, {
+    ...ctx,
+    minNoticeMinutes: 0,
+    allowEmptyPhone: true,
+  });
   if (!result.ok) {
     return { error: result.error };
   }

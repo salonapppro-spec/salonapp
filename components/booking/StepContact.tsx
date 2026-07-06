@@ -56,9 +56,10 @@ export function StepContact(props: {
         />
       </div>
       <div>
-        <label className="text-xs font-medium text-neutral-600">Имейл</label>
+        <label className="text-xs font-medium text-neutral-600">Имейл *</label>
         <input
           type="email"
+          required
           className="mt-1 w-full rounded-lg border border-neutral-200 px-3 py-2 text-sm"
           value={email}
           onChange={(e) => {

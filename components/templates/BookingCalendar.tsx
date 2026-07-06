@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import type { Service, WorkingHours } from "@/types/database";
 import { isLikelyValidPhone } from "@/lib/phone";
-import { suggestEmailFix } from "@/lib/email-typo";
+import { isLikelyValidEmail, suggestEmailFix } from "@/lib/email-typo";
 import { createBooking } from "@/app/actions/booking";
 
 interface TimeSlot { time: string; magnetic: boolean; endTime?: string; }
@@ -153,7 +153,7 @@ export function BookingCalendar({
   }, [selectedDate, serviceId, salonSlug, isDemo, today]);
 
   async function handleSubmit() {
-    if (!selectedDate || !selectedTime || !serviceId || !name.trim() || !isValidPhone(phone) || !email.trim()) return;
+    if (!selectedDate || !selectedTime || !serviceId || !name.trim() || !isValidPhone(phone) || !isLikelyValidEmail(email)) return;
     setSubmitStatus("loading");
     setErrorMsg("");
     const svc = active.find((s) => s.id === serviceId);
@@ -218,7 +218,7 @@ export function BookingCalendar({
 
   const canGoPrev = !(curYear === new Date().getFullYear() && curMonth <= new Date().getMonth());
   const cells = buildCells();
-  const canSubmit = !!(selectedDate && selectedTime && serviceId && name.trim() && isValidPhone(phone) && email.trim()) && submitStatus !== "loading";
+  const canSubmit = !!(selectedDate && selectedTime && serviceId && name.trim() && isValidPhone(phone) && isLikelyValidEmail(email)) && submitStatus !== "loading";
 
   if (submitStatus === "success" && bookingResult) {
     const address = salonAddress ?? "";
@@ -795,6 +795,11 @@ export function BookingCalendar({
                         }}
                         onBlur={() => setEmailSuggestion(suggestEmailFix(email))}
                       />
+                      {email.trim() !== "" && !isLikelyValidEmail(email) ? (
+                        <p className="bcal-error" style={{ marginTop: "-4px" }}>
+                          Невалиден имейл адрес — проверете изписването.
+                        </p>
+                      ) : null}
                       {emailSuggestion ? (
                         <p style={{ fontSize: "12px", color: "#92600a", margin: "-4px 0 4px" }}>
                           Имахте предвид{" "}

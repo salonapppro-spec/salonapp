@@ -1,5 +1,5 @@
 import type { Booking, HairDensity, HairLength, Service } from "@/types";
-import type { CreateBookingInput } from "@/schemas/booking";
+import type { BookingWriteInput } from "@/schemas/booking";
 import { getBlockedSlotsForDate, getFinancialSettings, getWorkingHoursForDateLive } from "@/lib/data";
 import { getTenant } from "@/lib/get-tenant";
 import { tenantDb } from "@/lib/tenant-db";
@@ -60,13 +60,21 @@ export type CreateBookingResult =
   | { ok: false; error: string; code?: string };
 
 export async function runCreateBooking(
-  data: CreateBookingInput,
+  data: BookingWriteInput,
   opts: {
     salonName: string;
     bufferMinutes: number;
     minNoticeMinutes?: number;
     bookingWindowDays?: number | null;
     debugDbErrors?: boolean;
+    /**
+     * Само за админ (QuickBooking): позволява резервация без телефон за
+     * walk-in клиент. Тогава client_phone се записва като "" и клиентски
+     * запис НЕ се създава/слива — телефонът е ключът за дедупликация и без
+     * него няма как да се слее коректно (audit 2026-06-15/16: никакви
+     * placeholder стойности като "00000").
+     */
+    allowEmptyPhone?: boolean;
   }
 ): Promise<CreateBookingResult> {
   const db = tenantDb(data.salon_slug);
@@ -79,10 +87,11 @@ export async function runCreateBooking(
   // phantom record (audit 2026-06-15/16).
   const rawPhone = (data.client_phone ?? "").trim();
   const phoneDigitCount = (rawPhone.match(/\d/g) ?? []).length;
-  if (phoneDigitCount < 5) {
+  const phoneOmitted = opts.allowEmptyPhone === true && rawPhone.length === 0;
+  if (!phoneOmitted && phoneDigitCount < 5) {
     return { ok: false, error: "Невалиден телефон." };
   }
-  data = { ...data, client_phone: normalizePhone(rawPhone) || rawPhone };
+  data = { ...data, client_phone: phoneOmitted ? "" : normalizePhone(rawPhone) || rawPhone };
 
   const { data: serviceRow, error: serviceErr } = await db.services.getActiveById(data.service_id);
 
@@ -332,18 +341,22 @@ export async function runCreateBooking(
     return { ok: false, error: "Неуспешно записване. Опитайте отново." };
   }
 
-  try {
-    const { error: upsertErr } = await db.clients.upsertByPhone({
-      phone: data.client_phone,
-      name: data.client_name,
-      email: data.client_email ?? null,
-      specialist_id: bookingSpecialistId,
-    });
-    if (upsertErr) {
-      console.error("[runCreateBooking] clients.upsertByPhone failed (booking already saved)", upsertErr);
+  // Без телефон няма ключ за дедупликация → не създаваме клиентски запис
+  // (резервацията пази името). Никакви placeholder телефони.
+  if (!phoneOmitted) {
+    try {
+      const { error: upsertErr } = await db.clients.upsertByPhone({
+        phone: data.client_phone,
+        name: data.client_name,
+        email: data.client_email ?? null,
+        specialist_id: bookingSpecialistId,
+      });
+      if (upsertErr) {
+        console.error("[runCreateBooking] clients.upsertByPhone failed (booking already saved)", upsertErr);
+      }
+    } catch (e) {
+      console.error("[runCreateBooking] clients.upsertByPhone threw (booking already saved)", e);
     }
-  } catch (e) {
-    console.error("[runCreateBooking] clients.upsertByPhone threw (booking already saved)", e);
   }
 
   try {
