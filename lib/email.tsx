@@ -160,6 +160,8 @@ export async function sendConfirmationEmail(booking: Booking, tenant: Tenant): P
   const ok = await sendResendHtml(to, subject, html, {
     "X-Entity-Ref-ID": booking.id,
     "List-Unsubscribe": `<${unsubscribeUrl}>`,
+    // RFC 8058 one-click: мейл клиентът праща POST (действието), не GET (страница) — одит A5
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   });
   await logEmail({
     salon_slug: booking.salon_slug,
