@@ -64,6 +64,8 @@ type FetchLogEntry = { method: string; url: string; body: string | null };
 interface MockConfig {
   dedupSelect: { status: number; body: unknown };
   claimInsert: { status: number; body: unknown };
+  /** Последователни отговори за api.resend.com; последният се повтаря. */
+  resendResponses?: { status: number; body: unknown }[];
 }
 
 function installFetchMock(config: MockConfig): { log: FetchLogEntry[]; restore: () => void } {
@@ -99,7 +101,10 @@ function installFetchMock(config: MockConfig): { log: FetchLogEntry[]; restore: 
       return json(204, []);
     }
     if (url.includes("api.resend.com")) {
-      return json(200, { id: "email-id" });
+      const responses = config.resendResponses ?? [{ status: 200, body: { id: "email-id" } }];
+      const idx = log.filter((e) => e.url.includes("api.resend.com")).length - 1;
+      const r = responses[Math.min(idx, responses.length - 1)];
+      return json(r.status, r.body);
     }
     return json(404, { message: `unmocked: ${method} ${url}` });
   }) as typeof fetch;
@@ -178,6 +183,33 @@ test("reminders: провалено изпращане → claim-ът се ос�
     assert.ok(patch, "очаква се PATCH към email_logs за освобождаване на claim-а");
     assert.match(patch!.body ?? "", /failed/);
   } finally {
+    mock.restore();
+  }
+});
+
+test("reminders: Resend 5xx се повтаря (retry) и второто изпращане успява", async () => {
+  process.env.RESEND_API_KEY = "unit-test-resend-key";
+  const mock = installFetchMock({
+    dedupSelect: { status: 200, body: [] },
+    claimInsert: { status: 201, body: { id: "log-claim-1" } },
+    resendResponses: [
+      { status: 500, body: { message: "internal error" } },
+      { status: 200, body: { id: "email-id" } },
+    ],
+  });
+  try {
+    const { GET } = await loadRoute();
+    const res = await GET(cronRequest());
+    assert.equal(res.status, 200);
+    const payload = (await res.json()) as { ok: boolean; processed: number; failed: number };
+    assert.equal(payload.processed, 1);
+    assert.equal(payload.failed, 0);
+    const resendCalls = mock.log.filter((e) => e.url.includes("api.resend.com"));
+    assert.equal(resendCalls.length, 2, "очакват се 2 опита към Resend (retry след 5xx)");
+    // Успешна доставка → claim-ът остава 'sent', не се освобождава
+    assert.ok(!mock.log.some((e) => e.method === "PATCH" && e.url.includes("email_logs")));
+  } finally {
+    delete process.env.RESEND_API_KEY;
     mock.restore();
   }
 });

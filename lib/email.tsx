@@ -63,6 +63,12 @@ async function logEmail(params: {
   });
 }
 
+const RESEND_MAX_ATTEMPTS = 3;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function sendResendHtml(
   to: string,
   subject: string,
@@ -71,21 +77,34 @@ async function sendResendHtml(
 ): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: resendFrom(),
-      to: [to],
-      subject,
-      html,
-      ...(extraHeaders ? { headers: extraHeaders } : {}),
-    }),
-  }).catch(() => null);
-  return Boolean(res && res.ok);
+
+  // Retry с backoff при 429 (Resend лимит 2 req/s) и 5xx/мрежова грешка (одит A2).
+  // Останалите 4xx са перманентни (невалиден payload/ключ) — retry не помага.
+  for (let attempt = 1; attempt <= RESEND_MAX_ATTEMPTS; attempt += 1) {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: resendFrom(),
+        to: [to],
+        subject,
+        html,
+        ...(extraHeaders ? { headers: extraHeaders } : {}),
+      }),
+    }).catch(() => null);
+
+    if (res?.ok) return true;
+    if (res && res.status !== 429 && res.status < 500) return false;
+
+    if (attempt < RESEND_MAX_ATTEMPTS) {
+      const retryAfterSec = Number(res?.headers.get("retry-after")) || 0;
+      await sleep(Math.max(retryAfterSec * 1000, attempt * 1000));
+    }
+  }
+  return false;
 }
 
 async function loadServiceIsComplex(serviceId: string | null, salonSlug: string): Promise<boolean> {

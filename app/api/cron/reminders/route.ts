@@ -8,6 +8,9 @@ import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 import type { Booking } from "@/types";
 
 export const dynamic = "force-dynamic";
+// Throttle до Resend лимита (2 req/s) удължава изпълнението при много
+// напомняния — вдигаме кап-а на функцията, за да не удари default timeout.
+export const maxDuration = 300;
 
 export async function GET(req: Request) {
   const unauthorized = assertCronSecret(req);
@@ -50,11 +53,12 @@ export async function GET(req: Request) {
 
   const toSend = list.filter((b) => !already.has(b.id));
 
-  // Изпращаме на батчове, не последователно — при растеж на платформата
-  // (повече салони/bookings) последователен await per booking рискува да
-  // удари Vercel function timeout. Кеш на вече зареден tenant по salon_slug,
-  // защото няколко booking-а могат да са от един и същ салон.
-  const CONCURRENCY = 10;
+  // Изпращаме на батчове с pacing: Resend позволява 2 req/s (одит A2) —
+  // CONCURRENCY 2 + минимум MIN_BATCH_MS между стартовете на батчовете държи
+  // изпращането под лимита; retry при 429/5xx е в sendResendHtml. Кеш на вече
+  // зареден tenant по salon_slug, защото няколко booking-а са от един салон.
+  const CONCURRENCY = 2;
+  const MIN_BATCH_MS = 1100;
   const tenantCache = new Map<string, Awaited<ReturnType<typeof getTenant>>>();
   let processed = 0;
   let failed = 0;
@@ -100,7 +104,13 @@ export async function GET(req: Request) {
 
   for (let i = 0; i < toSend.length; i += CONCURRENCY) {
     const batch = toSend.slice(i, i + CONCURRENCY);
+    const startedAt = Date.now();
     await Promise.all(batch.map(sendOne));
+    const hasMore = i + CONCURRENCY < toSend.length;
+    const elapsed = Date.now() - startedAt;
+    if (hasMore && elapsed < MIN_BATCH_MS) {
+      await new Promise((resolve) => setTimeout(resolve, MIN_BATCH_MS - elapsed));
+    }
   }
 
   return NextResponse.json({ ok: true, processed, failed, date: tomorrow });
