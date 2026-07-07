@@ -23,7 +23,8 @@
 - [x] **D1 `listUsers()` пагинация** (2026-07-07) — `findAuthUserByEmail` обхожда всички страници (1000/стр.); auth cleanup при tenant delete е реален best-effort
 - [x] **A2 Resend throttle/retry** (2026-07-07) — `sendResendHtml` retry ×3 с backoff при 429/5xx; CONCURRENCY 2 + 1.1s/батч (под Resend 2 req/s); `maxDuration 300`; branch `claude/project-audit-bugs-9nggk1`
 - [x] **A5 Unsubscribe на GET** (2026-07-07) — GET=потвърждаваща страница, POST=действие; + `List-Unsubscribe-Post` (RFC 8058 one-click)
-- [x] **M4 `IMPERSONATION_HMAC_SECRET` fail-closed** (2026-07-07) — verify отхвърля всичко без секрет, sign хвърля ясна грешка; ⚠️ **задай env var-а във Vercel production ПРЕДИ deploy**, иначе impersonation спира
+- [x] **M4 `IMPERSONATION_HMAC_SECRET` fail-closed** (2026-07-07) — verify отхвърля всичко без секрет, sign хвърля ясна грешка; ✅ env var-ът е зададен във Vercel production (потвърдено 2026-07-07 — impersonation работи)
+- [x] **M4 follow-up: консуматори на подписаната бисквитка** (2026-07-07) — банерът в /admin показваше raw `slug.hmac`; rename route-ът сравняваше/записваше гол slug; middleware hint-ът тихо изчезна. И трите поправени + нов `tests/impersonation-cookie-consumers.test.ts`; branch `fix/impersonation-signed-cookie-consumers`
 - [x] **B3 Формат-валидация на `booking_date`/`booking_time`** (2026-07-06) — regex + реална календарна дата в `schemas/booking.ts`; todo тестът стана зелен; branch `fix/quick-booking-client-dedup-email`
 - [x] **M1 `.gitignore`: добави `.env*`** (2026-07-07) — `.env*` игнорирани, само `.env.example`/`.env.local.example` остават track-нати
 - [x] **M2 `npm audit fix`** (2026-07-07) — `ws` (high) + `qs` (moderate) затворени; оставащите 23 moderate искат breaking upgrade на next/@sentry (отделна задача)

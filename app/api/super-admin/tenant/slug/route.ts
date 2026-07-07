@@ -2,7 +2,7 @@ import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 
-import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
+import { SUPER_ADMIN_SALON_COOKIE, signImpersonationSlug, verifyImpersonationSlug } from "@/lib/admin-tenant";
 import { renameTenantSlugAsSuperAdmin } from "@/lib/internal/super-admin-tenant-slug";
 import { requireSuperAdminForApi } from "@/lib/super-admin-auth";
 
@@ -47,8 +47,12 @@ export async function POST(req: Request) {
 
   const res = NextResponse.json({ ok: true, new_salon_slug: newSlug, old_salon_slug: oldSlug });
   const store = await cookies();
-  if (store.get(SUPER_ADMIN_SALON_COOKIE)?.value === oldSlug) {
-    res.cookies.set(SUPER_ADMIN_SALON_COOKIE, newSlug, {
+  // Бисквитката е подписана ("slug.hmac", одит M4) — верифицираме преди
+  // сравнението и записваме новата стойност пак подписана, иначе fail-closed
+  // verify би я отхвърлил и impersonation контекстът се губи след rename.
+  const rawCookie = store.get(SUPER_ADMIN_SALON_COOKIE)?.value ?? "";
+  if (rawCookie && verifyImpersonationSlug(rawCookie) === oldSlug) {
+    res.cookies.set(SUPER_ADMIN_SALON_COOKIE, signImpersonationSlug(newSlug), {
       path: "/",
       httpOnly: true,
       sameSite: "lax",
