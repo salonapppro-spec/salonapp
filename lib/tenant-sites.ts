@@ -6,6 +6,7 @@ import { EuphoriaSite } from "@/components/tenants/euphoria/Page";
 import { LindySite } from "@/components/tenants/lindy/Page";
 import { TheSkinSite } from "@/components/tenants/theskin/Page";
 import { MagneticEyesSite } from "@/components/tenants/magnetic-eyes/Page";
+import { AtsMassageSite } from "@/components/tenants/ats-massage/Page";
 import type { SalonData } from "@/types/database";
 
 import { hasTenantSite, TENANT_SITE_SLUGS } from "./tenant-site-slugs";
@@ -21,6 +22,7 @@ const TENANT_SITE_COMPONENTS: Record<string, TenantSiteComponent> = {
   lindynails: LindySite,
   theskin: TheSkinSite,
   "magnetic-eyes": MagneticEyesSite,
+  "ats-massage": AtsMassageSite,
 };
 
 export function getTenantSite(slug: string): TenantSiteComponent | undefined {
