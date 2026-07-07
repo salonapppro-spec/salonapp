@@ -33,12 +33,18 @@ export async function GET(req: Request) {
   }
 
   const ids = list.map((b) => b.id);
-  const { data: existingLogs } = await supabase
+  const { data: existingLogs, error: logsError } = await supabase
     .from("email_logs")
     .select("booking_id")
     .eq("type", "reminder")
     .eq("status", "sent")
     .in("booking_id", ids);
+
+  // Fail closed: при грешка на dedup заявката НЕ пращаме нищо — иначе всички
+  // клиенти с вече изпратено напомняне биха получили втори имейл (одит A1).
+  if (logsError) {
+    return NextResponse.json({ ok: false, error: "dedup_query" }, { status: 500 });
+  }
 
   const already = new Set((existingLogs ?? []).map((r: { booking_id: string }) => r.booking_id));
 
@@ -61,12 +67,35 @@ export async function GET(req: Request) {
     }
     if (!tenant || (tenant.status !== "active" && tenant.status !== "trial")) return;
 
-    try {
-      await sendReminderEmail(b, tenant);
-      processed += 1;
-    } catch {
-      failed += 1;
+    // Claim-преди-send (одит A3): уникалният индекс email_logs_sent_booking_type_uniq
+    // гарантира точно един 'sent' ред per (booking, reminder) — паралелен run
+    // получава 23505 и пропуска. При провал на изпращането claim-ът се
+    // освобождава (status='failed'), за да опита следващият run.
+    const { data: claim, error: claimError } = await supabase
+      .from("email_logs")
+      .insert({ salon_slug: b.salon_slug, booking_id: b.id, type: "reminder", status: "sent" })
+      .select("id")
+      .single();
+
+    if (claimError || !claim) {
+      if (claimError?.code !== "23505") failed += 1;
+      return;
     }
+
+    let delivered = false;
+    try {
+      delivered = await sendReminderEmail(b, tenant);
+    } catch {
+      delivered = false;
+    }
+
+    if (delivered) {
+      processed += 1;
+      return;
+    }
+
+    failed += 1;
+    await supabase.from("email_logs").update({ status: "failed" }).eq("id", claim.id);
   }
 
   for (let i = 0; i < toSend.length; i += CONCURRENCY) {

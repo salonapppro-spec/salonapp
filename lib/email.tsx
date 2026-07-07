@@ -214,7 +214,12 @@ export async function sendSalonBookingTokenNotification(
   await sendResendHtml(to, `${title}: ${booking.client_name} — ${date} ${time}`, html);
 }
 
-export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promise<void> {
+/**
+ * Изпраща напомняне (имейл и/или SMS) и връща дали е доставено.
+ * НЕ пише в email_logs — логът е claim-ът в cron reminders route-а
+ * (claim-преди-send, одит A1+A3); успех = имейл ИЛИ SMS.
+ */
+export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promise<boolean> {
   const baseUrl = getPublicAppUrl();
   const token = booking.confirmation_token ?? "";
   const salonQuery = `salon=${encodeURIComponent(booking.salon_slug)}`;
@@ -242,21 +247,5 @@ export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promi
   }
 
   const smsSent = await sendSMSReminder(booking, tenant);
-  if (!emailSent && !smsSent) {
-    await logEmail({
-      salon_slug: booking.salon_slug,
-      booking_id: booking.id,
-      type: "reminder",
-      status: "failed",
-    });
-    return;
-  }
-
-  /** Успешно напомняне (имейл или само SMS) — спира cron. При неуспешен имейл няма запис → повторен опит. */
-  await logEmail({
-    salon_slug: booking.salon_slug,
-    booking_id: booking.id,
-    type: "reminder",
-    status: "sent",
-  });
+  return emailSent || smsSent;
 }
