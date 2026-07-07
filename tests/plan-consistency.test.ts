@@ -63,10 +63,9 @@ test("plan: platform_leads CHECK в миграциите позволява 'sta
   );
 });
 
-// Одит C1: tenants_plan_check е поправен само директно в production, без
-// миграция в repo-то — на чиста среда insert с plan='starter' гърми.
-// Когато се добави corrective миграция, този тест ще светне зелен — махни todo.
-test("plan: tenants CHECK в миграциите позволява 'starter'", { todo: "audit C1: добави миграция за tenants_plan_check (starter/standard/pro/premium)" }, () => {
+// Одит C1: tenants_plan_check се поправя от миграция 038 (преди това беше
+// само директно в production) — тестът пази последната дефиниция в repo-то.
+test("plan: tenants CHECK в миграциите позволява 'starter'", () => {
   const dir = migrationsDir();
   const files = readdirSync(dir).filter((f) => f.endsWith(".sql")).sort();
 
