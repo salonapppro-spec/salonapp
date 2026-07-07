@@ -2,6 +2,21 @@
 
 ---
 
+## 2026-07-07 — Fix: консуматорите на подписаната impersonation бисквитка (регресия от M4)
+
+**Контекст:** Поли прати screenshot — банерът „Супер-админ режим“ показва суровата бисквитка (`linabambina.19c9…`) вместо slug-а. Screenshot-ът същевременно потвърди, че `IMPERSONATION_HMAC_SECRET` е зададен във Vercel и impersonation работи (чакащата ръчна стъпка №1 е изпълнена). Root cause: M4 подписа бисквитката (`slug.hmac`), но 3 консуматора още очакваха гол slug.
+
+**Фиксове (branch `fix/impersonation-signed-cookie-consumers`):**
+1. `app/admin/(protected)/layout.tsx` — банерът ползва `readSuperAdminSalonCookieSlug()` (верифициран slug), не raw cookie
+2. `app/api/super-admin/tenant/slug/route.ts` — при rename: `verifyImpersonationSlug()` за сравнението + `signImpersonationSlug(newSlug)` при запис (иначе сравнението никога не match-ва, а неподписана нова стойност би била отхвърлена от fail-closed verify → загубен контекст след rename)
+3. `lib/routing/impersonation.ts` — `getImpersonatedSlug()` парсва slug частта от `slug.hmac` (header hint-ът в middleware беше тихо изчезнал). Edge runtime няма node:crypto → БЕЗ криптографска проверка там; границата на доверие остава `verifyImpersonationSlug` + cross-check в `requireAdminTenantSlugForApi` (форгната бисквитка → 401/403 на API слоя). Приема и legacy гол slug.
+
+**Тестове:** нов `tests/impersonation-cookie-consumers.test.ts` — подписан/legacy формат, консистентност middleware hint ↔ сървърен verify, банер контракт. `npm test` → 180/180, tsc/lint/service-role boundary чисти. Preview verify не е възможен локално (иска super-admin сесия + секрета) — верификацията е през unit тестовете; Поли да потвърди визуално след deploy.
+
+**Оставаща ръчна стъпка (Лина):** само migration 037 (+038 no-op) в production Supabase — backup + off-peak.
+
+---
+
 ## 2026-07-07 — Одит fix пакет: M1+M2, A1+A3 двойни reminder имейли, A2 Resend throttle/retry
 
 **Контекст:** Продължение по P1 находките от одитите 2026-07-06. Branch: `claude/project-audit-bugs-9nggk1` (3 commits).

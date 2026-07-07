@@ -4,7 +4,7 @@ import { createServerClient } from "@supabase/ssr";
 
 import { exitSalonAdminContextAction } from "@/app/super-admin/actions";
 import { AdminChrome } from "@/components/admin/AdminChrome";
-import { SUPER_ADMIN_SALON_COOKIE } from "@/lib/admin-tenant";
+import { readSuperAdminSalonCookieSlug } from "@/lib/admin-tenant";
 import { tomorrowDateISOInSofia } from "@/lib/booking-datetime";
 
 async function AdminProtectedFrame(props: { children: React.ReactNode }) {
@@ -32,9 +32,9 @@ async function AdminProtectedFrame(props: { children: React.ReactNode }) {
   if (!data.user) redirect("/admin/login");
 
   const isSuperAdmin = data.user.app_metadata?.role === "super_admin";
-  const impersonatedSlug = isSuperAdmin
-    ? cookieStore.get(SUPER_ADMIN_SALON_COOKIE)?.value?.trim() ?? null
-    : null;
+  // Бисквитката е подписана ("slug.hmac", одит M4) — банерът показва само
+  // верифицирания slug, не суровата стойност.
+  const impersonatedSlug = isSuperAdmin ? await readSuperAdminSalonCookieSlug() : null;
 
   const tomorrow = tomorrowDateISOInSofia();
   const mobileScheduleQuickLinks = {
