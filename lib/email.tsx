@@ -63,6 +63,12 @@ async function logEmail(params: {
   });
 }
 
+const RESEND_MAX_ATTEMPTS = 3;
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 async function sendResendHtml(
   to: string,
   subject: string,
@@ -71,21 +77,34 @@ async function sendResendHtml(
 ): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
-  const res = await fetch("https://api.resend.com/emails", {
-    method: "POST",
-    headers: {
-      Authorization: `Bearer ${key}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({
-      from: resendFrom(),
-      to: [to],
-      subject,
-      html,
-      ...(extraHeaders ? { headers: extraHeaders } : {}),
-    }),
-  }).catch(() => null);
-  return Boolean(res && res.ok);
+
+  // Retry с backoff при 429 (Resend лимит 2 req/s) и 5xx/мрежова грешка (одит A2).
+  // Останалите 4xx са перманентни (невалиден payload/ключ) — retry не помага.
+  for (let attempt = 1; attempt <= RESEND_MAX_ATTEMPTS; attempt += 1) {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        from: resendFrom(),
+        to: [to],
+        subject,
+        html,
+        ...(extraHeaders ? { headers: extraHeaders } : {}),
+      }),
+    }).catch(() => null);
+
+    if (res?.ok) return true;
+    if (res && res.status !== 429 && res.status < 500) return false;
+
+    if (attempt < RESEND_MAX_ATTEMPTS) {
+      const retryAfterSec = Number(res?.headers.get("retry-after")) || 0;
+      await sleep(Math.max(retryAfterSec * 1000, attempt * 1000));
+    }
+  }
+  return false;
 }
 
 async function loadServiceIsComplex(serviceId: string | null, salonSlug: string): Promise<boolean> {
@@ -141,6 +160,8 @@ export async function sendConfirmationEmail(booking: Booking, tenant: Tenant): P
   const ok = await sendResendHtml(to, subject, html, {
     "X-Entity-Ref-ID": booking.id,
     "List-Unsubscribe": `<${unsubscribeUrl}>`,
+    // RFC 8058 one-click: мейл клиентът праща POST (действието), не GET (страница) — одит A5
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   });
   await logEmail({
     salon_slug: booking.salon_slug,
@@ -214,7 +235,12 @@ export async function sendSalonBookingTokenNotification(
   await sendResendHtml(to, `${title}: ${booking.client_name} — ${date} ${time}`, html);
 }
 
-export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promise<void> {
+/**
+ * Изпраща напомняне (имейл и/или SMS) и връща дали е доставено.
+ * НЕ пише в email_logs — логът е claim-ът в cron reminders route-а
+ * (claim-преди-send, одит A1+A3); успех = имейл ИЛИ SMS.
+ */
+export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promise<boolean> {
   const baseUrl = getPublicAppUrl();
   const token = booking.confirmation_token ?? "";
   const salonQuery = `salon=${encodeURIComponent(booking.salon_slug)}`;
@@ -242,21 +268,5 @@ export async function sendReminderEmail(booking: Booking, tenant: Tenant): Promi
   }
 
   const smsSent = await sendSMSReminder(booking, tenant);
-  if (!emailSent && !smsSent) {
-    await logEmail({
-      salon_slug: booking.salon_slug,
-      booking_id: booking.id,
-      type: "reminder",
-      status: "failed",
-    });
-    return;
-  }
-
-  /** Успешно напомняне (имейл или само SMS) — спира cron. При неуспешен имейл няма запис → повторен опит. */
-  await logEmail({
-    salon_slug: booking.salon_slug,
-    booking_id: booking.id,
-    type: "reminder",
-    status: "sent",
-  });
+  return emailSent || smsSent;
 }

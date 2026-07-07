@@ -1,4 +1,52 @@
-# HANDOFF — последна актуализация: 2026-07-06
+# HANDOFF — последна актуализация: 2026-07-07
+
+---
+
+## 2026-07-07 — Одит fix пакет: M1+M2, A1+A3 двойни reminder имейли, A2 Resend throttle/retry
+
+**Контекст:** Продължение по P1 находките от одитите 2026-07-06. Branch: `claude/project-audit-bugs-9nggk1` (3 commits).
+
+**M1 (.gitignore):** `.env*` изцяло игнорирани (беше само `.env*.local`/`.env.vercel*` — гол `.env` можеше да се commit-не); `!.env.example`/`!.env.local.example` остават track-нати. Проверено с `git check-ignore`.
+
+**M2 (npm audit):** `npm audit fix` затвори `ws` (high — memory disclosure/DoS) и `qs` (moderate — DoS). Остават 23 moderate, всичките през `next`/`@sentry/nextjs` — искат breaking major upgrade, отделна задача.
+
+**A1+A3 (двойни reminder имейли), `app/api/cron/reminders/route.ts`:**
+- Dedup заявката вече проверява `error` → при DB грешка връща 500 и НЕ праща нищо (преди: празен Set → повторни имейли за всички)
+- **Claim-преди-send:** insert на `email_logs` ред със `status='sent'` ПРЕДИ изпращане; при `23505` (паралелен run е взел claim-а) → skip; при провалено изпращане claim-ът се освобождава (`status='failed'`) → следващ опит е възможен
+- `sendReminderEmail` (lib/email.tsx) връща `boolean` и вече не логва — логът е claim-ът; единственият caller е cron route-ът
+- **Migration `037_email_logs_sent_unique.sql`:** дедуп на съществуващи двойни 'sent' записи (пази най-ранния) + частичен уникален индекс `email_logs(booking_id,type) WHERE status='sent' AND booking_id IS NOT NULL`. ⚠️ **НЕ е приложена в production** — иска backup + off-peak прозорец (checklist в migration skill-а). Кодът е безопасен и без индекса (pre-filter dedup пази); индексът добавя атомарната гаранция срещу паралелни runs.
+
+**A2 (Resend throttle/retry), `lib/email.tsx` + route:**
+- `sendResendHtml`: до 3 опита с backoff (1s/2s, respect-ва `retry-after`) при 429/5xx/мрежова грешка; други 4xx = перманентни, без retry. Ползва се от ВСИЧКИ имейли (confirmation, reminder, салонски нотификации)
+- Reminders route: `CONCURRENCY 10 → 2` + мин. 1.1s между батчовете (Resend лимит 2 req/s); `maxDuration = 300` (cron-ът е 1×дневно 07:00 UTC — провал в run-а иначе не се повтаря никога)
+
+**Тестове:** нов `tests/cron-reminders-dedup.test.ts` — 5 теста през fetch mock на PostgREST/Resend (fail-closed 500, claim conflict skip, освобождаване на claim, retry след 5xx, 401 без cron secret); stub-ове за Next `unstable_cache` (`__incrementalCache` + `AsyncLocalStorage` polyfill). `npm test` → 175 tests, 173 pass, 0 fail, 2 todo (M4, C1). `tsc` чист, lint чист (1 pre-existing warning), service-role boundary pass.
+
+**Следващи от списъка:** A5 unsubscribe на GET, C1 миграция `tenants_plan_check`, D1 `listUsers()` пагинация, M4 `IMPERSONATION_HMAC_SECRET` fail-closed.
+
+---
+
+## 2026-07-07 (част 2) — Одит fix пакет №2: C1, M4, D1, A5 — целият P1 списък от одитите е затворен
+
+**Контекст:** Останалите 4 находки от одитите 2026-07-06. Branch: `claude/project-audit-bugs-9nggk1`. С това ВСИЧКИ отворени P1 находки от одитите са затворени.
+
+**C1 (`tenants_plan_check`):** migration `038_fix_tenants_plan_check.sql` — DROP + ADD constraint (starter/standard/pro/premium) + защитен remap `collective→premium`. Идемпотентна спрямо production (constraint-ът там вече е поправен ръчно). Todo тестът в `plan-consistency.test.ts` е реален pass.
+
+**M4 (impersonation fail-closed), `lib/admin-tenant.ts`:**
+- `verifyImpersonationSlug` без секрет → `null` за всичко (преди: приемаше неподписан slug)
+- `signImpersonationSlug` без секрет → хвърля ясна грешка (вместо тихо да сложи неверифицируема бисквитка)
+- Секретът добавен в `.env.example`/`.env.local.example`
+- ⚠️ **ПРЕДИ deploy: задай `IMPERSONATION_HMAC_SECRET` във Vercel production env** (и в `.env.local` за локална работа) — иначе super-admin impersonation спира да работи. Todo тестът е реален pass.
+
+**D1 (`listUsers` пагинация), `app/super-admin/actions.ts`:** нов `findAuthUserByEmail()` — обхожда всички страници (1000/стр.; default-ът 50 пропускаше потребители след 50-ия) при `sendCredentialsAction` и tenant delete. Auth cleanup при изтриване е в try/catch (реален best-effort — тенантът вече е изтрит).
+
+**A5 (unsubscribe на GET), `app/api/unsubscribe/route.ts`:** GET вече само рендерира потвърждаваща страница с бутон; отписването е на POST (имейл скенери следват GET линкове и отписваха клиенти). `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) добавен в confirmation имейла — мейл клиентите с вграден unsubscribe пращат POST. Integration тестовете (400/404 на GET) остават валидни.
+
+**Верификация:** `npm test` → 175 tests, **175 pass, 0 fail, 0 todo** (двата одитни todo теста са реални pass). `tsc` чист, lint чист (1 pre-existing warning), service-role boundary pass.
+
+**Чакащи ръчни стъпки (Лина):**
+1. `IMPERSONATION_HMAC_SECRET` във Vercel production env — ПРЕДИ deploy на този branch
+2. Migration 037 + 038 в production Supabase (037 е новата; 038 е no-op там, но я мини за консистентност) — след backup, off-peak
 
 ---
 

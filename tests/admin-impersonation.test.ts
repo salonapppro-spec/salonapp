@@ -77,19 +77,17 @@ test("impersonation: боклук/празни стойности се отхв�
   });
 });
 
-// Security одит M4: без секрет verify приема всеки валиден slug — това е
-// документираното (рисково) поведение. Ако се въведе fail-closed за
-// production, обнови теста да очаква null и махни todo-то.
-test("impersonation: без секрет валиден slug минава БЕЗ подпис (известен риск M4)", () => {
+// Security одит M4 (fail-closed от 2026-07-07): без секрет verify отхвърля
+// всичко, а sign хвърля ясна грешка вместо да сложи неподписана бисквитка.
+test("impersonation: без секрет verify отхвърля всичко (fail-closed, M4)", () => {
   withSecret(undefined, () => {
-    assert.equal(verifyImpersonationSlug("salon-bizhu"), "salon-bizhu");
+    assert.equal(verifyImpersonationSlug("salon-bizhu"), null);
     assert.equal(verifyImpersonationSlug("Invalid_Slug!"), null);
   });
 });
 
-test("impersonation: production трябва да изисква IMPERSONATION_HMAC_SECRET (fail-closed)", { todo: "security одит M4: направи секрета задължителен в production" }, () => {
-  // Когато lib/admin-tenant.ts стане fail-closed, това трябва да върне null:
+test("impersonation: без секрет sign хвърля ясна грешка (fail-closed, M4)", () => {
   withSecret(undefined, () => {
-    assert.equal(verifyImpersonationSlug("salon-bizhu"), null);
+    assert.throws(() => signImpersonationSlug("salon-bizhu"), /IMPERSONATION_HMAC_SECRET/);
   });
 });

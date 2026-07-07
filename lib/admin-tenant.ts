@@ -19,16 +19,20 @@ function hmacSecret(): string | null {
 
 export function signImpersonationSlug(slug: string): string {
   const secret = hmacSecret();
-  if (!secret) return slug;
+  if (!secret) {
+    // Fail closed (одит M4): без секрет бисквитката би била неподписана и
+    // verify би я отхвърлил — хвърляме ясна грешка вместо тих счупен контекст.
+    throw new Error("IMPERSONATION_HMAC_SECRET липсва — impersonation не работи без него (виж .env.example)");
+  }
   const mac = createHmac('sha256', secret).update(slug).digest('hex');
   return slug + '.' + mac;
 }
 
 export function verifyImpersonationSlug(value: string): string | null {
   const secret = hmacSecret();
-  if (!secret) {
-    return SLUG_RE.test(value) ? value : null;
-  }
+  // Fail closed (одит M4): без секрет НЕ приемаме нищо — неподписан slug в
+  // бисквитката би позволил impersonation без криптографска проверка.
+  if (!secret) return null;
   const dot = value.lastIndexOf('.');
   if (dot === -1) return null;
   const slug = value.slice(0, dot);
