@@ -26,6 +26,30 @@
 
 ---
 
+## 2026-07-07 (част 2) — Одит fix пакет №2: C1, M4, D1, A5 — целият P1 списък от одитите е затворен
+
+**Контекст:** Останалите 4 находки от одитите 2026-07-06. Branch: `claude/project-audit-bugs-9nggk1`. С това ВСИЧКИ отворени P1 находки от одитите са затворени.
+
+**C1 (`tenants_plan_check`):** migration `038_fix_tenants_plan_check.sql` — DROP + ADD constraint (starter/standard/pro/premium) + защитен remap `collective→premium`. Идемпотентна спрямо production (constraint-ът там вече е поправен ръчно). Todo тестът в `plan-consistency.test.ts` е реален pass.
+
+**M4 (impersonation fail-closed), `lib/admin-tenant.ts`:**
+- `verifyImpersonationSlug` без секрет → `null` за всичко (преди: приемаше неподписан slug)
+- `signImpersonationSlug` без секрет → хвърля ясна грешка (вместо тихо да сложи неверифицируема бисквитка)
+- Секретът добавен в `.env.example`/`.env.local.example`
+- ⚠️ **ПРЕДИ deploy: задай `IMPERSONATION_HMAC_SECRET` във Vercel production env** (и в `.env.local` за локална работа) — иначе super-admin impersonation спира да работи. Todo тестът е реален pass.
+
+**D1 (`listUsers` пагинация), `app/super-admin/actions.ts`:** нов `findAuthUserByEmail()` — обхожда всички страници (1000/стр.; default-ът 50 пропускаше потребители след 50-ия) при `sendCredentialsAction` и tenant delete. Auth cleanup при изтриване е в try/catch (реален best-effort — тенантът вече е изтрит).
+
+**A5 (unsubscribe на GET), `app/api/unsubscribe/route.ts`:** GET вече само рендерира потвърждаваща страница с бутон; отписването е на POST (имейл скенери следват GET линкове и отписваха клиенти). `List-Unsubscribe-Post: List-Unsubscribe=One-Click` (RFC 8058) добавен в confirmation имейла — мейл клиентите с вграден unsubscribe пращат POST. Integration тестовете (400/404 на GET) остават валидни.
+
+**Верификация:** `npm test` → 175 tests, **175 pass, 0 fail, 0 todo** (двата одитни todo теста са реални pass). `tsc` чист, lint чист (1 pre-existing warning), service-role boundary pass.
+
+**Чакащи ръчни стъпки (Лина):**
+1. `IMPERSONATION_HMAC_SECRET` във Vercel production env — ПРЕДИ deploy на този branch
+2. Migration 037 + 038 в production Supabase (037 е новата; 038 е no-op там, но я мини за консистентност) — след backup, off-peak
+
+---
+
 ## 2026-07-06 — QuickBooking: телефон autocomplete, имейл правила, клиентска дедупликация (fix пакет №1+№2 от одита)
 
 **Контекст:** Одит 2026-07-06 + изисквания на Поли: (1) бързият букинг да разпознава клиент още при писане на телефона; (2) имейлът е задължителен на публичните сайтове, опционален в админа; (3) никакви дублирани клиенти.
