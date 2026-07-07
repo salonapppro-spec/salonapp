@@ -6,6 +6,7 @@ export const TENANT_SITE_SLUGS = [
   "lindynails",
   "theskin",
   "magnetic-eyes",
+  "ats-massage",
 ] as const;
 
 export type TenantSiteSlug = (typeof TENANT_SITE_SLUGS)[number];
