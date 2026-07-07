@@ -29,6 +29,27 @@ async function requireSuperAdminUser() {
   return user;
 }
 
+/**
+ * Търси auth потребител по имейл през ВСИЧКИ страници на listUsers —
+ * default-ът е 50/страница и търсенето пропускаше потребители след 50-ия
+ * (одит D1). Supabase Admin API няма lookup по имейл, затова пагинираме.
+ */
+async function findAuthUserByEmail(
+  supabase: ReturnType<typeof createSupabaseServiceRoleClient>,
+  email: string
+): Promise<{ id: string } | null> {
+  const target = email.trim().toLowerCase();
+  const perPage = 1000;
+  for (let page = 1; ; page += 1) {
+    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage });
+    if (error) throw new Error(`Неуспешно четене на auth потребители: ${error.message}`);
+    const users = data?.users ?? [];
+    const found = users.find((u) => u.email?.toLowerCase() === target);
+    if (found) return found;
+    if (users.length < perPage) return null;
+  }
+}
+
 async function logTenantActivity(params: {
   salonSlug: string;
   eventType: string;
@@ -338,8 +359,7 @@ export async function sendCredentialsAction(formData: FormData): Promise<void> {
   const salonName = (tenant as { owner_email?: string | null; salon_name?: string } | null)?.salon_name ?? salonSlug;
   if (!ownerEmail) throw new Error("Тенантът няма имейл");
 
-  const { data: users } = await supabase.auth.admin.listUsers();
-  const authUser = users?.users?.find((u) => u.email?.toLowerCase() === ownerEmail.toLowerCase());
+  const authUser = await findAuthUserByEmail(supabase, ownerEmail);
   if (!authUser) throw new Error("Auth потребителят не е намерен в Supabase");
 
   const newPassword = randomPassword();
@@ -475,10 +495,13 @@ export async function deleteTenantAction(formData: FormData): Promise<void> {
 
   // Best-effort: delete auth user if they exist.
   if (owner_email) {
-    const { data: authUsers } = await supabase.auth.admin.listUsers();
-    const authUser = (authUsers?.users ?? []).find((u) => u.email === owner_email);
-    if (authUser) {
-      await supabase.auth.admin.deleteUser(authUser.id);
+    try {
+      const authUser = await findAuthUserByEmail(supabase, owner_email);
+      if (authUser) {
+        await supabase.auth.admin.deleteUser(authUser.id);
+      }
+    } catch {
+      // Тенантът вече е изтрит — провал тук не бива да гърми целия flow.
     }
   }
 
