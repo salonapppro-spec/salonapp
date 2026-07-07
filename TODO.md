@@ -4,7 +4,7 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-07-06
+> Актуализирай след всяка задача. Последна промяна: 2026-07-07
 
 ---
 
@@ -17,16 +17,16 @@
 ## 🟠 P1 — Находки от одитите 2026-07-06 (виж HANDOFF + SECURITY_AUDIT_2026-07-06.md)
 
 - [x] **Регресионни тестове bookings/payments/calendar/auth** (2026-07-06) — 7 нови unit + 4 нови integration файла; 3 `todo` теста маркират неоправените находки и стават зелени при фикс
-- [ ] **A1+A3 Reminders: двойни имейли** — провери `error` на dedup заявката в `app/api/cron/reminders/route.ts:36`; уникален индекс `email_logs(booking_id,type) WHERE status='sent'` + claim-преди-send
+- [x] **A1+A3 Reminders: двойни имейли** (2026-07-07) — error check на dedup заявката (fail closed 500); claim-преди-send с освобождаване при провал; migration 037 (уникален индекс `email_logs(booking_id,type) WHERE status='sent'` + дедуп на стари записи) — **миграцията чака apply в production** (backup + off-peak); нов `tests/cron-reminders-dedup.test.ts`; branch `claude/project-audit-bugs-9nggk1`
 - [ ] **C1 Миграция за `tenants_plan_check`** — поправен само в production; чиста среда гърми на plan='starter' (todo тест в `tests/plan-consistency.test.ts` ще светне зелен)
 - [x] **B7 `upsertByPhone`** (2026-07-06) — премахнат fallback „00000“; недеструктивен update (празен имейл/име не трият записаните); branch `fix/quick-booking-client-dedup-email`
 - [ ] **D1 `listUsers()` пагинация** — `app/super-admin/actions.ts:341,478`; чупи се след 50-ия auth потребител
-- [ ] **A2 Resend throttle/retry** — CONCURRENCY 10 > Resend 2 req/s; провалено напомняне не се повтаря никога
+- [x] **A2 Resend throttle/retry** (2026-07-07) — `sendResendHtml` retry ×3 с backoff при 429/5xx; CONCURRENCY 2 + 1.1s/батч (под Resend 2 req/s); `maxDuration 300`; branch `claude/project-audit-bugs-9nggk1`
 - [ ] **A5 Unsubscribe на GET** — мейл скенери отписват клиенти; направи GET=страница, POST=действие
 - [ ] **M4 `IMPERSONATION_HMAC_SECRET` задължителен в prod** (todo тест в `tests/admin-impersonation.test.ts`)
 - [x] **B3 Формат-валидация на `booking_date`/`booking_time`** (2026-07-06) — regex + реална календарна дата в `schemas/booking.ts`; todo тестът стана зелен; branch `fix/quick-booking-client-dedup-email`
-- [ ] **M1 `.gitignore`: добави `.env*`** (5 мин)
-- [ ] **M2 `npm audit fix`** за `ws` + `qs`
+- [x] **M1 `.gitignore`: добави `.env*`** (2026-07-07) — `.env*` игнорирани, само `.env.example`/`.env.local.example` остават track-нати
+- [x] **M2 `npm audit fix`** (2026-07-07) — `ws` (high) + `qs` (moderate) затворени; оставащите 23 moderate искат breaking upgrade на next/@sentry (отделна задача)
 
 ---
 
