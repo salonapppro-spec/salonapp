@@ -22,7 +22,6 @@ import {
    ──────────────────────────────────────────────────────────────── */
 
 const BGN = 1.956;
-const DAY_BG = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"] as const;
 
 const FALLBACK_PHONE = "0988 326 239";
 const FALLBACK_ADDRESS = "ул. Дебелт 14, Бургас";
@@ -92,8 +91,25 @@ const WHY: string[] = [
   "Работа само с предварително записан час",
 ];
 
+/* Реални Google отзиви (5.0 · 4 отзива). Показваме тези с текст. */
+const GOOGLE_RATING = 5.0;
+const GOOGLE_REVIEW_COUNT = 4;
+const GOOGLE_REVIEWS_URL = "https://www.google.com/search?q=ATS+Studio+Burgas+reviews";
+const REVIEWS: { name: string; text: string; stars: number }[] = [
+  {
+    name: "Юлия Димитрова",
+    text: "Препоръчвам! Ако мога да сложа повече звезди, ще ги сложа.",
+    stars: 5,
+  },
+  {
+    name: "Shtilqna Yakobchak",
+    text: "Много е добър! Препоръчвам с две ръце!",
+    stars: 5,
+  },
+];
+
 export function AtsMassageSite({ data }: { data: SalonData }) {
-  const { tenant, gallery, workingHours } = data;
+  const { tenant, gallery } = data;
   const services = servicesFlatForPublic(data).filter((s) => s.is_active);
 
   const [scrolled, setScrolled] = useState(false);
@@ -114,6 +130,7 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
   const whyRef = useReveal();
   const qualRef = useReveal();
   const galleryRef = useReveal();
+  const reviewsRef = useReveal();
   const bookingRef = useReveal();
   const contactRef = useReveal();
 
@@ -155,6 +172,7 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
         <a href="#conditions" onClick={() => setMenuOpen(false)}>Състояния</a>
         <a href="#packages" onClick={() => setMenuOpen(false)}>Пакети</a>
         <a href="#home-visits" onClick={() => setMenuOpen(false)}>Домашни посещения</a>
+        <a href="#reviews" onClick={() => setMenuOpen(false)}>Отзиви</a>
         <a href="#contact" onClick={() => setMenuOpen(false)}>Контакти</a>
         <a href="#booking" className="ats-mmenu-cta" onClick={() => setMenuOpen(false)}>Запази час</a>
       </div>
@@ -174,6 +192,7 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
           <li><a href="#services">Услуги</a></li>
           <li><a href="#conditions">Състояния</a></li>
           <li><a href="#packages">Пакети</a></li>
+          <li><a href="#reviews">Отзиви</a></li>
           <li><a href="#contact">Контакти</a></li>
         </ul>
         <a href="#booking" className="ats-nav-cta">Запази час</a>
@@ -434,6 +453,52 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
         </section>
       )}
 
+      {/* REVIEWS — реални Google отзиви */}
+      <section className="ats-reviews" id="reviews">
+        <div className="ats-wrap">
+          <div ref={reviewsRef} className="ats-reveal">
+            <div className="ats-sec-hdr">
+              <p className="ats-eyebrow ats-center ats-eyebrow-light">Отзиви</p>
+              <h2 className="ats-h2 ats-center ats-h2-light">Какво казват клиентите</h2>
+            </div>
+
+            <div className="ats-rev-badge">
+              <span className="ats-rev-score">{GOOGLE_RATING.toFixed(1)}</span>
+              <span className="ats-rev-stars" aria-hidden="true">★★★★★</span>
+              <span className="ats-rev-count">
+                {GOOGLE_REVIEW_COUNT} отзива в Google
+              </span>
+            </div>
+
+            <div className="ats-rev-grid">
+              {REVIEWS.map((r) => (
+                <figure className="ats-rev-card" key={r.name}>
+                  <div
+                    className="ats-rev-card-stars"
+                    aria-label={`${r.stars} от 5 звезди`}
+                  >
+                    {"★".repeat(r.stars)}
+                  </div>
+                  <blockquote className="ats-rev-text">„{r.text}"</blockquote>
+                  <figcaption className="ats-rev-author">{r.name}</figcaption>
+                </figure>
+              ))}
+            </div>
+
+            <div className="ats-center">
+              <a
+                href={GOOGLE_REVIEWS_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="ats-btn ats-btn-gold ats-rev-cta"
+              >
+                Виж отзивите в Google
+              </a>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* BOOKING */}
       <section className="ats-booking" id="booking">
         <div className="ats-wrap">
@@ -474,22 +539,6 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
                   <span>Само с предварително записан час</span>
                 </li>
               </ul>
-              {workingHours.length > 0 && (
-                <div className="ats-hours">
-                  {[1, 2, 3, 4, 5, 6, 0].map((d) => {
-                    const wh = workingHours.find((w) => w.day_of_week === d);
-                    const off = !wh || wh.is_day_off;
-                    return (
-                      <div className="ats-hours-row" key={d}>
-                        <span>{DAY_BG[d]}</span>
-                        <span className={off ? "ats-hours-off" : undefined}>
-                          {off ? "почивен" : `${wh!.start_time.slice(0, 5)}–${wh!.end_time.slice(0, 5)}`}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
               {(fbHref || ttHref) && (
                 <div className="ats-socials">
                   {fbHref && (
@@ -715,6 +764,20 @@ const css = `
 .ats-gal-item { aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; }
 .ats-gal-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
 .ats-gal-item:hover img { transform: scale(1.05); }
+
+/* REVIEWS */
+.ats-reviews { padding: clamp(5rem, 10vw, 8rem) 0; background: linear-gradient(200deg, var(--ats-midnight-deep) 0%, var(--ats-midnight) 100%); }
+.ats-rev-badge { display: flex; flex-direction: column; align-items: center; gap: .35rem; margin: 0 auto 3rem; }
+.ats-rev-score { font-family: var(--f-serif); font-size: clamp(2.8rem, 6vw, 3.6rem); line-height: 1; font-weight: 600; color: var(--ats-gold-soft); }
+.ats-rev-stars { color: var(--ats-gold); font-size: 1.5rem; letter-spacing: .16em; }
+.ats-rev-count { font-size: .74rem; letter-spacing: .2em; text-transform: uppercase; color: rgba(248,245,239,.7); }
+.ats-rev-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(290px, 1fr)); gap: 1.6rem; max-width: 880px; margin: 0 auto 2.8rem; }
+.ats-rev-card { margin: 0; background: rgba(248,245,239,.05); border: 1px solid rgba(200,164,90,.28); border-radius: 16px; padding: 2rem 2.1rem; transition: border-color .25s ease, transform .25s ease; }
+.ats-rev-card:hover { border-color: rgba(200,164,90,.5); transform: translateY(-3px); }
+.ats-rev-card-stars { color: var(--ats-gold); font-size: 1.05rem; letter-spacing: .14em; margin-bottom: 1rem; }
+.ats-rev-text { font-family: var(--f-serif); font-size: 1.32rem; font-style: italic; line-height: 1.5; color: var(--ats-ivory); margin: 0 0 1.3rem; }
+.ats-rev-author { font-size: .9rem; letter-spacing: .04em; font-weight: 600; color: var(--ats-gold-soft); }
+.ats-rev-cta { margin-top: .5rem; }
 
 /* BOOKING */
 .ats-booking { padding: clamp(5rem, 10vw, 8rem) 0; background: linear-gradient(165deg, var(--ats-midnight) 0%, var(--ats-midnight-deep) 100%); }
