@@ -2,6 +2,20 @@
 
 ---
 
+## 2026-07-08 — ATS Studio: hero polish (шрифтове, отстояния, плаващи chips)
+
+**Контекст:** Поли поиска: (1) да махна eyebrow реда „Терапевтичен масаж · Бургас"; (2) по-малки отстояния между секциите; (3) шрифтове в стила на логото; (4) на широки десктоп монитори hero-то има много празен фон вдясно, а текстът остава долу — да „изкачат" болки отстрани.
+
+**Промени (`components/tenants/ats-massage/Page.tsx`), branch `feat/ats-hero-polish`:**
+1. Премахнат `<p className="ats-hero-eyebrow">`.
+2. Шрифтове: `--f-serif: 'Cormorant Garamond' → 'Playfair Display'`, `--f-sans: 'Outfit' → 'Montserrat'`. **Важно:** логото е Cinzel-стил (Trajan caps), но **Cinzel е само латиница** → не става за кирилския текст; Playfair Display е класически висок-контраст serif С кирилица, в духа на логото. И двата вече са в шрифт линка на `app/(public)/[salon_slug]/page.tsx`.
+3. Свити section paddings: `clamp(5,10vw,8)→clamp(3.2,6vw,5)`, `clamp(4.5,9vw,7)→clamp(3,5.5vw,4.5)`, services `7.5→4.75`.
+4. Нови плаващи chips вдясно в hero-то (`.ats-hero-chips`/`.ats-hero-chip`): 5 състояния, glass + gold точка, staggered, лек float (off при `prefers-reduced-motion`). `display:none` под 1120px — само десктоп, да запълнят празния фон.
+
+**Верификация:** `tsc` чист, lint чист. Локален preview на tenant страницата НЕ е възможен (няма `.env.local` service key) → визуална проверка на живо след deploy.
+
+---
+
 ## 2026-07-08 — ATS Studio: ново лого (бяло на прозрачен фон)
 
 **Контекст:** Поли поиска да смени логото на ATS Studio с новото бяло лого на прозрачен фон (`C:\Users\Lina\Downloads\Нова папка\logo.png`, 500×500 RGBA).

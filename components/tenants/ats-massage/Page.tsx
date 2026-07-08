@@ -214,7 +214,6 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
         )}
         <div className="ats-hero-veil" aria-hidden="true" />
         <div className="ats-hero-inner">
-          <p className="ats-hero-eyebrow">Терапевтичен масаж · Бургас</p>
           <h1 className="ats-hero-title">
             {tenant.hero_title?.trim() || (
               <>
@@ -232,6 +231,13 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
           <div className="ats-hero-actions">
             <a href="#booking" className="ats-btn ats-btn-gold">Запази час</a>
             <a href={telHref} className="ats-btn ats-btn-ghost">{phone}</a>
+          </div>
+          <div className="ats-hero-chips" aria-hidden="true">
+            <span className="ats-hero-chip">Болки в гърба</span>
+            <span className="ats-hero-chip">Дискова херния</span>
+            <span className="ats-hero-chip">Схванат врат</span>
+            <span className="ats-hero-chip">Ишиас</span>
+            <span className="ats-hero-chip">Плексит</span>
           </div>
         </div>
       </section>
@@ -591,8 +597,8 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
 /* ── styled ── */
 const css = `
 .ats-root {
-  --f-serif: 'Cormorant Garamond', Georgia, serif;
-  --f-sans: 'Outfit', system-ui, sans-serif;
+  --f-serif: 'Playfair Display', Georgia, serif;
+  --f-sans: 'Montserrat', system-ui, sans-serif;
   font-family: var(--f-sans);
   color: var(--ats-graphite);
   background: var(--ats-ivory);
@@ -693,8 +699,37 @@ const css = `
 .ats-hero-sub { font-size: clamp(1rem, 1.6vw, 1.15rem); line-height: 1.75; color: rgba(248,245,239,.82); max-width: 52ch; margin: 0 0 2.4rem; }
 .ats-hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; }
 
+/* Floating condition chips — запълват празния фон вдясно на широки монитори. Скрити под 1120px. */
+.ats-hero-chips {
+  position: absolute; z-index: 2; right: clamp(1.5rem, 4vw, 3rem); top: 50%;
+  transform: translateY(-50%);
+  display: none; flex-direction: column; align-items: flex-end; gap: 1.15rem;
+  pointer-events: none;
+}
+@media (min-width: 1120px) { .ats-hero-chips { display: flex; } }
+.ats-hero-chip {
+  display: inline-flex; align-items: center; gap: .6rem;
+  padding: .72rem 1.25rem; border-radius: 999px;
+  background: rgba(15,35,67,.5); border: 1px solid rgba(200,164,90,.5);
+  color: var(--ats-ivory); font-size: .92rem; font-weight: 500; letter-spacing: .01em;
+  white-space: nowrap; backdrop-filter: blur(7px);
+  box-shadow: 0 18px 44px -24px rgba(0,0,0,.75);
+  animation: ats-chip-float 6s ease-in-out infinite;
+}
+.ats-hero-chip::before {
+  content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none;
+  background: var(--ats-gold); box-shadow: 0 0 12px 2px rgba(200,164,90,.65);
+}
+.ats-hero-chip:nth-child(1) { margin-right: 3.5rem; animation-delay: 0s; }
+.ats-hero-chip:nth-child(2) { margin-right: .5rem;  animation-delay: .9s; }
+.ats-hero-chip:nth-child(3) { margin-right: 5.5rem; animation-delay: 1.8s; }
+.ats-hero-chip:nth-child(4) { margin-right: 1.75rem; animation-delay: 2.7s; }
+.ats-hero-chip:nth-child(5) { margin-right: 4.25rem; animation-delay: 3.6s; }
+@keyframes ats-chip-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
+@media (prefers-reduced-motion: reduce) { .ats-hero-chip { animation: none; } }
+
 /* ABOUT */
-.ats-about { padding: clamp(5rem, 10vw, 8rem) 0; }
+.ats-about { padding: clamp(3.2rem, 6vw, 5rem) 0; }
 .ats-about-grid { display: grid; grid-template-columns: 0.95fr 1.05fr; gap: clamp(2.5rem, 6vw, 5.5rem); align-items: center; }
 .ats-about-photo { position: relative; aspect-ratio: 4/5; border-radius: 18px; overflow: hidden; }
 .ats-about-photo img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -704,7 +739,7 @@ const css = `
 .ats-about-tags span { font-size: .76rem; letter-spacing: .06em; padding: .45rem 1rem; border-radius: 999px; background: rgba(135,154,131,.16); color: #5f7159; font-weight: 600; }
 
 /* SERVICES */
-.ats-services { padding: clamp(4.5rem, 9vw, 7.5rem) 0; background: #fff; }
+.ats-services { padding: clamp(3rem, 5.5vw, 4.75rem) 0; background: #fff; }
 .ats-svc-list { max-width: 800px; margin: 0 auto; }
 .ats-svc { display: flex; align-items: baseline; gap: .6rem; padding: 1.15rem 0; border-bottom: 1px solid var(--ats-line); }
 .ats-svc-idx { font-family: var(--f-serif); font-size: .9rem; color: var(--ats-gold); font-weight: 700; width: 1.8rem; flex: none; }
@@ -716,10 +751,10 @@ const css = `
 .ats-svc-bgn { font-size: .74rem; font-weight: 500; color: #9a9a9a; }
 
 /* CONDITIONS */
-.ats-cond { padding: clamp(5rem, 10vw, 8rem) 0; background: linear-gradient(165deg, var(--ats-midnight) 0%, var(--ats-midnight-deep) 100%); }
+.ats-cond { padding: clamp(3.2rem, 6vw, 5rem) 0; background: linear-gradient(165deg, var(--ats-midnight) 0%, var(--ats-midnight-deep) 100%); }
 
 /* PACKAGES */
-.ats-packages { padding: clamp(4.5rem, 9vw, 7rem) 0; }
+.ats-packages { padding: clamp(3rem, 5.5vw, 4.5rem) 0; }
 .ats-pack-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2.5rem, 6vw, 5rem); align-items: center; }
 .ats-pack-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 1.2rem; }
 .ats-pack-card { background: #fff; border: 1px solid var(--ats-line); border-radius: 16px; padding: 2.2rem 1.4rem; text-align: center; display: flex; flex-direction: column; align-items: center; gap: .5rem; }
@@ -733,7 +768,7 @@ const css = `
 .ats-pack-card-hot .ats-pack-desc { color: rgba(248,245,239,.55); }
 
 /* HOME VISITS */
-.ats-home { padding: clamp(4.5rem, 9vw, 7rem) 0; background: var(--ats-sage); }
+.ats-home { padding: clamp(3rem, 5.5vw, 4.5rem) 0; background: var(--ats-sage); }
 .ats-home-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: clamp(2.5rem, 6vw, 5rem); align-items: center; }
 .ats-home .ats-h2-light, .ats-home .ats-eyebrow-light { color: #fff; }
 .ats-home .ats-eyebrow-light { color: rgba(255,255,255,.85); }
@@ -746,13 +781,13 @@ const css = `
 .ats-home-note { margin: 1rem 0 0; font-size: .78rem; color: rgba(255,255,255,.75); }
 
 /* WHY */
-.ats-why { padding: clamp(4.5rem, 9vw, 7rem) 0; background: #fff; }
+.ats-why { padding: clamp(3rem, 5.5vw, 4.5rem) 0; background: #fff; }
 .ats-why-list { list-style: none; margin: 0 auto; padding: 0; max-width: 820px; display: grid; grid-template-columns: 1fr 1fr; gap: 1.1rem 2.4rem; }
 .ats-why-list li { display: flex; align-items: flex-start; gap: .9rem; font-size: 1.02rem; color: var(--ats-graphite); line-height: 1.5; }
 .ats-why-check { flex: none; width: 26px; height: 26px; border-radius: 50%; background: rgba(135,154,131,.18); color: #5f7159; display: inline-flex; align-items: center; justify-content: center; font-size: .8rem; font-weight: 700; margin-top: 1px; }
 
 /* QUALIFICATIONS */
-.ats-qual { padding: clamp(5rem, 10vw, 8rem) 0; background: var(--ats-midnight-deep); }
+.ats-qual { padding: clamp(3.2rem, 6vw, 5rem) 0; background: var(--ats-midnight-deep); }
 .ats-qual-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1.4rem; }
 .ats-qual-card { border: 1px solid rgba(200,164,90,.22); border-radius: 14px; padding: 2rem; background: rgba(248,245,239,.03); }
 .ats-qual-title { font-family: var(--f-serif); font-size: 1.35rem; color: var(--ats-gold-soft); margin: 0 0 1.1rem; }
@@ -761,14 +796,14 @@ const css = `
 .ats-qual-card li::before { content: "—"; position: absolute; left: 0; color: var(--ats-gold); }
 
 /* GALLERY */
-.ats-gallery { padding: clamp(4.5rem, 9vw, 7rem) 0; }
+.ats-gallery { padding: clamp(3rem, 5.5vw, 4.5rem) 0; }
 .ats-gal-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 1rem; }
 .ats-gal-item { aspect-ratio: 3/4; border-radius: 12px; overflow: hidden; }
 .ats-gal-item img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .5s ease; }
 .ats-gal-item:hover img { transform: scale(1.05); }
 
 /* REVIEWS */
-.ats-reviews { padding: clamp(5rem, 10vw, 8rem) 0; background: linear-gradient(200deg, var(--ats-midnight-deep) 0%, var(--ats-midnight) 100%); }
+.ats-reviews { padding: clamp(3.2rem, 6vw, 5rem) 0; background: linear-gradient(200deg, var(--ats-midnight-deep) 0%, var(--ats-midnight) 100%); }
 .ats-rev-badge { display: flex; flex-direction: column; align-items: center; gap: .35rem; margin: 0 auto 3rem; }
 .ats-rev-score { font-family: var(--f-serif); font-size: clamp(2.8rem, 6vw, 3.6rem); line-height: 1; font-weight: 600; color: var(--ats-gold-soft); }
 .ats-rev-stars { color: var(--ats-gold); font-size: 1.5rem; letter-spacing: .16em; }
@@ -782,11 +817,11 @@ const css = `
 .ats-rev-cta { margin-top: .5rem; }
 
 /* BOOKING */
-.ats-booking { padding: clamp(5rem, 10vw, 8rem) 0; background: linear-gradient(165deg, var(--ats-midnight) 0%, var(--ats-midnight-deep) 100%); }
+.ats-booking { padding: clamp(3.2rem, 6vw, 5rem) 0; background: linear-gradient(165deg, var(--ats-midnight) 0%, var(--ats-midnight-deep) 100%); }
 .ats-booking-card { background: var(--ats-ivory); border-radius: 20px; padding: clamp(1.4rem, 3vw, 2.6rem); max-width: 920px; margin: 0 auto; box-shadow: 0 40px 80px -40px rgba(0,0,0,.5); }
 
 /* CONTACT */
-.ats-contact { padding: clamp(4.5rem, 9vw, 7rem) 0; background: #fff; }
+.ats-contact { padding: clamp(3rem, 5.5vw, 4.5rem) 0; background: #fff; }
 .ats-contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2.5rem, 6vw, 4.5rem); align-items: stretch; }
 .ats-contact-list { list-style: none; margin: 0 0 1.6rem; padding: 0; display: flex; flex-direction: column; gap: 1.1rem; }
 .ats-contact-list li { display: flex; flex-direction: column; gap: .25rem; }
