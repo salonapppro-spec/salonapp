@@ -5,7 +5,7 @@ import type { CSSProperties } from "react";
 
 import type { SalonData, Service } from "@/types/database";
 import { servicesFlatForPublic } from "@/components/templates/salon-shared";
-import { BookingFlow } from "@/components/booking/BookingFlow";
+import { AtsBooking } from "./AtsBooking";
 import {
   safeFacebookHref,
   safeGoogleMapsEmbedSrc,
@@ -25,6 +25,8 @@ const DAY_BG = ["Нд", "Пн", "Вт", "Ср", "Чт", "Пт", "Сб"] as const
 
 const FALLBACK_PHONE = "0988 326 239";
 const FALLBACK_ADDRESS = "ул. Дебелт 14, Бургас";
+/** Bundled zen hero (same-origin → passes production CSP). Used until an owner uploads a custom hero. */
+const DEFAULT_HERO = "/tenants/ats-massage/hero.webp";
 
 function eur(v: number) {
   return `${Number(v).toFixed(0)} €`;
@@ -170,7 +172,7 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
   const telHref = `tel:${phone.replace(/\s+/g, "")}`;
   const address = tenant.address?.trim() || FALLBACK_ADDRESS;
   const logo = tenant.logo_url?.trim();
-  const heroImg = tenant.hero_image_url?.trim();
+  const heroImg = tenant.hero_image_url?.trim() || DEFAULT_HERO;
   const aboutImg = tenant.about_image_url?.trim();
 
   const fbHref = safeFacebookHref(tenant.facebook_url);
@@ -502,7 +504,7 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
               </p>
             </div>
             <div className="ats-booking-card">
-              <BookingFlow salonData={data} />
+              <AtsBooking data={data} />
             </div>
           </div>
         </div>
@@ -597,7 +599,7 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
 const css = `
 .ats-root {
   --f-serif: 'Cormorant Garamond', Georgia, serif;
-  --f-sans: 'Inter', system-ui, sans-serif;
+  --f-sans: 'Outfit', system-ui, sans-serif;
   font-family: var(--f-sans);
   color: var(--ats-graphite);
   background: var(--ats-ivory);
@@ -630,18 +632,21 @@ const css = `
 
 .ats-btn {
   display: inline-flex; align-items: center; justify-content: center;
-  padding: .95rem 2.1rem; border-radius: 999px;
-  font-size: .82rem; letter-spacing: .12em; text-transform: uppercase; font-weight: 600;
-  transition: transform .2s ease, background .2s ease, color .2s ease, box-shadow .2s ease;
-  cursor: pointer; border: 1px solid transparent;
+  padding: .95rem 2.2rem; border-radius: 999px;
+  font-size: .86rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 700;
+  transition: transform .2s ease, background .2s ease, color .2s ease, box-shadow .2s ease, border-color .2s ease;
+  cursor: pointer; border: 2px solid transparent;
 }
 .ats-btn:hover { transform: translateY(-2px); }
-.ats-btn-gold { background: var(--ats-gold); color: var(--ats-midnight-deep); box-shadow: 0 10px 30px -12px rgba(200,164,90,.7); }
-.ats-btn-gold:hover { background: var(--ats-gold-soft); }
-.ats-btn-midnight { background: var(--ats-midnight); color: var(--ats-ivory); }
-.ats-btn-midnight:hover { background: var(--ats-midnight-deep); }
-.ats-btn-ghost { background: transparent; border-color: rgba(248,245,239,.4); color: var(--ats-ivory); }
-.ats-btn-ghost:hover { border-color: var(--ats-gold); color: var(--ats-gold-soft); }
+/* Gold primary. The .ats-root prefix raises specificity above the anchor color reset. */
+.ats-root .ats-btn-gold { background: var(--ats-gold); color: #14181f; box-shadow: 0 12px 28px -12px rgba(200,164,90,.85); }
+.ats-root .ats-btn-gold:hover { background: #d9b978; box-shadow: 0 16px 34px -12px rgba(200,164,90,.95); }
+/* Solid navy, ivory text — AA. */
+.ats-root .ats-btn-midnight { background: var(--ats-midnight); color: #fff; }
+.ats-root .ats-btn-midnight:hover { background: var(--ats-midnight-deep); }
+/* Secondary on dark hero: solid gold border + bright text, fills on hover — no low-contrast hairline. */
+.ats-root .ats-btn-ghost { background: rgba(10,25,47,.4); border-color: var(--ats-gold); color: #fff; backdrop-filter: blur(2px); }
+.ats-root .ats-btn-ghost:hover { background: var(--ats-gold); border-color: var(--ats-gold); color: #14181f; }
 
 .ats-reveal { opacity: 0; transform: translateY(26px); transition: opacity .8s ease, transform .8s ease; }
 .ats-reveal[data-v="1"] { opacity: 1; transform: none; }
@@ -665,8 +670,8 @@ const css = `
 .ats-nav-links a::after { content: ""; position: absolute; left: 0; bottom: 0; width: 0; height: 1px; background: var(--ats-gold); transition: width .25s ease; }
 .ats-nav-links a:hover { color: #fff; }
 .ats-nav-links a:hover::after { width: 100%; }
-.ats-nav-cta { display: inline-flex; align-items: center; padding: .6rem 1.5rem; border-radius: 999px; background: var(--ats-gold); color: var(--ats-midnight-deep); font-size: .78rem; letter-spacing: .1em; text-transform: uppercase; font-weight: 600; transition: background .2s ease; }
-.ats-nav-cta:hover { background: var(--ats-gold-soft); }
+.ats-root .ats-nav-cta { display: inline-flex; align-items: center; padding: .62rem 1.6rem; border-radius: 999px; background: var(--ats-gold); color: #14181f; font-size: .8rem; letter-spacing: .08em; text-transform: uppercase; font-weight: 700; transition: background .2s ease, box-shadow .2s ease; box-shadow: 0 8px 20px -10px rgba(200,164,90,.8); }
+.ats-root .ats-nav-cta:hover { background: #d9b978; }
 .ats-burger { display: none; flex-direction: column; gap: 5px; background: none; border: 0; cursor: pointer; padding: 6px; }
 .ats-burger span { width: 24px; height: 2px; background: var(--ats-ivory); border-radius: 2px; }
 
