@@ -2,6 +2,56 @@
 
 ---
 
+## 2026-07-08 (част 2) — Пълен одит на живата база + per-tenant бекъпи + анти double-booking
+
+**Контекст:** Поли поиска пълен преглед преди onboarding на клиенти + бекъпи на резервации/клиенти per tenant с възможност за възстановяване.
+
+### Открит сериозен schema drift (production ≠ migrations!)
+
+Production `bookings` НИКОГА не е бил създаван от `001_initial_schema.sql`:
+- `booking_time` беше **TEXT** (не time); `booking_end_time` **изобщо липсваше** → всеки insert падаше веднъж (42703) и минаваше през legacy fallback без края на часа
+- hair CHECK-овете бяха с **БЪЛГАРСКИ** стойности (`'къса','средна','дълга'`), кодът пише английски → всеки insert с hair параметри падаше и се retry-ваше БЕЗ тях (тихо губене на данни)
+- **`bookings_no_overlap` exclusion constraint НЕ съществуваше** — кодът обработва 23P01, но базата никога не го е хвърляла → реална race възможност за двойни резервации
+- Индексите от 001 (salon_slug+date, specialist, status) също липсваха
+- `specialist_id` е TEXT (не uuid, без FK) — оставен така (кодът работи, конверсията е излишен риск)
+
+### Приложени миграции (директно в production, всички верифицирани)
+
+1. **039_tenant_backups.sql** — `tenant_backups` таблица (RLS on, без политики = само service role) + `create_tenant_backup()` / `run_tenant_backups()` / `restore_tenant_backup()` + **pg_cron job** `tenant-backups-daily` (01:30 UTC = 04:30 BG, не зависи от Vercel cron лимити). Бекъпва per tenant: bookings, clients, services, specialists, working_hours, blocked_slots, financial_settings + tenants реда (reference). Retention: cron 35 дни, ръчни 180 дни. Бекъпите нямат FK към tenants — оцеляват изтриване на тенант.
+2. **040_bookings_schema_hardening.sql** — booking_time text→time; booking_end_time добавена + backfill (duration+буфер, clamp 23:59:59); hair CHECK → английски; **bookings_no_overlap** exclusion constraint (btree_gist, интервалът на услугата, WHERE status not in cancelled/no_show); липсващите индекси. Проверено преди apply: 0 текущи припокривания, всички времена се парсват.
+3. **041_lock_set_tenant_rpc.sql** — revoke execute на SECURITY DEFINER `set_tenant()` от anon/authenticated (кодът не я ползва никъде; legacy "Tenant isolation" политиките стъпват на нея).
+
+### Верификация (всичко срещу production)
+
+- Първи бекъп на всичките 9 тенанта: `run_tenant_backups()` → done 9, failed 0 (44 bookings/28 clients съвпадат)
+- Restore merge: тест на linabambina — създаден клиент+услуга → бекъп → изтрити → restore → възстановени (inserted 1+1); replace режим също тестван; тестовите данни изчистени
+- Двойна резервация: insert върху зает час → **23P01 bookings_no_overlap** ✓ (кодът вече връща "Този час току-що беше зает")
+- Hair values: insert с 'long'/'thick' минава ✓
+- Live smoke: `paw-empire.salonapp.pro/api/availability` за 2026-07-22 — заетият 13:45–15:45 коректно изключен от слотовете след type промяната
+- `tsc` чист, `npm test` 180/180, lint чист, service-role boundary pass
+
+### Нов код (супер-админ бекъп UI)
+
+- `app/super-admin/actions.ts`: `createTenantBackupAction` (ръчен бекъп), `restoreTenantBackupAction` (merge/replace; преди replace прави автоматичен предпазен бекъп на текущото състояние)
+- `app/super-admin/[salon_slug]/page.tsx`: секция "🗄️ Бекъпи" — списък, "Бекъп сега", "Възстанови липсващи" (merge), "Пълно възстановяване" (replace, с confirm), "⬇ JSON" download
+- `app/api/super-admin/backups/[id]/route.ts`: JSON download (offline копие извън Supabase)
+- `lib/internal/tenant-backups.ts`: list/get (service-role boundary allowlist през lib/internal/)
+- `lib/booking-mutations.ts`: clamp на booking_end_time до 23:59 при буфер през полунощ (иначе 22007 върху реалната time колона)
+- `app/super-admin/[salon_slug]/restore-backup-button.tsx`: confirm бутон
+
+### Други находки от одита (БЕЗ действие — за преценка от Лина)
+
+1. 🟠 **`salonapp_posts`** (36 реда, social post scheduler, НЕ е в repo-то/миграциите) — има `anon_select`/`anon_update USING(true)` политики → всеки с публичния anon ключ може да пренаписва съдържанието на планираните постове. Вероятно външна автоматизация (n8n/Make?) я ползва с anon ключа — НЕ пипано, за да не се счупи. Препоръка: автоматизацията да мине на service key и политиките да се дропнат.
+2. 🟡 `leads` има `leads_anon_insert WITH CHECK (true)` — кодът пише през service role; политиката е вероятно легитимна за някаква външна форма, оставена.
+3. 🟡 **Billing:** `thebeast` е active без expiry/grace — никога няма да се деактивира от cron-а (умишлено?). `euphoria` изтича **2026-07-10** (grace до 10-11). `lindynails` е trial от 04-10 с изтекъл grace 05-14 — trial статусът не се гони от billing-expiry cron-а (той гледа само active).
+4. 🟡 Supabase Auth: **Leaked password protection е ИЗКЛЮЧЕНА** — включва се с 1 клик в Dashboard → Auth → Providers (HaveIBeenPwned проверка).
+5. ℹ️ Advisors: `pg_net` extension в public schema; gallery bucket позволява listing; redundant RLS политики (познати, cosmetic).
+6. ℹ️ Migrations 037+038 СА приложени в production (потвърдено в migration history) — чакащата ръчна стъпка от 2026-07-07 е изпълнена.
+
+**Branch:** `feature/tenant-backups-hardening`
+
+---
+
 ## 2026-07-08 — ATS Studio: ново лого (бяло на прозрачен фон)
 
 **Контекст:** Поли поиска да смени логото на ATS Studio с новото бяло лого на прозрачен фон (`C:\Users\Lina\Downloads\Нова папка\logo.png`, 500×500 RGBA).

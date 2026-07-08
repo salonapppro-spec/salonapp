@@ -45,5 +45,6 @@ next-env.d.ts
 # Local staging for product photo uploads (see scripts/upload-product-images.mjs)
 /staging-upload-products/
 
-# DB backups (contain PII, never commit)
-backups/
+# DB backups (contain PII, never commit) — само root папката,
+# не и код като app/api/super-admin/backups/
+/backups/

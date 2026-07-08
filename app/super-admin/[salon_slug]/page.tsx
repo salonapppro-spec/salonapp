@@ -3,9 +3,11 @@ import { notFound } from "next/navigation";
 
 import { CopyButton } from "./copy-button";
 import { ConfirmTenantBasicsSubmitButton } from "./confirm-tenant-basics-submit-button";
+import { RestoreBackupButton } from "./restore-backup-button";
 
 import { SuperAdminSalonSlugForm } from "@/components/super-admin/SuperAdminSalonSlugForm";
-import { activateTenantManually, enterSalonAdminContextAction, sendCredentialsAction, updateTenantBasics } from "@/app/super-admin/actions";
+import { activateTenantManually, createTenantBackupAction, enterSalonAdminContextAction, restoreTenantBackupAction, sendCredentialsAction, updateTenantBasics } from "@/app/super-admin/actions";
+import { listTenantBackups } from "@/lib/internal/tenant-backups";
 import { MARKETING_PLANS, parsePlanId } from "@/lib/marketing-data";
 import { stripePaymentLinkForPlan } from "@/lib/marketing-checkout";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
@@ -62,6 +64,9 @@ export default async function SuperAdminTenantPage({
     payload: Record<string, unknown> | null;
     created_at: string | null;
   }>;
+
+  // Бекъпи: не чупим страницата, ако таблицата още не съществува (пре-migration 039).
+  const backups = await listTenantBackups(tenant.salon_slug).catch(() => []);
 
   const sb = STATUS_BADGE[tenant.status] ?? STATUS_BADGE.inactive;
 
@@ -291,6 +296,90 @@ export default async function SuperAdminTenantPage({
         </div>
       </section>
 
+
+      {/* Бекъпи — дневен автоматичен (pg_cron 04:30 BG) + ръчен + възстановяване */}
+      <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div>
+            <h2 className="text-base font-semibold text-neutral-100">🗄️ Бекъпи (резервации + клиенти + настройки)</h2>
+            <p className="mt-1 text-sm text-neutral-500">
+              Автоматичен бекъп всяка нощ в 04:30 (пази се 35 дни). Ръчните се пазят 180 дни.
+              „Възстанови липсващи“ само добавя изтрити записи; „Пълно възстановяване“ връща всичко към бекъпа
+              (преди това автоматично се прави предпазен бекъп на текущото състояние).
+            </p>
+          </div>
+          <form action={createTenantBackupAction}>
+            <input type="hidden" name="salon_slug" value={tenant.salon_slug} />
+            <button type="submit" className="rounded-lg bg-sky-600 px-4 py-2 text-sm font-semibold text-white hover:bg-sky-500">
+              💾 Бекъп сега
+            </button>
+          </form>
+        </div>
+        {op === "backup_created" && (
+          <div className="mt-3 rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-2 text-sm font-semibold text-emerald-300">
+            ✓ Бекъпът е създаден.
+          </div>
+        )}
+        {op === "backup_restored" && (
+          <div className="mt-3 rounded-lg border border-emerald-700/60 bg-emerald-950/40 px-3 py-2 text-sm font-semibold text-emerald-300">
+            ✓ Възстановяването приключи. Провери данните в админа на салона.
+          </div>
+        )}
+        <div className="mt-3 space-y-2">
+          {backups.length === 0 ? (
+            <p className="text-sm text-neutral-500">Още няма бекъпи за този салон.</p>
+          ) : (
+            backups.map((b) => {
+              const label = new Date(b.created_at).toLocaleString("bg-BG");
+              return (
+                <div key={b.id} className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-neutral-800 bg-neutral-950/60 px-3 py-2">
+                  <div>
+                    <p className="text-sm text-neutral-200">
+                      {label}{" "}
+                      <span className="ml-1 rounded-full border border-neutral-700 px-2 py-0.5 text-[10px] uppercase tracking-wide text-neutral-400">
+                        {b.source === "cron" ? "авто" : "ръчен"}
+                      </span>
+                    </p>
+                    <p className="mt-0.5 text-xs text-neutral-500 tabular-nums">
+                      {b.row_counts?.bookings ?? 0} резервации · {b.row_counts?.clients ?? 0} клиенти · {b.row_counts?.services ?? 0} услуги
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <a
+                      href={`/api/super-admin/backups/${b.id}`}
+                      className="rounded-lg border border-neutral-600 px-3 py-1.5 text-xs text-neutral-300 hover:bg-neutral-800"
+                    >
+                      ⬇ JSON
+                    </a>
+                    <form action={restoreTenantBackupAction}>
+                      <input type="hidden" name="salon_slug" value={tenant.salon_slug} />
+                      <input type="hidden" name="backup_id" value={b.id} />
+                      <input type="hidden" name="mode" value="merge" />
+                      <RestoreBackupButton
+                        salonSlug={tenant.salon_slug}
+                        backupLabel={label}
+                        mode="merge"
+                        className="rounded-lg border border-emerald-700/70 px-3 py-1.5 text-xs font-semibold text-emerald-300 hover:bg-emerald-950/50"
+                      />
+                    </form>
+                    <form action={restoreTenantBackupAction}>
+                      <input type="hidden" name="salon_slug" value={tenant.salon_slug} />
+                      <input type="hidden" name="backup_id" value={b.id} />
+                      <input type="hidden" name="mode" value="replace" />
+                      <RestoreBackupButton
+                        salonSlug={tenant.salon_slug}
+                        backupLabel={label}
+                        mode="replace"
+                        className="rounded-lg border border-red-800/70 px-3 py-1.5 text-xs font-semibold text-red-300 hover:bg-red-950/40"
+                      />
+                    </form>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+      </section>
 
       <section className="rounded-2xl border border-neutral-800 bg-neutral-900/70 p-5">
         <h2 className="text-base font-semibold text-neutral-100">🕘 Timeline (последни действия)</h2>

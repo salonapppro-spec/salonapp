@@ -40,7 +40,10 @@ function insertErrorMessage(error: { code?: string; message?: string; details?: 
 }
 function addMinutesToTime(time: string, durationMinutes: number): string {
   const [h, m] = time.split(":").map(Number);
-  const total = h * 60 + m + durationMinutes;
+  // Postgres `time` не приема стойности над 24:00 — при час, чийто буфер
+  // преминава полунощ (напр. 23:40 + 30 мин), clamp-ваме до 23:59, иначе
+  // insert-ът на booking_end_time пада с invalid time format (22007).
+  const total = Math.min(h * 60 + m + durationMinutes, 24 * 60 - 1);
   const hh = Math.floor(total / 60);
   const mm = total % 60;
   return `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;

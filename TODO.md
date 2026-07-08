@@ -4,7 +4,18 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-07-07
+> Актуализирай след всяка задача. Последна промяна: 2026-07-08
+
+---
+
+## ✅ 2026-07-08 — Одит на живата база + бекъпи (виж HANDOFF)
+
+- [x] **Per-tenant бекъпи** — `tenant_backups` + pg_cron дневен job (04:30 BG) + restore (merge/replace) + UI в супер-админ tenant детайла + JSON download; migration 039 приложена и верифицирана в production
+- [x] **Анти double-booking constraint** — production НЯМАШЕ `bookings_no_overlap`; migration 040 (booking_time→time, booking_end_time добавена+backfill, hair CHECK на английски, exclusion constraint, индекси) приложена и тествана
+- [x] **`set_tenant` RPC заключена** — migration 041 (revoke от anon/authenticated)
+- [ ] **`salonapp_posts` anon UPDATE policy** — всеки с anon ключа може да пише в social постовете; чака решение на Лина (външна автоматизация може да зависи от нея)
+- [ ] **Supabase Auth: включи Leaked password protection** (Dashboard → Auth, 1 клик)
+- [ ] **Billing преглед:** `euphoria` изтича 2026-07-10; `thebeast` active без expiry (никога не се деактивира); trial тенанти не се гонят от billing-expiry cron
 
 ---
 

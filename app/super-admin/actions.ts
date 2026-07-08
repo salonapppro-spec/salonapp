@@ -661,3 +661,70 @@ export async function createTenantAction(
   };
 }
 
+/** Ръчен бекъп на всички оперативни данни на тенанта (RPC create_tenant_backup). */
+export async function createTenantBackupAction(formData: FormData): Promise<void> {
+  const user = await requireSuperAdminUser();
+  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
+  if (!ADMIN_SLUG_RE.test(salonSlug)) throw new Error("Missing salon_slug");
+
+  const supabase = createSupabaseServiceRoleClient();
+  const { data, error } = await supabase.rpc("create_tenant_backup", {
+    p_salon_slug: salonSlug,
+    p_source: "manual",
+  });
+  if (error) throw new Error(`Неуспешен бекъп: ${error.message}`);
+
+  await logTenantActivity({
+    salonSlug,
+    eventType: "backup_created",
+    actorUserId: user.id,
+    payload: { backup_id: data ?? null, source: "manual" },
+  });
+
+  revalidatePath(`/super-admin/${salonSlug}`);
+  redirect(`/super-admin/${salonSlug}?op=backup_created`);
+}
+
+/**
+ * Възстановяване от бекъп (RPC restore_tenant_backup).
+ * mode="merge"   — добавя само липсващите редове, нищо не се трие (default);
+ * mode="replace" — изтрива текущите данни на тенанта в избраните таблици и
+ *                  връща състоянието от бекъпа (пълно възстановяване).
+ */
+export async function restoreTenantBackupAction(formData: FormData): Promise<void> {
+  const user = await requireSuperAdminUser();
+  const salonSlug = String(formData.get("salon_slug") ?? "").trim();
+  const backupId = String(formData.get("backup_id") ?? "").trim();
+  const mode = String(formData.get("mode") ?? "merge") === "replace" ? "replace" : "merge";
+  if (!ADMIN_SLUG_RE.test(salonSlug)) throw new Error("Missing salon_slug");
+  if (!/^[0-9a-f-]{36}$/i.test(backupId)) throw new Error("Invalid backup_id");
+
+  const supabase = createSupabaseServiceRoleClient();
+
+  // Предпазна мрежа: преди replace правим автоматичен бекъп на ТЕКУЩОТО
+  // състояние, за да може и самото възстановяване да се върне назад.
+  if (mode === "replace") {
+    const { error: preErr } = await supabase.rpc("create_tenant_backup", {
+      p_salon_slug: salonSlug,
+      p_source: "manual",
+    });
+    if (preErr) throw new Error(`Отказано: неуспешен предпазен бекъп преди replace: ${preErr.message}`);
+  }
+
+  const { data, error } = await supabase.rpc("restore_tenant_backup", {
+    p_backup_id: backupId,
+    p_mode: mode,
+  });
+  if (error) throw new Error(`Неуспешно възстановяване: ${error.message}`);
+
+  await logTenantActivity({
+    salonSlug,
+    eventType: "backup_restored",
+    actorUserId: user.id,
+    payload: { backup_id: backupId, mode, result: (data as Record<string, unknown>) ?? null },
+  });
+
+  revalidatePath(`/super-admin/${salonSlug}`);
+  redirect(`/super-admin/${salonSlug}?op=backup_restored`);
+}
+
