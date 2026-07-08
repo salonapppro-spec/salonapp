@@ -25,7 +25,17 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
 
   const { data, error } = await tenantDb(salonSlug).bookings.updateById(id, updates);
 
-  if (error) return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
+  if (error) {
+    // bookings_no_overlap: връщане на cancelled/no_show резервация към активен
+    // статус, след като слотът междувременно е зает от друга — не е server bug.
+    if ((error as { code?: string }).code === "23P01") {
+      return NextResponse.json(
+        { error: "Часът вече е зает от друга резервация — не може да се възстанови." },
+        { status: 409 }
+      );
+    }
+    return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
+  }
   if (!data) return NextResponse.json({ error: "Не е намерена резервация" }, { status: 404 });
 
   return NextResponse.json({ booking: data });
