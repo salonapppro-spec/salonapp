@@ -6,6 +6,7 @@ import type { CSSProperties } from "react";
 import type { SalonData, Service } from "@/types/database";
 import { servicesFlatForPublic } from "@/components/templates/salon-shared";
 import { AtsBooking } from "./AtsBooking";
+import { InteractiveConditionsBody } from "./InteractiveConditionsBody";
 import {
   safeFacebookHref,
   safeGoogleMapsEmbedSrc,
@@ -61,58 +62,6 @@ function useReveal() {
   }, []);
   return ref;
 }
-
-/* Състояния, при които терапевтичният масаж помага — SEO-богата секция. */
-const CONDITIONS: { title: string; text: string }[] = [
-  {
-    title: "Плексит",
-    text: "Възпаление на нервния сплит в рамото с болка и изтръпване. Прилагам щадящи техники за облекчаване на напрежението около раменния пояс и възстановяване на подвижността.",
-  },
-  {
-    title: "Ишиас",
-    text: "Болка по хода на седалищния нерв, която слиза към крака. Работя върху мускулатурата на кръста и таза, за да намаля притискането и да облекча острата симптоматика.",
-  },
-  {
-    title: "Дискова херния",
-    text: "При дискова херния масажът отпуска околната мускулатура, подобрява кръвообращението и намалява защитния мускулен спазъм около засегнатия сегмент.",
-  },
-  {
-    title: "Болки в кръста",
-    text: "Хроничното напрежение и претоварване в кръста реагира добре на дълбокотъканни и лечебни техники, които възстановяват мекотата на мускулите.",
-  },
-  {
-    title: "Болки във врата и схванат врат",
-    text: "Заседналата работа и стресът водят до скованост във врата. Освобождавам напрегнатата мускулатура и връщам свободата на движението.",
-  },
-  {
-    title: "Болки в гърба",
-    text: "Комбинирам класически и дълбокотъканен масаж, за да облекча болката, да отпусна мускулните вериги и да подобря стойката.",
-  },
-  {
-    title: "Главоболие от напрежение",
-    text: "Голяма част от главоболията тръгват от напрегнати мускули във врата и раменете. Работата върху тях често носи трайно облекчение.",
-  },
-  {
-    title: "Мускулни спазми и скованост",
-    text: "Локалните спазми и сковаността в раменете ограничават ежедневието. Целенасочените техники ги разпускат и връщат подвижността.",
-  },
-  {
-    title: "Лимфен застой и отоци",
-    text: "Ръчният лимфен дренаж стимулира оттичането на лимфата, намалява отоците и усещането за тежест в крайниците.",
-  },
-  {
-    title: "Целулит",
-    text: "Антицелулитният масаж подобрява микроциркулацията и тонуса на тъканите като част от последователна терапия.",
-  },
-  {
-    title: "Лошо кръвообращение",
-    text: "Масажът активира кръвотока, подхранва тъканите и подпомага естественото възстановяване на тялото.",
-  },
-  {
-    title: "Възстановяване след спорт",
-    text: "След натоварване или травма помагам на мускулите да се възстановят по-бързо, да намаля болезнеността и да върна тонуса.",
-  },
-];
 
 const QUALIFICATIONS: { title: string; lines: string[] }[] = [
   {
@@ -352,14 +301,7 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
                 Ето част от състоянията, при които терапевтичният масаж дава реален резултат.
               </p>
             </div>
-            <div className="ats-cond-grid">
-              {CONDITIONS.map((c) => (
-                <article className="ats-cond-card" key={c.title}>
-                  <h3 className="ats-cond-title">{c.title}</h3>
-                  <p className="ats-cond-text">{c.text}</p>
-                </article>
-              ))}
-            </div>
+            <InteractiveConditionsBody />
           </div>
         </div>
       </section>
@@ -724,11 +666,6 @@ const css = `
 
 /* CONDITIONS */
 .ats-cond { padding: clamp(5rem, 10vw, 8rem) 0; background: linear-gradient(165deg, var(--ats-midnight) 0%, var(--ats-midnight-deep) 100%); }
-.ats-cond-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.4rem; }
-.ats-cond-card { background: rgba(248,245,239,.04); border: 1px solid rgba(200,164,90,.18); border-radius: 14px; padding: 1.8rem; transition: border-color .25s ease, transform .25s ease, background .25s ease; }
-.ats-cond-card:hover { border-color: rgba(200,164,90,.55); transform: translateY(-3px); background: rgba(248,245,239,.06); }
-.ats-cond-title { font-family: var(--f-serif); font-size: 1.4rem; font-weight: 600; color: var(--ats-gold-soft); margin: 0 0 .7rem; }
-.ats-cond-text { font-size: .92rem; line-height: 1.7; color: rgba(248,245,239,.72); margin: 0; }
 
 /* PACKAGES */
 .ats-packages { padding: clamp(4.5rem, 9vw, 7rem) 0; }
