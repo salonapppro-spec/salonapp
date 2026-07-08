@@ -1,4 +1,21 @@
-# HANDOFF — последна актуализация: 2026-07-07
+# HANDOFF — последна актуализация: 2026-07-08
+
+---
+
+## 2026-07-08 — ATS Studio: ново лого (бяло на прозрачен фон)
+
+**Контекст:** Поли поиска да смени логото на ATS Studio с новото бяло лого на прозрачен фон (`C:\Users\Lina\Downloads\Нова папка\logo.png`, 500×500 RGBA).
+
+**Промени (branch `fix/hero-about-settings`):**
+1. Нов bundled asset `public/tenants/ats-massage/logo.webp` — конвертиран от PNG през `sharp` (39 KB, запазена прозрачност). Same-origin → минава production CSP, като hero-то.
+2. `components/tenants/ats-massage/Page.tsx`:
+   - Нов `DEFAULT_LOGO = "/tenants/ats-massage/logo.webp"` (до `DEFAULT_HERO`)
+   - `const logo = tenant.logo_url?.trim() || DEFAULT_LOGO;` — fallback, същият паттерн като hero-то
+3. **Production DB:** `update tenants set logo_url = null where salon_slug = 'ats-massage'` — старото лого сочеше към `gallery/ats-massage/settings/...webp` в storage и печелеше над fallback-а. С null-натото поле сега се ползва новото bundled лого. (Owner-ът може по-късно да качи друго от админ настройките — то пак ще override-не.)
+
+**Защо бялото лого пасва:** `.ats-nav` е винаги на тъмен фон — прозрачно върху тъмния hero отгоре, `rgba(15,35,67,.96)` (midnight) при scroll. Бяло лого е четимо и в двете състояния.
+
+**Верификация:** `npx tsc --noEmit` чист. Статичният asset се сервира локално (`GET /tenants/ats-massage/logo.webp → 200, image/webp, 39202 B`). Пълен рендер на tenant страницата локално НЕ е възможен — няма `.env.local` със Supabase ключове на тази машина (500 „Липсват NEXT_PUBLIC_SUPABASE_URL/SERVICE_ROLE_KEY"); визуалната проверка е след deploy на Vercel.
 
 ---
 

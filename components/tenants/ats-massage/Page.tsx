@@ -27,6 +27,8 @@ const FALLBACK_PHONE = "0988 326 239";
 const FALLBACK_ADDRESS = "ул. Дебелт 14, Бургас";
 /** Bundled zen hero (same-origin → passes production CSP). Used until an owner uploads a custom hero. */
 const DEFAULT_HERO = "/tenants/ats-massage/hero.webp";
+/** Bundled brand logo (white на прозрачен фон — навигацията винаги е тъмна). Ползва се докато owner не качи друго. */
+const DEFAULT_LOGO = "/tenants/ats-massage/logo.webp";
 
 function eur(v: number) {
   return `${Number(v).toFixed(0)} €`;
@@ -137,7 +139,7 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
   const phone = tenant.phone?.trim() || FALLBACK_PHONE;
   const telHref = `tel:${phone.replace(/\s+/g, "")}`;
   const address = tenant.address?.trim() || FALLBACK_ADDRESS;
-  const logo = tenant.logo_url?.trim();
+  const logo = tenant.logo_url?.trim() || DEFAULT_LOGO;
   const heroImg = tenant.hero_image_url?.trim() || DEFAULT_HERO;
   const aboutImg = tenant.about_image_url?.trim();
 
