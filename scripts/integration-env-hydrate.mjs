@@ -44,15 +44,15 @@ async function supabaseRest(serviceRoleKey, baseUrl, pathSuffix, query = "") {
   return res.json();
 }
 
-async function adminUpsertCiUser({ baseUrl, serviceRoleKey, anonKey, salonSlug, password }) {
-  const headers = {
-    apikey: serviceRoleKey,
-    Authorization: `Bearer ${serviceRoleKey}`,
-    "Content-Type": "application/json",
-  };
-
+/**
+ * Намира CI потребителя по ТОЧЕН email.
+ * GoTrue admin list-endpoint не филтрира надеждно по `?email=` във всички версии
+ * (може да върне произволен друг потребител), затова филтрираме от страна на клиента.
+ * `per_page` е голямо, за да покрие целия (малък) integration проект в първата страница.
+ */
+async function findCiUser(baseUrl, headers) {
   const listRes = await fetch(
-    `${baseUrl}/auth/v1/admin/users?email=${encodeURIComponent(CI_USER_EMAIL)}`,
+    `${baseUrl}/auth/v1/admin/users?per_page=200&email=${encodeURIComponent(CI_USER_EMAIL)}`,
     { headers }
   );
   if (!listRes.ok) {
@@ -60,7 +60,18 @@ async function adminUpsertCiUser({ baseUrl, serviceRoleKey, anonKey, salonSlug, 
     throw new Error(`Admin list users failed (${listRes.status}): ${text.slice(0, 240)}`);
   }
   const listed = await listRes.json();
-  const existing = listed?.users?.[0];
+  const wanted = CI_USER_EMAIL.toLowerCase();
+  return Array.isArray(listed?.users)
+    ? listed.users.find((u) => (u?.email || "").toLowerCase() === wanted)
+    : undefined;
+}
+
+async function adminUpsertCiUser({ baseUrl, serviceRoleKey, anonKey, salonSlug, password }) {
+  const headers = {
+    apikey: serviceRoleKey,
+    Authorization: `Bearer ${serviceRoleKey}`,
+    "Content-Type": "application/json",
+  };
 
   const body = {
     email: CI_USER_EMAIL,
@@ -69,8 +80,8 @@ async function adminUpsertCiUser({ baseUrl, serviceRoleKey, anonKey, salonSlug, 
     app_metadata: { salon_slug: salonSlug, role: "owner" },
   };
 
-  if (existing?.id) {
-    const updateRes = await fetch(`${baseUrl}/auth/v1/admin/users/${existing.id}`, {
+  const updateById = async (id) => {
+    const updateRes = await fetch(`${baseUrl}/auth/v1/admin/users/${id}`, {
       method: "PUT",
       headers,
       body: JSON.stringify(body),
@@ -79,6 +90,12 @@ async function adminUpsertCiUser({ baseUrl, serviceRoleKey, anonKey, salonSlug, 
       const text = await updateRes.text();
       throw new Error(`Admin update user failed (${updateRes.status}): ${text.slice(0, 240)}`);
     }
+  };
+
+  const existing = await findCiUser(baseUrl, headers);
+
+  if (existing?.id) {
+    await updateById(existing.id);
   } else {
     const createRes = await fetch(`${baseUrl}/auth/v1/admin/users`, {
       method: "POST",
@@ -87,7 +104,13 @@ async function adminUpsertCiUser({ baseUrl, serviceRoleKey, anonKey, salonSlug, 
     });
     if (!createRes.ok) {
       const text = await createRes.text();
-      throw new Error(`Admin create user failed (${createRes.status}): ${text.slice(0, 240)}`);
+      // Ако потребителят вече съществува (race / пропуснат в списъка) —
+      // намери го и го обнови, вместо да чупим seed-а.
+      const recovered = await findCiUser(baseUrl, headers);
+      if (!recovered?.id) {
+        throw new Error(`Admin create user failed (${createRes.status}): ${text.slice(0, 240)}`);
+      }
+      await updateById(recovered.id);
     }
   }
 
