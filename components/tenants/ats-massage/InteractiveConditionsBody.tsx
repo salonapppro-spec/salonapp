@@ -4,14 +4,20 @@ import { useEffect, useRef, useState } from "react";
 
 /* ────────────────────────────────────────────────────────────────
    ATS Studio — Интерактивна секция „Състояния".
-   Реално анатомично тяло (заден изглед) с пулсиращи точки за болка.
-   Клик/tap отваря карта (desktop, под тялото) или bottom sheet (mobile)
-   с описание + CTA „Запази час". Точките са <button> с aria-label,
-   работят с клавиатура и Escape. SEO текстовете остават в DOM.
-   Позициите са в проценти → responsive спрямо контейнера на тялото.
+   Реално анатомично тяло (заден изглед) с левитиращи chip-ове —
+   всеки „плава" близо до точката на болката (анатомичен callout):
+   маркер върху тялото + тънка линия към chip в страничното поле.
+   Клик/tap:
+     · desktop → инфо картата „пада" точно до chip-а (popover),
+       а НЕ като отделен прозорец под тялото.
+     · mobile  → bottom sheet (chip-овете се свиват до точки).
+   Chip-овете са <button> с aria-label, работят с клавиатура и Escape.
+   SEO текстовете остават в DOM. Позициите са в проценти → responsive.
    ──────────────────────────────────────────────────────────────── */
 
 const BODY_IMG = "/tenants/ats-massage/body.png";
+
+type Side = "left" | "right";
 
 export type BodyCondition = {
   id: string;
@@ -19,6 +25,8 @@ export type BodyCondition = {
   description: string;
   positionPercentX: number;
   positionPercentY: number;
+  /** На кой борд (desktop) да левитира chip-ът спрямо тялото. */
+  side: Side;
 };
 
 const CONDITIONS: BodyCondition[] = [
@@ -29,6 +37,7 @@ const CONDITIONS: BodyCondition[] = [
       "Голяма част от главоболията тръгват от напрегнати мускули във врата и раменете. Работата върху тях често носи трайно облекчение.",
     positionPercentX: 50,
     positionPercentY: 7,
+    side: "right",
   },
   {
     id: "vrat",
@@ -37,6 +46,7 @@ const CONDITIONS: BodyCondition[] = [
       "Заседналата работа и стресът водят до скованост във врата. Освобождавам напрегнатата мускулатура и връщам свободата на движението.",
     positionPercentX: 50,
     positionPercentY: 14,
+    side: "left",
   },
   {
     id: "pleksit",
@@ -45,6 +55,7 @@ const CONDITIONS: BodyCondition[] = [
       "Възпаление на нервния сплит в рамото с болка и изтръпване. Прилагам щадящи техники за облекчаване на напрежението около раменния пояс и възстановяване на подвижността.",
     positionPercentX: 60,
     positionPercentY: 22,
+    side: "right",
   },
   {
     id: "spazmi",
@@ -53,6 +64,7 @@ const CONDITIONS: BodyCondition[] = [
       "Локалните спазми и сковаността в раменете ограничават ежедневието. Целенасочените техники ги разпускат и връщат подвижността.",
     positionPercentX: 40,
     positionPercentY: 22,
+    side: "left",
   },
   {
     id: "grab",
@@ -61,6 +73,7 @@ const CONDITIONS: BodyCondition[] = [
       "Комбинирам класически и дълбокотъканен масаж, за да облекча болката, да отпусна мускулните вериги и да подобря стойката.",
     positionPercentX: 50,
     positionPercentY: 31,
+    side: "right",
   },
   {
     id: "hernia",
@@ -69,6 +82,7 @@ const CONDITIONS: BodyCondition[] = [
       "При дискова херния масажът отпуска околната мускулатура, подобрява кръвообращението и намалява защитния мускулен спазъм около засегнатия сегмент.",
     positionPercentX: 50,
     positionPercentY: 38,
+    side: "left",
   },
   {
     id: "krast",
@@ -77,6 +91,7 @@ const CONDITIONS: BodyCondition[] = [
       "Хроничното напрежение и претоварване в кръста реагира добре на дълбокотъканни и лечебни техники, които възстановяват мекотата на мускулите.",
     positionPercentX: 50,
     positionPercentY: 44,
+    side: "right",
   },
   {
     id: "ishias",
@@ -85,6 +100,7 @@ const CONDITIONS: BodyCondition[] = [
       "Болка по хода на седалищния нерв, която слиза към крака. Работя върху мускулатурата на кръста и таза, за да намаля притискането и да облекча острата симптоматика.",
     positionPercentX: 44,
     positionPercentY: 50,
+    side: "left",
   },
   {
     id: "celulit",
@@ -93,6 +109,7 @@ const CONDITIONS: BodyCondition[] = [
       "Антицелулитният масаж подобрява микроциркулацията и тонуса на тъканите като част от последователна терапия.",
     positionPercentX: 57,
     positionPercentY: 61,
+    side: "right",
   },
   {
     id: "sport",
@@ -101,6 +118,7 @@ const CONDITIONS: BodyCondition[] = [
       "След натоварване или травма помагам на мускулите да се възстановят по-бързо, да намаля болезнеността и да върна тонуса.",
     positionPercentX: 43,
     positionPercentY: 64,
+    side: "left",
   },
   {
     id: "kravoobrashtenie",
@@ -109,6 +127,7 @@ const CONDITIONS: BodyCondition[] = [
       "Масажът активира кръвотока, подхранва тъканите и подпомага естественото възстановяване на тялото.",
     positionPercentX: 56,
     positionPercentY: 79,
+    side: "right",
   },
   {
     id: "limfen-zastoi",
@@ -117,8 +136,12 @@ const CONDITIONS: BodyCondition[] = [
       "Ръчният лимфен дренаж стимулира оттичането на лимфата, намалява отоците и усещането за тежест в крайниците.",
     positionPercentX: 45,
     positionPercentY: 90,
+    side: "left",
   },
 ];
+
+/** Ниските chip-ове отварят инфото нагоре, за да не излиза извън секцията. */
+const popDir = (y: number): "up" | "down" => (y > 72 ? "up" : "down");
 
 export function InteractiveConditionsBody() {
   const [activeId, setActiveId] = useState<string | null>(null);
@@ -139,7 +162,7 @@ export function InteractiveConditionsBody() {
     lastFocused.current?.focus();
   };
 
-  // Reveal + staggered влизане на точките, когато секцията се появи.
+  // Reveal + staggered влизане на chip-овете, когато секцията се появи.
   useEffect(() => {
     const el = rootRef.current;
     if (!el) return;
@@ -179,9 +202,27 @@ export function InteractiveConditionsBody() {
         Докоснете точките по тялото, за да видите как масажът може да помогне.
       </p>
 
-      {/* ── Центрирано тяло с точки ── */}
-      <div className="icb-stage-wrap">
-        <div className="icb-stage">
+      {/* ── Арена: тяло в центъра, chip-ове около него ── */}
+      <div className="icb-arena">
+        {/* Линии-водачи (desktop) — от chip към тялото */}
+        <div className="icb-leads" aria-hidden="true">
+          {CONDITIONS.map((c, i) => (
+            <span
+              key={c.id}
+              className="icb-lead"
+              data-side={c.side}
+              style={
+                {
+                  "--y": `${c.positionPercentY}%`,
+                  "--i": i,
+                } as React.CSSProperties
+              }
+            />
+          ))}
+        </div>
+
+        {/* Тяло + точкови маркери върху него (desktop) */}
+        <div className="icb-body">
           <span className="icb-glow" aria-hidden="true" />
           {/* eslint-disable-next-line @next/next/no-img-element */}
           <img
@@ -191,67 +232,77 @@ export function InteractiveConditionsBody() {
             loading="lazy"
             draggable={false}
           />
-          <div className="icb-dots">
-            {CONDITIONS.map((c, i) => {
-              const isActive = c.id === activeId;
-              return (
-                <button
-                  key={c.id}
-                  type="button"
-                  className={`icb-dot${isActive ? " is-active" : ""}`}
-                  style={
-                    {
-                      left: `${c.positionPercentX}%`,
-                      top: `${c.positionPercentY}%`,
-                      "--i": i,
-                    } as React.CSSProperties
-                  }
-                  aria-label={c.title}
-                  aria-pressed={isActive}
-                  onClick={(e) => openDot(c.id, e.currentTarget)}
-                >
-                  <span className="icb-dot-core" aria-hidden="true" />
-                  <span className="icb-dot-label" aria-hidden="true">
-                    {c.title}
-                  </span>
-                </button>
-              );
-            })}
+          <div className="icb-marks" aria-hidden="true">
+            {CONDITIONS.map((c, i) => (
+              <span
+                key={c.id}
+                className={`icb-mark${c.id === activeId ? " is-active" : ""}`}
+                style={
+                  {
+                    "--x": `${c.positionPercentX}%`,
+                    "--y": `${c.positionPercentY}%`,
+                    "--i": i,
+                  } as React.CSSProperties
+                }
+              />
+            ))}
           </div>
         </div>
-      </div>
 
-      {/* ── Информационна карта (desktop: под тялото, центрирана) ── */}
-      <div className="icb-panel" aria-live="polite">
-        {active ? (
-          <div className="icb-card" key={active.id}>
-            <button
-              type="button"
-              className="icb-card-close"
-              aria-label="Затвори"
-              onClick={close}
-            >
-              ×
-            </button>
-            <p className="icb-card-eyebrow">Състояние</p>
-            <h3 className="icb-card-title">{active.title}</h3>
-            <p className="icb-card-text">{active.description}</p>
-            <a href="#booking" className="icb-cta">
-              Запазете час за това състояние
-            </a>
-          </div>
-        ) : (
-          <div className="icb-card icb-card-empty">
-            <p className="icb-card-eyebrow">Как работи</p>
-            <p className="icb-card-text">
-              Изберете точка по тялото, за да видите с кое състояние работя и как
-              терапевтичният масаж може да помогне точно на вас.
-            </p>
-            <a href="#booking" className="icb-cta">
-              Запазете своя час
-            </a>
-          </div>
-        )}
+        {/* Левитиращи chip-ове (desktop: в полето; mobile: точки върху тялото) */}
+        <div className="icb-nodes">
+          {CONDITIONS.map((c, i) => {
+            const isActive = c.id === activeId;
+            const dir = popDir(c.positionPercentY);
+            return (
+              <div
+                key={c.id}
+                className={`icb-node${isActive ? " is-active" : ""}`}
+                data-side={c.side}
+                data-pop={dir}
+                style={
+                  {
+                    "--x": `${c.positionPercentX}%`,
+                    "--y": `${c.positionPercentY}%`,
+                    "--i": i,
+                  } as React.CSSProperties
+                }
+              >
+                <button
+                  type="button"
+                  className="icb-chip"
+                  aria-label={c.title}
+                  aria-pressed={isActive}
+                  aria-expanded={isActive}
+                  onClick={(e) => openDot(c.id, e.currentTarget)}
+                >
+                  <span className="icb-chip-dot" aria-hidden="true" />
+                  <span className="icb-chip-text">{c.title}</span>
+                </button>
+
+                {/* Инфо popover „пада" до chip-а (desktop) */}
+                {isActive && (
+                  <div className="icb-pop" role="dialog" aria-label={c.title}>
+                    <button
+                      type="button"
+                      className="icb-card-close"
+                      aria-label="Затвори"
+                      onClick={close}
+                    >
+                      ×
+                    </button>
+                    <p className="icb-card-eyebrow">Състояние</p>
+                    <h3 className="icb-card-title">{c.title}</h3>
+                    <p className="icb-card-text">{c.description}</p>
+                    <a href="#booking" className="icb-cta">
+                      Запази час
+                    </a>
+                  </div>
+                )}
+              </div>
+            );
+          })}
+        </div>
       </div>
 
       {/* ── Mobile: bottom sheet ── */}
@@ -312,14 +363,14 @@ const css = `
   max-width: 48ch;
 }
 
-/* ── Тяло ── */
-.icb-stage-wrap { display: flex; justify-content: center; }
-.icb-stage {
+/* ── Арена (mobile-first: тялото заема цялата ширина) ── */
+.icb-arena {
   position: relative;
-  width: min(88vw, 400px);
-  aspect-ratio: 1122 / 1402;
-  animation: icbFloat 7s ease-in-out infinite;
+  width: 100%;
+  max-width: 380px;
+  margin: 0 auto;
 }
+.icb-body { position: relative; width: 100%; aspect-ratio: 1122 / 1402; }
 .icb-glow {
   position: absolute;
   inset: -12% -18%;
@@ -339,148 +390,105 @@ const css = `
   filter: drop-shadow(0 12px 40px rgba(0,0,0,.45));
 }
 
-/* ── Точки ── */
-.icb-dots { position: absolute; inset: 0; z-index: 2; }
-.icb-dot {
+/* ── Линии-водачи и маркери: само desktop ── */
+.icb-leads { display: none; }
+.icb-marks { display: none; }
+
+/* ── Node (mobile: точка върху тялото) ── */
+.icb-nodes { position: absolute; inset: 0; z-index: 3; }
+.icb-node {
   position: absolute;
-  width: 48px;
-  height: 48px;
+  left: var(--x);
+  top: var(--y);
   transform: translate(-50%, -50%);
-  display: grid;
-  place-items: center;
+  opacity: 0;
+  transition: opacity .5s ease;
+  transition-delay: calc(var(--i, 0) * 55ms);
+}
+.icb.in .icb-node { opacity: 1; }
+.icb-node.is-active { z-index: 6; }
+
+/* chip бутон — mobile: показва само точката (44px tap-зона) */
+.icb-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: .55rem;
+  min-width: 44px;
+  min-height: 44px;
   padding: 0;
-  margin: 0;
   border: 0;
   background: none;
+  color: var(--ats-ivory, #F8F5EF);
   cursor: pointer;
   -webkit-tap-highlight-color: transparent;
+  animation: icbFloat 6s ease-in-out infinite;
+  animation-delay: calc(var(--i, 0) * .5s);
 }
-.icb-dot-core {
+.icb-chip-dot {
   position: relative;
-  width: 19px;
-  height: 19px;
+  width: 15px;
+  height: 15px;
   border-radius: 50%;
-  background: radial-gradient(circle at 34% 30%, #ffd1d1 0%, #ff6b6f 34%, #e5373d 66%, #b81f26 100%);
-  box-shadow: 0 0 0 5px rgba(229,55,61,.16), 0 0 14px 3px rgba(229,55,61,.55);
+  flex: none;
+  background: radial-gradient(circle at 35% 30%, #f6e6bd 0%, var(--ats-gold, #C8A45A) 58%, #a9863f 100%);
+  box-shadow: 0 0 0 5px rgba(200,164,90,.15), 0 0 12px 2px rgba(200,164,90,.6);
   transition: transform .22s ease, box-shadow .22s ease;
-  animation: icbPulse 2.3s ease-out infinite;
+  animation: icbPulse 2.4s ease-out infinite;
   animation-delay: calc(var(--i, 0) * 140ms);
 }
-/* влизане със стъпаловидно закъснение при scroll reveal */
-.icb-dot { opacity: 0; transform: translate(-50%, -50%) scale(.4); }
-.icb.in .icb-dot {
-  animation: icbPop .5s cubic-bezier(.34,1.56,.64,1) forwards;
-  animation-delay: calc(var(--i, 0) * 65ms);
-}
-.icb-dot:hover .icb-dot-core,
-.icb-dot:focus-visible .icb-dot-core {
-  transform: scale(1.32);
-  box-shadow: 0 0 0 6px rgba(229,55,61,.2), 0 0 18px 5px rgba(229,55,61,.7);
-}
-.icb-dot:focus-visible {
-  outline: 2px solid var(--ats-gold-soft, #D8BC85);
-  outline-offset: 3px;
-  border-radius: 50%;
-}
-.icb-dot.is-active .icb-dot-core {
-  transform: scale(1.5);
-  box-shadow: 0 0 0 6px rgba(229,55,61,.26), 0 0 22px 6px rgba(229,55,61,.85);
-}
-
-/* етикет при hover/активност (desktop) */
-.icb-dot-label {
-  position: absolute;
-  bottom: calc(100% - 6px);
-  left: 50%;
-  transform: translate(-50%, 4px);
+.icb-chip-text {
+  display: none;
   white-space: nowrap;
-  font-size: .74rem;
-  font-weight: 600;
+  font-size: .9rem;
+  font-weight: 500;
   letter-spacing: .01em;
-  color: var(--ats-ivory, #F8F5EF);
-  background: rgba(10,25,47,.92);
-  border: 1px solid rgba(200,164,90,.4);
-  border-radius: 8px;
-  padding: 5px 10px;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .18s ease, transform .18s ease;
-  box-shadow: 0 6px 18px rgba(0,0,0,.35);
 }
-.icb-dot:hover .icb-dot-label,
-.icb-dot:focus-visible .icb-dot-label,
-.icb-dot.is-active .icb-dot-label {
-  opacity: 1;
-  transform: translate(-50%, 0);
+.icb-chip:hover .icb-chip-dot,
+.icb-chip:focus-visible .icb-chip-dot,
+.icb-node.is-active .icb-chip-dot {
+  transform: scale(1.28);
+  box-shadow: 0 0 0 6px rgba(200,164,90,.22), 0 0 18px 4px rgba(200,164,90,.8);
 }
+.icb-chip:focus-visible { outline: none; }
 
-@keyframes icbPulse {
-  0%   { box-shadow: 0 0 0 5px rgba(229,55,61,.16), 0 0 14px 3px rgba(229,55,61,.5), 0 0 0 0 rgba(229,55,61,.5); }
-  70%  { box-shadow: 0 0 0 5px rgba(229,55,61,.16), 0 0 14px 3px rgba(229,55,61,.5), 0 0 0 16px rgba(229,55,61,0); }
-  100% { box-shadow: 0 0 0 5px rgba(229,55,61,.16), 0 0 14px 3px rgba(229,55,61,.5), 0 0 0 0 rgba(229,55,61,0); }
-}
-@keyframes icbPop {
-  0%   { opacity: 0; transform: translate(-50%, -50%) scale(.2); }
-  100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-}
-@keyframes icbFloat {
-  0%,100% { transform: translateY(0); }
-  50%     { transform: translateY(-10px); }
-}
+/* ── Инфо popover (desktop): скрит на mobile ── */
+.icb-pop { display: none; }
 
-/* ── Информационна карта (desktop под тялото) ── */
-.icb-panel {
-  max-width: 620px;
-  margin: 2.6rem auto 0;
-  min-height: 210px;
-  display: flex;
-  justify-content: center;
-}
-.icb-card {
-  position: relative;
-  width: 100%;
-  background: rgba(248,245,239,.05);
-  border: 1px solid rgba(200,164,90,.34);
-  border-radius: 18px;
-  padding: 2rem 2.2rem 2.2rem;
-  text-align: center;
-  animation: icbFade .3s ease;
-}
-.icb-card-empty { border-style: dashed; border-color: rgba(200,164,90,.26); }
+/* ── Обща типография за картата (popover + sheet) ── */
 .icb-card-eyebrow {
-  font-size: .7rem;
-  letter-spacing: .3em;
+  font-size: .68rem;
+  letter-spacing: .28em;
   text-transform: uppercase;
   color: var(--ats-gold-soft, #D8BC85);
   font-weight: 600;
-  margin: 0 0 .8rem;
+  margin: 0 0 .55rem;
 }
 .icb-card-title {
   font-family: var(--f-serif, 'Cormorant Garamond', Georgia, serif);
-  font-size: clamp(1.7rem, 4vw, 2.2rem);
+  font-size: clamp(1.45rem, 3.4vw, 1.9rem);
   font-weight: 600;
-  line-height: 1.12;
+  line-height: 1.14;
   color: var(--ats-gold-soft, #D8BC85);
-  margin: 0 0 .9rem;
+  margin: 0 0 .7rem;
 }
 .icb-card-text {
-  font-size: 1rem;
-  line-height: 1.75;
-  color: rgba(248,245,239,.84);
-  margin: 0 auto;
-  max-width: 52ch;
+  font-size: .95rem;
+  line-height: 1.7;
+  color: rgba(248,245,239,.86);
+  margin: 0;
 }
 .icb-card-close {
   position: absolute;
-  top: .8rem;
-  right: 1rem;
-  width: 36px;
-  height: 36px;
+  top: .55rem;
+  right: .6rem;
+  width: 32px;
+  height: 32px;
   border: 0;
   border-radius: 50%;
   background: rgba(248,245,239,.06);
   color: rgba(248,245,239,.8);
-  font-size: 1.6rem;
+  font-size: 1.5rem;
   line-height: 1;
   cursor: pointer;
   transition: background .2s ease, color .2s ease;
@@ -491,13 +499,13 @@ const css = `
   outline-offset: 2px;
 }
 
-/* ── CTA към запазване на час ── */
+/* ── CTA ── */
 .icb-cta {
   display: inline-block;
-  margin-top: 1.6rem;
-  padding: .85rem 2rem;
+  margin-top: 1.2rem;
+  padding: .72rem 1.7rem;
   border-radius: 999px;
-  font-size: .82rem;
+  font-size: .76rem;
   font-weight: 700;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -516,13 +524,58 @@ const css = `
   outline-offset: 3px;
 }
 
+@keyframes icbPulse {
+  0%   { box-shadow: 0 0 0 5px rgba(200,164,90,.15), 0 0 12px 2px rgba(200,164,90,.55), 0 0 0 0 rgba(200,164,90,.5); }
+  70%  { box-shadow: 0 0 0 5px rgba(200,164,90,.15), 0 0 12px 2px rgba(200,164,90,.55), 0 0 0 15px rgba(200,164,90,0); }
+  100% { box-shadow: 0 0 0 5px rgba(200,164,90,.15), 0 0 12px 2px rgba(200,164,90,.55), 0 0 0 0 rgba(200,164,90,0); }
+}
+@keyframes icbFloat {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-8px); }
+}
 @keyframes icbFade {
-  from { opacity: 0; transform: translateY(10px); }
+  from { opacity: 0; transform: translateY(8px); }
   to   { opacity: 1; transform: translateY(0); }
 }
 
-/* ── Bottom sheet (mobile) — скрит на desktop ── */
-.icb-sheet-wrap { display: none; }
+/* ── Bottom sheet (mobile) ── */
+.icb-sheet-wrap {
+  display: flex;
+  align-items: flex-end;
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  background: rgba(10,25,47,.6);
+  backdrop-filter: blur(3px);
+  animation: icbFade .2s ease;
+}
+.icb-sheet {
+  position: relative;
+  width: 100%;
+  background: var(--ats-midnight-deep, #0A192F);
+  border-top: 2px solid var(--ats-gold, #C8A45A);
+  border-radius: 22px 22px 0 0;
+  padding: 1.6rem 1.4rem calc(1.9rem + env(safe-area-inset-bottom, 0px));
+  max-height: 80vh;
+  overflow-y: auto;
+  text-align: center;
+  box-shadow: 0 -16px 44px rgba(0,0,0,.45);
+  animation: icbSlideUp .32s cubic-bezier(.22,.61,.36,1);
+}
+.icb-sheet-grip {
+  display: block;
+  width: 44px; height: 4px;
+  border-radius: 4px;
+  background: rgba(248,245,239,.28);
+  margin: 0 auto 1.2rem;
+}
+.icb-sheet .icb-card-close { top: 1rem; right: 1rem; }
+.icb-sheet .icb-card-text { margin: 0 auto; max-width: 46ch; }
+.icb-sheet .icb-cta { width: 100%; }
+@keyframes icbSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
 
 /* ── Скрит SEO списък ── */
 .icb-seo {
@@ -535,56 +588,116 @@ const css = `
   border: 0;
 }
 
-/* ── Mobile ── */
-@media (max-width: 860px) {
-  .icb-stage { width: min(78vw, 340px); }
-  .icb-dot-label { display: none; }
-  .icb-panel { display: none; }
+/* ════════════════════════════════════════════════════════════
+   DESKTOP (≥ 901px): анатомичен callout —
+   тяло в центъра (360px), chip-ове левитират в страничните полета,
+   линии-водачи ги свързват с маркерите върху тялото.
+   Половината тяло = 180px → водачите стигат до 50% ± 190px.
+   ════════════════════════════════════════════════════════════ */
+@media (min-width: 901px) {
+  .icb-arena { max-width: 900px; }
+  .icb-body { width: 360px; margin: 0 auto; }
 
-  .icb-sheet-wrap {
-    display: flex;
-    align-items: flex-end;
-    position: fixed;
-    inset: 0;
-    z-index: 90;
-    background: rgba(10,25,47,.6);
-    backdrop-filter: blur(3px);
-    animation: icbFade .2s ease;
+  /* маркери върху тялото */
+  .icb-marks { display: block; position: absolute; inset: 0; z-index: 4; pointer-events: none; }
+  .icb-mark {
+    position: absolute;
+    left: var(--x); top: var(--y);
+    width: 13px; height: 13px;
+    border-radius: 50%;
+    transform: translate(-50%, -50%);
+    background: radial-gradient(circle at 35% 30%, #f6e6bd 0%, var(--ats-gold, #C8A45A) 58%, #a9863f 100%);
+    box-shadow: 0 0 0 5px rgba(200,164,90,.14), 0 0 10px 2px rgba(200,164,90,.55);
+    opacity: 0;
+    transition: opacity .6s ease, transform .22s ease, box-shadow .22s ease;
+    transition-delay: calc(var(--i, 0) * 55ms), 0s, 0s;
+    animation: icbPulse 2.4s ease-out infinite;
+    animation-delay: calc(var(--i, 0) * 140ms);
   }
-  .icb-sheet {
-    position: relative;
-    width: 100%;
-    background: var(--ats-midnight-deep, #0A192F);
-    border-top: 2px solid var(--ats-gold, #C8A45A);
-    border-radius: 22px 22px 0 0;
-    padding: 1.6rem 1.4rem calc(1.9rem + env(safe-area-inset-bottom, 0px));
-    max-height: 80vh;
-    overflow-y: auto;
-    text-align: center;
-    box-shadow: 0 -16px 44px rgba(0,0,0,.45);
-    animation: icbSlideUp .32s cubic-bezier(.22,.61,.36,1);
+  .icb.in .icb-mark { opacity: 1; }
+  .icb-mark.is-active {
+    transform: translate(-50%, -50%) scale(1.4);
+    box-shadow: 0 0 0 6px rgba(200,164,90,.24), 0 0 20px 5px rgba(200,164,90,.85);
   }
-  .icb-sheet-grip {
+
+  /* линии-водачи */
+  .icb-leads { display: block; position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+  .icb-lead {
+    position: absolute;
+    top: var(--y);
+    height: 1px;
+    transform: translateY(-50%);
+    opacity: 0;
+    transition: opacity .6s ease;
+    transition-delay: calc(var(--i, 0) * 55ms);
+  }
+  .icb.in .icb-lead { opacity: 1; }
+  .icb-lead[data-side="left"]  { left: 0; right: calc(50% + 190px); background: linear-gradient(90deg, rgba(200,164,90,.55), rgba(200,164,90,.12)); }
+  .icb-lead[data-side="right"] { left: calc(50% + 190px); right: 0; background: linear-gradient(90deg, rgba(200,164,90,.12), rgba(200,164,90,.55)); }
+
+  /* node → изнесен в страничното поле, вертикално центриран на точката */
+  .icb-node {
+    left: auto; right: auto; top: var(--y);
+    transform: translateY(-50%);
+  }
+  .icb-node[data-side="left"]  { left: 0; }
+  .icb-node[data-side="right"] { right: 0; }
+
+  /* пълен pill */
+  .icb-chip {
+    min-width: 0; min-height: 0;
+    padding: .6rem 1.15rem;
+    border-radius: 999px;
+    background: rgba(15,35,67,.55);
+    border: 1px solid rgba(200,164,90,.5);
+    backdrop-filter: blur(7px);
+    box-shadow: 0 18px 44px -24px rgba(0,0,0,.75);
+    transition: transform .2s ease, border-color .2s ease, background .2s ease;
+  }
+  .icb-node[data-side="left"] .icb-chip { flex-direction: row-reverse; }
+  .icb-chip-text { display: inline; }
+  .icb-chip:hover,
+  .icb-chip:focus-visible {
+    border-color: rgba(216,188,133,.9);
+    background: rgba(15,35,67,.72);
+  }
+  .icb-chip:focus-visible {
+    outline: 2px solid var(--ats-gold-soft, #D8BC85);
+    outline-offset: 3px;
+  }
+  .icb-node.is-active .icb-chip {
+    border-color: var(--ats-gold, #C8A45A);
+    background: rgba(15,35,67,.85);
+  }
+
+  /* popover „пада" до chip-а */
+  .icb-pop {
     display: block;
-    width: 44px; height: 4px;
-    border-radius: 4px;
-    background: rgba(248,245,239,.28);
-    margin: 0 auto 1.2rem;
+    position: absolute;
+    width: 250px;
+    padding: 1.2rem 1.3rem 1.3rem;
+    border-radius: 16px;
+    background: var(--ats-midnight-deep, #0A192F);
+    border: 1px solid rgba(200,164,90,.5);
+    box-shadow: 0 26px 60px -22px rgba(0,0,0,.85);
+    text-align: left;
+    z-index: 7;
+    animation: icbFade .25s ease;
   }
-  .icb-sheet .icb-card-close { top: 1rem; right: 1rem; }
-  .icb-cta { width: 100%; }
-}
+  .icb-node[data-side="left"]  .icb-pop { left: 0; }
+  .icb-node[data-side="right"] .icb-pop { right: 0; }
+  .icb-node[data-pop="down"] .icb-pop { top: calc(100% + 14px); }
+  .icb-node[data-pop="up"]   .icb-pop { bottom: calc(100% + 14px); }
+  .icb-pop .icb-card-text { max-width: none; }
 
-@keyframes icbSlideUp {
-  from { transform: translateY(100%); }
-  to   { transform: translateY(0); }
+  /* на desktop bottom sheet не се ползва */
+  .icb-sheet-wrap { display: none; }
 }
 
 /* ── Reduced motion ── */
 @media (prefers-reduced-motion: reduce) {
-  .icb-stage { animation: none; }
-  .icb-dot-core { animation: none; }
-  .icb.in .icb-dot { animation: none; opacity: 1; transform: translate(-50%, -50%) scale(1); }
-  .icb-dot, .icb-dot-core, .icb-cta, .icb-card, .icb-sheet { transition: none; }
+  .icb-chip, .icb-chip-dot, .icb-mark { animation: none; }
+  .icb-node, .icb-lead, .icb-mark { transition: none; opacity: 1; }
+  .icb-chip, .icb-chip-dot, .icb-cta, .icb-pop, .icb-sheet { transition: none; }
 }
 `;

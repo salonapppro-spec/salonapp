@@ -232,13 +232,6 @@ export function AtsMassageSite({ data }: { data: SalonData }) {
             <a href="#booking" className="ats-btn ats-btn-gold">Запази час</a>
             <a href={telHref} className="ats-btn ats-btn-ghost">{phone}</a>
           </div>
-          <div className="ats-hero-chips" aria-hidden="true">
-            <span className="ats-hero-chip">Болки в гърба</span>
-            <span className="ats-hero-chip">Дискова херния</span>
-            <span className="ats-hero-chip">Схванат врат</span>
-            <span className="ats-hero-chip">Ишиас</span>
-            <span className="ats-hero-chip">Плексит</span>
-          </div>
         </div>
       </section>
 
@@ -698,35 +691,6 @@ const css = `
 .ats-hero-rule { width: 64px; height: 2px; background: var(--ats-gold); margin: 1.8rem 0; }
 .ats-hero-sub { font-size: clamp(1rem, 1.6vw, 1.15rem); line-height: 1.75; color: rgba(248,245,239,.82); max-width: 52ch; margin: 0 0 2.4rem; }
 .ats-hero-actions { display: flex; flex-wrap: wrap; gap: 1rem; }
-
-/* Floating condition chips — запълват празния фон вдясно на широки монитори. Скрити под 1120px. */
-.ats-hero-chips {
-  position: absolute; z-index: 2; right: clamp(1.5rem, 4vw, 3rem); top: 50%;
-  transform: translateY(-50%);
-  display: none; flex-direction: column; align-items: flex-end; gap: 1.15rem;
-  pointer-events: none;
-}
-@media (min-width: 1120px) { .ats-hero-chips { display: flex; } }
-.ats-hero-chip {
-  display: inline-flex; align-items: center; gap: .6rem;
-  padding: .72rem 1.25rem; border-radius: 999px;
-  background: rgba(15,35,67,.5); border: 1px solid rgba(200,164,90,.5);
-  color: var(--ats-ivory); font-size: .92rem; font-weight: 500; letter-spacing: .01em;
-  white-space: nowrap; backdrop-filter: blur(7px);
-  box-shadow: 0 18px 44px -24px rgba(0,0,0,.75);
-  animation: ats-chip-float 6s ease-in-out infinite;
-}
-.ats-hero-chip::before {
-  content: ""; width: 8px; height: 8px; border-radius: 50%; flex: none;
-  background: var(--ats-gold); box-shadow: 0 0 12px 2px rgba(200,164,90,.65);
-}
-.ats-hero-chip:nth-child(1) { margin-right: 3.5rem; animation-delay: 0s; }
-.ats-hero-chip:nth-child(2) { margin-right: .5rem;  animation-delay: .9s; }
-.ats-hero-chip:nth-child(3) { margin-right: 5.5rem; animation-delay: 1.8s; }
-.ats-hero-chip:nth-child(4) { margin-right: 1.75rem; animation-delay: 2.7s; }
-.ats-hero-chip:nth-child(5) { margin-right: 4.25rem; animation-delay: 3.6s; }
-@keyframes ats-chip-float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-10px); } }
-@media (prefers-reduced-motion: reduce) { .ats-hero-chip { animation: none; } }
 
 /* ABOUT */
 .ats-about { padding: clamp(3.2rem, 6vw, 5rem) 0; }
