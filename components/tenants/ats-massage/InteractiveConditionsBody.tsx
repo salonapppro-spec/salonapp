@@ -674,8 +674,8 @@ const css = `
   .icb-pop {
     display: block;
     position: absolute;
-    width: 250px;
-    padding: 1.2rem 1.3rem 1.3rem;
+    width: 258px;
+    padding: 1.05rem 1.2rem 1.15rem;
     border-radius: 16px;
     background: var(--ats-midnight-deep, #0A192F);
     border: 1px solid rgba(200,164,90,.5);
@@ -688,7 +688,12 @@ const css = `
   .icb-node[data-side="right"] .icb-pop { right: 0; }
   .icb-node[data-pop="down"] .icb-pop { top: calc(100% + 14px); }
   .icb-node[data-pop="up"]   .icb-pop { bottom: calc(100% + 14px); }
-  .icb-pop .icb-card-text { max-width: none; }
+  /* по-компактна типография в тесния popover */
+  .icb-pop .icb-card-eyebrow { font-size: .58rem; letter-spacing: .22em; margin-bottom: .45rem; }
+  .icb-pop .icb-card-title { font-size: 1.16rem; line-height: 1.2; margin-bottom: .5rem; }
+  .icb-pop .icb-card-text { font-size: .84rem; line-height: 1.6; max-width: none; }
+  .icb-pop .icb-cta { margin-top: 1rem; padding: .6rem 1.4rem; font-size: .68rem; }
+  .icb-pop .icb-card-close { top: .4rem; right: .45rem; width: 28px; height: 28px; font-size: 1.3rem; }
 
   /* на desktop bottom sheet не се ползва */
   .icb-sheet-wrap { display: none; }
