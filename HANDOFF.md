@@ -2,6 +2,19 @@
 
 ---
 
+## 2026-07-10 (част 5) — Пилот: post-visit имейл за отзив (само ats-massage)
+
+**Контекст:** Подарък за пилотния клиент ATS — планът му няма такава функция; тестваме процеса преди да стане платена опция.
+
+- **042_email_logs_review_request_type.sql** (приложена в production): CHECK на `email_logs.type` разширен с `'review_request'`. Dedupe идва наготово от `email_logs_sent_booking_type_uniq`.
+- `lib/review-request-pilot.ts`: `REVIEW_REQUEST_PILOT` — map slug → reviewUrl; сега само `ats-massage` (линкът е същият като в секция „Отзиви" на сайта им). Нов тенант в пилота = един ред тук.
+- `emails/ReviewRequest.tsx` + `sendReviewRequestEmail` в `lib/email.tsx` — „Благодарим ви… ⭐ Оставете отзив в Google" + unsubscribe.
+- `app/api/cron/reminders/route.ts`: фаза 2 след напомнянията — **вчерашните** резервации със статус „Яви се" (completed) при пилотните тенанти, с client_email и без unsubscribe. Claim-преди-send (type='review_request'), същият Resend pacing. Ранният return при 0 напомняния е премахнат, за да върви фаза 2; fail-closed dedup 500 за напомнянията е запазен. Отговорът включва review_processed/review_failed/review_date.
+- **Кога пристига:** cron-ът е 07:00 UTC → клиентът получава поканата на сутринта след посещението (~10:00 бг време). Праща се само ако собственикът е маркирал „Яви се".
+- Бъдеще: per-tenant поле в базата + карта в админа, когато стане платена функция; reviewUrl може да се смени с direct write-review линк (placeid), ако ATS даде Google Business профила си.
+
+---
+
 ## 2026-07-10 (част 4) — Имейл до клиента при преместване на час
 
 - `emails/BookingRescheduled.tsx`: нов шаблон в стила на BookingConfirmation — нова дата/час, зачертан стар час, бутон „Добави в Google Calendar", напомняне да изтрие старото събитие от календара си, бутон „Новият час не ми е удобен — откажи" (същият cancel token), unsubscribe.

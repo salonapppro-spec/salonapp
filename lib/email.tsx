@@ -5,6 +5,7 @@ import * as React from "react";
 import BookingConfirmationEmail from "@/emails/BookingConfirmation";
 import BookingReminderEmail from "@/emails/BookingReminder";
 import BookingRescheduledEmail from "@/emails/BookingRescheduled";
+import ReviewRequestEmail from "@/emails/ReviewRequest";
 import { bookingStartUtc } from "@/lib/booking-datetime";
 import { getPublicAppUrl } from "@/lib/site-url";
 import { sendSMSReminder } from "@/lib/sms";
@@ -309,6 +310,41 @@ export async function sendSalonBookingTokenNotification(
 </html>`;
 
   await sendResendHtml(to, `${title}: ${booking.client_name} — ${date} ${time}`, html);
+}
+
+/**
+ * Post-visit покана за отзив (пилот). Връща дали е доставена.
+ * НЕ пише в email_logs — логът е claim-ът в cron route-а (claim-преди-send).
+ */
+export async function sendReviewRequestEmail(
+  booking: Booking,
+  tenant: Tenant,
+  reviewUrl: string
+): Promise<boolean> {
+  const to = booking.client_email?.trim();
+  if (!to) return false;
+
+  const baseUrl = getPublicAppUrl();
+  const token = booking.confirmation_token ?? "";
+  const unsubscribeUrl = `${baseUrl}/api/unsubscribe?salon=${encodeURIComponent(booking.salon_slug)}&booking=${encodeURIComponent(booking.id)}&token=${encodeURIComponent(token)}`;
+
+  const html = await render(
+    <ReviewRequestEmail
+      salonName={tenant.salon_name}
+      clientName={booking.client_name}
+      serviceName={booking.service_name}
+      reviewUrl={reviewUrl}
+      contactLines={contactLines(tenant)}
+      unsubscribeUrl={unsubscribeUrl}
+      messageRef={`${booking.id}-review-request`}
+    />
+  );
+
+  return sendResendHtml(to, `Как беше при нас? — ${tenant.salon_name}`, html, {
+    "X-Entity-Ref-ID": `${booking.id}-review-request`,
+    "List-Unsubscribe": `<${unsubscribeUrl}>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+  });
 }
 
 /**
