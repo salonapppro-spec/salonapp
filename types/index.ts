@@ -98,6 +98,7 @@ export interface Booking {
   calendar_synced_at?: string | null;
   cancel_reason?: string | null;
   cancellation_email_sent_at?: string | null;
+  email_unsubscribed?: boolean | null;
 }
 
 export interface Service {

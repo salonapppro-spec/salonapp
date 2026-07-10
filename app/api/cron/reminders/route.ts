@@ -146,7 +146,7 @@ export async function GET(req: Request) {
 
     let delivered = false;
     try {
-      delivered = await sendReviewRequestEmail(b, tenant, pilot.reviewUrl);
+      delivered = await sendReviewRequestEmail(b, tenant, pilot);
     } catch {
       delivered = false;
     }

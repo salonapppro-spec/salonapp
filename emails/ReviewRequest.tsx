@@ -21,6 +21,13 @@ export type ReviewRequestProps = {
   unsubscribeUrl: string;
   /** Уникален ref — Gmail не сгъва повторяем HTML в нишка */
   messageRef: string;
+  /**
+   * Персонализирано изречение веднага след поздрава. По избор.
+   * Ако липсва — неутрален текст, подходящ за всеки тип салон.
+   */
+  introText?: string;
+  /** Персонализирано изречение защо отзивите са важни. По избор. */
+  closingText?: string;
 };
 
 export default function ReviewRequestEmail({
@@ -31,7 +38,15 @@ export default function ReviewRequestEmail({
   contactLines,
   unsubscribeUrl,
   messageRef,
+  introText,
+  closingText,
 }: ReviewRequestProps) {
+  const intro =
+    introText ??
+    `Надяваме се, че останахте доволни от ${serviceName} в ${salonName} и че Ви е било приятно.`;
+  const closing =
+    closingText ??
+    "Всеки отзив ни помага да достигнем до повече хора и ни мотивира да продължаваме да даваме най-доброто от себе си.";
   return (
     <Html>
       <Head />
@@ -41,10 +56,7 @@ export default function ReviewRequestEmail({
           <Text style={preheader}>{messageRef}</Text>
           <Heading style={h1}>Благодарим Ви, че избрахте нас ❤️</Heading>
           <Text style={text}>Здравейте, {clientName}!</Text>
-          <Text style={text}>
-            Надяваме се, че след <strong>{serviceName}</strong> в <strong>{salonName}</strong> сте
-            си тръгнали отпочинали, по-леки и с усмивка.
-          </Text>
+          <Text style={text}>{intro}</Text>
           <Text style={text}>
             Ако имате 1–2 свободни минути, ще ни помогнете изключително много, ако споделите
             впечатленията си в Google.
@@ -54,10 +66,7 @@ export default function ReviewRequestEmail({
               ⭐ Оставете отзив тук
             </Button>
           </Section>
-          <Text style={text}>
-            Всеки отзив ни помага да достигнем до повече хора, които имат нужда да си поемат дъх —
-            и ни мотивира да продължаваме да даваме най-доброто от себе си.
-          </Text>
+          <Text style={text}>{closing}</Text>
           <Text style={text}>Благодарим Ви за доверието!</Text>
           <Text style={{ ...text, color: "#666" }}>
             Сърдечни поздрави,
