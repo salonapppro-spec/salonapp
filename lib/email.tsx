@@ -50,6 +50,32 @@ function buildGoogleCalendarUrl(booking: Booking, tenant: Tenant): string {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${text}&dates=${fmt(start)}/${fmt(end)}`;
 }
 
+/** Календарен линк за собственика: клиентът в заглавието, телефон/бележки в описанието. */
+function buildOwnerGoogleCalendarUrl(booking: Booking, tenant: Tenant): string {
+  const start = DateTime.fromJSDate(bookingStartUtc(booking.booking_date, booking.booking_time), {
+    zone: "Europe/Sofia",
+  });
+  const end = start.plus({ minutes: booking.service_duration });
+  const fmt = (d: DateTime) => d.toFormat("yyyyMMdd'T'HHmmss");
+  const details = [
+    `Клиент: ${booking.client_name}`,
+    `Телефон: ${booking.client_phone}`,
+    booking.client_email ? `Имейл: ${booking.client_email}` : null,
+    booking.notes ? `Бележки: ${booking.notes}` : null,
+  ]
+    .filter(Boolean)
+    .join("\n");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `${booking.client_name} — ${booking.service_name}`,
+    dates: `${fmt(start)}/${fmt(end)}`,
+    ctz: "Europe/Sofia",
+    details,
+  });
+  if (tenant.address) params.set("location", tenant.address);
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
+}
+
 async function logEmail(params: {
   salon_slug: string;
   booking_id: string;
@@ -194,6 +220,7 @@ export async function sendSalonBookingNotification(booking: Booking, tenant: Ten
     <tr><td style="padding:8px 0;color:#666">Дата и час</td><td style="padding:8px 0;font-weight:600">${date} в ${time}</td></tr>
     ${booking.notes ? `<tr><td style="padding:8px 0;color:#666">Бележки</td><td style="padding:8px 0">${booking.notes}</td></tr>` : ""}
   </table>
+  <a href="${buildOwnerGoogleCalendarUrl(booking, tenant).replace(/&/g, "&amp;")}" style="display:inline-block;background:#1a73e8;color:#ffffff;text-decoration:none;padding:12px 20px;border-radius:8px;font-weight:600">📆 Добави в Google Календар</a>
   <p style="font-size:12px;color:#999;margin-top:32px">SalonApp.pro — автоматично известие</p>
 </body>
 </html>`;
