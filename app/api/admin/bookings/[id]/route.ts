@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
 import { getBlockedSlotsForDate, getFinancialSettings, getTenantBySalonSlug } from "@/lib/data";
 import { sendBookingRescheduledEmail } from "@/lib/email";
+import { scheduleReviewRequestOnCompletion } from "@/lib/internal/review-request-schedule";
 import { normalizeTimeForDb } from "@/lib/booking-mutations";
 import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
 import { todayDateISOInSofia } from "@/lib/booking-datetime";
@@ -96,6 +97,12 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
   }
   if (!data) return NextResponse.json({ error: "Не е намерена резервация" }, { status: 404 });
+
+  // При маркиране „Явил се" — насрочваме имейла за отзив ~1 час по-късно (пилот).
+  // Fire-and-forget: провал никога не бива да проваля записа на статуса.
+  if (status === "completed") {
+    void scheduleReviewRequestOnCompletion(data as Booking);
+  }
 
   // Клиентът получава известие с новия час; провал на имейла не проваля преместването.
   if (rescheduledFrom) {

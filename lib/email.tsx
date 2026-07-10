@@ -6,6 +6,7 @@ import BookingConfirmationEmail from "@/emails/BookingConfirmation";
 import BookingReminderEmail from "@/emails/BookingReminder";
 import BookingRescheduledEmail from "@/emails/BookingRescheduled";
 import ReviewRequestEmail from "@/emails/ReviewRequest";
+import type { ReviewRequestConfig } from "@/lib/review-request-pilot";
 import { bookingStartUtc } from "@/lib/booking-datetime";
 import { getPublicAppUrl } from "@/lib/site-url";
 import { sendSMSReminder } from "@/lib/sms";
@@ -101,7 +102,8 @@ async function sendResendHtml(
   to: string,
   subject: string,
   html: string,
-  extraHeaders?: Record<string, string>
+  extraHeaders?: Record<string, string>,
+  scheduledAt?: string
 ): Promise<boolean> {
   const key = process.env.RESEND_API_KEY;
   if (!key) return false;
@@ -120,6 +122,8 @@ async function sendResendHtml(
         to: [to],
         subject,
         html,
+        // scheduled_at: Resend задържа имейла и го праща в бъдещия момент (ISO 8601).
+        ...(scheduledAt ? { scheduled_at: scheduledAt } : {}),
         ...(extraHeaders ? { headers: extraHeaders } : {}),
       }),
     }).catch(() => null);
@@ -319,7 +323,8 @@ export async function sendSalonBookingTokenNotification(
 export async function sendReviewRequestEmail(
   booking: Booking,
   tenant: Tenant,
-  reviewUrl: string
+  config: ReviewRequestConfig,
+  scheduledAt?: string
 ): Promise<boolean> {
   const to = booking.client_email?.trim();
   if (!to) return false;
@@ -328,23 +333,38 @@ export async function sendReviewRequestEmail(
   const token = booking.confirmation_token ?? "";
   const unsubscribeUrl = `${baseUrl}/api/unsubscribe?salon=${encodeURIComponent(booking.salon_slug)}&booking=${encodeURIComponent(booking.id)}&token=${encodeURIComponent(token)}`;
 
+  // Персонализираните изречения може да съдържат плейсхолдъри — заместваме ги тук.
+  const fill = (tpl?: string) =>
+    tpl
+      ?.replaceAll("{salonName}", tenant.salon_name)
+      .replaceAll("{serviceName}", booking.service_name)
+      .replaceAll("{clientName}", booking.client_name);
+
   const html = await render(
     <ReviewRequestEmail
       salonName={tenant.salon_name}
       clientName={booking.client_name}
       serviceName={booking.service_name}
-      reviewUrl={reviewUrl}
+      reviewUrl={config.reviewUrl}
       contactLines={contactLines(tenant)}
       unsubscribeUrl={unsubscribeUrl}
       messageRef={`${booking.id}-review-request`}
+      introText={fill(config.intro)}
+      closingText={fill(config.closing)}
     />
   );
 
-  return sendResendHtml(to, `Благодарим Ви! Ще ни помогнете ли с един кратък отзив? — ${tenant.salon_name}`, html, {
-    "X-Entity-Ref-ID": `${booking.id}-review-request`,
-    "List-Unsubscribe": `<${unsubscribeUrl}>`,
-    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
-  });
+  return sendResendHtml(
+    to,
+    `Благодарим Ви! Ще ни помогнете ли с един кратък отзив? — ${tenant.salon_name}`,
+    html,
+    {
+      "X-Entity-Ref-ID": `${booking.id}-review-request`,
+      "List-Unsubscribe": `<${unsubscribeUrl}>`,
+      "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
+    },
+    scheduledAt
+  );
 }
 
 /**

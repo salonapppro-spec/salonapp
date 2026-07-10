@@ -3,12 +3,29 @@
  * Подарък/тест преди да стане платена функционалност с per-tenant настройка в базата.
  * Изпраща се от cron-а за напомняния на сутринта след посещение със статус „Яви се".
  */
-export const REVIEW_REQUEST_PILOT: Record<string, { reviewUrl: string }> = {
-  // Българското търсене (от собственика) — показва бизнес картата с бутон „Напишете отзив".
-  // TODO: смяна с direct write-review линк (search.google.com/local/writereview?placeid=…),
-  // когато ATS дадат Google Business профила си.
+export type ReviewRequestConfig = {
+  /** Google линк за оставяне на отзив (директен write-review или бизнес картата). */
+  reviewUrl: string;
+  /**
+   * Персонализирано изречение веднага след поздрава — задава тона спрямо салона.
+   * Поддържа плейсхолдъри {salonName}, {serviceName}, {clientName}.
+   * Ако липсва — използва се неутрален текст, подходящ за всеки салон.
+   */
+  intro?: string;
+  /**
+   * Персонализирано изречение защо отзивите са важни. Поддържа същите плейсхолдъри.
+   * Ако липсва — използва се неутрален текст.
+   */
+  closing?: string;
+};
+
+export const REVIEW_REQUEST_PILOT: Record<string, ReviewRequestConfig> = {
   "ats-massage": {
-    reviewUrl:
-      "https://www.google.com/search?q=%D0%BE%D1%82%D0%B7%D0%B8%D0%B2%D0%B8+%D0%B7%D0%B0+ats+studio+%D0%B1%D1%83%D1%80%D0%B3%D0%B0%D1%81",
+    // Директен Google write-review линк (g.page/r/…/review) — отваря веднага прозореца за отзив.
+    reviewUrl: "https://g.page/r/CapsvG2-JFeUEBM/review",
+    intro:
+      "Надяваме се, че след {serviceName} в {salonName} сте си тръгнали отпочинали, по-леки и с усмивка.",
+    closing:
+      "Всеки отзив ни помага да достигнем до повече хора, които имат нужда да си поемат дъх — и ни мотивира да продължаваме да даваме най-доброто от себе си.",
   },
 };
