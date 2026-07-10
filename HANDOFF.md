@@ -7,8 +7,8 @@
 **Контекст:** Подарък за пилотния клиент ATS — планът му няма такава функция; тестваме процеса преди да стане платена опция.
 
 - **042_email_logs_review_request_type.sql** (приложена в production): CHECK на `email_logs.type` разширен с `'review_request'`. Dedupe идва наготово от `email_logs_sent_booking_type_uniq`.
-- `lib/review-request-pilot.ts`: `REVIEW_REQUEST_PILOT` — map slug → reviewUrl; сега само `ats-massage` (линкът е същият като в секция „Отзиви" на сайта им). Нов тенант в пилота = един ред тук.
-- `emails/ReviewRequest.tsx` + `sendReviewRequestEmail` в `lib/email.tsx` — „Благодарим ви… ⭐ Оставете отзив в Google" + unsubscribe.
+- `lib/review-request-pilot.ts`: `REVIEW_REQUEST_PILOT` — map slug → reviewUrl; сега само `ats-massage`. Линкът е българското Google търсене „отзиви за ats studio бургас" (дадено от Поли, изчистено от сесийните токени) — показва бизнес картата с бутон „Напишете отзив". Нов тенант в пилота = един ред тук.
+- `emails/ReviewRequest.tsx` + `sendReviewRequestEmail` в `lib/email.tsx` — копи по одобрен от Поли пример, адаптирано за масажи: „Благодарим Ви, че избрахте нас ❤️… след {услугата} сте си тръгнали отпочинали… ⭐ Оставете отзив тук… Сърдечни поздрави, Екипът на {салона}" + unsubscribe. Subject: „Благодарим Ви! Ще ни помогнете ли с един кратък отзив?".
 - `app/api/cron/reminders/route.ts`: фаза 2 след напомнянията — **вчерашните** резервации със статус „Яви се" (completed) при пилотните тенанти, с client_email и без unsubscribe. Claim-преди-send (type='review_request'), същият Resend pacing. Ранният return при 0 напомняния е премахнат, за да върви фаза 2; fail-closed dedup 500 за напомнянията е запазен. Отговорът включва review_processed/review_failed/review_date.
 - **Кога пристига:** cron-ът е 07:00 UTC → клиентът получава поканата на сутринта след посещението (~10:00 бг време). Праща се само ако собственикът е маркирал „Яви се".
 - Бъдеще: per-tenant поле в базата + карта в админа, когато стане платена функция; reviewUrl може да се смени с direct write-review линк (placeid), ако ATS даде Google Business профила си.

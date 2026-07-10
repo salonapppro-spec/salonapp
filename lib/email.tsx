@@ -340,7 +340,7 @@ export async function sendReviewRequestEmail(
     />
   );
 
-  return sendResendHtml(to, `Как беше при нас? — ${tenant.salon_name}`, html, {
+  return sendResendHtml(to, `Благодарим Ви! Ще ни помогнете ли с един кратък отзив? — ${tenant.salon_name}`, html, {
     "X-Entity-Ref-ID": `${booking.id}-review-request`,
     "List-Unsubscribe": `<${unsubscribeUrl}>`,
     "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
