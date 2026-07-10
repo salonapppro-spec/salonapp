@@ -92,6 +92,10 @@ export function MinNoticeCard(props: {
             <option value="15">15 минути напред</option>
             <option value="30">30 минути напред (препоръчително)</option>
             <option value="60">1 час напред</option>
+            <option value="120">2 часа напред</option>
+            {!["0", "15", "30", "60", "120"].includes(minNotice) && (
+              <option value={minNotice}>{minNotice} минути напред (текуща настройка)</option>
+            )}
           </select>
           <p className="mt-1 text-xs text-[#1A1A1A]/45">
             Колко рано най-късно клиент може да запази час за днес.
