@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 
 import { requireAdminCapabilityForApi } from "@/lib/admin-rbac";
-import { getBlockedSlotsForDate, getFinancialSettings } from "@/lib/data";
+import { getBlockedSlotsForDate, getFinancialSettings, getTenantBySalonSlug } from "@/lib/data";
+import { sendBookingRescheduledEmail } from "@/lib/email";
 import { normalizeTimeForDb } from "@/lib/booking-mutations";
 import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
 import { todayDateISOInSofia } from "@/lib/booking-datetime";
@@ -30,6 +31,7 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
   }
 
   // Преместване на час (admin действие — без min-notice ограничения).
+  let rescheduledFrom: { booking_date: string; booking_time: string } | null = null;
   if (booking_date !== undefined && booking_time !== undefined) {
     const { data: existingRaw } = await tenantDb(salonSlug).bookings.getById(id);
     const existing = existingRaw as Booking | null;
@@ -71,6 +73,13 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     updates.booking_end_time = normalizeTimeForDb(
       minutesToTime(Math.min(occupiedEnd, 24 * 60 - 1))
     );
+
+    const changed =
+      existing.booking_date !== booking_date ||
+      normalizeTimeForDb(existing.booking_time) !== normalizeTimeForDb(booking_time);
+    if (changed) {
+      rescheduledFrom = { booking_date: existing.booking_date, booking_time: existing.booking_time };
+    }
   }
 
   const { data, error } = await tenantDb(salonSlug).bookings.updateById(id, updates);
@@ -87,6 +96,20 @@ export async function PATCH(req: Request, ctx: { params: Promise<{ id: string }>
     return NextResponse.json({ error: "Грешка при запис" }, { status: 500 });
   }
   if (!data) return NextResponse.json({ error: "Не е намерена резервация" }, { status: 404 });
+
+  // Клиентът получава известие с новия час; провал на имейла не проваля преместването.
+  if (rescheduledFrom) {
+    try {
+      const tenant = await getTenantBySalonSlug(salonSlug);
+      if (tenant) await sendBookingRescheduledEmail(data as Booking, tenant, rescheduledFrom);
+    } catch (e) {
+      console.error("[admin bookings PATCH] reschedule email failed", {
+        booking_id: id,
+        salon_slug: salonSlug,
+        error: e instanceof Error ? e.message : e,
+      });
+    }
+  }
 
   return NextResponse.json({ booking: data });
 }

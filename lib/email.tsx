@@ -4,6 +4,7 @@ import * as React from "react";
 
 import BookingConfirmationEmail from "@/emails/BookingConfirmation";
 import BookingReminderEmail from "@/emails/BookingReminder";
+import BookingRescheduledEmail from "@/emails/BookingRescheduled";
 import { bookingStartUtc } from "@/lib/booking-datetime";
 import { getPublicAppUrl } from "@/lib/site-url";
 import { sendSMSReminder } from "@/lib/sms";
@@ -194,6 +195,54 @@ export async function sendConfirmationEmail(booking: Booking, tenant: Tenant): P
     booking_id: booking.id,
     type: "confirmation",
     status: ok ? "sent" : "failed",
+  });
+}
+
+/**
+ * Известие до клиента при преместване на часа от админа.
+ * `booking` е вече обновеният ред (новата дата/час); старите идват отделно.
+ */
+export async function sendBookingRescheduledEmail(
+  booking: Booking,
+  tenant: Tenant,
+  old: { booking_date: string; booking_time: string }
+): Promise<void> {
+  const to = booking.client_email?.trim();
+  if (!to) return;
+
+  const baseUrl = getPublicAppUrl();
+  const token = booking.confirmation_token ?? "";
+  const salonQuery = `salon=${encodeURIComponent(booking.salon_slug)}`;
+  const cancelUrl = `${baseUrl}/api/cancel/${token}?${salonQuery}`;
+  const unsubscribeUrl = `${baseUrl}/api/unsubscribe?salon=${encodeURIComponent(booking.salon_slug)}&booking=${encodeURIComponent(booking.id)}&token=${encodeURIComponent(token)}`;
+
+  const fmtDate = (ymd: string) =>
+    DateTime.fromISO(ymd, { zone: "Europe/Sofia" }).setLocale("bg").toFormat("d MMMM yyyy");
+  const newDateLabel = fmtDate(booking.booking_date);
+  const newTimeLabel = formatTime(booking.booking_time);
+  const subject = `Часът ви е преместен: ${newDateLabel} · ${newTimeLabel} — ${tenant.salon_name}`;
+
+  const html = await render(
+    <BookingRescheduledEmail
+      salonName={tenant.salon_name}
+      clientName={booking.client_name}
+      serviceName={booking.service_name}
+      oldDate={fmtDate(old.booking_date)}
+      oldTime={formatTime(old.booking_time)}
+      newDate={newDateLabel}
+      newTime={newTimeLabel}
+      googleCalendarUrl={buildGoogleCalendarUrl(booking, tenant)}
+      cancelUrl={cancelUrl}
+      contactLines={contactLines(tenant)}
+      unsubscribeUrl={unsubscribeUrl}
+      messageRef={`${booking.id}-rescheduled-${booking.booking_date}-${booking.booking_time}`}
+    />
+  );
+
+  await sendResendHtml(to, subject, html, {
+    "X-Entity-Ref-ID": `${booking.id}-rescheduled-${booking.booking_date}-${booking.booking_time}`,
+    "List-Unsubscribe": `<${unsubscribeUrl}>`,
+    "List-Unsubscribe-Post": "List-Unsubscribe=One-Click",
   });
 }
 
