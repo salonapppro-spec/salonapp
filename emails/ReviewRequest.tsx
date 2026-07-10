@@ -35,27 +35,34 @@ export default function ReviewRequestEmail({
   return (
     <Html>
       <Head />
-      <Preview>Как беше при нас? Вашият отзив значи много — {salonName}</Preview>
+      <Preview>Благодарим Ви! Ще ни помогнете ли с един кратък отзив? — {salonName}</Preview>
       <Body style={main}>
         <Container style={container}>
           <Text style={preheader}>{messageRef}</Text>
-          <Heading style={h1}>Благодарим ви, че бяхте при нас! 💛</Heading>
-          <Text style={text}>Здравейте, {clientName},</Text>
+          <Heading style={h1}>Благодарим Ви, че избрахте нас ❤️</Heading>
+          <Text style={text}>Здравейте, {clientName}!</Text>
           <Text style={text}>
-            Надяваме се, че останахте доволни от <strong>{serviceName}</strong> в{" "}
-            <strong>{salonName}</strong>.
+            Надяваме се, че след <strong>{serviceName}</strong> в <strong>{salonName}</strong> сте
+            си тръгнали отпочинали, по-леки и с усмивка.
           </Text>
           <Text style={text}>
-            Ако имате една минута, ще се радваме да споделите впечатленията си — вашият отзив
-            помага и на нас, и на хората, които тепърва ни откриват.
+            Ако имате 1–2 свободни минути, ще ни помогнете изключително много, ако споделите
+            впечатленията си в Google.
           </Text>
           <Section style={{ textAlign: "center" as const, marginTop: 24, marginBottom: 24 }}>
             <Button href={reviewUrl} style={btn}>
-              ⭐ Оставете отзив в Google
+              ⭐ Оставете отзив тук
             </Button>
           </Section>
+          <Text style={text}>
+            Всеки отзив ни помага да достигнем до повече хора, които имат нужда да си поемат дъх —
+            и ни мотивира да продължаваме да даваме най-доброто от себе си.
+          </Text>
+          <Text style={text}>Благодарим Ви за доверието!</Text>
           <Text style={{ ...text, color: "#666" }}>
-            Очакваме ви отново — до скоро!
+            Сърдечни поздрави,
+            <br />
+            Екипът на {salonName}
           </Text>
           <Section style={contactsBox}>
             <Text style={footerTitle}>Контакти</Text>
