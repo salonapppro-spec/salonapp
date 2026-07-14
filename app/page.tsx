@@ -172,7 +172,7 @@ const plansJsonLd = {
       item: {
         "@type": "Offer",
         name: "ПРО",
-        description: "1 специалист, всичко от СТАНДАРТ, паралелни услуги, Google Бизнес акаунт настройка, SEO и AI оптимизация.",
+        description: "1 специалист, всичко от СТАНДАРТ, имейл след посещение за събиране на отзиви (Google/Facebook), Google Бизнес акаунт настройка, SEO и AI оптимизация.",
         price: "29",
         priceCurrency: "EUR",
         priceSpecification: {
@@ -192,7 +192,7 @@ const plansJsonLd = {
       item: {
         "@type": "Offer",
         name: "ПРЕМИУМ",
-        description: "1 специалист, всичко от ПРО, автоматични SMS & Viber напомняния, имейл след посещение за събиране на отзиви.",
+        description: "До 3 специалиста с отделни админ панели и графици и общ сайт, всичко от ПРО, автоматични SMS & Viber напомняния.",
         price: "49",
         priceCurrency: "EUR",
         priceSpecification: {
