@@ -224,14 +224,14 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
       <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1.3fr]">
         {/* Left: list */}
         <div>
-          <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
             <span className="text-xs font-semibold text-[#1A1A1A]/40">
               {clients.length} {clients.length === 1 ? "клиент" : "клиента"}
             </span>
-            <div className="flex shrink-0 items-center gap-2">
+            <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:items-center">
               <a
                 href="/api/admin/clients/export"
-                className="rounded-xl border px-3 py-1.5 text-[11px] font-bold text-[#1A1A1A]/50 transition hover:text-[#1A1A1A]"
+                className="rounded-xl border px-3 py-2.5 text-center text-xs font-bold text-[#1A1A1A]/50 transition hover:text-[#1A1A1A] sm:py-1.5 sm:text-[11px]"
                 style={{ borderColor: "rgba(201,168,76,0.2)", background: "white" }}
                 download
               >
@@ -240,7 +240,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
               <button
                 type="button"
                 onClick={() => setAddOpen(true)}
-                className="rounded-xl px-3 py-1.5 text-[11px] font-black text-white transition hover:opacity-90"
+                className="rounded-xl px-3 py-2.5 text-center text-xs font-black text-white transition hover:opacity-90 sm:py-1.5 sm:text-[11px]"
                 style={{ background: `linear-gradient(135deg, ${GOLD}, ${ROSE})` }}
               >
                 + Добави клиент
@@ -289,9 +289,9 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
           </div>
         </div>
 
-        {/* Right: detail */}
+        {/* Right: detail — на мобилно празният placeholder е скрит, показва се само при избран клиент */}
         <div
-          className="rounded-2xl bg-white"
+          className={`rounded-2xl bg-white ${selectedId ? "block" : "hidden lg:block"}`}
           style={{ border: "1px solid rgba(201,168,76,0.15)", boxShadow: "0 1px 2px rgba(0,0,0,0.04), 0 4px 24px rgba(0,0,0,0.06)", minHeight: "320px" }}
         >
           {!selectedId ? (
