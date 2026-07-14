@@ -4,10 +4,12 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
+import { useAdminBasePath } from "@/lib/admin-base-path";
 import type { FinancialSettings } from "@/types";
 
 export function FixedCostsSettingsForm({ settings }: { settings: FinancialSettings | null }) {
   const router = useRouter();
+  const basePath = useAdminBasePath();
   const s = settings;
 
   const [rent, setRent] = useState(String(s?.rent_eur ?? 0));
@@ -62,7 +64,7 @@ export function FixedCostsSettingsForm({ settings }: { settings: FinancialSettin
       <h2 className="text-lg font-semibold tracking-tight text-brand-900">Фиксирани месечни разходи</h2>
       <p className="mt-1 text-sm text-brand-800/85">
         Попълнете веднъж. Системата ги използва в{" "}
-        <Link href="/admin/finances" className="underline underline-offset-2 hover:text-brand-700">
+        <Link href={`${basePath}/finances`} className="underline underline-offset-2 hover:text-brand-700">
           ABC калкулатора
         </Link>{" "}
         за изчисление на себестойността на всяка услуга.

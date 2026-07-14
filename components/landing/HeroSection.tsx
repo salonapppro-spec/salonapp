@@ -94,6 +94,12 @@ export default function HeroSection() {
             >
               Заяви безплатна консултация и сайт
             </Link>
+            <Link
+              href="/demo"
+              className="inline-flex min-h-[44px] items-center justify-center border border-[#3D1F0A]/30 px-6 text-[11px] font-semibold uppercase tracking-widest text-[#3D1F0A] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"
+            >
+              Разгледай админ панела
+            </Link>
             <a
               href="#demo"
               className="inline-flex min-h-[44px] items-center justify-center border border-[#3D1F0A]/30 px-6 text-[11px] font-semibold uppercase tracking-widest text-[#3D1F0A] transition hover:border-[#C79A4B] hover:text-[#C79A4B]"

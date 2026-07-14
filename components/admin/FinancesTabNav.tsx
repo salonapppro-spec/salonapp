@@ -3,16 +3,20 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
+import { useAdminBasePath } from "@/lib/admin-base-path";
+
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
 
-const tabs = [
-  { href: "/admin/finances",          label: "Обзор",               icon: "📊", exact: true },
-  { href: "/admin/finances/overhead", label: "Постоянни разходи",   icon: "🏷️", exact: false },
+const tabDefs = [
+  { path: "/finances",          label: "Обзор",             icon: "📊", exact: true },
+  { path: "/finances/overhead", label: "Постоянни разходи", icon: "🏷️", exact: false },
 ] as const;
 
 export function FinancesTabNav() {
   const pathname = usePathname() ?? "";
+  const basePath = useAdminBasePath();
+  const tabs = tabDefs.map((t) => ({ ...t, href: `${basePath}${t.path}` }));
 
   return (
     <nav

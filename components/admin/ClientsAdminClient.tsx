@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 
+import { useDemoOptional } from "@/lib/demo/store";
 import type { Booking, Client } from "@/types";
 
 type DetailJson = {
@@ -30,8 +31,27 @@ function statusBg(status: string) {
   }
 }
 
+/** CSV от клиентите в демото — истинският експорт минава през сървъра. */
+function downloadDemoCsv(clients: Client[]) {
+  const rows = [
+    ["Име", "Телефон", "Имейл", "Бележки"],
+    ...clients.map((c) => [c.name, c.phone ?? "", c.email ?? "", c.notes ?? ""]),
+  ];
+  const csv = rows
+    .map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(","))
+    .join("\n");
+
+  const url = URL.createObjectURL(new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8" }));
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = "klienti-demo.csv";
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
 export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: string }) {
   const { initialClients, searchQ } = props;
+  const demo = useDemoOptional();
   const [clients, setClients] = useState(initialClients);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [detail, setDetail] = useState<DetailJson | null>(null);
@@ -229,14 +249,25 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
               {clients.length} {clients.length === 1 ? "клиент" : "клиента"}
             </span>
             <div className="grid grid-cols-2 gap-2 sm:flex sm:shrink-0 sm:items-center">
-              <a
-                href="/api/admin/clients/export"
-                className="rounded-xl border px-3 py-2.5 text-center text-xs font-bold text-[#1A1A1A]/50 transition hover:text-[#1A1A1A] sm:py-1.5 sm:text-[11px]"
-                style={{ borderColor: "rgba(201,168,76,0.2)", background: "white" }}
-                download
-              >
-                ⬇ CSV
-              </a>
+              {demo ? (
+                <button
+                  type="button"
+                  onClick={() => downloadDemoCsv(clients)}
+                  className="rounded-xl border px-3 py-2.5 text-center text-xs font-bold text-[#1A1A1A]/50 transition hover:text-[#1A1A1A] sm:py-1.5 sm:text-[11px]"
+                  style={{ borderColor: "rgba(201,168,76,0.2)", background: "white" }}
+                >
+                  ⬇ CSV
+                </button>
+              ) : (
+                <a
+                  href="/api/admin/clients/export"
+                  className="rounded-xl border px-3 py-2.5 text-center text-xs font-bold text-[#1A1A1A]/50 transition hover:text-[#1A1A1A] sm:py-1.5 sm:text-[11px]"
+                  style={{ borderColor: "rgba(201,168,76,0.2)", background: "white" }}
+                  download
+                >
+                  ⬇ CSV
+                </a>
+              )}
               <button
                 type="button"
                 onClick={() => setAddOpen(true)}

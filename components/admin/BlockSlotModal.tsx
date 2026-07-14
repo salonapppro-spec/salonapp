@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 
 import { AdminTimeSelect, buildTimeOptions } from "@/components/admin/AdminTimeSelect";
+import { useAdminBasePath } from "@/lib/admin-base-path";
 import { addCalendarDaysInSofia, todayDateISOInSofia } from "@/lib/booking-datetime";
 import { timeToMinutes } from "@/lib/scheduling";
 import type { BlockedSlot, WorkingHours } from "@/types";
@@ -38,6 +39,7 @@ export function BlockSlotModal(props: {
 }) {
   const { blockedDate, initialSlots, workingHours, bookingWindowDays = 30, onClose } = props;
   const router = useRouter();
+  const basePath = useAdminBasePath();
   const today = todayDateISOInSofia();
   const maxDate = addCalendarDaysInSofia(today, bookingWindowDays);
 
@@ -134,7 +136,7 @@ export function BlockSlotModal(props: {
       const json = (await res.json()) as { error?: string };
       if (!res.ok) throw new Error(json?.error ?? "Грешка");
       setReason("");
-      router.push(`/admin/calendar?date=${selectedDate}&view=day`);
+      router.push(`${basePath}/calendar?date=${selectedDate}&view=day`);
       router.refresh();
       onClose();
     } catch (e) {
