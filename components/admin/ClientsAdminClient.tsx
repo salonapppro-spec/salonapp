@@ -221,7 +221,7 @@ export function ClientsAdminClient(props: { initialClients: Client[]; searchQ: s
         </div>
       )}
 
-      <div className="mt-5 grid gap-5 lg:grid-cols-[1fr_1.3fr]">
+      <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.3fr)]">
         {/* Left: list */}
         <div>
           <div className="mb-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
