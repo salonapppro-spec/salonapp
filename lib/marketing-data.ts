@@ -61,6 +61,7 @@ const PLAN_BASE: Array<Omit<MarketingPlan, "priceMonthly" | "priceCurrency">> = 
     tagline: "Бранд и канали",
     periodLabel: "на месец",
     cardBullets: [
+      "Имейл след посещение за събиране на отзиви (Google/Facebook)",
       "Собствен домейн при годишно плащане (екипът купува и управлява)",
       "SMS/Viber напомняния 24ч включени",
       "Google SEO + физически обект, всички възможности на Стандарт",
@@ -72,7 +73,7 @@ const PLAN_BASE: Array<Omit<MarketingPlan, "priceMonthly" | "priceCurrency">> = 
     tagline: "Екип без централен собственик",
     periodLabel: "на месец",
     cardBullets: [
-      "Неограничено специалисти; всеки вижда само своите данни",
+      "До 3 специалиста — отделни админ панели и графици, общ сайт",
       "Технически админ само за плащане — без достъп до чужди резервации",
       "SMS/Viber: +5.99€ на специалист; субдомейн на платформата",
     ],
@@ -98,7 +99,7 @@ export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
       starter: "1",
       standard: "1",
       pro: "1",
-      premium: "Неограничено",
+      premium: "До 3 (отделни панели и графици, общ сайт)",
     },
   },
   {
@@ -158,6 +159,10 @@ export const PLAN_COMPARISON_ROWS: PlanComparisonRow[] = [
   {
     label: "Google SEO + физически обект",
     values: { starter: false, standard: false, pro: true, premium: false },
+  },
+  {
+    label: "Имейл след посещение за отзиви (Google/Facebook)",
+    values: { starter: false, standard: false, pro: true, premium: true },
   },
 ];
 
