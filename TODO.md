@@ -4,7 +4,14 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-07-08
+> Актуализирай след всяка задача. Последна промяна: 2026-07-14
+
+---
+
+## ✅ 2026-07-14 — Демо админ панел `/demo` (виж HANDOFF)
+
+- [x] **Интерактивно демо на админа** — истинските компоненти + локален стор; `fetch` към `/api/admin/*` се прихваща в браузъра. Без база, без имейли, без Stripe. Бутон „Разгледай админ панела“ в hero-то.
+- [ ] **По желание:** демо на публичния сайт на салона (сега демото е само админ панелът; hero-то има отделен линк „Виж демо салон“)
 
 ---
 

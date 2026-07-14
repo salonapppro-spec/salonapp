@@ -24,8 +24,10 @@ export function MonthCalendar(props: {
   blockedByDate?: Record<string, BlockedSlot[]>;
   workingHoursByDow: SimpleWH[];
   todayStr: string;
+  /** „/admin“ за истинския панел, „/demo“ за демото. */
+  basePath?: string;
 }) {
-  const { anchorYmd, bookingsByDate, blockedByDate = {}, workingHoursByDow, todayStr } = props;
+  const { anchorYmd, bookingsByDate, blockedByDate = {}, workingHoursByDow, todayStr, basePath = "/admin" } = props;
   const weeks = getMonthWeeks(anchorYmd);
   const anchorDate = new Date(`${anchorYmd}T12:00:00`);
   const anchorMonth = anchorDate.getMonth();
@@ -64,7 +66,7 @@ export function MonthCalendar(props: {
             return (
               <Link
                 key={d}
-                href={`/admin/calendar?date=${d}&view=day`}
+                href={`${basePath}/calendar?date=${d}&view=day`}
                 className="group relative flex min-h-[72px] flex-col border-r p-1.5 last:border-r-0 transition-colors hover:bg-[#C9A84C]/[0.05] sm:min-h-[88px] sm:p-2"
                 style={{
                   borderColor: "rgba(201,168,76,0.08)",

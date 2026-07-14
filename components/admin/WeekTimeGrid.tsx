@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useCallback, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 
+import { useAdminBasePath } from "@/lib/admin-base-path";
 import { minutesToTime, timeToMinutes } from "@/lib/scheduling";
 import type { BlockedSlot, Booking, BookingStatus, Plan, Service, Specialist, WorkingHours } from "@/types";
 import { BookingDetailModal } from "@/components/admin/BookingDetailModal";
@@ -59,6 +60,7 @@ export function WeekTimeGrid(props: {
 }) {
   const { salonSlug, date, weekDates, bookingsByDate, blockedByDate = {}, workingHoursByDow, services, specialists, plan } = props;
   const router = useRouter();
+  const basePath = useAdminBasePath();
   const [, startTransition] = useTransition();
 
   const [detailBooking, setDetailBooking] = useState<Booking | null>(null);
@@ -160,7 +162,7 @@ export function WeekTimeGrid(props: {
                   <span className="mt-0.5 text-[8px] font-bold" style={{ color: "#991b1b" }}>🚫 блок.</span>
                 ) : (
                   <Link
-                    href={`/admin/calendar?date=${d}&view=day`}
+                    href={`${basePath}/calendar?date=${d}&view=day`}
                     className="mt-0.5 text-[8px] font-bold hover:underline"
                     style={{ color: "#C8826A" }}
                   >

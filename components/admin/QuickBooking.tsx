@@ -6,6 +6,7 @@ import { createPortal } from "react-dom";
 import { createAdminBooking } from "@/app/actions/admin-booking";
 import { AdminTimeSelect } from "@/components/admin/AdminTimeSelect";
 import { addCalendarDaysInSofia } from "@/lib/booking-datetime";
+import { useDemoOptional } from "@/lib/demo/store";
 import { timeToMinutes } from "@/lib/scheduling";
 import type { HairDensity, HairLength, Plan, Service, Specialist, WorkingHours } from "@/types";
 
@@ -35,6 +36,9 @@ export function QuickBooking(props: {
   onSaved: () => void;
 }) {
   const { salonSlug, date, time, services, specialists, plan, workingHours, bookingWindowDays = 30, onClose, onSaved } = props;
+
+  // В демо режим записът отива в локалния стор, не в базата (виж lib/demo).
+  const demo = useDemoOptional();
 
   const activeServices = useMemo(() => services.filter((s) => s.is_active), [services]);
 
@@ -336,7 +340,8 @@ export function QuickBooking(props: {
       // създава клиентски запис, така че няма фантомни дубликати. Никакви
       // синтетични placeholder-и (старият `anon-uuid` така или иначе падаше
       // на схемата — audit 2026-07-06).
-      const result = await createAdminBooking({
+      const submit = demo ? demo.createBooking : createAdminBooking;
+      const result = await submit({
         salon_slug: salonSlug,
         specialist_id: effectiveSpecialistId,
         service_id: selected.id,

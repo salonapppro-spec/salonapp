@@ -3,20 +3,30 @@
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 
+import { useAdminBasePath } from "@/lib/admin-base-path";
+
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
 
-const tabs = [
-  { href: "/admin/settings/logo-images", label: "Лого и снимки", icon: "🖼️" },
-  { href: "/admin/settings/contacts",    label: "Контакти",       icon: "📍" },
-  { href: "/admin/settings/services",    label: "Услуги",         icon: "✂️" },
-  { href: "/admin/settings/hours",       label: "Раб. Време",     icon: "🕐" },
-  { href: "/admin/settings/password",    label: "Парола",         icon: "🔑" },
+/**
+ * `inDemo: false` крие таба в демото — качване на снимки и смяна на парола
+ * нямат смисъл без акаунт и без сървър.
+ */
+const tabDefs = [
+  { path: "/settings/logo-images", label: "Лого и снимки", icon: "🖼️", inDemo: false },
+  { path: "/settings/contacts",    label: "Контакти",       icon: "📍", inDemo: true },
+  { path: "/settings/services",    label: "Услуги",         icon: "✂️", inDemo: true },
+  { path: "/settings/hours",       label: "Раб. Време",     icon: "🕐", inDemo: true },
+  { path: "/settings/password",    label: "Парола",         icon: "🔑", inDemo: false },
 ] as const;
 
 export function SettingsTabNav() {
   const pathname = usePathname() ?? "";
   const router = useRouter();
+  const basePath = useAdminBasePath();
+  const tabs = tabDefs
+    .filter((t) => basePath === "/admin" || t.inDemo)
+    .map((t) => ({ ...t, href: `${basePath}${t.path}` }));
 
   const activeTab =
     tabs.find((t) => pathname === t.href || pathname.startsWith(`${t.href}/`)) ?? tabs[0];

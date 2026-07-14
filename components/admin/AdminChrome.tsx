@@ -7,19 +7,19 @@ import { LayoutDashboard, CalendarDays, Scissors, Users, BarChart3, Settings2, M
 import { SignOutButton } from "@/components/admin/SignOutButton";
 
 const primaryTabs = [
-  { href: "/admin/dashboard", label: "Днес", short: "Дн", Icon: LayoutDashboard },
-  { href: "/admin/calendar", label: "Календар", short: "Кал", Icon: CalendarDays },
-  { href: "/admin/settings/services", label: "Услуги", short: "Ус", Icon: Scissors },
-  { href: "/admin/clients", label: "Клиенти", short: "Кл", Icon: Users },
-  { href: "/admin/finances", label: "Калкулатор", short: "Кал", Icon: BarChart3 },
+  { path: "/dashboard", label: "Днес", short: "Дн", Icon: LayoutDashboard },
+  { path: "/calendar", label: "Календар", short: "Кал", Icon: CalendarDays },
+  { path: "/settings/services", label: "Услуги", short: "Ус", Icon: Scissors },
+  { path: "/clients", label: "Клиенти", short: "Кл", Icon: Users },
+  { path: "/finances", label: "Калкулатор", short: "Кал", Icon: BarChart3 },
 ] as const;
 
 const secondaryLinks = [
-  { href: "/admin/settings", label: "Настройки", Icon: Settings2 },
+  { path: "/settings", label: "Настройки", Icon: Settings2 },
 ] as const;
 
 const mobileHeaderLinks = [
-  { href: "/admin/settings", label: "Настройки" },
+  { path: "/settings", label: "Настройки" },
 ] as const;
 
 export function AdminChrome(props: {
@@ -28,14 +28,28 @@ export function AdminChrome(props: {
    * „Днес“ и „Календар“ — не в настройки, услуги и т.н.
    */
   mobileScheduleQuickLinks?: { tomorrow: string; week: string; calendar: string };
+  /** „/admin“ за истинския панел, „/demo“ за демото. */
+  basePath?: string;
+  /** В демото няма акаунт — вместо „Изход“ се излиза към сайта. */
+  exitLink?: { href: string; label: string };
 }) {
-  const { mobileScheduleQuickLinks } = props;
+  const { mobileScheduleQuickLinks, basePath = "/admin", exitLink } = props;
   const pathname = usePathname() ?? "";
-  const isDashboardOrCalendar = pathname === "/admin/dashboard";
+  const isDashboardOrCalendar = pathname === `${basePath}/dashboard`;
+
+  const tabs = primaryTabs.map((t) => ({ ...t, href: `${basePath}${t.path}` }));
+  const secondary = secondaryLinks.map((t) => ({ ...t, href: `${basePath}${t.path}` }));
+  const mobileHeader = mobileHeaderLinks.map((t) => ({ ...t, href: `${basePath}${t.path}` }));
+  const homeHref = `${basePath}/dashboard`;
 
   function isActive(href: string) {
     return pathname === href || pathname.startsWith(`${href}/`);
   }
+
+  const exitClassDesktop =
+    "flex w-full items-center justify-center rounded-xl border border-[#C9A84C]/25 bg-white/70 px-3 py-2.5 text-sm font-semibold text-[#1A1A1A]/70 shadow-sm transition active:scale-[0.98] md:hover:border-[#C9A84C]/40 md:hover:bg-white md:hover:text-[#1A1A1A] md:active:scale-100";
+  const exitClassMobile =
+    "shrink-0 rounded-lg px-2.5 py-2 text-xs font-medium text-[#1A1A1A]/55 transition active:scale-95 md:hover:bg-black/5 md:hover:text-[#1A1A1A] md:active:scale-100";
 
   return (
     <>
@@ -43,7 +57,7 @@ export function AdminChrome(props: {
       <aside className="fixed bottom-0 left-0 top-0 z-40 hidden h-[100dvh] w-56 flex-col border-r border-[#C9A84C]/15 bg-gradient-to-b from-[#F8EBDD] to-[#F3EBE0] shadow-[2px_0_20px_rgba(0,0,0,0.06)] backdrop-blur-md md:flex">
         {/* Logo */}
         <div className="shrink-0 border-b border-[#C9A84C]/15 px-4 py-4">
-          <Link href="/admin/dashboard" className="group flex items-center gap-2">
+          <Link href={homeHref} className="group flex items-center gap-2">
             <span
               className="flex h-7 w-7 items-center justify-center rounded-lg text-sm font-black text-white shadow-sm"
               style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
@@ -59,7 +73,7 @@ export function AdminChrome(props: {
 
         {/* Nav */}
         <nav className="flex min-h-0 flex-1 flex-col gap-0.5 overflow-y-auto p-3" aria-label="Админ навигация">
-          {primaryTabs.map((l) => {
+          {tabs.map((l) => {
             const active = isActive(l.href);
             return (
               <Link
@@ -91,7 +105,7 @@ export function AdminChrome(props: {
 
           <div className="my-2 border-t border-[#C9A84C]/15 pt-2">
             <p className="px-3 pb-1.5 text-[9px] font-black uppercase tracking-[0.2em] text-[#C9A84C]/70">Настройки</p>
-            {secondaryLinks.map((l) => {
+            {secondary.map((l) => {
               const active = isActive(l.href);
               return (
                 <Link
@@ -132,9 +146,15 @@ export function AdminChrome(props: {
             <MessageCircle size={16} strokeWidth={1.8} />
             Техническа поддръжка
           </a>
-          <SignOutButton className="w-full rounded-xl border border-[#C9A84C]/25 bg-white/70 px-3 py-2.5 text-sm font-semibold text-[#1A1A1A]/70 shadow-sm transition active:scale-[0.98] md:hover:border-[#C9A84C]/40 md:hover:bg-white md:hover:text-[#1A1A1A] md:active:scale-100">
-            Изход от акаунта
-          </SignOutButton>
+          {exitLink ? (
+            <Link href={exitLink.href} className={exitClassDesktop}>
+              {exitLink.label}
+            </Link>
+          ) : (
+            <SignOutButton className="w-full rounded-xl border border-[#C9A84C]/25 bg-white/70 px-3 py-2.5 text-sm font-semibold text-[#1A1A1A]/70 shadow-sm transition active:scale-[0.98] md:hover:border-[#C9A84C]/40 md:hover:bg-white md:hover:text-[#1A1A1A] md:active:scale-100">
+              Изход от акаунта
+            </SignOutButton>
+          )}
         </div>
       </aside>
 
@@ -143,7 +163,7 @@ export function AdminChrome(props: {
         className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-[#C9A84C]/20 bg-[#F8EBDD]/97 pb-[max(0.5rem,env(safe-area-inset-bottom))] pt-1 shadow-[0_-4px_20px_rgba(0,0,0,0.08)] backdrop-blur-md md:hidden"
         aria-label="Основна навигация"
       >
-        {primaryTabs.map((l) => {
+        {tabs.map((l) => {
           const active = isActive(l.href);
           return (
             <Link
@@ -180,7 +200,7 @@ export function AdminChrome(props: {
       {/* Mobile header: brand row + full-width day shortcuts (no horizontal squeeze) */}
       <header className="sticky top-0 z-30 border-b border-[#C9A84C]/20 bg-[#F8EBDD]/92 backdrop-blur-md md:hidden">
         <div className="flex items-center justify-between gap-2 px-3 py-2.5">
-          <Link href="/admin/dashboard" className="flex min-w-0 shrink-0 items-center gap-1.5">
+          <Link href={homeHref} className="flex min-w-0 shrink-0 items-center gap-1.5">
             <span
               className="flex h-6 w-6 items-center justify-center rounded-md text-xs font-black text-white"
               style={{ background: "linear-gradient(135deg, #C9A84C, #C8826A)" }}
@@ -192,7 +212,7 @@ export function AdminChrome(props: {
             </span>
           </Link>
           <div className="flex shrink-0 items-center justify-end gap-1">
-            {mobileHeaderLinks.map((l) => (
+            {mobileHeader.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -214,9 +234,13 @@ export function AdminChrome(props: {
             >
               <MessageCircle size={14} strokeWidth={1.8} />
             </a>
-            <SignOutButton className="shrink-0 rounded-lg px-2.5 py-2 text-xs font-medium text-[#1A1A1A]/55 transition active:scale-95 md:hover:bg-black/5 md:hover:text-[#1A1A1A] md:active:scale-100">
-              Изход
-            </SignOutButton>
+            {exitLink ? (
+              <Link href={exitLink.href} className={exitClassMobile}>
+                Изход
+              </Link>
+            ) : (
+              <SignOutButton className={exitClassMobile}>Изход</SignOutButton>
+            )}
           </div>
         </div>
         {mobileScheduleQuickLinks && isDashboardOrCalendar ? (

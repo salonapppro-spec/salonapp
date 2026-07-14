@@ -3,6 +3,8 @@
 import { useRouter } from "next/navigation";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 
+import { useAdminBasePath } from "@/lib/admin-base-path";
+
 export function CalendarNavClient(props: {
   date: string;
   view: "day" | "week" | "month";
@@ -12,9 +14,10 @@ export function CalendarNavClient(props: {
 }) {
   const { date, view, prevDate, nextDate, monthLabel } = props;
   const router = useRouter();
+  const basePath = useAdminBasePath();
 
   function go(d: string) {
-    router.push(`/admin/calendar?date=${d}&view=${view}`);
+    router.push(`${basePath}/calendar?date=${d}&view=${view}`);
   }
 
   return (

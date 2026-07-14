@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { Monitor } from "lucide-react";
 
+import { useAdminBasePath } from "@/lib/admin-base-path";
 import {
   type CategorySlice,
   type MonthBar,
@@ -220,6 +221,7 @@ export function FinancesDashboard(props: {
   overheadMissing:  boolean;
 }) {
   const router = useRouter();
+  const basePath = useAdminBasePath();
   const [showModal, setShowModal] = useState(false);
 
   const totalExpenses = props.overhead + props.variableExpenses;
@@ -233,7 +235,7 @@ export function FinancesDashboard(props: {
     let y = props.year;
     if (m < 1)  { m = 12; y--; }
     if (m > 12) { m = 1;  y++; }
-    router.push(`/admin/finances?y=${y}&m=${m}`);
+    router.push(`${basePath}/finances?y=${y}&m=${m}`);
   }
 
   return (
@@ -330,7 +332,7 @@ export function FinancesDashboard(props: {
       {props.overheadMissing ? (
         <div className="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
           ⚠ Постоянните разходи не са зададени — „Ориентировъчен резултат" е непълен.{" "}
-          <Link href="/admin/finances/overhead" className="font-semibold underline underline-offset-2">
+          <Link href={`${basePath}/finances/overhead`} className="font-semibold underline underline-offset-2">
             Задай ги в Настройки →
           </Link>
         </div>
@@ -416,7 +418,7 @@ export function FinancesDashboard(props: {
       {/* ── Fixed costs hint ─────────────────────── */}
       <p className="mt-4 text-center text-xs text-slate-400">
         Постоянните разходи може да въведеш или промениш от{" "}
-        <Link href="/admin/finances/overhead" className="underline underline-offset-2 hover:text-slate-600">
+        <Link href={`${basePath}/finances/overhead`} className="underline underline-offset-2 hover:text-slate-600">
           тук
         </Link>
       </p>
