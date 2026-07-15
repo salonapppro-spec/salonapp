@@ -120,6 +120,24 @@ export default function AdminShowcase() {
             Всичко важно е на едно място: график, клиенти, услуги, финанси и напомняния. Панелът е направен за ежедневна работа в салон, не за сложни настройки.
           </p>
 
+          {/* Live demo CTA */}
+          <div className="mt-6">
+            <a
+              href="/demo"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[50px] items-center justify-center gap-2 rounded-xl bg-[#3D1F0A] px-8 text-[12px] font-black uppercase tracking-widest text-white transition hover:bg-[#5A2F12]"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M5 3l14 9-14 9V3z" />
+              </svg>
+              Разгледай демо панела
+            </a>
+            <p className="mt-2 text-[11px] text-[#9a8a6a]">
+              Отваря се в нов таб · без регистрация
+            </p>
+          </div>
+
           {/* Tab buttons */}
           <div className="mt-8 flex flex-wrap gap-2">
             {TABS.map((tab, i) => (

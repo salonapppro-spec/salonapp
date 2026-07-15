@@ -6,6 +6,7 @@ import Link from "next/link";
 
 const NAV = [
   { label: "Функции", href: "#features" },
+  { label: "Демо панел", href: "/demo" },
   { label: "Примерни сайтове", href: "#templates" },
   { label: "Цени", href: "#plans" },
 ];
