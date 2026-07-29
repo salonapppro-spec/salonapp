@@ -1,4 +1,38 @@
-# HANDOFF — последна актуализация: 2026-07-14
+# HANDOFF — последна актуализация: 2026-07-29
+
+---
+
+## 2026-07-29 — B2B блог на `/blog` + SEO/analytics setup
+
+**Контекст:** salonapp.pro (продуктът) е практически невидим в Google — целият органичен трафик идва от 1 тенант (масажно студио в Бургас). Стартираме B2B блог, който да ранкира за това, което **собствениците на салони** търсят.
+
+### Какво направих (блог)
+
+- **`lib/blog.ts`** — чете markdown статии от `content/blog/*.md` (frontmatter през `gray-matter`, рендиране през `marked`). Server-side, статично. Функции: `getPostSlugs`, `getAllPostMeta`, `getPost`.
+- **`content/blog/*.md`** — 3 стартови статии (онлайн резервации, намаляване на неявявания, система за управление на салон). Всяка с frontmatter (title, description, date, author, tags) и вътрешни линкове помежду си + към `/get-started`.
+- **`app/blog/page.tsx`** — списък с карти + JSON-LD `Blog` schema.
+- **`app/blog/[slug]/page.tsx`** — статия с `generateStaticParams`, `generateMetadata` (canonical, OG), JSON-LD `BlogPosting` + `BreadcrumbList`, CTA към `/get-started`.
+- **`components/blog/BlogFooter.tsx`** — компактен footer за блога.
+- **`components/landing/LandingHeader.tsx`** — добавен линк „Блог"; anchor линковете станаха абсолютни (`/#features`) за да работят от всяка страница.
+- **`app/sitemap.ts`** — блог статиите влизат динамично в sitemap.
+- **`lib/routing/constants.ts`** — `blog` добавен в `RESERVED_PATHS` (да не се бърка със салонски slug).
+- **`tailwind.config.ts`** — добавен `@tailwindcss/typography` (prose стилове за статиите).
+- Нови зависимости: `gray-matter`, `marked`, `@tailwindcss/typography`.
+
+### Проверено в браузъра
+
+`/blog` и трите статии рендират; JSON-LD (BlogPosting + BreadcrumbList) присъства; canonical и og:type коректни; sitemap.xml включва блога; нула конзолни грешки; началната страница работи след промяната в навигацията. `npx tsc --noEmit` чист.
+
+### SEO/analytics (виж memory `project-seo-analytics-setup`)
+
+- GA4 вече е на salonapp.pro (`G-PXV7BT1S03`), само на главния домейн.
+- Service account `salonapp-seo@salonapp-495413.iam.gserviceaccount.com` чете GSC данни (Domain property `sc-domain:salonapp.pro`). GA4 Data API още не е включен.
+- Ключът стои в `C:/Users/Lina/Downloads/` — НИКОГА в git.
+
+### Следва
+
+- Пренаписване на началната страница за по-добро SEO (в процес на обсъждане).
+- Включване на GA4 Data API + отделна URL-prefix GSC property само за продукта.
 
 ---
 

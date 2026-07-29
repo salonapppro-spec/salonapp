@@ -25,6 +25,7 @@ export const RESERVED_PATHS = new Set([
   "get-started",
   "demo",
   "legal",
+  "blog",
   "privacy",
   "unsubscribe",
   "_next",

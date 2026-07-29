@@ -1,5 +1,6 @@
 import type { MetadataRoute } from "next";
 import { listActiveTenantsForSitemap } from "@/lib/internal/sitemap-tenants";
+import { getAllPostMeta } from "@/lib/blog";
 
 const BASE_URL =
   (process.env.NEXT_PUBLIC_APP_URL ?? "https://salonapp.pro").replace(/\/$/, "");
@@ -45,13 +46,27 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "yearly",
       priority: 0.3,
     },
+    {
+      url: `${BASE_URL}/blog`,
+      lastModified: new Date(),
+      changeFrequency: "weekly",
+      priority: 0.7,
+    },
   ];
+
+  // Блог статии — четат se от content/blog/*.md
+  const blogPages: MetadataRoute.Sitemap = getAllPostMeta().map((post) => ({
+    url: `${BASE_URL}/blog/${post.slug}`,
+    lastModified: post.date ? new Date(post.date) : new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.6,
+  }));
 
   try {
     const tenants = await listActiveTenantsForSitemap();
 
     if (tenants.length === 0) {
-      return staticPages;
+      return [...staticPages, ...blogPages];
     }
 
     const tenantPages: MetadataRoute.Sitemap = tenants.map((t) => ({
@@ -61,9 +76,9 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.9,
     }));
 
-    return [...staticPages, ...tenantPages];
+    return [...staticPages, ...blogPages, ...tenantPages];
   } catch {
-    // Fallback при грешка — поне статичните страници са в sitemap
-    return staticPages;
+    // Fallback при грешка — поне статичните + блог страниците са в sitemap
+    return [...staticPages, ...blogPages];
   }
 }
