@@ -29,10 +29,18 @@
 - Service account `salonapp-seo@salonapp-495413.iam.gserviceaccount.com` чете GSC данни (Domain property `sc-domain:salonapp.pro`). GA4 Data API още не е включен.
 - Ключът стои в `C:/Users/Lina/Downloads/` — НИКОГА в git.
 
+### Homepage SEO (същия ден, отделен commit)
+
+Диагноза от GSC: продуктовият сайт получаваше impressions само за brand думи — H1/H2 бяха чисто емоционални, без комерсиални ключови думи. Промени (хибриден подход, запазва продаващия тон):
+- **H1** (`components/landing/HeroSection.tsx`): „Твоят салон заслужава повече от тефтер. Собствен сайт и онлайн резервации." (шрифт clamp намален до 3.75rem за по-дългия текст).
+- **H2-та** (`app/page.tsx`, `TemplatesSection.tsx`): „управление на салона", „Софтуер за салони...", „Собствен сайт за салон...", „Планове и цени за твоя салон...".
+- Нова секция **„по тип салон"** (`#salon-types`) — long-tail (фризьорски/козметично/нокти/барбершоп/масажно/груминг) + вътрешни линкове към блога.
+- Structured data вече беше силно (Organization, SoftwareApplication, WebSite, FAQPage, ItemList) — не пипано.
+
 ### Следва
 
-- Пренаписване на началната страница за по-добро SEO (в процес на обсъждане).
 - Включване на GA4 Data API + отделна URL-prefix GSC property само за продукта.
+- Още блог статии по тип салон.
 
 ---
 

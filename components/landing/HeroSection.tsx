@@ -64,15 +64,15 @@ export default function HeroSection() {
             </span>
           </motion.div>
 
-          {/* H1 */}
+          {/* H1 — хибрид: емоционален хук + ключови думи за SEO */}
           <motion.h1
             variants={fromLeft}
             className="playfair font-bold leading-[1.1] tracking-tight text-[#3D1F0A]"
-            style={{ fontSize: 'clamp(2rem, 5vw, 5rem)' }}
+            style={{ fontSize: 'clamp(1.9rem, 4vw, 3.75rem)' }}
           >
-            Твоят бизнес заслужава
+            Твоят салон заслужава повече от тефтер.
             <br />
-            <span style={{ color: '#C79A4B' }}>повече от тефтер.</span>
+            <span style={{ color: '#C79A4B' }}>Собствен сайт и онлайн резервации.</span>
           </motion.h1>
 
           {/* Paragraph */}
