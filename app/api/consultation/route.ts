@@ -11,6 +11,8 @@ const ConsultationSchema = z.object({
   phone: z.string().trim().max(40).optional(),
   // eventId идва от браузър пиксела (fbq Lead) за дедупликация с CAPI
   eventId: z.string().trim().max(100).optional(),
+  // Маркетинг съгласие — CAPI стреля само ако е true (GDPR)
+  marketingConsent: z.boolean().optional(),
 });
 
 export async function POST(req: Request) {
@@ -39,19 +41,21 @@ export async function POST(req: Request) {
     source: "landing_consultation",
   });
 
-  // Meta CAPI — server-side Lead. No-op докато META_* env няма стойност.
-  // eventId се дедупликира с браузър пиксела (fbq('track','Lead',{},{eventID})).
-  await sendMetaCapiEvent({
-    eventName: "Lead",
-    eventId: parsed.data.eventId,
-    eventSourceUrl: req.headers.get("referer") ?? undefined,
-    user: {
-      name: parsed.data.name,
-      email: parsed.data.email,
-      phone: parsed.data.phone,
-    },
-    request: req,
-  });
+  // Meta CAPI — server-side Lead, само при маркетинг съгласие (GDPR).
+  // No-op и без env. eventId се дедупликира с браузър пиксела.
+  if (parsed.data.marketingConsent) {
+    await sendMetaCapiEvent({
+      eventName: "Lead",
+      eventId: parsed.data.eventId,
+      eventSourceUrl: req.headers.get("referer") ?? undefined,
+      user: {
+        name: parsed.data.name,
+        email: parsed.data.email,
+        phone: parsed.data.phone,
+      },
+      request: req,
+    });
+  }
 
   await sendLeadNotification({
     subject: `Нова tenant заявка (consultation): ${parsed.data.name}`,

@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { getStoredConsent } from "@/components/CookieBanner";
 
 export function ConsultationForm() {
   const [name, setName] = useState("");
@@ -19,17 +20,27 @@ export function ConsultationForm() {
       typeof crypto !== "undefined" && crypto.randomUUID
         ? crypto.randomUUID()
         : String(Date.now()) + Math.random().toString(16).slice(2);
+    // Meta tracking само при маркетинг съгласие (важи и за браузър пиксела, и за CAPI)
+    const marketingConsent = !!getStoredConsent()?.marketing;
     try {
       const res = await fetch("/api/consultation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone: phone || undefined, eventId }),
+        body: JSON.stringify({
+          name,
+          email,
+          phone: phone || undefined,
+          eventId,
+          marketingConsent,
+        }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error ?? "Грешка");
-      // Meta Pixel Lead (браузър) — само ако пикселът е зареден (след consent)
-      const fbq = (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq;
-      fbq?.("track", "Lead", {}, { eventID: eventId });
+      // Meta Pixel Lead (браузър) — само при маркетинг съгласие
+      if (marketingConsent) {
+        const fbq = (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq;
+        fbq?.("track", "Lead", {}, { eventID: eventId });
+      }
       setDone(true);
     } catch (er) {
       setError(er instanceof Error ? er.message : "Грешка");
