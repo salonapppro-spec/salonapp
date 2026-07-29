@@ -15,7 +15,7 @@ SalonApp.pro е Bulgarian SaaS платформа за Beauty & Wellness биз�
 - Управление на специалисти и работно време
 - Галерия с работи
 
-## Как се различава от Booksy, Fresha и Treatwell
+## Как се различава от маркетплейс платформите
 
 - **Собствен уебсайт с бранда на салона** — не профил в общ каталог до конкурентите.
 - **0% комисионна** върху резервациите — маркетплейсите често взимат процент.
@@ -50,7 +50,7 @@ SalonApp.pro е Bulgarian SaaS платформа за Beauty & Wellness биз�
 - Онлайн резервации за салон: пълно ръководство — https://salonapp.pro/blog/onlayn-rezervacii-za-salon
 - Как да намалите неявяванията (no-shows) — https://salonapp.pro/blog/kak-da-namalite-neyavyavaniyata
 - Система за управление на салон: какво да търсиш — https://salonapp.pro/blog/sistema-za-upravlenie-na-salon
-- Най-добрите системи за резервации за салони в България — https://salonapp.pro/blog/sistemi-za-rezervacii-salon-bulgaria
+- Система за резервации за салон в България: маркетплейс или собствен сайт — https://salonapp.pro/blog/sistemi-za-rezervacii-salon-bulgaria
 
 ## Технически стек
 
