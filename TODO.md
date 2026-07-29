@@ -16,6 +16,13 @@
 - [ ] **Още блог статии** — таргет: „софтуер за фризьорски салон", „система за нокти студио" и др. по тип салон
 - [x] **AEO/GEO старт** — обновен `public/llms.txt` (реални цени + разграничение от Booksy/Fresha), сравнителна статия „Най-добрите системи за резервации за салони в България" (AI цитира такъв формат). AI видимост baseline: ~10/100 (нов бранд, невидим; конкуренти Booksy/Fresha/Treatwell)
 - [ ] **AEO/GEO продължение** — off-site споменавания (отзиви, каталози, форуми); „директен отговор" интро в старите статии; проследяване на AI видимостта след седмици
+
+## 🟡 Facebook реклами (в процес)
+
+- [x] **Meta CAPI сървър** — `lib/meta-capi.ts` (server-side Conversions API, SHA-256 hashing, дедупликация по eventId) + вграден Lead в `app/api/consultation`. **Инертен** докато няма env. Env: `NEXT_PUBLIC_META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN` (таен), `META_CAPI_TEST_EVENT_CODE` (по избор)
+- [ ] **Браузър пиксел на маркетинг сайта** — чака Pixel ID от Лина; ще се добави в root layout, consent-gated (като тенант `ConsentAnalytics`), + fbq Lead на `/get-started` формата със същия eventId
+- [ ] **Domain verification** на salonapp.pro в Meta Business Settings (meta-таг/DNS)
+- [ ] **Задай env в Vercel** (Pixel ID + CAPI token) и тествай през Events Manager → Test Events
 - [ ] **Включи GA4 Data API** в проект `salonapp-495413` (после SA чете и GA4)
 - [ ] **Отделна URL-prefix GSC property** само за `https://salonapp.pro/` (чисти данни без тенант шум)
 
