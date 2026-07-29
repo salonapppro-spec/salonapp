@@ -5,9 +5,10 @@ import Image from "next/image";
 import Link from "next/link";
 
 const NAV = [
-  { label: "Функции", href: "#features" },
-  { label: "Примерни сайтове", href: "#templates" },
-  { label: "Цени", href: "#plans" },
+  { label: "Функции", href: "/#features" },
+  { label: "Примерни сайтове", href: "/#templates" },
+  { label: "Цени", href: "/#plans" },
+  { label: "Блог", href: "/blog" },
 ];
 
 export default function LandingHeader() {

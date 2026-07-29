@@ -4,7 +4,18 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-07-14
+> Актуализирай след всяка задача. Последна промяна: 2026-07-29
+
+---
+
+## ✅ 2026-07-29 — B2B блог `/blog` + SEO (виж HANDOFF)
+
+- [x] **Блог на `/blog`** — markdown статии (`content/blog/*.md`), списък + единична статия с JSON-LD, sitemap, „Блог" в навигацията, 3 стартови статии
+- [x] **GSC достъп за анализи** — service account чете Search Console данни (Domain property)
+- [ ] **Пренаписване на началната страница за SEO** — в процес на обсъждане с Лина
+- [ ] **Още блог статии** — таргет: „софтуер за фризьорски салон", „система за нокти студио" и др. по тип салон
+- [ ] **Включи GA4 Data API** в проект `salonapp-495413` (после SA чете и GA4)
+- [ ] **Отделна URL-prefix GSC property** само за `https://salonapp.pro/` (чисти данни без тенант шум)
 
 ---
 
