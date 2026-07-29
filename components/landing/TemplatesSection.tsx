@@ -83,7 +83,7 @@ export default function TemplatesSection() {
           className="mt-3 text-3xl font-black text-[#3D1F0A] md:text-5xl"
           style={{ fontFamily: "var(--font-playfair), Georgia, serif" }}
         >
-          Ти избираш стила.
+          Собствен сайт за салон — ти избираш стила.
         </h2>
         <p className="mt-3 max-w-xl text-sm text-[#6E6A63]">
           Всеки салон получава уникален дизайн, изграден специално за него.

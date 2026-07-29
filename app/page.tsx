@@ -309,7 +309,7 @@ export default function Home() {
         <section id="features" className="bg-white px-8 py-12 lg:px-16 md:py-16 scroll-mt-16">
           <div>
             <h2 className="playfair mb-10 text-center text-3xl font-bold text-[#3D1F0A] md:text-4xl">
-              Всичко, от което се нуждае твоят салон
+              Всичко за управлението на салона ти на едно място
             </h2>
             <div className="grid grid-cols-2 gap-6 sm:grid-cols-3 lg:grid-cols-6">
               {[
@@ -365,7 +365,7 @@ export default function Home() {
                     </svg>
                   ),
                   title: "Лесно управление",
-                  desc: "Интуитивен панел, създаден специално за бизнеса са салони.",
+                  desc: "Интуитивен панел, създаден специално за бизнеса на салони.",
                 },
               ].map((f, i) => (
                 <RevealOnScroll key={f.title} delay={i * 80} className="flex flex-col items-center text-center">
@@ -376,6 +376,49 @@ export default function Home() {
               ))}
             </div>
           </div>
+        </section>
+
+        {/* ── ПО ТИП САЛОН (SEO long-tail) ── */}
+        <section id="salon-types" className="bg-[#F8EBDD] px-8 py-14 lg:px-16 md:py-16 scroll-mt-16">
+          <RevealOnScroll>
+            <h2 className="playfair mb-3 text-center text-3xl font-bold text-[#3D1F0A] md:text-4xl">
+              Софтуер за салони за красота и студиа от всякакъв вид
+            </h2>
+            <p className="mx-auto mb-10 max-w-2xl text-center text-base text-[#6E6A63]">
+              SalonApp е създаден за начина, по който работи твоят салон — независимо
+              дали правиш прически, маникюр, козметика, масаж или груминг.
+            </p>
+          </RevealOnScroll>
+          <div className="mx-auto grid max-w-4xl grid-cols-2 gap-4 sm:grid-cols-3">
+            {[
+              { title: "Фризьорски салони", desc: "Онлайн резервации и график за фризьорски салон." },
+              { title: "Козметични студиа", desc: "Система за записване и клиенти за козметично студио." },
+              { title: "Нокти и маникюр", desc: "Софтуер за нокти студио с онлайн часове." },
+              { title: "Барбершопи", desc: "Резервации 24/7 за барбершоп, без пропуснати обаждания." },
+              { title: "Масажни студиа", desc: "Управление на часове и клиенти за масажно студио." },
+              { title: "Груминг салони", desc: "Онлайн записване за груминг салон за домашни любимци." },
+            ].map((t, i) => (
+              <RevealOnScroll key={t.title} delay={i * 70}>
+                <div className="h-full rounded-xl border border-[#E8DDD0] bg-white/60 p-5">
+                  <p className="text-sm font-bold text-[#3D1F0A]">{t.title}</p>
+                  <p className="mt-1.5 text-xs leading-relaxed text-[#6E6A63]">{t.desc}</p>
+                </div>
+              </RevealOnScroll>
+            ))}
+          </div>
+          <RevealOnScroll>
+            <p className="mx-auto mt-8 max-w-2xl text-center text-sm text-[#6E6A63]">
+              Не си сигурен откъде да започнеш? Прочети{" "}
+              <Link href="/blog/sistema-za-upravlenie-na-salon" className="font-semibold text-[#B36B52] underline-offset-2 hover:underline">
+                какво да търсиш в система за управление на салон
+              </Link>{" "}
+              или разгледай всички съвети в{" "}
+              <Link href="/blog" className="font-semibold text-[#B36B52] underline-offset-2 hover:underline">
+                нашия блог за салони
+              </Link>
+              .
+            </p>
+          </RevealOnScroll>
         </section>
 
         {/* ── ADMIN SHOWCASE ── */}
@@ -479,7 +522,7 @@ export default function Home() {
               <h2
                 className="playfair mt-3 text-3xl font-bold text-[#3D1F0A] md:text-5xl"
               >
-                Избери план. Смени го или го спри, когато поискаш.
+                Планове и цени за твоя салон — избери и смени, когато поискаш.
               </h2>
               <p className="mt-3 text-sm text-[#6E6A63]">
                 Всички планове включват безплатен уеб дизайн от нас и 1 месец напълно безплатно.
