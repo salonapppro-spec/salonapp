@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 
 import { LeadInquirySchema } from "@/schemas/lead-inquiry";
 import { sendLeadNotification } from "@/lib/lead-notify";
+import { sendMetaCapiEvent } from "@/lib/meta-capi";
 import { createSupabaseServiceRoleClient } from "@/lib/supabase-admin";
 
 function buildLeadWelcomeEmail(name: string): string {
@@ -92,6 +93,10 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
   }
 
+  // Meta tracking (дедупликация + GDPR съгласие) — идват от браузър формата
+  const metaEventId = typeof raw.eventId === "string" ? raw.eventId : undefined;
+  const metaConsent = raw.marketingConsent === true;
+
   const hp = typeof raw.company_website === "string" && raw.company_website.trim().length > 0;
   if (hp) {
     return NextResponse.json({ ok: true }, { status: 200 });
@@ -135,6 +140,22 @@ export async function POST(req: Request) {
       event_type: "form_filled",
       source: data.source,
     });
+
+    // Meta CAPI — server-side Lead, само при маркетинг съгласие (GDPR).
+    // No-op без env. eventId се дедупликира с браузър пиксела.
+    if (metaConsent) {
+      await sendMetaCapiEvent({
+        eventName: "Lead",
+        eventId: metaEventId,
+        eventSourceUrl: req.headers.get("referer") ?? undefined,
+        user: {
+          name: data.contact_name,
+          email: data.email,
+          phone: data.phone,
+        },
+        request: req,
+      });
+    }
 
     if (data.email && process.env.RESEND_API_KEY) {
       await fetch("https://api.resend.com/emails", {

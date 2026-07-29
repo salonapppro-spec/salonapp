@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { getStoredConsent } from "@/components/CookieBanner";
 
 const GOLD = "#C9A84C";
 const ROSE = "#C8826A";
@@ -42,6 +43,12 @@ export function GetStartedForm() {
     }
     setLoading(true);
     setError(null);
+    // Един eventId за браузър пиксела и CAPI; Meta tracking само при маркетинг съгласие
+    const eventId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(16).slice(2);
+    const marketingConsent = !!getStoredConsent()?.marketing;
     try {
       const fd = new FormData(e.currentTarget);
       const res = await fetch("/api/leads", {
@@ -56,10 +63,17 @@ export function GetStartedForm() {
           business_type: businessType || undefined,
           source: "get-started",
           company_website: String(fd.get("company_website") ?? ""),
+          eventId,
+          marketingConsent,
         }),
       });
       const json = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(typeof json?.error === "string" ? json.error : "Неуспешно изпращане.");
+      // Meta Pixel Lead (браузър) — само при маркетинг съгласие, преди редиректа
+      if (marketingConsent) {
+        const fbq = (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq;
+        fbq?.("track", "Lead", {}, { eventID: eventId });
+      }
       router.push("/get-started/thank-you");
     } catch (err) {
       setError(err instanceof Error ? err.message : "Грешка при изпращане.");
