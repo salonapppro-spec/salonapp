@@ -1,7 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import { Analytics } from "@vercel/analytics/next";
-import { GA4Script } from "@/components/GA4Script";
+import MarketingConsent from "@/components/MarketingConsent";
 import "./globals.css";
 
 const geistSans = localFont({
@@ -52,7 +52,7 @@ export default function RootLayout({
       >
         {children}
         <Analytics />
-        <GA4Script />
+        <MarketingConsent />
       </body>
     </html>
   );

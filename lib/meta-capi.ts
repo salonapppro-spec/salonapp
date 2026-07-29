@@ -14,6 +14,7 @@
  */
 import crypto from "node:crypto";
 import { clientIpFromHeaders } from "@/lib/rate-limit";
+import { META_PIXEL_ID } from "@/lib/meta-pixel";
 
 const GRAPH_VERSION = "v21.0";
 
@@ -77,8 +78,7 @@ function readFbCookies(req?: Request): { fbp?: string; fbc?: string } {
 export async function sendMetaCapiEvent(
   params: MetaCapiParams
 ): Promise<{ ok: boolean; skipped?: boolean; error?: string }> {
-  const pixelId =
-    process.env.META_PIXEL_ID || process.env.NEXT_PUBLIC_META_PIXEL_ID;
+  const pixelId = META_PIXEL_ID;
   const token = process.env.META_CAPI_ACCESS_TOKEN;
   if (!pixelId || !token) return { ok: false, skipped: true };
 

@@ -14,14 +14,22 @@ export function ConsultationForm() {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    // Един eventId за браузър пиксела и за server-side CAPI → Meta ги дедуплицира
+    const eventId =
+      typeof crypto !== "undefined" && crypto.randomUUID
+        ? crypto.randomUUID()
+        : String(Date.now()) + Math.random().toString(16).slice(2);
     try {
       const res = await fetch("/api/consultation", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name, email, phone: phone || undefined }),
+        body: JSON.stringify({ name, email, phone: phone || undefined, eventId }),
       });
       const j = await res.json().catch(() => ({}));
       if (!res.ok) throw new Error(j?.error ?? "Грешка");
+      // Meta Pixel Lead (браузър) — само ако пикселът е зареден (след consent)
+      const fbq = (window as unknown as { fbq?: (...a: unknown[]) => void }).fbq;
+      fbq?.("track", "Lead", {}, { eventID: eventId });
       setDone(true);
     } catch (er) {
       setError(er instanceof Error ? er.message : "Грешка");

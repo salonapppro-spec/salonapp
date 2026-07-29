@@ -20,9 +20,11 @@
 ## 🟡 Facebook реклами (в процес)
 
 - [x] **Meta CAPI сървър** — `lib/meta-capi.ts` (server-side Conversions API, SHA-256 hashing, дедупликация по eventId) + вграден Lead в `app/api/consultation`. **Инертен** докато няма env. Env: `NEXT_PUBLIC_META_PIXEL_ID`, `META_CAPI_ACCESS_TOKEN` (таен), `META_CAPI_TEST_EVENT_CODE` (по избор)
-- [ ] **Браузър пиксел на маркетинг сайта** — чака Pixel ID от Лина; ще се добави в root layout, consent-gated (като тенант `ConsentAnalytics`), + fbq Lead на `/get-started` формата със същия eventId
+- [x] **Браузър пиксел на маркетинг сайта** — Pixel ID `1579340717259752`; consent-gated чрез нов `MarketingConsent` (CookieBanner + ConsentAnalytics) в root layout; GA4 също минат през consent; fbq Lead на consultation формата със същия eventId като CAPI. Верифицирано: преди consent нищо не се зарежда, след „Приемам всички" пикселът стреля с правилния ID
+- [x] **CAPI token в Vercel** — Лина го качи (`META_CAPI_ACCESS_TOKEN`); Pixel ID е hardcoded fallback, така че CAPI работи само с токена
 - [ ] **Domain verification** на salonapp.pro в Meta Business Settings (meta-таг/DNS)
-- [ ] **Задай env в Vercel** (Pixel ID + CAPI token) и тествай през Events Manager → Test Events
+- [ ] **Тествай на production** през Events Manager → Test Events (browser Lead + server CAPI Lead → 1 дедупликирана конверсия)
+- [ ] **Карта в рекламния акаунт** + пусни първата кампания
 - [ ] **Включи GA4 Data API** в проект `salonapp-495413` (после SA чете и GA4)
 - [ ] **Отделна URL-prefix GSC property** само за `https://salonapp.pro/` (чисти данни без тенант шум)
 

@@ -36,7 +36,7 @@ const CSP_POLICY = [
   "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
   "font-src 'self' https://fonts.gstatic.com data:",
   // Supabase Storage за снимки; Unsplash само в dev (placeholder изображения)
-  `img-src 'self' data: blob: https://*.supabase.co https://*.salonapp.pro https://www.google.com https://www.gstatic.com${isDev ? " https://images.unsplash.com" : ""}`,
+  `img-src 'self' data: blob: https://*.supabase.co https://*.salonapp.pro https://www.google.com https://www.gstatic.com https://www.facebook.com${isDev ? " https://images.unsplash.com" : ""}`,
   // Iframe preview в super-admin builder + Google Maps iframe
   "frame-src 'self' https://www.google.com https://maps.google.com https://*.salonapp.pro",
   // Supabase realtime + REST, Stripe, Meta CAPI + Sentry ingest
