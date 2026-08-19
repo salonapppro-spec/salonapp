@@ -13,22 +13,18 @@
 - **Едностъпкова резервация** — услуга (select с optgroup по категории), хоризонтална лента с работни дни, свободни часове, име/телефон/имейл и бутон „Резервирай“ — всичко в един панел. Ползва `createBooking` + `/api/availability`, валидация на телефона с `isLikelyValidPhone`.
 - **`public/tenants/tania/*.webp`** — 16 снимки на клиента, оптимизирани със `sharp` (hero 240 KB, останалите ≤150 KB). Само локални файлове, никакви външни URL-и.
 - **`lib/tenant-site-slugs.ts` + `lib/tenant-sites.ts`** — регистриран slug `tania` (сваля и `noindex`-а от `generateMetadata`).
-- **`scripts/seed-tenant-tania.mjs`** — provisioning скрипт: тенант, auth user на собственика (`app_metadata: salon_slug + role: owner`), 32 услуги от ценоразписа, работно време Пн–Сб 09:30–18:00, контакти и Google Maps embed. Идемпотентен, спира ако slug-ът е зает, не праща имейли — печата set-password линка.
+- **Тенантът е създаден в базата** (проект `salonapp-pro`, Supabase MCP): ред в `tenants` (`plan: standard`, `status: trial`, `payment_type: bank`, контакти + Google Maps embed), 32 услуги, работно време Пн–Сб 09:30–18:00 (неделя почивна) и auth user за собственика с `raw_app_meta_data: {role: "owner", salon_slug: "tania"}`, огледален на съществуващите owner редове.
+- **`tests/tania-services.test.ts`** — 9 теста върху точните имена от базата: нищо не пада в „Други услуги“, показваните имена в група са уникални (хваща стария бъг с двете „средна коса“), цените се форматират и при numeric-като-низ от Postgres.
 
 ### Проверено в браузъра
 
 Desktop (1440 и 1280) и мобилно (375) + таблет (768): нула хоризонтален скрол, tap targets ≥44px, body ≥16px, нула конзолни грешки от сайта (остават само познатите CSP грешки на Vercel Analytics в dev). Google Maps embed зарежда правилния адрес. Ценоразписът показва всички 32 услуги в 10 групи с двойни цени (EUR + лв по 1.956). `npx tsc --noEmit` чист, ESLint чист.
 
-### ⚠️ Остава за Лина (нужен е `.env.local`)
+### ⚠️ Остава за Лина
 
-В тази сесия нямаше достъп до базата (няма `.env.local`, Supabase MCP токенът е placeholder, `vercel env pull` върна „Not authorized“). Затова **Стъпки 1–2 (запис в базата) и end-to-end тестът на резервацията не са изпълнени**. Сайтът е проверен визуално през временен preview route с mock `SalonData` (изтрит преди commit).
-
-```bash
-node scripts/seed-tenant-tania.mjs           # dry-run
-node scripts/seed-tenant-tania.mjs --apply   # реален запис + set-password линк
-```
-
-След това: пусни dev сървъра, отвори `/tania`, направи една тестова резервация и провери, че влиза в админ панела.
+- **Парола на собственика.** Auth user-ът е създаден през SQL, значи няма как да се генерира еднократен set-password линк (за това трябва Admin API / service role key, който не е наличен на тази машина). Таня си задава парола сама през **`salonapp.pro/admin/forgot-password`** с имейл `tanyapapazova1@abv.bg`.
+- **End-to-end тест на резервацията.** Не е правен — dev сървърът тук не може да вдигне реални данни без `.env.local` (`loadPublicSalonData` минава през service role), а Vercel CLI/MCP са под друг акаунт. След merge и деплой: отвори `tania.salonapp.pro`, направи една резервация и провери, че влиза в админ панела. Умишлено не създадох тестова резервация директно в production базата — тя праща реален имейл на салона.
+- **`financial_settings`** няма ред за `tania` — кодът пада на подразбиращите се (30 дни прозорец, 10 мин буфер). Таня може да ги настрои от админ панела.
 
 ---
 
