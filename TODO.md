@@ -4,7 +4,23 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-07-29
+> Актуализирай след всяка задача. Последна промяна: 2026-08-19
+
+---
+
+
+## 🟡 2026-08-19 — Тенант `tania` (Фризьорски салон Таня, Бургас)
+
+- [x] **Уникален публичен сайт** — `components/tenants/tania/` (Prata + Manrope, златно-бежова палитра, вълнови разделители, ценоразпис с водещи точки, преди/след, галерия с лайтбокс)
+- [x] **Едностъпкова форма за резервация** — услуга + дата + час + данни в един панел, бутонът винаги видим
+- [x] **Снимки** — 16 бр. оптимизирани в `public/tenants/tania/` (webp, hero ≤250 KB, останалите ≤150 KB)
+- [x] **Регистриран slug** в `lib/tenant-site-slugs.ts` и `lib/tenant-sites.ts`
+- [x] **Тенантът е в базата** — `tenants` ред, 32 услуги, работно време Пн–Сб 09:30–18:00, контакти + Google Maps embed, auth user за собственика с `app_metadata: {role: owner, salon_slug: tania}`
+- [x] **Тестове върху реалните имена на услугите** — `tests/tania-services.test.ts` (9 бр.)
+- [ ] **Таня да си зададе парола** — `salonapp.pro/admin/forgot-password` с `tanyapapazova1@abv.bg` (set-password линк не може да се генерира без Admin API / service role key)
+- [ ] **End-to-end тест на резервацията** — след merge и деплой, на `tania.salonapp.pro`; нарочно не е правена тестова резервация в production базата, защото праща реален имейл на салона
+- [ ] **Провери, че промяна на цена от админ панела се вижда на сайта**
+- [ ] **Липсващи данни от клиента** — времетраене на „Измиване“ (прието 10 мин) и точните цени/време за балеаж, AIR TOUCH, колористика и терапиите (сега са в блок „След консултация“)
 
 ---
 
