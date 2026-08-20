@@ -8,8 +8,6 @@ export const TANIA_IMG = {
   salon: "/tenants/tania/salon.webp",
   /** Таня пред салона на 25-годишнината — голямата снимка в „За мен“. */
   tania: "/tenants/tania/about-tania.webp",
-  /** Таня с клиентка в салона. */
-  client: "/tenants/tania/about-klient.webp",
   /** Сертификатът от ASK Education. */
   certificate: "/tenants/tania/tanya.webp",
 } as const;
@@ -30,7 +28,7 @@ export const TANIA_GALLERY: { src: string; alt: string }[] = [
   { src: "/tenants/tania/g-kid-1.webp", alt: "Детско подстригване с преход и късо оформени страни" },
   { src: "/tenants/tania/g-color-3.webp", alt: "Дълга коса, боядисана в ярко червено" },
   { src: "/tenants/tania/g-kid-2.webp", alt: "Момчешко подстригване с обем отгоре и преход отстрани" },
-  { src: "/tenants/tania/salon.webp", alt: "Входът на фризьорски салон Таня в Бургас, украсен за годишнина" },
+  { src: "/tenants/tania/about-klient.webp", alt: "Таня в салона с усмихната клиентка след прическа" },
 ];
 
 /**
