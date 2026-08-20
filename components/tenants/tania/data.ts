@@ -6,19 +6,42 @@ export const BGN_RATE = 1.956;
 export const TANIA_IMG = {
   hero: "/tenants/tania/hero.webp",
   salon: "/tenants/tania/salon.webp",
-  tanya: "/tenants/tania/tanya.webp",
+  /** Таня пред салона на 25-годишнината — голямата снимка в „За мен“. */
+  tania: "/tenants/tania/about-tania.webp",
+  /** Таня с клиентка в салона. */
+  client: "/tenants/tania/about-klient.webp",
+  /** Сертификатът от ASK Education. */
+  certificate: "/tenants/tania/tanya.webp",
 } as const;
 
 export const TANIA_GALLERY: { src: string; alt: string }[] = [
   { src: "/tenants/tania/g-updo-caramel.webp", alt: "Полуприбрана прическа с плитка и едри къдрици в карамелен нюанс" },
+  { src: "/tenants/tania/g-color-burgundy.webp", alt: "Право каре, боядисано в наситено бордо" },
+  { src: "/tenants/tania/g-updo-bow.webp", alt: "Полуприбрана официална прическа с едри къдрици и бяла сатенена панделка" },
+  { src: "/tenants/tania/g-color-copper.webp", alt: "Дълга коса на пластове с медно-червен цвят и оформени вълни" },
+  { src: "/tenants/tania/g-color-pink.webp", alt: "Дълга изправена коса с преход от русо към розово" },
+  { src: "/tenants/tania/g-color-platinum.webp", alt: "Дълга изправена коса, изсветлена до студено платинено русо" },
+  { src: "/tenants/tania/g-updo-plum.webp", alt: "Полувисока опашка с вълни и сливов преход по дължината" },
   { src: "/tenants/tania/g-color-2.webp", alt: "Късо каре, боядисано в наситено медночервено" },
   { src: "/tenants/tania/g-updo-3.webp", alt: "Дълга кестенява коса с къдрици, оформени с маша" },
-  { src: "/tenants/tania/g-color-pink.webp", alt: "Дълга изправена коса с преход от русо към розово" },
+  { src: "/tenants/tania/g-color-copper-long.webp", alt: "Дълга гладко изправена коса в ярък медночервен нюанс" },
   { src: "/tenants/tania/g-color-1.webp", alt: "Дълга изсветлена коса в платинено русо, изсушена и изправена" },
   { src: "/tenants/tania/g-updo-2.webp", alt: "Прибрана официална прическа с дребни къдрици" },
   { src: "/tenants/tania/g-kid-1.webp", alt: "Детско подстригване с преход и късо оформени страни" },
   { src: "/tenants/tania/g-color-3.webp", alt: "Дълга коса, боядисана в ярко червено" },
   { src: "/tenants/tania/g-kid-2.webp", alt: "Момчешко подстригване с обем отгоре и преход отстрани" },
+  { src: "/tenants/tania/salon.webp", alt: "Входът на фризьорски салон Таня в Бургас, украсен за годишнина" },
+];
+
+/**
+ * Професионалната козметика, която се продава в салона.
+ * Изписани са като текст, не като лого файлове — виж бележката в HANDOFF.
+ */
+export const TANIA_BRANDS: { name: string; note: string }[] = [
+  { name: "Authentic Beauty Concept", note: "Грижа за косата без сулфати, парабени и силикони" },
+  { name: "INDOLA", note: "Професионален цвят и стилизиране" },
+  { name: "STMNT", note: "Grooming goods — за коса, брада и бръснене" },
+  { name: "Schwarzkopf", note: "Professional — грижа и колорит" },
 ];
 
 export const TANIA_BEFORE_AFTER: {
@@ -38,6 +61,12 @@ export const TANIA_BEFORE_AFTER: {
     note: "От тъмна основа към топло медено русо",
     before: { src: "/tenants/tania/ba-blonde-before.webp", alt: "Дълга тъмнокестенява коса преди изсветляване" },
     after: { src: "/tenants/tania/ba-blonde-after.webp", alt: "Същата коса след изсветляване — топло медено русо по цялата дължина" },
+  },
+  {
+    title: "Изравняване на цвета",
+    note: "Израснал корен и изтеглени краища — изравнени в един тон",
+    before: { src: "/tenants/tania/ba-tone-before.webp", alt: "Коса с израснал тъмен корен и изтеглени сухи краища преди процедурата" },
+    after: { src: "/tenants/tania/ba-tone-after.webp", alt: "Същата коса след изравняване на цвета — равномерно светло русо от корена до краищата" },
   },
 ];
 
