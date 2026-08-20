@@ -59,6 +59,15 @@ const FALLBACK_HOURS: Pick<WorkingHours, "day_of_week" | "start_time" | "end_tim
     is_day_off: day_of_week === 0,
   }));
 
+/** Знакът на Facebook, чертан inline — без външни файлове и CDN-и. */
+function FacebookMark({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
+      <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.96h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z" />
+    </svg>
+  );
+}
+
 /** Разделител между лентите. Три амплитуди — всяка граница изглежда различно. */
 function Wave({ variant, fill, className }: { variant: 1 | 2 | 3; fill: string; className?: string }) {
   const paths: Record<1 | 2 | 3, string> = {
@@ -195,16 +204,6 @@ export function TaniaSite({ data }: { data: SalonData }) {
             </div>
 
             <div className="t-about-side" data-reveal>
-              <figure className="t-about-shot">
-                <Image
-                  src={TANIA_IMG.client}
-                  alt="Таня в салона с усмихната клиентка след прическа"
-                  width={900}
-                  height={1200}
-                  sizes="(max-width: 900px) 92vw, 30vw"
-                  className="t-about-img"
-                />
-              </figure>
               <figure className="t-about-shot">
                 <Image
                   src={TANIA_IMG.certificate}
@@ -410,7 +409,12 @@ export function TaniaSite({ data }: { data: SalonData }) {
             </dl>
             {(facebook || instagram || tiktok) && (
               <div className="t-social">
-                {facebook && <a href={facebook} target="_blank" rel="noopener noreferrer">Facebook</a>}
+                {facebook && (
+                  <a className="t-social-fb" href={facebook} target="_blank" rel="noopener noreferrer">
+                    <FacebookMark className="t-social-ico" />
+                    <span>Следвайте ни във Facebook</span>
+                  </a>
+                )}
                 {instagram && <a href={instagram} target="_blank" rel="noopener noreferrer">Instagram</a>}
                 {tiktok && <a href={tiktok} target="_blank" rel="noopener noreferrer">TikTok</a>}
               </div>
@@ -445,6 +449,17 @@ export function TaniaSite({ data }: { data: SalonData }) {
             <a href="#cenorazpis">Ценоразпис</a>
             <a href="#galeriya">Галерия</a>
             <a href="#rezervaciya">Запази час</a>
+            {facebook && (
+              <a
+                className="t-footer-fb"
+                href={facebook}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${salonName} във Facebook`}
+              >
+                <FacebookMark className="t-footer-fb-ico" />
+              </a>
+            )}
           </nav>
           <p className="t-footer-note">
             © {new Date().getFullYear()} {salonName}. Онлайн записване от{" "}
@@ -785,6 +800,11 @@ const CSS = `
   transition: border-color .18s ease, color .18s ease;
 }
 .t-social a:hover { border-color: var(--t-gold); color: var(--t-gold-deep); }
+.t-social-fb { gap: .6rem; border-color: rgba(24,119,242,.35) !important; color: #1877F2 !important; }
+.t-social-fb:hover { border-color: #1877F2 !important; background: rgba(24,119,242,.07); }
+.t-social-ico { width: 22px; height: 22px; flex: none; }
+.t-social-fb span { color: var(--t-ink); }
+.t-social-fb:hover span { color: #1877F2; }
 .t-map { border-radius: 6px; overflow: hidden; border: 1px solid var(--t-line); background: var(--t-sand); }
 .t-map iframe { display: block; width: 100%; height: clamp(300px, 46vw, 430px); border: 0; }
 
@@ -796,6 +816,13 @@ const CSS = `
 .t-footer-nav { display: flex; flex-wrap: wrap; gap: 1.3rem; }
 .t-footer-nav a { font-size: .9rem; color: rgba(253,250,244,.78); }
 .t-footer-nav a:hover { color: var(--t-champagne); }
+.t-footer-fb {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 44px; height: 44px; margin: -10px 0; border-radius: 50%;
+  color: rgba(253,250,244,.78); transition: color .18s ease, background .18s ease;
+}
+.t-footer-fb:hover { color: #fff; background: #1877F2; }
+.t-footer-fb-ico { width: 22px; height: 22px; }
 .t-footer-note { width: 100%; padding-top: 1.4rem; border-top: 1px solid rgba(253,250,244,.14); font-size: .82rem; color: rgba(253,250,244,.55); }
 .t-footer-note a { color: var(--t-champagne); }
 
