@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 
 const LINKS: { href: string; label: string }[] = [
-  { href: "#za-nas", label: "За нас" },
+  { href: "#za-nas", label: "За мен" },
   { href: "#cenorazpis", label: "Ценоразпис" },
   { href: "#galeriya", label: "Галерия" },
   { href: "#kontakti", label: "Контакти" },

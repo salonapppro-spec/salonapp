@@ -10,6 +10,7 @@ import { TaniaNav } from "./TaniaNav";
 import { TaniaReveal } from "./TaniaReveal";
 import {
   TANIA_BEFORE_AFTER,
+  TANIA_BRANDS,
   TANIA_GALLERY,
   TANIA_IMG,
   TANIA_ON_REQUEST,
@@ -157,53 +158,91 @@ export function TaniaSite({ data }: { data: SalonData }) {
         <Wave variant={2} fill="var(--t-cream)" className="t-wave-bottom" />
       </section>
 
-      {/* ── ЗА НАС ───────────────────────────────────────────── */}
+      {/* ── ЗА МЕН ───────────────────────────────────────────── */}
       <section className="t-about" id="za-nas">
-        <div className="t-wrap t-about-grid">
-          <div className="t-about-photos" data-reveal>
-            <div className="t-about-main">
-              <Image
-                src={TANIA_IMG.salon}
-                alt="Входът на фризьорски салон Таня в Бургас, украсен за годишнина"
-                width={1440}
-                height={1014}
-                sizes="(max-width: 900px) 92vw, 46vw"
-                className="t-about-img"
-              />
-            </div>
-            <div className="t-about-badge">
-              <Image
-                src={TANIA_IMG.tanya}
-                alt="Таня Папазова със сертификат от ASK Education на Schwarzkopf Professional"
-                width={900}
-                height={1827}
-                sizes="(max-width: 900px) 40vw, 200px"
-                className="t-about-img"
-              />
-            </div>
+        <div className="t-wrap">
+          <div className="t-about-hero" data-reveal>
+            <Image
+              src={TANIA_IMG.tania}
+              alt="Таня Папазова пред фризьорския си салон в Бургас на 25-годишнината му, с торта и балони"
+              width={1600}
+              height={1228}
+              sizes="(max-width: 1180px) 100vw, 1180px"
+              className="t-about-img"
+            />
+            <span className="t-about-years" aria-hidden="true"><b>25</b><i>години</i></span>
           </div>
 
-          <div className="t-about-copy" data-reveal>
-            <p className="t-eyebrow">За салона</p>
-            <h2 className="t-h2">Малък салон,<br /><em>дълга практика</em></h2>
-            <p>
-              Салонът се намира на ул. „Цар Самуил“ 64 в Бургас и работи от понеделник до събота.
-              Тук се прави всичко за косата — от подстригване и изсушаване до боядисване, кичури,
-              къдрене и официални прически за сватби и тържества.
-            </p>
-            <p>
-              Таня работи и с деца, и с мъже — подстригване, брада, мустак и оформяне на вежди.
-              Обучението ѝ включва сертификат от ASK Education на Schwarzkopf Professional за
-              колорит и техниката AIR TOUCH.
-            </p>
-            <ul className="t-about-list">
-              <li>Балеаж, AIR TOUCH и колористика — по индивидуален план</li>
-              <li>Терапии за коса и скалп</li>
-              <li>Официални прически за сватби и тържества</li>
-            </ul>
+          <div className="t-about-grid">
+            <div className="t-about-copy" data-reveal>
+              <p className="t-eyebrow">За мен</p>
+              <h2 className="t-h2">Здравей!<br /><em>Аз съм Таня</em></h2>
+              <p>
+                Казвам се Таня Папазова и вече над 25 години стоя зад стола в този салон.
+                През тези години съм минала през безброй обучения и семинари — следя новите
+                техники и продукти, защото всяка коса е различна и не прощава компромиси.
+              </p>
+              <p>
+                С редовните ми клиенти отдавна не сме просто фризьор и клиент. С някои сме
+                приятели, с други — семейство. Грижа се за ежедневната им визия, но съм до тях
+                и в дните, които се помнят: сватби, абитуриентски балове, кръщенета, юбилеи.
+              </p>
+              <p>
+                Затова обичам тази работа. Не заради самата прическа, а заради лицето на човека
+                срещу огледалото, когато я види — и заради усмивката, с която излиза от вратата.
+              </p>
+              <p className="t-about-sign">Заповядай. Ще намерим твоята визия заедно.</p>
+            </div>
+
+            <div className="t-about-side" data-reveal>
+              <figure className="t-about-shot">
+                <Image
+                  src={TANIA_IMG.client}
+                  alt="Таня в салона с усмихната клиентка след прическа"
+                  width={900}
+                  height={1200}
+                  sizes="(max-width: 900px) 92vw, 30vw"
+                  className="t-about-img"
+                />
+              </figure>
+              <figure className="t-about-shot">
+                <Image
+                  src={TANIA_IMG.certificate}
+                  alt="Таня Папазова със сертификат от ASK Education на Schwarzkopf Professional"
+                  width={900}
+                  height={1827}
+                  sizes="(max-width: 900px) 92vw, 30vw"
+                  className="t-about-img"
+                />
+                <figcaption>Сертификат ASK Education на Schwarzkopf Professional — колорит и AIR TOUCH</figcaption>
+              </figure>
+            </div>
           </div>
         </div>
-        <Wave variant={3} fill="var(--t-sand)" className="t-wave-bottom" />
+        <Wave variant={3} fill="var(--t-cocoa)" className="t-wave-bottom" />
+      </section>
+
+      {/* ── МАРКИ В САЛОНА ──────────────────────────────────── */}
+      <section className="t-brands" aria-labelledby="t-brands-title">
+        <div className="t-wrap">
+          <header className="t-brands-head" data-reveal>
+            <p className="t-eyebrow light">Козметика в салона</p>
+            <h2 className="t-h2 light" id="t-brands-title">Марките, с които работя</h2>
+            <p className="t-brands-lead">
+              Продуктите, с които се грижа за косата ви в салона, можете да купите и за вкъщи —
+              на място, без поръчка и чакане.
+            </p>
+          </header>
+          <ul className="t-brand-row" data-reveal>
+            {TANIA_BRANDS.map((b) => (
+              <li key={b.name}>
+                <span className="t-brand-name">{b.name}</span>
+                <span className="t-brand-note">{b.note}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+        <Wave variant={2} fill="var(--t-sand)" className="t-wave-bottom" />
       </section>
 
       {/* ── ЦЕНОРАЗПИС ──────────────────────────────────────── */}
@@ -402,7 +441,7 @@ export function TaniaSite({ data }: { data: SalonData }) {
             <p className="t-footer-addr">{address}</p>
           </div>
           <nav className="t-footer-nav" aria-label="Долна навигация">
-            <a href="#za-nas">За нас</a>
+            <a href="#za-nas">За мен</a>
             <a href="#cenorazpis">Ценоразпис</a>
             <a href="#galeriya">Галерия</a>
             <a href="#rezervaciya">Запази час</a>
@@ -600,25 +639,55 @@ const CSS = `
 .t-ribbon-k { font-family: var(--t-display); font-size: 1.12rem; color: var(--t-champagne); line-height: 1.3; }
 .t-ribbon-v { font-size: .92rem; line-height: 1.6; color: rgba(253,250,244,.78); }
 
-/* ── За нас ─────────────────────────────────────────────── */
+/* ── За мен ─────────────────────────────────────────────── */
 .t-about { position: relative; background: var(--t-cream); padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(5rem, 10vw, 8rem); }
-.t-about-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: clamp(2rem, 5vw, 4.5rem); align-items: center; }
-.t-about-photos { position: relative; padding-bottom: 3.5rem; }
-.t-about-main { border-radius: 6px; overflow: hidden; box-shadow: 0 32px 60px -38px rgba(74,51,37,.65); }
 .t-about-img { display: block; width: 100%; height: auto; }
-.t-about-badge {
-  position: absolute; right: 0; bottom: 0; width: clamp(112px, 26%, 172px);
-  border-radius: 6px; overflow: hidden; border: 5px solid var(--t-cream);
-  box-shadow: 0 20px 40px -22px rgba(74,51,37,.6);
+
+/* Голямата снимка — на цялата ширина на съдържанието. */
+.t-about-hero {
+  position: relative; border-radius: 8px; overflow: hidden;
+  margin-bottom: clamp(2rem, 5vw, 3.5rem);
+  box-shadow: 0 40px 70px -44px rgba(74,51,37,.7);
 }
-.t-about-copy p { font-size: 1.02rem; line-height: 1.85; color: var(--t-cocoa); margin-top: 1.3rem; }
+.t-about-years {
+  position: absolute; right: clamp(1rem, 3vw, 2rem); bottom: clamp(1rem, 3vw, 2rem);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  width: clamp(84px, 12vw, 124px); aspect-ratio: 1; border-radius: 50%;
+  background: linear-gradient(135deg, rgba(150,104,42,.96), rgba(217,174,98,.96));
+  color: #fff; box-shadow: 0 18px 36px -16px rgba(74,51,37,.8);
+}
+.t-about-years b { font-family: var(--t-display); font-weight: 400; font-size: clamp(1.9rem, 3.4vw, 2.7rem); line-height: 1; }
+.t-about-years i { font-style: normal; font-size: clamp(.62rem, 1.1vw, .74rem); letter-spacing: .16em; text-transform: uppercase; margin-top: .2rem; }
+
+.t-about-grid { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, .75fr); gap: clamp(2rem, 5vw, 4rem); align-items: start; }
+.t-about-copy p { font-size: 1.05rem; line-height: 1.9; color: var(--t-cocoa); margin-top: 1.3rem; }
 .t-about-copy .t-h2 { margin-bottom: .4rem; }
-.t-about-list { margin-top: 1.8rem; display: flex; flex-direction: column; gap: .7rem; }
-.t-about-list li { position: relative; padding-left: 1.6rem; font-size: .98rem; line-height: 1.6; color: var(--t-cocoa); }
-.t-about-list li::before {
-  content: ""; position: absolute; left: 0; top: .55em; width: 8px; height: 8px; border-radius: 50%;
-  background: linear-gradient(135deg, var(--t-gold-deep), #DFB771);
+.t-about-sign {
+  font-family: var(--t-display); font-size: clamp(1.15rem, 2vw, 1.45rem);
+  color: var(--t-gold-deep); line-height: 1.5; margin-top: 1.8rem !important;
+  padding-top: 1.4rem; border-top: 1px solid var(--t-line);
 }
+.t-about-side { display: grid; gap: clamp(.9rem, 2vw, 1.3rem); }
+.t-about-shot { border-radius: 6px; overflow: hidden; background: var(--t-sand); box-shadow: 0 24px 46px -30px rgba(74,51,37,.6); }
+.t-about-shot figcaption {
+  padding: .8rem 1rem 1rem; font-size: .82rem; line-height: 1.5;
+  color: var(--t-cocoa); opacity: .8;
+}
+
+/* ── Марки в салона ─────────────────────────────────────── */
+.t-brands { position: relative; background: var(--t-cocoa); padding: clamp(3rem, 7vw, 4.5rem) 0 clamp(5rem, 10vw, 8rem); }
+.t-brands-head { max-width: 60ch; margin-bottom: clamp(2rem, 4vw, 3rem); }
+.t-brands-lead { margin-top: 1rem; font-size: 1.02rem; line-height: 1.8; color: rgba(253,250,244,.8); }
+.t-brand-row { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: clamp(1.2rem, 3vw, 2.4rem); }
+.t-brand-row li {
+  display: flex; flex-direction: column; gap: .5rem;
+  padding-top: 1.1rem; border-top: 2px solid var(--t-champagne);
+}
+.t-brand-name {
+  font-family: var(--t-display); font-size: clamp(1.05rem, 1.9vw, 1.35rem);
+  line-height: 1.25; color: var(--t-champagne); letter-spacing: .01em;
+}
+.t-brand-note { font-size: .9rem; line-height: 1.6; color: rgba(253,250,244,.72); }
 
 /* ── Ценоразпис ─────────────────────────────────────────── */
 .t-prices { position: relative; background: var(--t-sand); padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(5rem, 10vw, 8rem); }
@@ -742,7 +811,8 @@ const CSS = `
   .t-hero-inner { grid-template-columns: minmax(0, 1fr); }
   .t-hero-photo { order: -1; max-width: 420px; margin: 0 auto 1.6rem; aspect-ratio: 4 / 5; }
   .t-about-grid, .t-book-grid, .t-contact-grid { grid-template-columns: minmax(0, 1fr); }
-  .t-ribbon-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .t-about-side { grid-template-columns: 1fr 1fr; align-items: start; }
+  .t-ribbon-grid, .t-brand-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .t-price-cols { columns: 1; }
 }
 
@@ -759,8 +829,8 @@ const CSS = `
 
   .t-hero { padding-top: 2rem; }
   .t-hero-facts { gap: 1.6rem; }
-  .t-ribbon-grid { grid-template-columns: 1fr; }
-  .t-about-photos { padding-bottom: 2.6rem; }
+  .t-ribbon-grid, .t-brand-row { grid-template-columns: 1fr; }
+  .t-about-side { grid-template-columns: 1fr; }
   .t-gal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .t-lb { padding: .6rem; gap: .3rem; }
   .t-lb-nav { width: 44px; height: 44px; font-size: 1.6rem; }

@@ -4,10 +4,21 @@
 - [x] **Security: design tokens Stored XSS** — strict Zod allowlist validation, safe fallback for stored tokens, no token-driven raw `<style dangerouslySetInnerHTML>`
 - [x] **Security: booking service integrity** — server-side service lookup by `salon_slug + service_id`; client no longer controls service name, price, or duration
 
-> Актуализирай след всяка задача. Последна промяна: 2026-08-19
+> Актуализирай след всяка задача. Последна промяна: 2026-08-20
 
 ---
 
+
+
+## 🟡 2026-08-20 — Таня: съдържание
+
+- [x] **Лична секция „За мен“** — текстът на Таня, голяма снимка от 25-годишнината, бейдж „25 години“
+- [x] **Марките в салона** — Authentic Beauty Concept, INDOLA, STMNT, Schwarzkopf (типографски, не лого файлове)
+- [x] **Галерия 9 → 16 снимки**, преди/след 2 → 3 двойки
+- [ ] **Истински лога на марките** — Таня да сложи PNG/SVG файловете в `Downloads/salon_Tania`; подменят се в `TANIA_BRANDS`
+- [ ] **Отзиви от клиенти** — секцията липсва; ако Таня даде реални отзиви, има място след „Преди и след“
+
+---
 
 ## 🟡 2026-08-19 — Тенант `tania` (Фризьорски салон Таня, Бургас)
 
