@@ -405,6 +405,7 @@ const BOOKING_CSS = `
 .tb-done-card dd { margin: 0; font-weight: 600; }
 
 @media (max-width: 720px) {
+  .tb-hint { font-size: 1rem; }
   .tb-fields { grid-template-columns: 1fr; }
   .tb-foot { flex-direction: column; align-items: stretch; }
   .tb-cta { width: 100%; }

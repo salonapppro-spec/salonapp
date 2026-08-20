@@ -27,54 +27,57 @@ export function TaniaNav({ salonName, phone }: { salonName: string; phone: strin
     };
   }, [open]);
 
+  const telHref = phone ? `tel:${phone.replace(/\s/g, "")}` : null;
+
   return (
-    <header className={`t-nav${scrolled ? " scrolled" : ""}`}>
-      <div className="t-nav-inner">
-        <a className="t-nav-brand" href="#nachalo" onClick={() => setOpen(false)}>
-          <span className="t-nav-brand-mark" aria-hidden="true">Т</span>
-          <span className="t-nav-brand-text">{salonName}</span>
-        </a>
+    <>
+      <header className={`t-nav${scrolled ? " scrolled" : ""}`}>
+        <div className="t-nav-inner">
+          <a className="t-nav-brand" href="#nachalo" onClick={() => setOpen(false)}>
+            <span className="t-nav-brand-mark" aria-hidden="true">Т</span>
+            <span className="t-nav-brand-text">{salonName}</span>
+          </a>
 
-        <nav className="t-nav-links" aria-label="Основна навигация">
-          {LINKS.map((l) => (
-            <a key={l.href} href={l.href}>{l.label}</a>
-          ))}
-        </nav>
+          <nav className="t-nav-links" aria-label="Основна навигация">
+            {LINKS.map((l) => (
+              <a key={l.href} href={l.href}>{l.label}</a>
+            ))}
+          </nav>
 
-        <div className="t-nav-actions">
-          {phone && (
-            <a className="t-nav-phone" href={`tel:${phone.replace(/\s/g, "")}`}>
-              {phone}
-            </a>
-          )}
-          <a className="t-nav-cta" href="#rezervaciya">Запази час</a>
+          <div className="t-nav-actions">
+            {telHref && <a className="t-nav-phone" href={telHref}>{phone}</a>}
+            <a className="t-nav-cta" href="#rezervaciya">Запази час</a>
+          </div>
+
+          <button
+            type="button"
+            className="t-burger"
+            aria-label={open ? "Затвори менюто" : "Отвори менюто"}
+            aria-expanded={open}
+            onClick={() => setOpen((v) => !v)}
+          >
+            <span className={open ? "on" : ""} />
+            <span className={open ? "on" : ""} />
+          </button>
         </div>
+      </header>
 
-        <button
-          type="button"
-          className="t-burger"
-          aria-label={open ? "Затвори менюто" : "Отвори менюто"}
-          aria-expanded={open}
-          onClick={() => setOpen((v) => !v)}
-        >
-          <span className={open ? "on" : ""} />
-          <span className={open ? "on" : ""} />
-        </button>
-      </div>
-
+      {/*
+        Менюто стои ИЗВЪН <header>. Хедърът има `backdrop-filter`, а той прави
+        елемента containing block за fixed потомци — вътре в него менюто се
+        свиваше до височината на лентата и фонът му не покриваше екрана.
+      */}
       {open && (
-        <div className="t-mobile" role="dialog" aria-label="Меню">
+        <div className="t-mobile" role="dialog" aria-modal="true" aria-label="Меню">
           <nav>
             {LINKS.map((l) => (
               <a key={l.href} href={l.href} onClick={() => setOpen(false)}>{l.label}</a>
             ))}
             <a className="t-mobile-cta" href="#rezervaciya" onClick={() => setOpen(false)}>Запази час</a>
-            {phone && (
-              <a className="t-mobile-phone" href={`tel:${phone.replace(/\s/g, "")}`}>{phone}</a>
-            )}
+            {telHref && <a className="t-mobile-phone" href={telHref}>{phone}</a>}
           </nav>
         </div>
       )}
-    </header>
+    </>
   );
 }
