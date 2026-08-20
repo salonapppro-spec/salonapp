@@ -9,6 +9,36 @@ import { useEffect } from "react";
  * Скритото начално състояние се включва от JS (`data-t-reveal="on"` на <html>),
  * за да е видимо цялото съдържание, ако скриптът не се изпълни.
  */
+/**
+ * Мобилната лента „Обади се / Запази час“ се скрива на две места:
+ * в hero-то (там вече има бутон и лентата покрива текста) и над самата
+ * форма за резервация.
+ */
+function watchStickyBar(root: HTMLElement): () => void {
+  const targets = ["nachalo", "rezervaciya"]
+    .map((id) => document.getElementById(id))
+    .filter((el): el is HTMLElement => el !== null);
+  if (targets.length === 0) return () => undefined;
+
+  const visible = new Set<Element>();
+  const io = new IntersectionObserver(
+    (entries) => {
+      for (const e of entries) {
+        if (e.isIntersecting) visible.add(e.target);
+        else visible.delete(e.target);
+      }
+      root.dataset.tHideSticky = visible.size > 0 ? "on" : "off";
+    },
+    { threshold: 0.06 }
+  );
+  for (const t of targets) io.observe(t);
+
+  return () => {
+    io.disconnect();
+    delete root.dataset.tHideSticky;
+  };
+}
+
 export function TaniaReveal() {
   useEffect(() => {
     const root = document.documentElement;
@@ -30,36 +60,16 @@ export function TaniaReveal() {
       );
       for (const t of targets) io.observe(t);
 
-      // Секцията за резервация — мобилната лента се скрива, за да не пречи.
-      const booking = document.getElementById("rezervaciya");
-      let bio: IntersectionObserver | null = null;
-      if (booking) {
-        bio = new IntersectionObserver(
-          ([e]) => { root.dataset.tBooking = e.isIntersecting ? "on" : "off"; },
-          { threshold: 0.06 }
-        );
-        bio.observe(booking);
-      }
+      const stop = watchStickyBar(root);
 
       return () => {
         io.disconnect();
-        bio?.disconnect();
+        stop();
         delete root.dataset.tReveal;
-        delete root.dataset.tBooking;
       };
     }
 
-    const booking = document.getElementById("rezervaciya");
-    if (!booking) return;
-    const bio = new IntersectionObserver(
-      ([e]) => { root.dataset.tBooking = e.isIntersecting ? "on" : "off"; },
-      { threshold: 0.06 }
-    );
-    bio.observe(booking);
-    return () => {
-      bio.disconnect();
-      delete root.dataset.tBooking;
-    };
+    return watchStickyBar(root);
   }, []);
 
   return null;

@@ -588,7 +588,12 @@ const CSS = `
 .t-burger span.on:first-child { transform: translateY(4px) rotate(45deg); }
 .t-burger span.on:last-child { transform: translateY(-4px) rotate(-45deg); }
 
-.t-mobile { position: fixed; inset: 64px 0 0; background: var(--t-cream); z-index: 59; padding: 2rem clamp(1.1rem, 5vw, 2rem); }
+/* Покрива целия екран; хедърът (z-index 60) остава отгоре. */
+.t-mobile {
+  position: fixed; inset: 0; z-index: 59; background: var(--t-cream);
+  padding: 5.5rem clamp(1.1rem, 5vw, 2rem) 2rem;
+  overflow-y: auto; overscroll-behavior: contain;
+}
 .t-mobile nav { display: flex; flex-direction: column; gap: .4rem; }
 .t-mobile nav a {
   font-family: var(--t-display); font-size: 1.6rem; color: var(--t-ink);
@@ -684,6 +689,8 @@ const CSS = `
 }
 .t-about-side { display: grid; gap: clamp(.9rem, 2vw, 1.3rem); }
 .t-about-shot { border-radius: 6px; overflow: hidden; background: var(--t-sand); box-shadow: 0 24px 46px -30px rgba(74,51,37,.6); }
+/* Сертификатът е висок портрет — изрязваме го, за да не заема цял екран. */
+.t-about-shot .t-about-img { aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 30%; }
 .t-about-shot figcaption {
   padding: .8rem 1rem 1rem; font-size: .82rem; line-height: 1.5;
   color: var(--t-cocoa); opacity: .8;
@@ -734,7 +741,8 @@ const CSS = `
 .t-ba-card { background: var(--t-sand); border-radius: 6px; padding: clamp(1rem, 2.5vw, 1.4rem); }
 .t-ba-pair { display: grid; grid-template-columns: 1fr 1fr; gap: .7rem; }
 .t-ba-shot { position: relative; border-radius: 4px; overflow: hidden; }
-.t-ba-img { display: block; width: 100%; height: auto; }
+/* Изходните снимки са с различни съотношения — изравняваме ги, за да не е ръбата секцията. */
+.t-ba-img { display: block; width: 100%; height: 100%; aspect-ratio: 3 / 4; object-fit: cover; }
 .t-ba-shot span {
   position: absolute; left: .5rem; bottom: .5rem; padding: .25rem .6rem; border-radius: 3px;
   font-size: .7rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase;
@@ -847,7 +855,16 @@ const CSS = `
   .t-site { font-size: 16px; }
 
   /* Четимост и удобни за палец цели на мобилни. */
-  .t-price-name, .t-about-list li, .t-book-hours li, .t-ribbon-v, .tb-hint, .t-request-list span { font-size: 1rem; }
+  .t-price-name, .t-book-hours li, .t-ribbon-v, .t-request-list span { font-size: 1rem; }
+  .t-price-val em { font-size: .85rem; }
+  .t-eyebrow { font-size: .8rem; }
+  .t-brand-note, .t-ba-card figcaption span { font-size: .95rem; }
+
+  /* Hero-то не бива да изяжда целия първи екран — заглавието трябва да се вижда. */
+  .t-hero-photo { max-width: 300px; aspect-ratio: 1 / 1; margin-bottom: 1.2rem; }
+  .t-hero-title { font-size: clamp(2.3rem, 11vw, 3rem); margin-bottom: 1.1rem; }
+  .t-hero-cta { margin-top: 1.4rem; }
+  .t-hero-facts { margin-top: 1.8rem; }
   .t-nav-brand { min-height: 44px; }
   .t-hero-facts dd a, .t-contact-list dd a, .t-footer-nav a {
     display: inline-flex; align-items: center; min-height: 44px;
@@ -873,7 +890,7 @@ const CSS = `
   .t-sticky a { display: inline-flex; align-items: center; justify-content: center; min-height: 48px; border-radius: 4px; font-size: .95rem; font-weight: 700; }
   .t-sticky-call { flex: 0 0 38%; border: 1.5px solid var(--t-line); color: var(--t-ink); }
   .t-sticky-cta { flex: 1 1 auto; color: #fff; background: linear-gradient(120deg, var(--t-gold-deep), var(--t-gold)); }
-  [data-t-booking="on"] .t-sticky { transform: translateY(110%); opacity: 0; pointer-events: none; }
+  [data-t-hide-sticky="on"] .t-sticky { transform: translateY(110%); opacity: 0; pointer-events: none; }
 
   /* Лентата не бива да покрива съдържание — футърът получава отстъп. */
   .t-footer { padding-bottom: calc(clamp(2.4rem, 5vw, 3.4rem) + 76px); }
