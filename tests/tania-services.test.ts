@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { groupServices, shortName, eurLabel, bgnLabel, durationLabel } from "@/components/tenants/tania/data";
+import { groupServices, shortName, eurLabel, durationLabel } from "@/components/tenants/tania/data";
 import type { Service } from "@/types/database";
 
 /**
@@ -109,9 +109,31 @@ test("tania: неактивните услуги не се показват", ()
   assert.deepEqual(groups, []);
 });
 
-test("tania: цените се показват в евро и лева, с „от“ за диапазоните", () => {
+test("tania: пакетните услуги са в отделни групи, мъжките преди дамските", () => {
+  // Имената идват от админ панела — включително правописната грешка „подсригване“.
+  const groups = groupServices([
+    svc("Дамско подстригване, измиване, сешоар , стайлинг", 40, 60),
+    svc("Мъжко подсригване Боядисване на коса, измиване, стайлинг", 35, 30),
+    svc("Мъжко подстригване , измиване, стайлинг", 25, 30),
+    svc("Дамско подстригване по японска технология и стайлинг", 60, 60),
+    svc("Мъжко фейд подстригване, боядисване на коса, оформяне и боядисване на брада, стайлинг", 60, 60),
+    svc("Подстригване — детско", 13, 20),
+  ]);
+
+  const titles = groups.map((g) => g.title);
+  assert.deepEqual(titles, [
+    "Мъжко подстригване с измиване и стайлинг",
+    "Дамско подстригване с измиване и стайлинг",
+    "Подстригване",
+  ]);
+  assert.equal(groups[0].items.length, 3, "и трите мъжки пакета, вкл. „подсригване“");
+  assert.equal(groups[1].items.length, 2);
+  // Нищо не бива да пада в „Други услуги“.
+  assert.ok(!titles.includes("Други услуги"));
+});
+
+test("tania: цените са само в евро, с „от“ за диапазоните", () => {
   assert.equal(eurLabel(svc("Подстригване — мъжко", 15)), "15 €");
-  assert.equal(bgnLabel(svc("Подстригване — мъжко", 15)), "29.34 лв");
   assert.equal(eurLabel(svc("Оформяне с маша", 20)), "от 20 €");
   assert.equal(eurLabel(svc("Официална прическа", 20)), "от 20 €");
 });
@@ -119,7 +141,6 @@ test("tania: цените се показват в евро и лева, с „�
 test("tania: цена като низ от Postgres numeric се форматира правилно", () => {
   const asString = { ...svc("Подстригване — мъжко"), price_eur: "15" as unknown as number };
   assert.equal(eurLabel(asString), "15 €");
-  assert.equal(bgnLabel(asString), "29.34 лв");
 });
 
 test("tania: времетраенето се изписва на български", () => {

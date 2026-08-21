@@ -1,7 +1,5 @@
 import type { Service } from "@/types/database";
 
-export const BGN_RATE = 1.956;
-
 /** Локални снимки на клиента (same-origin → минават production CSP-то). */
 export const TANIA_IMG = {
   hero: "/tenants/tania/hero.webp",
@@ -96,10 +94,11 @@ export const TANIA_BEFORE_AFTER: {
  * непопадаща в никоя група, се показва в „Други услуги“ — нищо не се губи.
  */
 export const TANIA_CATEGORIES: { title: string; match: RegExp }[] = [
-  // Пакетните услуги („Дамско подстригване, измиване, сешоар, стайлинг“) —
-  // проверяват се първи, за да не попаднат при простото „Подстригване“.
-  // „Мъжко под“ хваща и „подстригване“, и „подсригване“ от админ панела.
-  { title: "Подстригване с измиване и стайлинг", match: /^(Дамско подстригване|Мъжко под|Мъжко фейд)/i },
+  // Пакетните услуги се проверяват първи, за да не попаднат при простото
+  // „Подстригване“. „Мъжко под“ хваща и „подстригване“, и правописната
+  // грешка „подсригване“ от админ панела.
+  { title: "Мъжко подстригване с измиване и стайлинг", match: /^Мъжко (под|фейд)/i },
+  { title: "Дамско подстригване с измиване и стайлинг", match: /^Дамско подстригване/i },
   { title: "Подстригване", match: /^Подстригване/i },
   { title: "Боядисване", match: /^Боядисване/i },
   { title: "Кичури с фолио", match: /^Кичури с фолио/i },
@@ -153,11 +152,6 @@ export function eurLabel(s: Service): string {
   const value = Number(s.price_eur);
   const prefix = TANIA_FROM_PRICE.has(s.name.trim()) ? "от " : "";
   return `${prefix}${value.toFixed(0)} €`;
-}
-
-/** Левовата равностойност по фиксирания курс. */
-export function bgnLabel(s: Service): string {
-  return `${(Number(s.price_eur) * BGN_RATE).toFixed(2)} лв`;
 }
 
 export function durationLabel(min: number | null): string | null {

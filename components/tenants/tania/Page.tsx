@@ -17,7 +17,6 @@ import {
   TANIA_TRAININGS,
   TANIA_TRAINING_PHOTOS,
   WEEK_ORDER,
-  bgnLabel,
   dayLabel,
   durationLabel,
   eurLabel,
@@ -303,10 +302,6 @@ export function TaniaSite({ data }: { data: SalonData }) {
           <header className="t-sec-head" data-reveal>
             <p className="t-eyebrow">Ценоразпис</p>
             <h2 className="t-h2">Цени и времетраене</h2>
-            <p className="t-sec-lead">
-              Цените са в евро, с левова равностойност по фиксирания курс 1 € = 1,9558 лв.
-              Времето е ориентировъчно и се потвърждава на място.
-            </p>
           </header>
 
           {groups.length === 0 ? (
@@ -328,7 +323,6 @@ export function TaniaSite({ data }: { data: SalonData }) {
                           <span className="t-price-dots" aria-hidden="true" />
                           <span className="t-price-val">
                             <strong>{eurLabel(s)}</strong>
-                            <em>{bgnLabel(s)}</em>
                           </span>
                         </li>
                       );

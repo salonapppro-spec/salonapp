@@ -5,7 +5,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { SalonData, Service, TimeSlot } from "@/types/database";
 import { createBooking } from "@/app/actions/booking";
 import { isLikelyValidPhone } from "@/lib/phone";
-import { bgnLabel, durationLabel, eurLabel, groupServices } from "./data";
+import { durationLabel, eurLabel, groupServices } from "./data";
 
 const WINDOW_DAYS = 45;
 const MONTHS_BG = [
@@ -193,7 +193,7 @@ export function TaniaBooking({ data }: { data: SalonData }) {
         </div>
         {selectedService && (
           <p className="tb-svc-meta">
-            {[durationLabel(selectedService.duration_minutes), `${eurLabel(selectedService)} · ${bgnLabel(selectedService)}`]
+            {[durationLabel(selectedService.duration_minutes), eurLabel(selectedService)]
               .filter(Boolean)
               .join(" · ")}
           </p>
