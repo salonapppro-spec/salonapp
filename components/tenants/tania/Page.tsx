@@ -249,23 +249,9 @@ export function TaniaSite({ data }: { data: SalonData }) {
 
           <ul className="t-train-list">
             {TANIA_TRAININGS.map((t) => (
-              <li className={`t-train-item${t.photo ? " has-photo" : ""}`} key={t.name} data-reveal>
-                {t.photo && (
-                  <div className="t-train-photo">
-                    <Image
-                      src={t.photo.src}
-                      alt={t.photo.alt}
-                      width={823}
-                      height={1600}
-                      sizes="(max-width: 900px) 92vw, 30vw"
-                      className="t-train-img"
-                    />
-                  </div>
-                )}
-                <div className="t-train-body">
-                  <h3 className="t-train-name">{t.name}</h3>
-                  <p className="t-train-note">{t.note}</p>
-                </div>
+              <li className="t-train-item" key={t.name} data-reveal>
+                <h3 className="t-train-name">{t.name}</h3>
+                <p className="t-train-note">{t.note}</p>
               </li>
             ))}
           </ul>
@@ -278,7 +264,7 @@ export function TaniaSite({ data }: { data: SalonData }) {
                   alt={p.alt}
                   width={900}
                   height={1200}
-                  sizes="(max-width: 700px) 46vw, 300px"
+                  sizes="(max-width: 640px) 92vw, (max-width: 1000px) 31vw, 360px"
                   className="t-train-img"
                 />
               </li>
@@ -783,22 +769,21 @@ const CSS = `
 
 /* ── Обучения ───────────────────────────────────────────── */
 .t-train { position: relative; background: var(--t-sand); padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(5rem, 10vw, 8rem); }
-.t-train-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.2rem, 3vw, 2.2rem); align-items: start; }
+.t-train-list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(1.2rem, 3vw, 2.2rem); align-items: start; }
 .t-train-item {
-  display: flex; flex-direction: column; align-self: start;
-  background: var(--t-cream); border: 1px solid var(--t-line); border-radius: 6px; overflow: hidden;
+  align-self: start; padding: clamp(1rem, 2.4vw, 1.5rem);
+  background: var(--t-cream); border: 1px solid var(--t-line); border-radius: 6px;
 }
-.t-train-photo { background: var(--t-sand); }
-.t-train-img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 25%; }
-.t-train-body { padding: clamp(1rem, 2.4vw, 1.4rem); }
 .t-train-name {
   font-family: var(--t-display); font-weight: 400; font-size: clamp(1.15rem, 2.2vw, 1.5rem);
   color: var(--t-gold-deep); letter-spacing: .02em; margin-bottom: .5rem;
 }
 .t-train-note { font-size: .96rem; line-height: 1.7; color: var(--t-cocoa); }
-.t-train-shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(.8rem, 2vw, 1.4rem); margin-top: clamp(1.2rem, 3vw, 2.2rem); }
+
+/* Трите снимки от обученията — един ред. */
+.t-train-shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.8rem, 2vw, 1.4rem); margin-top: clamp(1.4rem, 3vw, 2.4rem); }
 .t-train-shots li { border-radius: 6px; overflow: hidden; box-shadow: 0 24px 46px -32px rgba(74,51,37,.6); }
-.t-train-shots .t-train-img { aspect-ratio: 3 / 4; object-position: 50% 30%; }
+.t-train-img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; object-position: 50% 30%; }
 
 /* ── Марки в салона ─────────────────────────────────────── */
 .t-brands { position: relative; background: var(--t-cocoa); padding: clamp(3rem, 7vw, 4.5rem) 0 clamp(5rem, 10vw, 8rem); }
@@ -984,9 +969,10 @@ const CSS = `
   .t-hero-facts { gap: 1.6rem; }
   .t-ribbon-grid, .t-brand-row, .t-train-list { grid-template-columns: 1fr; }
   .t-about-side { grid-template-columns: 1fr; }
-  /* Снимката към обучението е висок портрет — на телефон я режем на квадрат,
-     за да не заеме цял екран, но да се вижда и лицето, и кутията. */
-  .t-train-photo .t-train-img { aspect-ratio: 1 / 1; object-position: 50% 35%; }
+  /* Три снимки в един ред стават по ~107px на телефон — не се вижда нищо.
+     Затова на мобилно се редят една под друга, в цяла ширина. */
+  .t-train-shots { grid-template-columns: 1fr; }
+  .t-train-img { aspect-ratio: 4 / 3; object-position: 50% 28%; }
   .t-gal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .t-lb { padding: .6rem; gap: .3rem; }
   .t-lb-nav { width: 44px; height: 44px; font-size: 1.6rem; }
