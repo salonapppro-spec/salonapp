@@ -31,6 +31,32 @@ export const TANIA_GALLERY: { src: string; alt: string }[] = [
   { src: "/tenants/tania/about-klient.webp", alt: "Таня в салона с усмихната клиентка след прическа" },
 ];
 
+/** Обученията на Таня. `photo` е по избор — BLONDME е само текст. */
+export const TANIA_TRAININGS: { name: string; note: string; photo?: { src: string; alt: string } }[] = [
+  {
+    name: "FIBRECLINIX",
+    note: "Обучение на Schwarzkopf Professional за възстановяване и подсилване на косъма.",
+    photo: {
+      src: "/tenants/tania/obuchenie-fibreclinix.webp",
+      alt: "Таня Папазова на обучение на Schwarzkopf Professional за FIBRECLINIX",
+    },
+  },
+  {
+    name: "BLONDME",
+    note: "Обучение на Schwarzkopf Professional за изсветляване и работа с руси нюанси.",
+  },
+  {
+    name: "ASK Education",
+    note: "Сертификат на Schwarzkopf Professional за колорит и техниката AIR TOUCH.",
+  },
+];
+
+/** Снимки от обученията и професионалните събития. */
+export const TANIA_TRAINING_PHOTOS: { src: string; alt: string }[] = [
+  { src: "/tenants/tania/obuchenie-stmnt.webp", alt: "Таня Папазова на щанда на STMNT Grooming Goods" },
+  { src: "/tenants/tania/obuchenie-stmnt-2.webp", alt: "Таня Папазова с лектор на професионално събитие на STMNT" },
+];
+
 /**
  * Професионалната козметика, която се продава в салона.
  * Изписани са като текст, не като лого файлове — виж бележката в HANDOFF.
@@ -74,15 +100,21 @@ export const TANIA_BEFORE_AFTER: {
  * непопадаща в никоя група, се показва в „Други услуги“ — нищо не се губи.
  */
 export const TANIA_CATEGORIES: { title: string; match: RegExp }[] = [
+  // Пакетните услуги („Дамско подстригване, измиване, сешоар, стайлинг“) —
+  // проверяват се първи, за да не попаднат при простото „Подстригване“.
+  // „Мъжко под“ хваща и „подстригване“, и „подсригване“ от админ панела.
+  { title: "Подстригване с измиване и стайлинг", match: /^(Дамско подстригване|Мъжко под|Мъжко фейд)/i },
   { title: "Подстригване", match: /^Подстригване/i },
-  { title: "Изсушаване", match: /^Изсушаване/i },
-  { title: "Изправяне с преса", match: /^Изправяне с преса/i },
   { title: "Боядисване", match: /^Боядисване/i },
   { title: "Кичури с фолио", match: /^Кичури с фолио/i },
   { title: "Кичури с шапка", match: /^Кичури с шапка/i },
   { title: "Къдрене", match: /^Къдрене/i },
-  { title: "Официални прически", match: /^Официал/i },
-  { title: "Измиване и стилизиране", match: /^(Измиване|Оформяне)/i },
+  { title: "Изправяне с преса", match: /^Изправяне с преса/i },
+  { title: "Оформяне и прически", match: /^(Оформяне|Официал)/i },
+  // Групите по-долу са празни, докато услугите са изключени в админ панела —
+  // groupServices пропуска празните, но ако Таня ги върне, си идват на място.
+  { title: "Изсушаване", match: /^Изсушаване/i },
+  { title: "Измиване", match: /^Измиване/i },
   { title: "Брада, мустак и вежди", match: /^(Брада|Мустак|Врат|Вежди)/i },
 ];
 

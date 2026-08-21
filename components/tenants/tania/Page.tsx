@@ -14,6 +14,8 @@ import {
   TANIA_GALLERY,
   TANIA_IMG,
   TANIA_ON_REQUEST,
+  TANIA_TRAININGS,
+  TANIA_TRAINING_PHOTOS,
   WEEK_ORDER,
   bgnLabel,
   dayLabel,
@@ -64,6 +66,18 @@ function FacebookMark({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" focusable="false">
       <path d="M24 12.07C24 5.4 18.63 0 12 0S0 5.4 0 12.07C0 18.1 4.39 23.1 10.13 24v-8.44H7.08v-3.49h3.05V9.41c0-3.02 1.79-4.69 4.53-4.69 1.31 0 2.68.24 2.68.24v2.96h-1.51c-1.49 0-1.96.93-1.96 1.89v2.26h3.33l-.53 3.49h-2.8V24C19.61 23.1 24 18.1 24 12.07z" />
+    </svg>
+  );
+}
+
+/** Знакът на Instagram, чертан inline — без външни файлове и CDN-и. */
+function InstagramMark({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.9"
+      strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" focusable="false">
+      <rect x="2.5" y="2.5" width="19" height="19" rx="5.5" />
+      <circle cx="12" cy="12" r="4.2" />
+      <circle cx="17.6" cy="6.4" r="1.1" fill="currentColor" stroke="none" />
     </svg>
   );
 }
@@ -217,6 +231,59 @@ export function TaniaSite({ data }: { data: SalonData }) {
               </figure>
             </div>
           </div>
+        </div>
+        <Wave variant={2} fill="var(--t-sand)" className="t-wave-bottom" />
+      </section>
+
+      {/* ── ОБУЧЕНИЯ ────────────────────────────────────────── */}
+      <section className="t-train" aria-labelledby="t-train-title">
+        <div className="t-wrap">
+          <header className="t-sec-head" data-reveal>
+            <p className="t-eyebrow">Обучения</p>
+            <h2 className="t-h2" id="t-train-title">Където се уча</h2>
+            <p className="t-sec-lead">
+              Техниките и продуктите се менят непрекъснато. Затова всяка година минавам през
+              обучения и семинари — за да идва новото при вас проверено, а не на проба.
+            </p>
+          </header>
+
+          <ul className="t-train-list">
+            {TANIA_TRAININGS.map((t) => (
+              <li className={`t-train-item${t.photo ? " has-photo" : ""}`} key={t.name} data-reveal>
+                {t.photo && (
+                  <div className="t-train-photo">
+                    <Image
+                      src={t.photo.src}
+                      alt={t.photo.alt}
+                      width={823}
+                      height={1600}
+                      sizes="(max-width: 900px) 92vw, 30vw"
+                      className="t-train-img"
+                    />
+                  </div>
+                )}
+                <div className="t-train-body">
+                  <h3 className="t-train-name">{t.name}</h3>
+                  <p className="t-train-note">{t.note}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+
+          <ul className="t-train-shots" data-reveal>
+            {TANIA_TRAINING_PHOTOS.map((p) => (
+              <li key={p.src}>
+                <Image
+                  src={p.src}
+                  alt={p.alt}
+                  width={900}
+                  height={1200}
+                  sizes="(max-width: 700px) 46vw, 300px"
+                  className="t-train-img"
+                />
+              </li>
+            ))}
+          </ul>
         </div>
         <Wave variant={3} fill="var(--t-cocoa)" className="t-wave-bottom" />
       </section>
@@ -415,7 +482,12 @@ export function TaniaSite({ data }: { data: SalonData }) {
                     <span>Следвайте ни във Facebook</span>
                   </a>
                 )}
-                {instagram && <a href={instagram} target="_blank" rel="noopener noreferrer">Instagram</a>}
+                {instagram && (
+                  <a className="t-social-ig" href={instagram} target="_blank" rel="noopener noreferrer">
+                    <InstagramMark className="t-social-ico" />
+                    <span>Instagram</span>
+                  </a>
+                )}
                 {tiktok && <a href={tiktok} target="_blank" rel="noopener noreferrer">TikTok</a>}
               </div>
             )}
@@ -460,6 +532,17 @@ export function TaniaSite({ data }: { data: SalonData }) {
                 <FacebookMark className="t-footer-fb-ico" />
               </a>
             )}
+            {instagram && (
+              <a
+                className="t-footer-fb t-footer-ig"
+                href={instagram}
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label={`${salonName} в Instagram`}
+              >
+                <InstagramMark className="t-footer-fb-ico" />
+              </a>
+            )}
           </nav>
           <p className="t-footer-note">
             © {new Date().getFullYear()} {salonName}. Онлайн записване от{" "}
@@ -495,6 +578,8 @@ const CSS = `
   background: var(--t-cream);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
+  /* Сайтът е светъл по дизайн — без автоматично потъмняване от браузъра. */
+  color-scheme: only light;
 }
 .t-site *, .t-site *::before, .t-site *::after { box-sizing: border-box; }
 .t-site p, .t-site h1, .t-site h2, .t-site h3, .t-site ul, .t-site dl, .t-site dd, .t-site figure { margin: 0; }
@@ -696,6 +781,25 @@ const CSS = `
   color: var(--t-cocoa); opacity: .8;
 }
 
+/* ── Обучения ───────────────────────────────────────────── */
+.t-train { position: relative; background: var(--t-sand); padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(5rem, 10vw, 8rem); }
+.t-train-list { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(1.2rem, 3vw, 2.2rem); align-items: start; }
+.t-train-item {
+  display: flex; flex-direction: column; align-self: start;
+  background: var(--t-cream); border: 1px solid var(--t-line); border-radius: 6px; overflow: hidden;
+}
+.t-train-photo { background: var(--t-sand); }
+.t-train-img { display: block; width: 100%; height: auto; aspect-ratio: 4 / 5; object-fit: cover; object-position: 50% 25%; }
+.t-train-body { padding: clamp(1rem, 2.4vw, 1.4rem); }
+.t-train-name {
+  font-family: var(--t-display); font-weight: 400; font-size: clamp(1.15rem, 2.2vw, 1.5rem);
+  color: var(--t-gold-deep); letter-spacing: .02em; margin-bottom: .5rem;
+}
+.t-train-note { font-size: .96rem; line-height: 1.7; color: var(--t-cocoa); }
+.t-train-shots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: clamp(.8rem, 2vw, 1.4rem); margin-top: clamp(1.2rem, 3vw, 2.2rem); }
+.t-train-shots li { border-radius: 6px; overflow: hidden; box-shadow: 0 24px 46px -32px rgba(74,51,37,.6); }
+.t-train-shots .t-train-img { aspect-ratio: 3 / 4; object-position: 50% 30%; }
+
 /* ── Марки в салона ─────────────────────────────────────── */
 .t-brands { position: relative; background: var(--t-cocoa); padding: clamp(3rem, 7vw, 4.5rem) 0 clamp(5rem, 10vw, 8rem); }
 .t-brands-head { max-width: 60ch; margin-bottom: clamp(2rem, 4vw, 3rem); }
@@ -813,6 +917,10 @@ const CSS = `
 .t-social-ico { width: 22px; height: 22px; flex: none; }
 .t-social-fb span { color: var(--t-ink); }
 .t-social-fb:hover span { color: #1877F2; }
+.t-social-ig { gap: .6rem; border-color: rgba(193,53,132,.35) !important; color: #C13584 !important; }
+.t-social-ig:hover { border-color: #C13584 !important; background: rgba(193,53,132,.07); }
+.t-social-ig span { color: var(--t-ink); }
+.t-social-ig:hover span { color: #C13584; }
 .t-map { border-radius: 6px; overflow: hidden; border: 1px solid var(--t-line); background: var(--t-sand); }
 .t-map iframe { display: block; width: 100%; height: clamp(300px, 46vw, 430px); border: 0; }
 
@@ -830,6 +938,7 @@ const CSS = `
   color: rgba(253,250,244,.78); transition: color .18s ease, background .18s ease;
 }
 .t-footer-fb:hover { color: #fff; background: #1877F2; }
+.t-footer-ig:hover { background: #C13584; }
 .t-footer-fb-ico { width: 22px; height: 22px; }
 .t-footer-note { width: 100%; padding-top: 1.4rem; border-top: 1px solid rgba(253,250,244,.14); font-size: .82rem; color: rgba(253,250,244,.55); }
 .t-footer-note a { color: var(--t-champagne); }
@@ -847,7 +956,7 @@ const CSS = `
   .t-hero-photo { order: -1; max-width: 420px; margin: 0 auto 1.6rem; aspect-ratio: 4 / 5; }
   .t-about-grid, .t-book-grid, .t-contact-grid { grid-template-columns: minmax(0, 1fr); }
   .t-about-side { grid-template-columns: 1fr 1fr; align-items: start; }
-  .t-ribbon-grid, .t-brand-row { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .t-ribbon-grid, .t-brand-row, .t-train-list { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .t-price-cols { columns: 1; }
 }
 
@@ -873,8 +982,11 @@ const CSS = `
 
   .t-hero { padding-top: 2rem; }
   .t-hero-facts { gap: 1.6rem; }
-  .t-ribbon-grid, .t-brand-row { grid-template-columns: 1fr; }
+  .t-ribbon-grid, .t-brand-row, .t-train-list { grid-template-columns: 1fr; }
   .t-about-side { grid-template-columns: 1fr; }
+  /* Снимката към обучението е висок портрет — на телефон я режем на квадрат,
+     за да не заеме цял екран, но да се вижда и лицето, и кутията. */
+  .t-train-photo .t-train-img { aspect-ratio: 1 / 1; object-position: 50% 35%; }
   .t-gal { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .t-lb { padding: .6rem; gap: .3rem; }
   .t-lb-nav { width: 44px; height: 44px; font-size: 1.6rem; }
@@ -894,6 +1006,41 @@ const CSS = `
 
   /* Лентата не бива да покрива съдържание — футърът получава отстъп. */
   .t-footer { padding-bottom: calc(clamp(2.4rem, 5vw, 3.4rem) + 76px); }
+}
+
+/*
+  Тъмен режим на телефона.
+  Samsung Internet и Chrome „force dark" пренебрегват само color-scheme и
+  инвертират цветовете алгоритмично — златният градиент на заглавията изчезваше,
+  а бутоните ставаха почти черни. Щом страницата ЯВНО отговори на
+  prefers-color-scheme: dark, браузърът спира да я пипа. Затова тук повтаряме
+  същите светли стойности: сайтът остава един и същ на всяко устройство.
+*/
+@media (prefers-color-scheme: dark) {
+  .t-site {
+    color-scheme: only light;
+    --t-cream: #FDFAF4;
+    --t-sand: #F7EFE2;
+    --t-champagne: #E8D2A6;
+    --t-gold: #B9863C;
+    --t-gold-deep: #96682A;
+    --t-cocoa: #4A3325;
+    --t-ink: #3B2A1D;
+    --t-line: rgba(59,42,29,.14);
+    background: #FDFAF4;
+    color: #3B2A1D;
+  }
+  .t-nav { background: rgba(253,250,244,.96); }
+  .t-mobile, .t-book-panel, .t-request, .t-about-shot { background: #FDFAF4; }
+  .t-hero { background: linear-gradient(155deg, #FFFDF8 0%, #F7EFE2 48%, #F2E4CE 100%); }
+  .t-ribbon, .t-book, .t-brands { background: #4A3325; }
+  .t-about, .t-ba, .t-contact { background: #FDFAF4; }
+  .t-prices, .t-gallery, .t-train { background: #F7EFE2; }
+  .t-footer { background: #3B2A1D; }
+  .t-train-item { background: #FDFAF4; }
+  .t-ba-card { background: #F7EFE2; }
+  .tb-select, .tb-slot, .tb-date, .tb-field input { background: #fff; color: #3B2A1D; }
+  .t-sticky { background: rgba(253,250,244,.95); }
 }
 
 @media (prefers-reduced-motion: reduce) {
