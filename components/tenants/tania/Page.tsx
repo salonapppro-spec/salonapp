@@ -562,7 +562,9 @@ const CSS = `
   color-scheme: only light;
 }
 .t-site *, .t-site *::before, .t-site *::after { box-sizing: border-box; }
-.t-site p, .t-site h1, .t-site h2, .t-site h3, .t-site ul, .t-site dl, .t-site dd, .t-site figure { margin: 0; }
+/* :where() има нулева специфичност — иначе .t-site ul бие класовете по-долу
+   и всеки margin-top по списъците мълчаливо се занулява. */
+.t-site :where(p, h1, h2, h3, ul, dl, dd, figure) { margin: 0; }
 .t-site ul { list-style: none; padding: 0; }
 .t-site a { color: inherit; text-decoration: none; }
 .t-site img { max-width: 100%; }
@@ -775,7 +777,7 @@ const CSS = `
 .t-train-note { font-size: .96rem; line-height: 1.7; color: var(--t-cocoa); }
 
 /* Трите снимки от обученията — един ред. */
-.t-train-shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.8rem, 2vw, 1.4rem); margin-top: clamp(1.4rem, 3vw, 2.4rem); }
+.t-train-shots { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: clamp(.8rem, 2vw, 1.4rem); margin-top: clamp(2rem, 4.5vw, 3.4rem); }
 .t-train-shots li { border-radius: 6px; overflow: hidden; box-shadow: 0 24px 46px -32px rgba(74,51,37,.6); }
 .t-train-img { display: block; width: 100%; height: auto; aspect-ratio: 3 / 4; object-fit: cover; object-position: 50% 30%; }
 
