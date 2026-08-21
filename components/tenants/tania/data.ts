@@ -31,28 +31,24 @@ export const TANIA_GALLERY: { src: string; alt: string }[] = [
   { src: "/tenants/tania/about-klient.webp", alt: "Таня в салона с усмихната клиентка след прическа" },
 ];
 
-/** Обученията на Таня. `photo` е по избор — BLONDME е само текст. */
-export const TANIA_TRAININGS: { name: string; note: string; photo?: { src: string; alt: string } }[] = [
+/**
+ * Обученията на Таня. ASK Education нарочно не е тук — сертификатът вече е
+ * показан със снимка в секцията „За мен“ и се получаваше повторение.
+ */
+export const TANIA_TRAININGS: { name: string; note: string }[] = [
   {
     name: "FIBRECLINIX",
     note: "Обучение на Schwarzkopf Professional за възстановяване и подсилване на косъма.",
-    photo: {
-      src: "/tenants/tania/obuchenie-fibreclinix.webp",
-      alt: "Таня Папазова на обучение на Schwarzkopf Professional за FIBRECLINIX",
-    },
   },
   {
     name: "BLONDME",
     note: "Обучение на Schwarzkopf Professional за изсветляване и работа с руси нюанси.",
   },
-  {
-    name: "ASK Education",
-    note: "Сертификат на Schwarzkopf Professional за колорит и техниката AIR TOUCH.",
-  },
 ];
 
-/** Снимки от обученията и професионалните събития. */
+/** Снимки от обученията и професионалните събития — показват се в един ред. */
 export const TANIA_TRAINING_PHOTOS: { src: string; alt: string }[] = [
+  { src: "/tenants/tania/obuchenie-fibreclinix.webp", alt: "Таня Папазова на обучение на Schwarzkopf Professional за FIBRECLINIX" },
   { src: "/tenants/tania/obuchenie-stmnt.webp", alt: "Таня Папазова на щанда на STMNT Grooming Goods" },
   { src: "/tenants/tania/obuchenie-stmnt-2.webp", alt: "Таня Папазова с лектор на професионално събитие на STMNT" },
 ];
