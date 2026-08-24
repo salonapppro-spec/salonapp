@@ -214,6 +214,7 @@ export function TaniaSite({ data }: { data: SalonData }) {
                 срещу огледалото, когато я види — и заради усмивката, с която излиза от вратата.
               </p>
               <p className="t-about-sign">Заповядай. Ще намерим твоята визия заедно.</p>
+              <a className="t-btn" href="#rezervaciya">Запази час</a>
             </div>
 
             <div className="t-about-side" data-reveal>
@@ -349,6 +350,10 @@ export function TaniaSite({ data }: { data: SalonData }) {
             </ul>
             <a className="t-btn small" href={`tel:${phone.replace(/\s/g, "")}`}>Обади се: {phone}</a>
           </section>
+
+          <div className="t-prices-cta" data-reveal>
+            <a className="t-btn" href="#rezervaciya">Запази час</a>
+          </div>
         </div>
         <Wave variant={1} fill="var(--t-cream)" className="t-wave-bottom" />
       </section>
@@ -754,6 +759,7 @@ const CSS = `
   color: var(--t-gold-deep); line-height: 1.5; margin-top: 1.8rem !important;
   padding-top: 1.4rem; border-top: 1px solid var(--t-line);
 }
+.t-about-copy .t-btn { margin-top: 1.8rem; }
 .t-about-side { display: grid; gap: clamp(.9rem, 2vw, 1.3rem); }
 .t-about-shot { border-radius: 6px; overflow: hidden; background: var(--t-sand); box-shadow: 0 24px 46px -30px rgba(74,51,37,.6); }
 /* Сертификатът е висок портрет — изрязваме го, за да не заема цял екран. */
@@ -819,6 +825,8 @@ const CSS = `
 .t-request-list li { display: flex; flex-direction: column; gap: .25rem; padding-top: .8rem; border-top: 1px solid var(--t-line); }
 .t-request-list strong { font-size: 1rem; font-weight: 600; }
 .t-request-list span { font-size: .88rem; line-height: 1.55; color: var(--t-cocoa); opacity: .78; }
+
+.t-prices-cta { display: flex; justify-content: center; margin-top: 2.6rem; }
 
 /* ── Преди / след ───────────────────────────────────────── */
 .t-ba { position: relative; background: var(--t-cream); padding: clamp(3rem, 7vw, 5.5rem) 0 clamp(5rem, 10vw, 8rem); }

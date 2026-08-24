@@ -129,19 +129,24 @@ export const TANIA_ON_REQUEST: { name: string; note: string }[] = [
 
 export type ServiceGroup = { title: string; items: Service[] };
 
-/** Подрежда активните услуги по категориите по-горе, със запазен ред от базата. */
+/** Възходящо по цена — най-евтината услуга в категорията отгоре. */
+function byPriceAsc(a: Service, b: Service): number {
+  return Number(a.price_eur) - Number(b.price_eur);
+}
+
+/** Подрежда активните услуги по категориите по-горе, всяка категория — по цена възходящо. */
 export function groupServices(services: Service[]): ServiceGroup[] {
   const active = services.filter((s) => s.is_active);
   const used = new Set<string>();
   const groups: ServiceGroup[] = [];
 
   for (const cat of TANIA_CATEGORIES) {
-    const items = active.filter((s) => cat.match.test(s.name.trim()));
+    const items = active.filter((s) => cat.match.test(s.name.trim())).sort(byPriceAsc);
     for (const s of items) used.add(s.id);
     if (items.length > 0) groups.push({ title: cat.title, items });
   }
 
-  const rest = active.filter((s) => !used.has(s.id));
+  const rest = active.filter((s) => !used.has(s.id)).sort(byPriceAsc);
   if (rest.length > 0) groups.push({ title: "Други услуги", items: rest });
 
   return groups;
